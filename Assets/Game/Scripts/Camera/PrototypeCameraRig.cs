@@ -33,6 +33,13 @@ namespace RealmRaiders.CameraSystem
         public void TransitionTo(CombatEntity entity, CameraMode mode, float duration = .65f)
         { StopAllCoroutines(); StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
 
+        public bool FocusTrap(Transform trap, CombatEntity trapped, float easeIn = .25f, float hold = 1f, float easeOut = .4f)
+        {
+            if (!trap || !trapped || Mode != CameraMode.KeeperOverview || IsTransitioning || target) return false;
+            StartCoroutine(TrapFocus(trap, trapped.transform, easeIn, hold, easeOut));
+            return true;
+        }
+
         IEnumerator Blend(Transform next, CameraMode mode, float duration)
         {
             IsTransitioning = true;
@@ -45,6 +52,32 @@ namespace RealmRaiders.CameraSystem
                 yield return null;
             }
             target = next; Mode = mode; IsTransitioning = false;
+        }
+
+        IEnumerator TrapFocus(Transform trap, Transform trapped, float easeIn, float hold, float easeOut)
+        {
+            IsTransitioning = true;
+            var fromPosition = transform.position; var fromRotation = transform.rotation;
+            var point = (trap.position + trapped.position) * .5f + Vector3.up * 1.1f;
+            var direction = (fromPosition - point).normalized;
+            var focusPosition = point + direction * Mathf.Min(Vector3.Distance(fromPosition, point), 22f);
+            var focusRotation = Quaternion.LookRotation(point - focusPosition);
+            for (float t = 0; t < easeIn; t += Time.unscaledDeltaTime)
+            {
+                var eased = Mathf.SmoothStep(0, 1, t / easeIn);
+                transform.SetPositionAndRotation(Vector3.Lerp(fromPosition, focusPosition, eased), Quaternion.Slerp(fromRotation, focusRotation, eased));
+                yield return null;
+            }
+            transform.SetPositionAndRotation(focusPosition, focusRotation);
+            yield return new WaitForSecondsRealtime(hold);
+            for (float t = 0; t < easeOut; t += Time.unscaledDeltaTime)
+            {
+                var eased = Mathf.SmoothStep(0, 1, t / easeOut);
+                transform.SetPositionAndRotation(Vector3.Lerp(focusPosition, fromPosition, eased), Quaternion.Slerp(focusRotation, fromRotation, eased));
+                yield return null;
+            }
+            transform.SetPositionAndRotation(fromPosition, fromRotation);
+            IsTransitioning = false;
         }
 
         void LateUpdate()

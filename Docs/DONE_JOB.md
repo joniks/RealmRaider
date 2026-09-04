@@ -57,3 +57,20 @@ Completed on 2026-09-04; included with the next project commit.
 - PlayMode: `10/10` passed in Unity Test Runner on 2026-09-04 at 20:58 EEST after the final feedback fixes.
 - The project compiled successfully after the final fixes and `git diff --check` passes.
 - Manual DefenderTest visual validation remains for the project owner.
+
+## Diamond Pass 02.8 — Trap Camera Moment
+
+Completed on 2026-09-04; included with the next project commit.
+
+### Delivered
+
+- A successful defensive trap activation in Keeper Overview creates a short, smooth focus on the trap and captured invader.
+- The beat eases in, holds while `ROOTED!` is readable, then returns to the exact prior overview pose.
+- It never starts for an out-of-range action, terminal result, camera transition, or possessed defender.
+- The helper lives in the existing `PrototypeCameraRig`; it is reusable by a future defense trap.
+
+### Verification
+
+- PlayMode: `10/10` passed in Unity Test Runner on 2026-09-04 at 21:31 EEST after the camera-focus implementation.
+- `git diff --check` passes.
+- Manual portrait and landscape feel validation remains for the project owner.

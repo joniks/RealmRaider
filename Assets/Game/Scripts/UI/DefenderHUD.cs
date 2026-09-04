@@ -4,6 +4,7 @@ using RealmRaiders.Raid;
 using RealmRaiders.Realm;
 using RealmRaiders.Traps;
 using RealmRaiders.Controllers;
+using RealmRaiders.CameraSystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -77,7 +78,13 @@ namespace RealmRaiders.UI
             var hub = Button("MY REALM", new Vector2(0, -64), () => SceneManager.LoadScene("PrototypeHub")); hub.transform.SetParent(resultPanel.transform, false);
         }
 
-        void ActivateTrap() { trap.TryActivate(); Refresh(); }
+        void ActivateTrap()
+        {
+            if (!trap.TryActivate()) { Refresh(); return; }
+            if (!possessionManager.IsPossessing && !GameplayInput.TerminalState && !resultPanel.activeSelf)
+                Camera.main?.GetComponent<PrototypeCameraRig>()?.FocusTrap(trap.transform, invader);
+            Refresh();
+        }
         void Ability(int index) => possessionManager.Possessed?.Controller<PlayerController>()?.UseAbility(index);
         void OnSelection(CombatEntity value)
         { selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it"; possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted); }
