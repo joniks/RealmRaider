@@ -15,9 +15,9 @@ Last reviewed: 2026-09-04
 
 ## Verification baseline
 
-- EditMode: 10 tests passing before the Diamond Pass 01 changes.
-- PlayMode: 4 smoke tests passing before the Diamond Pass 01 changes.
-- The smoke tests currently validate scene bootstrapping and object counts; deeper gameplay-flow coverage remains in the backlog.
+- EditMode: 12/12 tests passing (verified in Unity Test Runner on 2026-09-04).
+- PlayMode: 7/7 tests passing, including terminal defense and same-entity possession regressions (verified in Unity Test Runner on 2026-09-04).
+- Scene smoke coverage passes for PrototypeHub, SylvanRealm, DefenderTest and InfernalRealm.
 
 ## Known limitations
 
@@ -26,9 +26,9 @@ Last reviewed: 2026-09-04
 - Combat has no production animation, audio, VFX, hit pause, hit reaction, telegraphs or tuned dodge.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding.
-- Sylvan and Infernal bootstraps still contain duplicated prototype construction code.
+- Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
 - Device controls and performance have not yet been validated on a mid-range Android phone.
-- Android and iOS Unity platform modules must be installed before generating Android Studio or Xcode projects.
+- Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 
 ## Directory guide
 

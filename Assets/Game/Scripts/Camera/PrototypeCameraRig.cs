@@ -21,6 +21,15 @@ namespace RealmRaiders.CameraSystem
         public void SnapToOverview()
         { target = null; Mode = CameraMode.KeeperOverview; transform.SetPositionAndRotation(overviewPosition, overviewRotation); }
 
+        public void SnapTo(CombatEntity entity, CameraMode mode)
+        {
+            target = entity ? entity.transform : null;
+            Mode = mode;
+            IsTransitioning = false;
+            var pose = DesiredPose(target, mode);
+            transform.SetPositionAndRotation(pose.position, pose.rotation);
+        }
+
         public void TransitionTo(CombatEntity entity, CameraMode mode, float duration = .65f)
         { StopAllCoroutines(); StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
 

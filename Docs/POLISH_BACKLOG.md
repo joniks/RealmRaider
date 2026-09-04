@@ -8,9 +8,9 @@ Work in order. Each pass should remain playable and keep all previous tests gree
 - [x] Start builds from Prototype Hub.
 - [x] Use correct Sylvan and Infernal HUD terminology.
 - [x] Make Hub routes match what each scene actually implements.
-- [ ] Reduce duplicated runtime bootstrap construction safely.
-- [ ] Add gameplay-flow tests for defense results, possession and camera/listener invariants.
-- [ ] Create the first Git checkpoint after platform exports are verified.
+- [x] Reduce duplicated runtime bootstrap construction safely (shared, parameter-only runtime factory under `Assets/Game/Scripts/Core`).
+- [x] Add gameplay-flow tests for terminal defense results, same-entity possession/release and camera/listener invariants.
+- [x] First Git checkpoint is `37aad5e`; Android Studio and Xcode export verification is recorded in `Docs/PLATFORM_BUILDS.md` (2026-09-04).
 
 ## Pass 02 — Minimal BUILD proof
 
