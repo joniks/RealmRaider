@@ -1,0 +1,5 @@
+{
+  "name": "RealmRaiders.PlayModeTests",
+  "references": ["RealmRaiders.Runtime"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

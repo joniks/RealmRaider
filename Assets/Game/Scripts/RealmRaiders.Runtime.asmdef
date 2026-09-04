@@ -1,0 +1,6 @@
+{
+  "name": "RealmRaiders.Runtime",
+  "rootNamespace": "RealmRaiders",
+  "references": ["Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.ugui"],
+  "autoReferenced": true
+}

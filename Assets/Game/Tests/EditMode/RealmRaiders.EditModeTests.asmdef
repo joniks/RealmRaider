@@ -1,0 +1,6 @@
+{
+  "name": "RealmRaiders.EditModeTests",
+  "references": ["RealmRaiders.Runtime"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "includePlatforms": ["Editor"]
+}
