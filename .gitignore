@@ -1,0 +1,70 @@
+# Unity generated directories
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+/[Cc]aptures/
+
+# Unity Asset Store helper files
+/[Aa]ssets/AssetStoreTools*
+
+# Unity and IDE generated project files
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# IDE settings
+.idea/
+.vs/
+.vscode/
+.consulo/
+
+# Android Studio and Gradle generated files
+.gradle/
+.cxx/
+.externalNativeBuild/
+local.properties
+
+# Xcode generated user and build data
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Build packages and exported applications
+*.apk
+*.aab
+*.app
+*.ipa
+*.unitypackage
+
+# Unity diagnostics
+sysinfo.txt
+*.stackdump
+crashlytics-build.properties
+
+# Operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
