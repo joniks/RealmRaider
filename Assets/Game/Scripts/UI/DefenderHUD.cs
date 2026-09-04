@@ -31,7 +31,7 @@ namespace RealmRaiders.UI
             NextActionScene = nextActionScene;
         }
 
-        public static DefenseHudConfig Sylvan => new("SYLVAN DEFENSE", "Ent", "Heart Tree", "Root Trap", "DefenderTest", "PLAY SYLVAN RAID", "SylvanRealm");
+        public static DefenseHudConfig Sylvan => new("SYLVAN DEFENSE", "Ent", "Heart Tree", "Root Trap", "DefenderTest", "RETURN TO BUILD", "RealmBuild");
         public static DefenseHudConfig Infernal => new("INFERNAL DEFENSE", "Brute", "Infernal Heart", "Flame Trap", "InfernalRealm", "PLAY SYLVAN RAID", "SylvanRealm");
     }
 

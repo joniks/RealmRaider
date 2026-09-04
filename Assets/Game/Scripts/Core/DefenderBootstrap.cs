@@ -35,20 +35,29 @@ namespace RealmRaiders.Core
 
             var invaderStats = CombatStats.BloodKnight; invaderStats.MaxHealth = 220; invaderStats.MoveSpeed = 3.8f;
             var invader = Entity("Invading Blood Knight", new Vector3(0, 1, -30), invaderStats, new Color(.72f, .05f, .07f), false, .95f);
+            var layout = DefenseLayoutSave.Load();
             var wolfStats = new CombatStats { MaxHealth = 52, AttackDamage = 9, AttackSpeed = 1.5f, MoveSpeed = 6.5f, Armor = 2, AbilityPower = 4 };
-            var wolfOne = Entity("Realm Wolf A", new Vector3(-3.2f, .7f, -4), wolfStats, new Color(.42f, .45f, .4f), false, .7f);
-            var wolfTwo = Entity("Realm Wolf B", new Vector3(3.2f, .7f, 2), wolfStats, new Color(.34f, .37f, .33f), false, .7f);
-            var ent = Entity("Guardian Ent", new Vector3(0, 1.5f, 11), CombatStats.Ent, new Color(.18f, .43f, .14f), true, 1.4f);
-            foreach (var defender in new[] { wolfOne, wolfTwo, ent }) { var brain = defender.Controller<CreatureBrain>(); brain.Target = invader; defender.SetController(brain); }
+            var defenders = new System.Collections.Generic.List<CombatEntity>();
+            CombatEntity ent = null; RootTrap trap = null;
+            var creaturePositions = new[] { new Vector3(-3.2f, 0, -4), new Vector3(3.2f, 0, 2), new Vector3(0, 0, 11) };
+            int wolfIndex = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                var piece = layout.Slots[i].Piece;
+                var spawnPosition = creaturePositions[i];
+                if (piece == DefensePieceType.Wolf) { spawnPosition.y = .7f; var wolf = Entity($"Realm Wolf {(char)('A' + wolfIndex++)}", spawnPosition, wolfStats, new Color(.42f - wolfIndex * .04f, .45f - wolfIndex * .04f, .4f - wolfIndex * .035f), false, .7f); defenders.Add(wolf); }
+                else if (piece == DefensePieceType.Ent) { spawnPosition.y = 2.1f; ent = Entity("Guardian Ent", spawnPosition, CombatStats.Ent, new Color(.18f, .43f, .14f), true, 1.4f); defenders.Add(ent); }
+            }
+            foreach (var defender in defenders) { var brain = defender.Controller<CreatureBrain>(); brain.Target = invader; defender.SetController(brain); }
 
             var invaderBrain = invader.gameObject.AddComponent<RaidInvaderBrain>();
             invader.RefreshControllers();
-            invaderBrain.Configure(new[] { new Vector3(0, 1, -20), new Vector3(0, 1, -7), new Vector3(0, 1, 5), new Vector3(0, 1, 18), new Vector3(0, 1, 29) }, new[] { wolfOne, wolfTwo, ent }); invader.SetController(invaderBrain);
+            invaderBrain.Configure(new[] { new Vector3(0, 1, -20), new Vector3(0, 1, -7), new Vector3(0, 1, 5), new Vector3(0, 1, 18), new Vector3(0, 1, 29) }, defenders.ToArray()); invader.SetController(invaderBrain);
 
-            var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Manual Root Trap"; trapObject.transform.position = new Vector3(0, .1f, -7); trapObject.transform.localScale = new Vector3(2.7f, .1f, 2.7f); trapObject.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.2f, .75f, .28f)); var trap = trapObject.AddComponent<RootTrap>(); trap.Initialize(invader); trap.Automatic = false; trap.TriggerRadius = 3.5f;
+            for (int slot = 3; slot < 5; slot++) if (layout.Slots[slot].Piece == DefensePieceType.RootTrap) { var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Manual Root Trap"; trapObject.transform.position = slot == 3 ? new Vector3(0, .1f, -7) : new Vector3(6, .1f, 8); trapObject.transform.localScale = new Vector3(2.7f, .1f, 2.7f); trapObject.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.2f, .75f, .28f)); trap = trapObject.AddComponent<RootTrap>(); trap.Initialize(invader); trap.Automatic = false; trap.TriggerRadius = 3.5f; }
             var heart = HeartTree(new Vector3(0, 2.5f, 30)); var core = heart.GetComponent<RealmCore>(); core.Initialize(invader);
 
-            var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(30); possession.Initialize(cameraRig); possession.ConfigureEnergy(energy); possession.Register(ent);
+            var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(30); possession.Initialize(cameraRig); possession.ConfigureEnergy(energy); if (ent) possession.Register(ent);
             var defense = root.AddComponent<DefenseManager>(); defense.Initialize(invader, core, possession);
             var hudObject = new GameObject("Defender HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, ent, trap, core, DefenseHudConfig.Sylvan);
             PrototypeRuntimeFactory.EventSystem(root.transform);

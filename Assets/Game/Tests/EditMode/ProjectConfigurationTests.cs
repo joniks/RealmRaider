@@ -19,6 +19,7 @@ namespace RealmRaiders.Tests
         {
             Assert.That(DefenseHudConfig.Sylvan.DefenderName, Is.EqualTo("Ent"));
             Assert.That(DefenseHudConfig.Sylvan.CoreName, Is.EqualTo("Heart Tree"));
+            Assert.That(DefenseHudConfig.Sylvan.NextActionScene, Is.EqualTo("RealmBuild"));
             Assert.That(DefenseHudConfig.Infernal.DefenderName, Is.EqualTo("Brute"));
             Assert.That(DefenseHudConfig.Infernal.CoreName, Is.EqualTo("Infernal Heart"));
             Assert.That(DefenseHudConfig.Infernal.RetryScene, Is.EqualTo("InfernalRealm"));

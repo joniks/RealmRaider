@@ -14,13 +14,26 @@ Work in order. Each pass should remain playable and keep all previous tests gree
 
 ## Pass 02 — Minimal BUILD proof
 
-- [ ] Add 3–5 fixed placement slots to a small defense layout.
-- [ ] Let the player place a creature and trap within a simple Threat Budget.
-- [ ] Save the chosen layout locally.
-- [ ] Start defense using exactly the saved entities and positions.
-- [ ] Return to Build after the result.
+- [x] Add five fixed placement slots to a small defense layout.
+- [x] Let the player place a creature and trap within a simple Threat Budget.
+- [x] Save the chosen layout locally.
+- [x] Start defense using exactly the saved entities and positions.
+- [x] Return to Build after the result.
+
+Verified on 2026-09-04 with EditMode 17/17 and PlayMode 9/9 passing. A final manual portrait flow remains as a device-facing smoke check.
 
 This pass should prove the product promise without becoming a full dungeon editor.
+
+## Pass 02.5 — Adaptive orientation and classic controls
+
+- [ ] Support portrait and both landscape orientations without reloading the active scene.
+- [ ] Preserve the current tap-to-move and swipe combat controls in portrait.
+- [ ] Add a classic virtual joystick on the left in landscape gameplay scenes.
+- [ ] Keep attack, ability, trap and possession actions reachable on the right in landscape.
+- [ ] Make Hub, BUILD and gameplay HUDs responsive and safe-area aware.
+- [ ] Prevent joystick and other UI touches from triggering world movement or combat gestures.
+- [ ] Preserve gameplay, possession, defense and BUILD state while the device rotates.
+- [ ] Add automated orientation/input tests and verify both layouts on mobile targets.
 
 ## Pass 03 — Possession WOW moment
 

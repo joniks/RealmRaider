@@ -16,6 +16,7 @@ namespace RealmRaiders.Editor
         static readonly string[] Scenes =
         {
             "Assets/Game/Scenes/PrototypeHub.unity",
+            "Assets/Game/Scenes/RealmBuild.unity",
             "Assets/Game/Scenes/CharacterSandbox.unity",
             "Assets/Game/Scenes/SylvanRealm.unity",
             "Assets/Game/Scenes/DefenderTest.unity",

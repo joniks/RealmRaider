@@ -15,6 +15,7 @@ namespace RealmRaiders.UI
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>();
             Label("REALM RAIDERS", new Vector2(0, -170), 62, TextAnchor.UpperCenter); Label("Prototype Hub", new Vector2(0, -255), 30, TextAnchor.UpperCenter);
             selected = Label("", new Vector2(0, -370), 30, TextAnchor.UpperCenter);
+            Button("BUILD SYLVAN", new Vector2(0, 690), () => SelectAndLoad("Sylvan", "RealmBuild"));
             Button("DEFEND SYLVAN", new Vector2(0, 560), () => SelectAndLoad("Sylvan", "DefenderTest"));
             Button("RAID SYLVAN", new Vector2(0, 430), () => SelectAndLoad("Sylvan", "SylvanRealm"));
             Button("DEFEND INFERNAL", new Vector2(0, 300), () => SelectAndLoad("Infernal", "InfernalRealm"));

@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Game/Scenes/PrototypeHub.unity
     guid: 5c2d2df7e8e340b1bb6cc82e2ed23b29
   - enabled: 1
+    path: Assets/Game/Scenes/RealmBuild.unity
+    guid: 7f2c4e9a1b6d43e8a5c0d7f912b6384e
+  - enabled: 1
     path: Assets/Game/Scenes/CharacterSandbox.unity
     guid: 35ae75c6d6374a7b952b8e7ca9226011
   - enabled: 1

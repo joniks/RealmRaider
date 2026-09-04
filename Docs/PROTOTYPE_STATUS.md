@@ -15,14 +15,14 @@ Last reviewed: 2026-09-04
 
 ## Verification baseline
 
-- EditMode: 12/12 tests passing (verified in Unity Test Runner on 2026-09-04).
-- PlayMode: 7/7 tests passing, including terminal defense and same-entity possession regressions (verified in Unity Test Runner on 2026-09-04).
-- Scene smoke coverage passes for PrototypeHub, SylvanRealm, DefenderTest and InfernalRealm.
+- EditMode: 17/17 passed in Unity Test Runner on 2026-09-04, as reported by the project owner.
+- PlayMode: 9/9 passed in Unity Test Runner on 2026-09-04 after correcting the swapped-creature spawn-height regression.
+- Scene smoke coverage passes for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm.
 
 ## Known limitations
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
-- There is no player-facing BUILD step yet. The central “everything you build can be played” promise is therefore not fully validated.
+- The BUILD step is a compact five-slot runtime greybox; full device usability and performance remain unvalidated.
 - Combat has no production animation, audio, VFX, hit pause, hit reaction, telegraphs or tuned dodge.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding.

@@ -8,6 +8,7 @@ Playable mobile-first Unity prototype for the first two milestones:
 - **Defender Experience:** watch a live AI invasion from Keeper view, trigger a Root Trap, possess the Guardian Ent, and manage a 30-second possession-energy pool.
 - **Infernal Realm:** defend an Infernal Heart against a Blood Knight using a Brute, two Hellhounds, Flame Trap, and Lava Gate.
 - **Complete prototype loop:** enter the hub, choose a Realm, raid/defend, view results, and return to My Realm.
+- **Minimal BUILD proof:** choose five fixed Sylvan creature/trap slots, save the layout, defend exactly that layout, then return to BUILD.
 
 The arena, placeholder characters, materials, abilities, cameras, and UI are generated when the sandbox scene starts. This keeps the prototype self-contained and makes balance values easy to move into authored ScriptableObject assets later.
 
@@ -41,6 +42,10 @@ Open `Assets/Game/Scenes/SylvanRealm.unity` and press Play. Move from the Portal
 ## Defender test
 
 Open `Assets/Game/Scenes/DefenderTest.unity` and press Play. The Blood Knight automatically advances toward the Heart Tree and attacks defenders in range. Activate the Root Trap while the invader is standing on its green marker. Tap the Guardian Ent and press **POSSESS ENT** to enter combat; **RELEASE** returns to Keeper view. Possession consumes the shared 30-second pool and releases automatically at zero.
+
+## Sylvan BUILD
+
+From the hub choose **BUILD SYLVAN**. Configure the three creature slots and two trap slots, keeping one Ent, at least one Wolf, exactly one Root Trap, and no more than 10 Threat. Press **SAVE & DEFEND** to load exactly that fixed-slot layout in Defender Test; after the result choose **RETURN TO BUILD**.
 
 ## Infernal realm
 

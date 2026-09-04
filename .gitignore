@@ -68,3 +68,6 @@ crashlytics-build.properties
 .LSOverride
 Thumbs.db
 Desktop.ini
+
+# Local Codex handoff
+/Docs/NEXT_JOB.md
