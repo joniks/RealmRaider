@@ -31,7 +31,7 @@ namespace RealmRaiders.CameraSystem
         }
 
         public void TransitionTo(CombatEntity entity, CameraMode mode, float duration = .65f)
-        { StopAllCoroutines(); StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
+        { StopAllCoroutines(); IsTransitioning = false; StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
 
         public bool FocusTrap(Transform trap, CombatEntity trapped, float easeIn = .25f, float hold = 1f, float easeOut = .4f)
         {

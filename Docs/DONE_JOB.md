@@ -74,3 +74,24 @@ Completed on 2026-09-04; included with the next project commit.
 - PlayMode: `10/10` passed in Unity Test Runner on 2026-09-04 at 21:31 EEST after the camera-focus implementation.
 - `git diff --check` passes.
 - Manual portrait and landscape feel validation remains for the project owner.
+
+## Diamond Pass 03 — Possession WOW Moment
+
+Completed on 2026-09-05; included with the next project commit.
+
+### Delivered
+
+- Possessable creatures now have a single cleanup-safe selection presentation: a ground ring and `SELECTED — PRESS POSSESS` marker.
+- The same living Ent or Brute is kept through possession: its position, health, ability state, and identity are preserved while controllers are swapped.
+- Possession adds a brief colour-based takeover pulse, guarded mobile haptic, a short slow-motion beat, and a longer eased camera dive.
+- Slow-motion safely restores time scale and fixed timestep on normal release, energy-depletion release, death, and object cleanup.
+- Defender HUD now includes a possession-energy meter with low-energy colour warning and distinct release feedback for voluntary versus energy-depleted exit.
+- Camera transition cleanup no longer leaves `PrototypeCameraRig.IsTransitioning` stuck when it cancels a prior camera routine.
+
+### Verification
+
+- EditMode: `24/24` passed in Unity Test Runner on 2026-09-05 at 01:04 EEST.
+- PlayMode: `11/11` passed in Unity Test Runner on 2026-09-05 at 01:05 EEST, including forced-release time/control cleanup coverage.
+- DefenderTest was started after clearing Console; no new errors or `NullReferenceException` occurred.
+- `git diff --check` passes.
+- Manual portrait and landscape possession feel validation remains for the project owner.
