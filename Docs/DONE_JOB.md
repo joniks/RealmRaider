@@ -95,3 +95,23 @@ Completed on 2026-09-05; included with the next project commit.
 - DefenderTest was started after clearing Console; no new errors or `NullReferenceException` occurred.
 - `git diff --check` passes.
 - Manual portrait and landscape possession feel validation remains for the project owner.
+
+## Diamond Pass 04.1 — Combat Readability and Impact
+
+Completed on 2026-09-05; included with the next project commit.
+
+### Delivered
+
+- Shared combat action phases now make windup, impact, recovery, and idle state explicit and prevent overlapping abilities.
+- Existing melee, dash, and area abilities receive compact non-blocking telegraphs during windup.
+- Connected hits now show target flash, safe micro-reaction, camera-facing damage marker, and actor impact feedback.
+- Combat feedback cleans up on action completion, controller swap, possession release, death, disable, reload, and terminal flow.
+- The same shared feedback works across Blood Knight, Guardian Ent, Infernal Brute, and AI-controlled creatures without changing combat data or balance.
+
+### Verification
+
+- EditMode: `25/25` passed after the final controller-cleanup fix.
+- PlayMode: `12/12` passed in Unity Test Runner on 2026-09-05 at 01:24 EEST; `TestResults.xml` records `total="12"`, `passed="12"`, `failed="0"`.
+- Manual smoke checks confirmed Sylvan direct attacks plus Defender and Infernal AI feedback, with no new Console errors.
+- `git diff --check` passes.
+- Full manual possession → ability → release validation remains for the project owner.

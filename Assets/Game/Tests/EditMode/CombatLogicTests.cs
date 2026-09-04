@@ -38,5 +38,17 @@ namespace RealmRaiders.Tests
             health.TakeDamage(new DamageInfo(20, null, Vector3.zero), 0); health.RestoreFull();
             Assert.That(health.Current, Is.EqualTo(100));
         }
+
+        [Test]
+        public void ActionState_RejectsOverlapAndReturnsToIdle()
+        {
+            var state = new CombatActionState();
+            Assert.That(state.TryBegin(), Is.True);
+            Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Windup));
+            Assert.That(state.TryBegin(), Is.False);
+            state.Impact(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Impact));
+            state.Recover(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Recovery));
+            state.Complete(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Idle));
+        }
     }
 }

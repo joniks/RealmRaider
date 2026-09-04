@@ -19,9 +19,14 @@ namespace RealmRaiders.Characters
         public CharacterController Motor { get; private set; }
         public IReadOnlyList<AbilityRuntime> Abilities => abilities;
         readonly List<AbilityRuntime> abilities = new();
+        readonly CombatActionState action = new();
         IEntityController[] controllers;
+        CombatFeedback feedback;
+        Coroutine actionRoutine;
         float rootedUntil;
         public bool IsRooted => Time.time < rootedUntil;
+        public CombatActionPhase ActionPhase => action.Phase;
+        public bool IsActionResolving => action.IsResolving;
 
         public void Initialize(CharacterDefinition definition)
         {
@@ -30,6 +35,7 @@ namespace RealmRaiders.Characters
             Motor = GetComponent<CharacterController>();
             Health.Initialize(definition.Stats.MaxHealth);
             Health.Died += OnDeath;
+            feedback = GetComponent<CombatFeedback>() ?? gameObject.AddComponent<CombatFeedback>();
             abilities.Clear();
             if (definition.Abilities != null)
                 foreach (var item in definition.Abilities) if (item) abilities.Add(new AbilityRuntime(item));
@@ -39,6 +45,7 @@ namespace RealmRaiders.Characters
         public void SetController(IEntityController next)
         {
             if (controllers == null) controllers = GetComponents<IEntityController>();
+            if (ActiveController != null && ActiveController != next) CancelActionPresentation();
             foreach (var controller in controllers) controller.SetControl(controller == next);
             ActiveController = next;
         }
@@ -56,16 +63,20 @@ namespace RealmRaiders.Characters
 
         public bool TryUse(int index, Vector3 direction)
         {
-            if (index < 0 || index >= abilities.Count || !abilities[index].TryConsume()) return false;
-            StartCoroutine(Execute(abilities[index].Definition, direction.sqrMagnitude > .01f ? direction.normalized : transform.forward));
+            if (Health.IsDead || index < 0 || index >= abilities.Count || !action.TryBegin()) return false;
+            if (!abilities[index].TryConsume()) { action.Complete(); return false; }
+            actionRoutine = StartCoroutine(Execute(abilities[index].Definition, direction.sqrMagnitude > .01f ? direction.normalized : transform.forward));
             return true;
         }
 
         IEnumerator Execute(AbilityDefinition ability, Vector3 direction)
         {
             transform.rotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+            feedback.ShowTelegraph(ability, transform.forward);
             yield return new WaitForSeconds(ability.Windup);
-            if (Health.IsDead) yield break;
+            feedback.ClearTelegraph();
+            if (Health.IsDead) { action.Complete(); yield break; }
+            action.Impact();
             if (ability.Kind == AbilityKind.Dash)
             {
                 float moved = 0;
@@ -76,12 +87,24 @@ namespace RealmRaiders.Characters
                 }
             }
             var center = transform.position + transform.forward * Mathf.Max(1, ability.Range * .55f);
+            bool connected = false;
+            var damaged = new HashSet<CombatEntity>();
             foreach (var hit in Physics.OverlapSphere(center, ability.Radius, ~0, QueryTriggerInteraction.Ignore))
             {
                 var target = hit.GetComponentInParent<CombatEntity>();
-                if (target && target != this && !target.Health.IsDead)
-                    target.Health.TakeDamage(new DamageInfo(ability.Damage + Stats.AbilityPower * .25f, gameObject, hit.ClosestPoint(center)), target.Stats.Armor);
+                if (target && target != this && !target.Health.IsDead && damaged.Add(target))
+                {
+                    var damage = ability.Damage + Stats.AbilityPower * .25f;
+                    var point = hit.ClosestPoint(center);
+                    target.Health.TakeDamage(new DamageInfo(damage, gameObject, point), target.Stats.Armor);
+                    target.feedback?.ShowHit(damage, point, transform.position);
+                    connected = true;
+                }
             }
+            if (connected) feedback.ShowImpact();
+            action.Recover();
+            yield return new WaitForSecondsRealtime(.12f);
+            action.Complete(); actionRoutine = null;
         }
 
         public void Move(Vector3 velocity)
@@ -95,6 +118,15 @@ namespace RealmRaiders.Characters
         public void BreakRoot() => rootedUntil = 0;
 
         void OnMouseDown() => Selected?.Invoke(this);
-        void OnDeath() { rootedUntil = 0; Controller<PlayerController>()?.ResetEscapeState(); Motor.enabled = false; transform.localScale *= .75f; }
+        void OnDeath()
+        {
+            rootedUntil = 0; CancelActionPresentation();
+            Controller<PlayerController>()?.ResetEscapeState(); Motor.enabled = false; transform.localScale *= .75f;
+        }
+
+        void CancelActionPresentation()
+        {
+            action.Complete(); if (actionRoutine != null) StopCoroutine(actionRoutine); actionRoutine = null; feedback?.Cleanup();
+        }
     }
 }

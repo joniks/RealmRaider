@@ -86,5 +86,31 @@ namespace RealmRaiders.Tests
             }
             finally { Time.timeScale = 1; Time.fixedDeltaTime = .02f; Object.Destroy(managerObject); Object.Destroy(entityObject); Object.Destroy(cameraObject); Object.Destroy(definition); }
         }
+
+        [UnityTest]
+        public IEnumerator AbilityAction_GatesOverlapAndCleansTransientFeedback()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera)); cameraObject.tag = "MainCamera";
+            var attackerObject = new GameObject("Attacker", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var targetObject = new GameObject("Target", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); var targetDefinition = ScriptableObject.CreateInstance<CharacterDefinition>(); var ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+            try
+            {
+                ability.Kind = AbilityKind.Melee; ability.Damage = 20; ability.Range = 2; ability.Radius = 1.2f; ability.Windup = .15f; ability.Cooldown = 0;
+                definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 }; definition.Abilities = new[] { ability };
+                targetDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                var attacker = attackerObject.GetComponent<CombatEntity>(); var target = targetObject.GetComponent<CombatEntity>(); attacker.Initialize(definition); target.Initialize(targetDefinition); targetObject.transform.position = Vector3.forward * 1.1f;
+                Assert.That(attacker.TryUse(0, Vector3.forward), Is.True);
+                Assert.That(attacker.ActionPhase, Is.EqualTo(CombatActionPhase.Windup));
+                Assert.That(attacker.TryUse(0, Vector3.forward), Is.False);
+                yield return new WaitForSecondsRealtime(.3f);
+                Assert.That(target.Health.Current, Is.LessThan(target.Health.Maximum));
+                Assert.That(attacker.IsActionResolving, Is.False);
+                yield return new WaitForSecondsRealtime(.8f);
+                foreach (var marker in Object.FindObjectsByType<CameraFacingMarker>(FindObjectsSortMode.None)) Assert.That(marker, Is.Null);
+                Assert.That(attackerObject.GetComponent<CharacterController>().enabled, Is.True);
+            }
+            finally { Object.Destroy(cameraObject); Object.Destroy(attackerObject); Object.Destroy(targetObject); Object.Destroy(definition); Object.Destroy(targetDefinition); Object.Destroy(ability); }
+        }
     }
 }
