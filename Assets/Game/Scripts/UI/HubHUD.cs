@@ -8,11 +8,13 @@ namespace RealmRaiders.UI
     public sealed class HubHUD : MonoBehaviour
     {
         Text selected;
+        RawImage guardianEntHero;
+        ResponsiveHudRoot responsive;
         public void Initialize() { Build(); Refresh(); }
 
         void Build()
         {
-            var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(false);
+            var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); guardianEntHero = HeroArt(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyHeroArtLayout; responsive.Initialize(false); ApplyHeroArtLayout(responsive.Orientation);
             Label("REALM RAIDERS", new Vector2(0, -170), 62, TextAnchor.UpperCenter); Label("Prototype Hub", new Vector2(0, -255), 30, TextAnchor.UpperCenter);
             selected = Label("", new Vector2(0, -370), 30, TextAnchor.UpperCenter); Label("ORIENTATION", new Vector2(0, -455), 24, TextAnchor.UpperCenter); Label("CONTROL STYLE", new Vector2(0, -535), 24, TextAnchor.UpperCenter);
             Button("AUTO", new Vector2(-230, 1500), () => ChooseOrientation("Auto")); Button("PORTRAIT", new Vector2(0, 1500), () => ChooseOrientation("Portrait")); Button("LANDSCAPE", new Vector2(230, 1500), () => ChooseOrientation("Landscape"));
@@ -22,6 +24,29 @@ namespace RealmRaiders.UI
             Button("RAID SYLVAN", new Vector2(0, 800), () => SelectAndLoad("Sylvan", "SylvanRealm"));
             Button("DEFEND INFERNAL", new Vector2(0, 620), () => SelectAndLoad("Infernal", "InfernalRealm"));
             Button("CHARACTER SANDBOX", new Vector2(0, 440), () => SceneManager.LoadScene("CharacterSandbox"));
+        }
+
+        RawImage HeroArt()
+        {
+            var texture = Resources.Load<Texture2D>("Art/GuardianEntHero"); if (!texture) return null;
+            var go = new GameObject("Guardian Ent Hero", typeof(RectTransform), typeof(RawImage)); go.transform.SetParent(transform, false); go.transform.SetAsFirstSibling();
+            var image = go.GetComponent<RawImage>(); image.texture = texture; image.raycastTarget = false; return image;
+        }
+
+        void ApplyHeroArtLayout(PrototypeOrientation orientation)
+        {
+            if (!guardianEntHero) return;
+            var rect = guardianEntHero.rectTransform;
+            if (orientation == PrototypeOrientation.Landscape)
+            {
+                rect.anchorMin = new Vector2(.02f, .06f); rect.anchorMax = new Vector2(.48f, .94f); rect.offsetMin = rect.offsetMax = Vector2.zero;
+                guardianEntHero.color = Color.white;
+            }
+            else
+            {
+                rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one; rect.offsetMin = rect.offsetMax = Vector2.zero;
+                guardianEntHero.color = new Color(1, 1, 1, .52f);
+            }
         }
 
         void SelectAndLoad(string realm, string scene) { PrototypeSave.SelectRealm(realm); SceneManager.LoadScene(scene); }

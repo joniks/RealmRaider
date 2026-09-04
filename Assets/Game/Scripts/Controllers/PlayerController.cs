@@ -19,11 +19,15 @@ namespace RealmRaiders.Controllers
         Camera view;
         bool pointerStartedOnUi;
         int interactionRevision;
+        public int RootEscapeProgress { get; private set; }
+        float rootBreakUntil;
+        public bool RootEscapeVisible => (entity && entity.IsRooted) || Time.time < rootBreakUntil;
+        public void ResetEscapeState() { RootEscapeProgress = 0; rootBreakUntil = 0; hasDestination = false; }
 
         void Awake() => entity = GetComponent<CombatEntity>();
         int ControllerKey => GetEntityId().GetHashCode();
         void OnDestroy() => GameplayInput.SetDirectControl(ControllerKey, false);
-        public void SetControl(bool active) { IsActive = active; hasDestination = false; view = Camera.main; GameplayInput.SetDirectControl(ControllerKey, active); }
+        public void SetControl(bool active) { IsActive = active; hasDestination = false; if (!active) ResetEscapeState(); view = Camera.main; GameplayInput.SetDirectControl(ControllerKey, active); }
 
         public void Tick()
         {
@@ -31,6 +35,7 @@ namespace RealmRaiders.Controllers
             if (interactionRevision != GameplayInput.InteractionRevision) { interactionRevision = GameplayInput.InteractionRevision; hasDestination = false; pointerStartedOnUi = false; pressPosition = default; pressTime = 0; }
             var keyboard = Keyboard.current;
             var keyboardMove = keyboard == null ? Vector2.zero : new Vector2((keyboard.dKey.isPressed ? 1 : 0) - (keyboard.aKey.isPressed ? 1 : 0), (keyboard.wKey.isPressed ? 1 : 0) - (keyboard.sKey.isPressed ? 1 : 0));
+            if (!entity.IsRooted && Time.time >= rootBreakUntil) RootEscapeProgress = 0;
             var directMove = GameplayInput.Movement.sqrMagnitude > .001f ? GameplayInput.Movement : Vector2.ClampMagnitude(keyboardMove, 1);
             if (directMove.sqrMagnitude > .001f) { hasDestination = false; entity.Move(new Vector3(directMove.x, 0, directMove.y) * entity.Stats.MoveSpeed); }
             else if (hasDestination) { var delta = destination - transform.position; delta.y = 0; if (delta.magnitude < .25f) hasDestination = false; else entity.Move(delta.normalized * entity.Stats.MoveSpeed); }
@@ -42,6 +47,7 @@ namespace RealmRaiders.Controllers
             if (pointer.press.wasReleasedThisFrame && !pointerStartedOnUi && !GameplayInput.HasUiOwnership && (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject()))
             {
                 var release = pointer.position.ReadValue();
+                if (entity.IsRooted) { RootEscapeProgress = Mathf.Min(5, RootEscapeProgress + 1); if (RootEscapeProgress >= 5) { entity.BreakRoot(); rootBreakUntil = Time.time + .8f; } pointerStartedOnUi = false; return; }
                 var delta = release - pressPosition;
                 if (delta.magnitude > 70 && Time.time - pressTime < .55f)
                     entity.TryUse(1, new Vector3(delta.x, 0, delta.y));

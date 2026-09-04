@@ -9,7 +9,7 @@ namespace RealmRaiders.UI
 {
     public sealed class RaidHUD : MonoBehaviour
     {
-        Text state, health, stats, objective, result;
+        Text state, health, stats, objective, result, rootPrompt;
         GameObject resultPanel;
         CombatEntity hero;
         RaidManager raid;
@@ -22,7 +22,7 @@ namespace RealmRaiders.UI
             Refresh(); OnState(manager.State);
         }
 
-        void Update() { if (raid) Refresh(); }
+        void Update() { if (raid) Refresh(); var controller = hero ? hero.Controller<PlayerController>() : null; if (rootPrompt) { var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState; rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; } }
 
         void Build()
         {
@@ -33,6 +33,7 @@ namespace RealmRaiders.UI
             health = Label("", new Vector2(35, -105), 28, TextAnchor.UpperLeft);
             stats = Label("", new Vector2(35, -150), 25, TextAnchor.UpperLeft);
             objective = Label("Reach the Heart Tree", new Vector2(0, -205), 28, TextAnchor.UpperCenter);
+            rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             Label("Tap ground: move • Tap enemy: attack • Swipe: Blood Rush", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true);
             Button("SLASH", new Vector2(-260, 110), () => Ability(0));
             Button("BLOOD RUSH", new Vector2(0, 110), () => Ability(1));

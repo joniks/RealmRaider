@@ -37,6 +37,15 @@ This pass should prove the product promise without becoming a full dungeon edito
 
 Implementation is in place. Final Unity Test Runner rerun on 2026-09-04 15:05 EEST passed EditMode 24/24 and PlayMode 10/10. Mobile/manual portrait-landscape verification remains pending.
 
+## Pass 02.6 — Root Trap tap-to-escape
+
+- [x] Add five-tap Root Trap escape prompt and progress for the directly controlled creature.
+- [x] Consume escape taps and preserve the existing root timeout fallback.
+- [x] Reset escape state on release, death, timeout and control changes.
+- [x] Make Root Trap collision non-blocking after release.
+
+Baseline suites remain green at EditMode 24/24 and PlayMode 10/10 (rerun 2026-09-04 15:27 EEST). Manual device feel validation remains pending.
+
 ## Pass 03 — Possession WOW moment
 
 - [ ] Selection outline and clear possess affordance.

@@ -21,6 +21,7 @@ namespace RealmRaiders.Characters
         readonly List<AbilityRuntime> abilities = new();
         IEntityController[] controllers;
         float rootedUntil;
+        public bool IsRooted => Time.time < rootedUntil;
 
         public void Initialize(CharacterDefinition definition)
         {
@@ -91,8 +92,9 @@ namespace RealmRaiders.Characters
         }
 
         public void ApplyRoot(float seconds) => rootedUntil = Mathf.Max(rootedUntil, Time.time + Mathf.Max(0, seconds));
+        public void BreakRoot() => rootedUntil = 0;
 
         void OnMouseDown() => Selected?.Invoke(this);
-        void OnDeath() { Motor.enabled = false; transform.localScale *= .75f; }
+        void OnDeath() { rootedUntil = 0; Controller<PlayerController>()?.ResetEscapeState(); Motor.enabled = false; transform.localScale *= .75f; }
     }
 }

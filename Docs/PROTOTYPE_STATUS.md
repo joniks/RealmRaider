@@ -2,6 +2,12 @@
 
 Last reviewed: 2026-09-04
 
+## Latest verification
+
+- Diamond Pass 02.6 Root Trap tap-to-escape implementation is present: five-tap escape prompt/progress, input consumption, timeout fallback, reset handling and non-blocking trap collider.
+- Unity Test Runner rerun after the Root Trap fixes: EditMode 24/24 and PlayMode 10/10 passed on 2026-09-04 at 15:27 EEST.
+- Physical portrait/landscape Root Trap feel validation remains for the project owner.
+
 ## Implemented milestones
 
 | Milestone | Status | Current implementation |

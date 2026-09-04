@@ -13,6 +13,17 @@ namespace RealmRaiders.Traps
         protected CombatEntity Target { get; private set; }
         protected Renderer Visual { get; private set; }
         float readyAt;
+        public bool TargetInRange
+        {
+            get
+            {
+                if (!Target || Target.Health.IsDead) return false;
+                var delta = Target.transform.position - transform.position; delta.y = 0;
+                return delta.sqrMagnitude <= TriggerRadius * TriggerRadius;
+            }
+        }
+        public float CooldownRemaining => State == TrapState.Cooldown ? Mathf.Max(0, readyAt - Time.time) : 0;
+        public float CooldownDuration => CooldownSeconds;
         public virtual void Initialize(CombatEntity target) { Target = target; Visual = GetComponent<Renderer>(); }
         protected virtual void Update()
         {
@@ -20,11 +31,10 @@ namespace RealmRaiders.Traps
             if (State == TrapState.Cooldown && Time.time >= readyAt) SetState(TrapState.Ready);
             if (Automatic && State == TrapState.Ready) TryActivate();
         }
-        public bool TryActivate()
+        public virtual bool TryActivate()
         {
             if (!Target || Target.Health.IsDead || State != TrapState.Ready) return false;
-            var delta = Target.transform.position - transform.position; delta.y = 0;
-            if (delta.sqrMagnitude > TriggerRadius * TriggerRadius) return false;
+            if (!TargetInRange) return false;
             SetState(TrapState.Triggered); ActivateEffect(Target); readyAt = Time.time + CooldownSeconds; SetState(TrapState.Cooldown); return true;
         }
         protected virtual float CooldownSeconds => 8;

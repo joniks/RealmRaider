@@ -39,3 +39,21 @@ Completed on 2026-09-04 from commit `1b4a551`.
 - Floating/customizable joystick placement.
 - Production art, VFX, audio, haptics, and combat-feel polish.
 - Backend, multiplayer, economy, and inventory work.
+
+## Diamond Pass 02.6–02.7 — Root Trap interaction and clarity
+
+Completed on 2026-09-04; included with the next project commit.
+
+### Delivered
+
+- A directly controlled rooted creature can break free through five deliberate taps, with visible progress and the normal root timeout retained as fallback.
+- Escape state resets on death and control changes; Root Trap collision is non-blocking.
+- Defender HUD now explains out-of-range, ready-to-activate, rooted, and cooldown trap states.
+- A successful Root Trap activation gives an immediate `ROOTED!` world marker and a short visual pulse, including while wolves engage the invader.
+- The world marker faces the active camera and the Defender HUD guards its initialization sequence.
+
+### Verification
+
+- PlayMode: `10/10` passed in Unity Test Runner on 2026-09-04 at 20:58 EEST after the final feedback fixes.
+- The project compiled successfully after the final fixes and `git diff --check` passes.
+- Manual DefenderTest visual validation remains for the project owner.
