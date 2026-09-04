@@ -33,7 +33,7 @@ namespace RealmRaiders.UI
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             gameObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1080, 1920);
-            gameObject.AddComponent<GraphicRaycaster>();
+            gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(true);
             title = Label("REALM RAIDERS — CHARACTER SANDBOX", new Vector2(0, -45), 35, TextAnchor.UpperCenter);
             heroHp = Label("", new Vector2(40, -115), 28, TextAnchor.UpperLeft);
             entHp = Label("", new Vector2(40, -155), 28, TextAnchor.UpperLeft);
@@ -73,7 +73,7 @@ namespace RealmRaiders.UI
         }
         Button Button(string value, Vector2 position, UnityEngine.Events.UnityAction action)
         {
-            var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button)); go.transform.SetParent(transform, false);
+            var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false);
             var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(320, 100);
             go.GetComponent<Image>().color = new Color(.35f, .12f, .08f, .95f); var button = go.GetComponent<Button>(); button.onClick.AddListener(action);
             var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero;

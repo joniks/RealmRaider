@@ -15,9 +15,9 @@ Last reviewed: 2026-09-04
 
 ## Verification baseline
 
-- EditMode: 17/17 passed in Unity Test Runner on 2026-09-04, as reported by the project owner.
-- PlayMode: 9/9 passed in Unity Test Runner on 2026-09-04 after correcting the swapped-creature spawn-height regression.
-- Scene smoke coverage passes for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm.
+- Previous verified baseline: EditMode 17/17 and PlayMode 9/9 on 2026-09-04.
+- Final Unity Test Runner rerun completed on 2026-09-04 15:05 EEST: EditMode 24/24 and PlayMode 10/10 passed.
+- The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm.
 
 ## Known limitations
 
@@ -28,6 +28,8 @@ Last reviewed: 2026-09-04
 - AI uses direct steering instead of navigation/pathfinding.
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
 - Device controls and performance have not yet been validated on a mid-range Android phone.
+- Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented, but device/simulator rotation and focus-loss checks remain outstanding.
+- Camera framing/state continuity review remains code-level only; device rotation, camera framing and continuity have not been manually verified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 
 ## Directory guide

@@ -9,6 +9,7 @@ Playable mobile-first Unity prototype for the first two milestones:
 - **Infernal Realm:** defend an Infernal Heart against a Blood Knight using a Brute, two Hellhounds, Flame Trap, and Lava Gate.
 - **Complete prototype loop:** enter the hub, choose a Realm, raid/defend, view results, and return to My Realm.
 - **Minimal BUILD proof:** choose five fixed Sylvan creature/trap slots, save the layout, defend exactly that layout, then return to BUILD.
+- **Adaptive controls:** portrait and landscape are supported with saved `Contextual`, `Fingertap`, or `Joystick` preferences; Contextual uses fingertap in portrait and joystick in landscape.
 
 The arena, placeholder characters, materials, abilities, cameras, and UI are generated when the sandbox scene starts. This keeps the prototype self-contained and makes balance values easy to move into authored ScriptableObject assets later.
 
@@ -19,7 +20,7 @@ The arena, placeholder characters, materials, abilities, cameras, and UI are gen
 3. Open `Assets/Game/Scenes/PrototypeHub.unity` and press Play.
 4. If Unity asks to switch input handling, choose the New Input System or Both and restart the Editor.
 
-The project setup hook creates and assigns a URP renderer/pipeline asset on first import. Android is configured for portrait orientation, IL2CPP, API 26+, and a 60 FPS runtime target.
+The project setup hook creates and assigns a URP renderer/pipeline asset on first import. Android supports portrait and both landscape orientations and is configured for IL2CPP, API 26+, and a 60 FPS runtime target.
 
 Platform export instructions are in [`Docs/PLATFORM_BUILDS.md`](Docs/PLATFORM_BUILDS.md). Project intent, current milestone status, and the bounded polish backlog live in [`Docs/PROJECT_CONTEXT.md`](Docs/PROJECT_CONTEXT.md), [`Docs/PROTOTYPE_STATUS.md`](Docs/PROTOTYPE_STATUS.md), and [`Docs/POLISH_BACKLOG.md`](Docs/POLISH_BACKLOG.md).
 
@@ -27,7 +28,9 @@ Platform export instructions are in [`Docs/PLATFORM_BUILDS.md`](Docs/PLATFORM_BU
 
 - **KEEPER:** top-down overview. Tap the green Ent, then press **POSSESS**.
 - **PLAY HERO:** control the Blood Knight to validate Milestone 1 combat.
-- Tap ground to move.
+- Choose `Contextual`, `Fingertap`, or `Joystick` in the Prototype Hub. Contextual uses fingertap in portrait and joystick in landscape.
+- In Fingertap mode, tap ground to move in either orientation.
+- In Joystick mode, use the lower-left virtual joystick; world taps do not start automatic movement.
 - Tap the opponent to approach/attack (tap again when in range).
 - Swipe to use the directional dash/charge.
 - While possessing the Ent, use **SMASH** and **GROUND SLAM** buttons.

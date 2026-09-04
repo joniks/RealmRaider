@@ -32,6 +32,27 @@ BUILD → INVADE → FIGHT → POSSESS → DEFEND → RESULT
 9. Monetization must not destroy gameplay fairness.
 10. Open world starts only after the core loop is independently fun.
 
+## Orientation and control decision
+
+Realm Raiders must support both portrait and landscape as first-class play styles, not as one stretched interface.
+
+- Portrait is the convenient one-hand mode. Its contextual default keeps tap-to-move, swipe combat, and reachable action controls.
+- Landscape is the classic two-hand action mode. Its contextual default uses a virtual joystick on the lower-left and combat actions on the lower-right, leaving the center clear.
+- The player chooses `Auto`, `Portrait`, or `Landscape`; the preference is saved. `Auto` follows device orientation, while either locked choice must be respected.
+- The player also chooses a saved control style: `Contextual`, `Fingertap`, or `Joystick`. These are three preferences built from two actual movement methods.
+- `Contextual` is the default: Fingertap in portrait and Joystick in landscape.
+- `Fingertap` enables tap-to-move and swipe combat in both orientations.
+- `Joystick` enables analog joystick movement in both orientations; world taps may still select/target enemies but must not also set a movement destination.
+- Changing control style at runtime clears the previous destination, joystick vector, and in-progress gesture without changing gameplay state.
+- Hub and BUILD adapt to both orientations without a joystick.
+- Keeper view has no joystick until the player possesses and directly controls a creature, even when `Joystick` is selected.
+- Rotation never reloads a scene or resets combat, health, cooldowns, possession energy, defense state, or unsaved BUILD choices.
+- UI touches remain owned by UI for the full gesture, and landscape must support holding the joystick while pressing an action with another finger.
+- Camera framing must preserve gameplay fairness: landscape may show a wider composition, but must not reveal threats materially earlier or provide a competitive advantage.
+- Both modes must be independently laid out, safe-area aware, readable, and tested. A technically rotatable but broken secondary layout is not acceptable.
+
+This direction is supported by mobile-game precedent and interaction research: Mario Kart Tour exposes Portrait, Landscape, and automatic switching with landscape control-side choices; NIKKE added horizontal play after strong player demand but required later landscape UI improvements; usability research found strong two-thumb landscape accuracy while portrait retains one-hand convenience. The intended Realm Raiders split is therefore accessibility in portrait and traditional action control in landscape.
+
 ## Prototype races
 
 ### Sylvan — The Wilds
@@ -53,7 +74,7 @@ The two races must eventually feel different in rhythm, navigation and defensive
 ## Technical foundation
 
 - Unity 6000.6.0f1, URP and New Input System.
-- Android first, portrait, one-hand interaction target.
+- Android first, with equal first-class portrait and landscape support: one-hand direct controls in portrait and classic two-hand controls in landscape.
 - `CombatEntity` owns stats, health, abilities, movement and one active `IEntityController`.
 - Possession switches `CreatureBrain` to `PlayerController` on the same entity, then restores AI on release.
 - No backend, multiplayer, accounts, guilds, IAP, open world or production content pipeline in this prototype.

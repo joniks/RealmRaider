@@ -26,14 +26,16 @@ This pass should prove the product promise without becoming a full dungeon edito
 
 ## Pass 02.5 — Adaptive orientation and classic controls
 
-- [ ] Support portrait and both landscape orientations without reloading the active scene.
-- [ ] Preserve the current tap-to-move and swipe combat controls in portrait.
-- [ ] Add a classic virtual joystick on the left in landscape gameplay scenes.
-- [ ] Keep attack, ability, trap and possession actions reachable on the right in landscape.
-- [ ] Make Hub, BUILD and gameplay HUDs responsive and safe-area aware.
-- [ ] Prevent joystick and other UI touches from triggering world movement or combat gestures.
-- [ ] Preserve gameplay, possession, defense and BUILD state while the device rotates.
-- [ ] Add automated orientation/input tests and verify both layouts on mobile targets.
+- [x] Support portrait and both landscape orientations without reloading the active scene.
+- [x] Preserve Fingertap controls and add a classic virtual joystick, with either method selectable in both orientations.
+- [x] Keep attack, ability, trap and possession actions reachable in responsive gameplay HUDs.
+- [x] Make Hub, BUILD and gameplay HUDs responsive and safe-area aware at the code/test level.
+- [x] Prevent joystick and other UI touches from triggering world movement or combat gestures.
+- [x] Preserve runtime gameplay state when the responsive layout changes.
+- [x] Add automated orientation/input coverage.
+- [ ] Verify rotation, safe areas, focus loss and both control styles on mobile targets.
+
+Implementation is in place. Final Unity Test Runner rerun on 2026-09-04 15:05 EEST passed EditMode 24/24 and PlayMode 10/10. Mobile/manual portrait-landscape verification remains pending.
 
 ## Pass 03 — Possession WOW moment
 
