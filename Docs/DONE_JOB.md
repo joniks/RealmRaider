@@ -115,3 +115,30 @@ Completed on 2026-09-05; included with the next project commit.
 - Manual smoke checks confirmed Sylvan direct attacks plus Defender and Infernal AI feedback, with no new Console errors.
 - `git diff --check` passes.
 - Full manual possession → ability → release validation remains for the project owner.
+
+## Diamond Pass 05.1 — Modular Character Factory Foundation
+
+Completed on 2026-09-05; include this record with the next project commit.
+
+### Delivered
+
+- `CharacterDefinition` now owns an explicit `CharacterVisualRecipe`; visuals are never selected from a character name.
+- Recipes provide `Humanoid`, `LargeCreature`, and `Beast` families, optional head/back/arms/accent modules, faction palette data, and future prefab plus Animator Controller slots.
+- `CharacterVisualAssembler` creates and removes only a visual child hierarchy. Its fallback primitives and imported-prefab slots never add blocking gameplay colliders.
+- The current roster uses explicit cached recipes: Blood Knight is Humanoid; Guardian Ent and Infernal Brute are distinct LargeCreature variants; Wolves and Hellhounds are distinct Beast variants.
+- Recipe instances and palette materials are cached, so scene reloads do not create a new recipe for every roster access and no visuals are created every frame.
+- Combat hit feedback refreshes child renderers, so recipe-built visuals receive the existing combat flash safely.
+- Missing or invalid recipes preserve the entity's original primitive visual and leave gameplay intact.
+
+### Verification
+
+- EditMode: `26/26` passed, `0` failed in Unity Test Runner on 2026-09-05 at 10:47 EEST.
+- PlayMode: `12/12` passed, `0` failed in Unity Test Runner on 2026-09-05 at 10:46 EEST.
+- Tests prove deterministic module hierarchy, fallback visual restoration, possession with one entity/controller, non-blocking module colliders, and removal of the visual child hierarchy after cleanup.
+- Unity Assets Refresh completed without C# errors; Console was clean after the final PlayMode run.
+- `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Final 3D meshes, FBX import, rigs, animation clips, Animator graphs, textures, LODs, and character-production tooling.
+- Third-party asset selection and licence/provenance intake. A future pass must use a clearly licensed source and retain its licence record.

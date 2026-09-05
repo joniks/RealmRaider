@@ -18,15 +18,26 @@ namespace RealmRaiders.Tests
         {
             var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig));
             cameraObject.tag = "MainCamera";
-            var entityObject = new GameObject("Possessable", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
+            var entityObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            entityObject.name = "Possessable";
+            var primitiveCollider = entityObject.GetComponent<Collider>();
+            primitiveCollider.enabled = false;
+            Object.Destroy(primitiveCollider);
+            entityObject.AddComponent<CharacterController>();
+            entityObject.AddComponent<Health>();
+            entityObject.AddComponent<CombatEntity>();
+            entityObject.AddComponent<PlayerController>();
+            entityObject.AddComponent<CreatureBrain>();
             var managerObject = new GameObject("Possession Manager", typeof(PossessionManager));
             var definition = ScriptableObject.CreateInstance<CharacterDefinition>();
             var ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>();
             try
             {
                 ability.DisplayName = "Test Strike"; ability.Cooldown = 10; ability.Windup = .1f;
                 definition.DisplayName = "Possessable";
                 definition.Possessable = true;
+                recipe.Family = CharacterVisualFamily.LargeCreature; recipe.Head = VisualModuleStyle.Bark; recipe.Arms = VisualModuleStyle.Claws; recipe.Primary = Color.green; recipe.Secondary = new Color(.2f, .12f, .06f); recipe.AccentColor = Color.yellow; definition.VisualRecipe = recipe;
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1, AttackSpeed = 1 };
                 definition.Abilities = new[] { ability };
                 var entity = entityObject.GetComponent<CombatEntity>();
@@ -48,6 +59,8 @@ namespace RealmRaiders.Tests
                 yield return null;
                 Assert.That(manager.Possessed, Is.SameAs(entity));
                 Assert.That(manager.Possessed.gameObject, Is.SameAs(entity.gameObject));
+                Assert.That(entity.GetComponent<CharacterVisualAssembler>(), Is.Not.Null);
+                foreach (var collider in entity.GetComponentsInChildren<Collider>(true)) if (collider.transform != entity.transform) Assert.That(collider.enabled, Is.False);
                 Assert.That(entity.Health.Current, Is.EqualTo(healthBefore));
                 Assert.That(entity.Abilities[0].IsReady, Is.EqualTo(readyBefore));
                 Assert.That(player.IsActive, Is.True); Assert.That(ai.IsActive, Is.False);
@@ -62,11 +75,17 @@ namespace RealmRaiders.Tests
                 Assert.That(player.IsActive, Is.False); Assert.That(ai.IsActive, Is.True);
                 Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+
+                var assembler = entity.GetComponent<CharacterVisualAssembler>();
+                assembler.Clear();
+                yield return null;
+                Assert.That(entity.transform.Find("Character Visual Modules"), Is.Null);
+                Assert.That(entity.GetComponent<Renderer>().enabled, Is.True);
             }
             finally
             {
                 Object.Destroy(managerObject); Object.Destroy(entityObject); Object.Destroy(cameraObject);
-                Object.Destroy(definition); Object.Destroy(ability);
+                Object.Destroy(definition); Object.Destroy(ability); Object.Destroy(recipe);
             }
         }
 

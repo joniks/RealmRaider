@@ -12,18 +12,29 @@ namespace RealmRaiders.Core
     /// <summary>Small construction helpers shared by the runtime-authored prototype scenes.</summary>
     public static class PrototypeRuntimeFactory
     {
+        static CharacterVisualRecipe bloodKnightRecipe, guardianEntRecipe, infernalBruteRecipe, sylvanBeastRecipe, infernalBeastRecipe;
+        static CharacterVisualRecipe Recipe(CharacterVisualFamily family, VisualModuleStyle head, VisualModuleStyle back, VisualModuleStyle arms, VisualModuleStyle accent, Color primary, Color secondary, Color accentColor)
+        {
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = family; recipe.Head = head; recipe.Back = back; recipe.Arms = arms; recipe.Accent = accent; recipe.Primary = primary; recipe.Secondary = secondary; recipe.AccentColor = accentColor; return recipe;
+        }
+        // Explicit roster recipe data; callers choose these directly, never from character names.
+        public static CharacterVisualRecipe BloodKnightRecipe => bloodKnightRecipe ? bloodKnightRecipe : bloodKnightRecipe = Recipe(CharacterVisualFamily.Humanoid, VisualModuleStyle.Crown, VisualModuleStyle.ShoulderPads, VisualModuleStyle.Blade, VisualModuleStyle.None, new Color(.55f, .04f, .06f), new Color(.16f, .12f, .14f), new Color(.95f, .65f, .2f));
+        public static CharacterVisualRecipe GuardianEntRecipe => guardianEntRecipe ? guardianEntRecipe : guardianEntRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Bark, VisualModuleStyle.Bark, VisualModuleStyle.Claws, VisualModuleStyle.Mane, new Color(.16f, .38f, .11f), new Color(.25f, .16f, .07f), new Color(.65f, .95f, .28f));
+        public static CharacterVisualRecipe InfernalBruteRecipe => infernalBruteRecipe ? infernalBruteRecipe : infernalBruteRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.Spikes, new Color(.28f, .055f, .03f), new Color(.12f, .025f, .02f), new Color(1f, .28f, .05f));
+        public static CharacterVisualRecipe SylvanBeastRecipe => sylvanBeastRecipe ? sylvanBeastRecipe : sylvanBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Mane, VisualModuleStyle.None, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.34f, .4f, .32f), new Color(.15f, .2f, .14f), new Color(.75f, .9f, .5f));
+        public static CharacterVisualRecipe InfernalBeastRecipe => infernalBeastRecipe ? infernalBeastRecipe : infernalBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.35f, .06f, .025f), new Color(.12f, .02f, .01f), new Color(1f, .25f, .04f));
         public static Material Material(Color color)
         { var material = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard")); material.color = color; return material; }
 
         public static AbilityDefinition Ability(string name, AbilityKind kind, float damage, float range, float radius, float windup, float cooldown = -1, float dash = 0)
         { var ability = ScriptableObject.CreateInstance<AbilityDefinition>(); ability.DisplayName = name; ability.Kind = kind; ability.Damage = damage; ability.Range = range; ability.Radius = radius; ability.Windup = windup; ability.Cooldown = cooldown >= 0 ? cooldown : kind == AbilityKind.Area ? 4 : 1; ability.DashDistance = dash; return ability; }
 
-        public static CombatEntity CreateEntity(string name, Vector3 position, CombatStats stats, Color color, bool possessable, Vector3 visualScale, AbilityDefinition[] abilities, bool cube)
+        public static CombatEntity CreateEntity(string name, Vector3 position, CombatStats stats, Color color, bool possessable, Vector3 visualScale, AbilityDefinition[] abilities, bool cube, CharacterVisualRecipe visualRecipe = null)
         {
             var go = GameObject.CreatePrimitive(cube ? PrimitiveType.Cube : PrimitiveType.Capsule); go.name = name; go.transform.position = position; Object.Destroy(go.GetComponent<Collider>());
             var motor = go.AddComponent<CharacterController>(); motor.height = cube ? 3 : 2; motor.radius = cube ? .8f : .5f;
             go.AddComponent<Health>(); var entity = go.AddComponent<CombatEntity>(); go.AddComponent<PlayerController>(); var ai = go.AddComponent<CreatureBrain>(); go.GetComponent<Renderer>().material = Material(color); go.transform.localScale = visualScale;
-            var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); definition.DisplayName = name; definition.Stats = stats; definition.Possessable = possessable; definition.PlaceholderColor = color; definition.Abilities = abilities;
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); definition.DisplayName = name; definition.Stats = stats; definition.Possessable = possessable; definition.PlaceholderColor = color; definition.Abilities = abilities; definition.VisualRecipe = visualRecipe;
             entity.Initialize(definition); entity.SetController(ai); return entity;
         }
 

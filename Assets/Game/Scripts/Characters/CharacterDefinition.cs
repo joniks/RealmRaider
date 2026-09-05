@@ -11,5 +11,6 @@ namespace RealmRaiders.Characters
         public AbilityDefinition[] Abilities;
         public bool Possessable;
         public Color PlaceholderColor = Color.white;
+        public CharacterVisualRecipe VisualRecipe;
     }
 }

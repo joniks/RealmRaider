@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using RealmRaiders.Combat;
+using RealmRaiders.Characters;
 using UnityEngine;
 
 namespace RealmRaiders.Tests
@@ -49,6 +50,26 @@ namespace RealmRaiders.Tests
             state.Impact(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Impact));
             state.Recover(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Recovery));
             state.Complete(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Idle));
+        }
+
+        [Test]
+        public void VisualRecipe_AssemblerIsDeterministicAndFallbackKeepsBaseVisual()
+        {
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.Beast; recipe.Head = VisualModuleStyle.Horns; recipe.Arms = VisualModuleStyle.Claws; recipe.Primary = Color.red; recipe.Secondary = Color.black; recipe.AccentColor = Color.yellow;
+            var first = GameObject.CreatePrimitive(PrimitiveType.Capsule); var second = GameObject.CreatePrimitive(PrimitiveType.Capsule); var firstAssembler = first.AddComponent<CharacterVisualAssembler>(); var secondAssembler = second.AddComponent<CharacterVisualAssembler>();
+            Assert.That(firstAssembler.Assemble(recipe), Is.True); Assert.That(secondAssembler.Assemble(recipe), Is.True);
+            var firstModules = ModuleNames(first.transform); var secondModules = ModuleNames(second.transform);
+            Assert.That(firstModules, Is.EqualTo(secondModules)); Assert.That(firstModules.Length, Is.GreaterThan(1));
+            foreach (var collider in first.GetComponentsInChildren<Collider>(true)) if (collider.transform != first.transform) Assert.That(collider.enabled, Is.False);
+            firstAssembler.Clear(); Assert.That(firstAssembler.Assemble(null), Is.False); Assert.That(first.GetComponent<Renderer>().enabled, Is.True);
+            Object.DestroyImmediate(recipe); Object.DestroyImmediate(first); Object.DestroyImmediate(second);
+        }
+
+        static string[] ModuleNames(Transform entity)
+        {
+            var root = entity.Find("Character Visual Modules"); var names = new string[root.childCount];
+            for (int i = 0; i < root.childCount; i++) names[i] = root.GetChild(i).name;
+            return names;
         }
     }
 }

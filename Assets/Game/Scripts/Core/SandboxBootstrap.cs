@@ -45,8 +45,8 @@ namespace RealmRaiders.Core
                 stone.transform.position = new Vector3(Mathf.Sin(angle) * 10, .6f, Mathf.Cos(angle) * 13); stone.transform.localScale = new Vector3(1.2f, 1.2f + i % 3, 1.2f); stone.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.16f, .2f, .19f));
             }
 
-            var hero = CreateEntity("Blood Knight", new Vector3(-4, 1, 0), CombatStats.BloodKnight, false, new Color(.62f, .06f, .08f), false);
-            var ent = CreateEntity("Ent", new Vector3(4, 1.5f, 0), CombatStats.Ent, true, new Color(.2f, .42f, .16f), true);
+            var hero = CreateEntity("Blood Knight", new Vector3(-4, 1, 0), CombatStats.BloodKnight, false, new Color(.62f, .06f, .08f), false, PrototypeRuntimeFactory.BloodKnightRecipe);
+            var ent = CreateEntity("Ent", new Vector3(4, 1.5f, 0), CombatStats.Ent, true, new Color(.2f, .42f, .16f), true, PrototypeRuntimeFactory.GuardianEntRecipe);
             hero.GetComponent<CreatureBrain>().Target = ent; ent.GetComponent<CreatureBrain>().Target = hero;
 
             var possession = root.AddComponent<PossessionManager>(); possession.Initialize(rig); possession.Register(ent);
@@ -55,11 +55,11 @@ namespace RealmRaiders.Core
             PrototypeRuntimeFactory.EventSystem(root.transform);
         }
 
-        static CombatEntity CreateEntity(string displayName, Vector3 position, CombatStats stats, bool possessable, Color color, bool heavy)
+        static CombatEntity CreateEntity(string displayName, Vector3 position, CombatStats stats, bool possessable, Color color, bool heavy, CharacterVisualRecipe recipe)
         {
             var visualScale = heavy ? new Vector3(1.5f, 1.8f, 1.5f) : Vector3.one;
             var abilities = heavy ? new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 36, 2.7f, 1.2f, .45f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 26, 1.8f, 3.5f, .2f, 1, 6), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 42, 1, 4, .8f) } : new[] { PrototypeRuntimeFactory.Ability("Basic Slash", AbilityKind.Melee, 23, 2.3f, .9f, .18f), PrototypeRuntimeFactory.Ability("Blood Rush", AbilityKind.Dash, 25, 1.8f, 3, .15f, 1, 6), PrototypeRuntimeFactory.Ability("Heavy Cleave", AbilityKind.Area, 35, 1.8f, 2.8f, .65f) };
-            return PrototypeRuntimeFactory.CreateEntity(displayName, position, stats, color, possessable, visualScale, abilities, heavy);
+            return PrototypeRuntimeFactory.CreateEntity(displayName, position, stats, color, possessable, visualScale, abilities, heavy, recipe);
         }
 
     }

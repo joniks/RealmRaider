@@ -30,6 +30,7 @@ namespace RealmRaiders.Combat
 
         public void ShowHit(float damage, Vector3 point, Vector3 source)
         {
+            renderers = GetComponentsInChildren<Renderer>();
             StartCoroutine(Flash());
             var entity = GetComponent<CombatEntity>();
             if (entity && entity.Motor && entity.Motor.enabled)

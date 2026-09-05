@@ -35,6 +35,8 @@ namespace RealmRaiders.Characters
             Motor = GetComponent<CharacterController>();
             Health.Initialize(definition.Stats.MaxHealth);
             Health.Died += OnDeath;
+            var assembler = GetComponent<CharacterVisualAssembler>() ?? gameObject.AddComponent<CharacterVisualAssembler>();
+            assembler.Assemble(definition.VisualRecipe);
             feedback = GetComponent<CombatFeedback>() ?? gameObject.AddComponent<CombatFeedback>();
             abilities.Clear();
             if (definition.Abilities != null)

@@ -38,13 +38,13 @@ namespace RealmRaiders.Core
             PrototypeRuntimeFactory.DirectionalLight("Forest Moon", new Color(.68f, .86f, .76f), 1.25f, new Vector3(52, -28, 0));
             RenderSettings.ambientLight = new Color(.14f, .21f, .17f);
 
-            var hero = Entity("Blood Knight", new Vector3(0, 1, -50), CombatStats.BloodKnight, new Color(.7f, .055f, .07f), false);
+            var hero = Entity("Blood Knight", new Vector3(0, 1, -50), CombatStats.BloodKnight, new Color(.7f, .055f, .07f), false, PrototypeRuntimeFactory.BloodKnightRecipe);
             hero.SetController(hero.Controller<PlayerController>()); cameraRig.SnapTo(hero, CameraMode.HeroCombat);
 
             var wolfStats = new CombatStats { MaxHealth = 58, AttackDamage = 11, AttackSpeed = 1.5f, MoveSpeed = 7, Armor = 2, AbilityPower = 5 };
-            var wolfOne = Entity("Wolf Alpha", new Vector3(-13, .65f, -11), wolfStats, new Color(.36f, .39f, .35f), false, .75f);
-            var wolfTwo = Entity("Wolf Scout", new Vector3(-16, .65f, -7), wolfStats, new Color(.46f, .49f, .43f), false, .68f);
-            var ent = Entity("Sylvan Ent", new Vector3(14, 1.5f, 4), CombatStats.Ent, new Color(.18f, .38f, .12f), true, 1.45f);
+            var wolfOne = Entity("Wolf Alpha", new Vector3(-13, .65f, -11), wolfStats, new Color(.36f, .39f, .35f), false, PrototypeRuntimeFactory.SylvanBeastRecipe, .75f);
+            var wolfTwo = Entity("Wolf Scout", new Vector3(-16, .65f, -7), wolfStats, new Color(.46f, .49f, .43f), false, PrototypeRuntimeFactory.SylvanBeastRecipe, .68f);
+            var ent = Entity("Sylvan Ent", new Vector3(14, 1.5f, 4), CombatStats.Ent, new Color(.18f, .38f, .12f), true, PrototypeRuntimeFactory.GuardianEntRecipe, 1.45f);
             foreach (var enemy in new[] { wolfOne, wolfTwo, ent }) { enemy.Controller<CreatureBrain>().Target = hero; enemy.SetController(enemy.Controller<CreatureBrain>()); }
 
             var graph = new RealmGraph();
@@ -98,10 +98,10 @@ namespace RealmRaiders.Core
             root.AddComponent<RealmCore>(); return root;
         }
 
-        static CombatEntity Entity(string name, Vector3 position, CombatStats stats, Color color, bool heavy, float scale = 1)
+        static CombatEntity Entity(string name, Vector3 position, CombatStats stats, Color color, bool heavy, CharacterVisualRecipe recipe, float scale = 1)
         {
             var abilities = heavy ? new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 34, 2.7f, 1.3f, .45f, .9f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 24, 1.8f, 3, .2f, .9f, 5), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f) } : name.StartsWith("Wolf") ? new[] { PrototypeRuntimeFactory.Ability("Leap", AbilityKind.Melee, 11, 2.4f, 1, .14f, .9f) } : new[] { PrototypeRuntimeFactory.Ability("Basic Slash", AbilityKind.Melee, 23, 2.3f, .9f, .18f, .9f), PrototypeRuntimeFactory.Ability("Blood Rush", AbilityKind.Dash, 25, 1.8f, 3, .15f, .9f, 6), PrototypeRuntimeFactory.Ability("Heavy Cleave", AbilityKind.Area, 35, 1.8f, 2.8f, .65f) };
-            return PrototypeRuntimeFactory.CreateEntity(name, position, stats, color, heavy, Vector3.one * scale, abilities, heavy);
+            return PrototypeRuntimeFactory.CreateEntity(name, position, stats, color, heavy, Vector3.one * scale, abilities, heavy, recipe);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace RealmRaiders.Core
             for (int i = 0; i < 16; i++) CreateTree(new Vector3(i % 2 == 0 ? -8 : 8, 2, -30 + i * 4));
 
             var invaderStats = CombatStats.BloodKnight; invaderStats.MaxHealth = 220; invaderStats.MoveSpeed = 3.8f;
-            var invader = Entity("Invading Blood Knight", new Vector3(0, 1, -30), invaderStats, new Color(.72f, .05f, .07f), false, .95f);
+            var invader = Entity("Invading Blood Knight", new Vector3(0, 1, -30), invaderStats, new Color(.72f, .05f, .07f), false, PrototypeRuntimeFactory.BloodKnightRecipe, .95f);
             var layout = DefenseLayoutSave.Load();
             var wolfStats = new CombatStats { MaxHealth = 52, AttackDamage = 9, AttackSpeed = 1.5f, MoveSpeed = 6.5f, Armor = 2, AbilityPower = 4 };
             var defenders = new System.Collections.Generic.List<CombatEntity>();
@@ -45,8 +45,8 @@ namespace RealmRaiders.Core
             {
                 var piece = layout.Slots[i].Piece;
                 var spawnPosition = creaturePositions[i];
-                if (piece == DefensePieceType.Wolf) { spawnPosition.y = .7f; var wolf = Entity($"Realm Wolf {(char)('A' + wolfIndex++)}", spawnPosition, wolfStats, new Color(.42f - wolfIndex * .04f, .45f - wolfIndex * .04f, .4f - wolfIndex * .035f), false, .7f); defenders.Add(wolf); }
-                else if (piece == DefensePieceType.Ent) { spawnPosition.y = 2.1f; ent = Entity("Guardian Ent", spawnPosition, CombatStats.Ent, new Color(.18f, .43f, .14f), true, 1.4f); defenders.Add(ent); }
+                if (piece == DefensePieceType.Wolf) { spawnPosition.y = .7f; var wolf = Entity($"Realm Wolf {(char)('A' + wolfIndex++)}", spawnPosition, wolfStats, new Color(.42f - wolfIndex * .04f, .45f - wolfIndex * .04f, .4f - wolfIndex * .035f), false, PrototypeRuntimeFactory.SylvanBeastRecipe, .7f); defenders.Add(wolf); }
+                else if (piece == DefensePieceType.Ent) { spawnPosition.y = 2.1f; ent = Entity("Guardian Ent", spawnPosition, CombatStats.Ent, new Color(.18f, .43f, .14f), true, PrototypeRuntimeFactory.GuardianEntRecipe, 1.4f); defenders.Add(ent); }
             }
             foreach (var defender in defenders) { var brain = defender.Controller<CreatureBrain>(); brain.Target = invader; defender.SetController(brain); }
 
@@ -63,10 +63,10 @@ namespace RealmRaiders.Core
             PrototypeRuntimeFactory.EventSystem(root.transform);
         }
 
-        static CombatEntity Entity(string name, Vector3 position, CombatStats stats, Color color, bool possessable, float scale)
+        static CombatEntity Entity(string name, Vector3 position, CombatStats stats, Color color, bool possessable, CharacterVisualRecipe recipe, float scale)
         {
             var abilities = possessable ? new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 34, 2.7f, 1.3f, .45f, .9f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 24, 1.8f, 3, .2f, .9f, 5), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f) } : name.Contains("Wolf") ? new[] { PrototypeRuntimeFactory.Ability("Leap", AbilityKind.Melee, 9, 2.4f, 1, .14f, .9f) } : new[] { PrototypeRuntimeFactory.Ability("Basic Slash", AbilityKind.Melee, 21, 2.3f, .9f, .18f, .9f), PrototypeRuntimeFactory.Ability("Blood Rush", AbilityKind.Dash, 24, 1.8f, 3, .15f, .9f, 6), PrototypeRuntimeFactory.Ability("Heavy Cleave", AbilityKind.Area, 34, 1.8f, 2.8f, .65f) };
-            return PrototypeRuntimeFactory.CreateEntity(name, position, stats, color, possessable, Vector3.one * scale, abilities, possessable);
+            return PrototypeRuntimeFactory.CreateEntity(name, position, stats, color, possessable, Vector3.one * scale, abilities, possessable, recipe);
         }
 
         static void CreateTree(Vector3 position) { var tree = GameObject.CreatePrimitive(PrimitiveType.Cylinder); tree.name = "Ancient Tree"; tree.transform.position = position; tree.transform.localScale = new Vector3(.7f, 3.5f, .7f); tree.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.18f, .27f, .09f)); }
