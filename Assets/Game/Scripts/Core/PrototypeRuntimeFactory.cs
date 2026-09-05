@@ -13,12 +13,23 @@ namespace RealmRaiders.Core
     public static class PrototypeRuntimeFactory
     {
         static CharacterVisualRecipe bloodKnightRecipe, guardianEntRecipe, infernalBruteRecipe, sylvanBeastRecipe, infernalBeastRecipe;
+        static GameObject bloodKnightHeroPrefab;
         static CharacterVisualRecipe Recipe(CharacterVisualFamily family, VisualModuleStyle head, VisualModuleStyle back, VisualModuleStyle arms, VisualModuleStyle accent, Color primary, Color secondary, Color accentColor)
         {
             var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = family; recipe.Head = head; recipe.Back = back; recipe.Arms = arms; recipe.Accent = accent; recipe.Primary = primary; recipe.Secondary = secondary; recipe.AccentColor = accentColor; return recipe;
         }
         // Explicit roster recipe data; callers choose these directly, never from character names.
-        public static CharacterVisualRecipe BloodKnightRecipe => bloodKnightRecipe ? bloodKnightRecipe : bloodKnightRecipe = Recipe(CharacterVisualFamily.Humanoid, VisualModuleStyle.Crown, VisualModuleStyle.ShoulderPads, VisualModuleStyle.Blade, VisualModuleStyle.None, new Color(.55f, .04f, .06f), new Color(.16f, .12f, .14f), new Color(.95f, .65f, .2f));
+        public static CharacterVisualRecipe BloodKnightRecipe
+        {
+            get
+            {
+                if (bloodKnightRecipe) return bloodKnightRecipe;
+                bloodKnightRecipe = Recipe(CharacterVisualFamily.Humanoid, VisualModuleStyle.None, VisualModuleStyle.None, VisualModuleStyle.None, VisualModuleStyle.None, new Color(.55f, .04f, .06f), new Color(.16f, .12f, .14f), new Color(.95f, .65f, .2f));
+                bloodKnightHeroPrefab = Resources.Load<GameObject>("Characters/BloodKnightHero");
+                bloodKnightRecipe.BaseBodyPrefab = bloodKnightHeroPrefab;
+                return bloodKnightRecipe;
+            }
+        }
         public static CharacterVisualRecipe GuardianEntRecipe => guardianEntRecipe ? guardianEntRecipe : guardianEntRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Bark, VisualModuleStyle.Bark, VisualModuleStyle.Claws, VisualModuleStyle.Mane, new Color(.16f, .38f, .11f), new Color(.25f, .16f, .07f), new Color(.65f, .95f, .28f));
         public static CharacterVisualRecipe InfernalBruteRecipe => infernalBruteRecipe ? infernalBruteRecipe : infernalBruteRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.Spikes, new Color(.28f, .055f, .03f), new Color(.12f, .025f, .02f), new Color(1f, .28f, .05f));
         public static CharacterVisualRecipe SylvanBeastRecipe => sylvanBeastRecipe ? sylvanBeastRecipe : sylvanBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Mane, VisualModuleStyle.None, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.34f, .4f, .32f), new Color(.15f, .2f, .14f), new Color(.75f, .9f, .5f));

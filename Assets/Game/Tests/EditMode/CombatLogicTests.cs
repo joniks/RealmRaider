@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using RealmRaiders.Combat;
 using RealmRaiders.Characters;
+using RealmRaiders.Core;
 using UnityEngine;
 
 namespace RealmRaiders.Tests
@@ -63,6 +64,24 @@ namespace RealmRaiders.Tests
             foreach (var collider in first.GetComponentsInChildren<Collider>(true)) if (collider.transform != first.transform) Assert.That(collider.enabled, Is.False);
             firstAssembler.Clear(); Assert.That(firstAssembler.Assemble(null), Is.False); Assert.That(first.GetComponent<Renderer>().enabled, Is.True);
             Object.DestroyImmediate(recipe); Object.DestroyImmediate(first); Object.DestroyImmediate(second);
+        }
+
+        [Test]
+        public void BloodKnightHeroPrefab_BindsAsNonBlockingVisualAndFallsBackSafely()
+        {
+            var heroRecipe = PrototypeRuntimeFactory.BloodKnightRecipe;
+            Assert.That(heroRecipe.BaseBodyPrefab, Is.Not.Null, "The project-owned Resources hero prefab must be available.");
+            var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); var assembler = host.AddComponent<CharacterVisualAssembler>();
+            Assert.That(assembler.Assemble(heroRecipe), Is.True);
+            var root = host.transform.Find("Character Visual Modules");
+            Assert.That(root, Is.Not.Null); Assert.That(root.Find("Base Body"), Is.Not.Null);
+            foreach (var collider in root.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
+
+            var unavailableRecipe = Object.Instantiate(heroRecipe); unavailableRecipe.BaseBodyPrefab = null;
+            Assert.That(assembler.Assemble(unavailableRecipe), Is.True);
+            Assert.That(host.transform.Find("Character Visual Modules/Base Body"), Is.Not.Null);
+            foreach (var collider in host.GetComponentsInChildren<Collider>(true)) if (collider.transform != host.transform) Assert.That(collider.enabled, Is.False);
+            Object.DestroyImmediate(unavailableRecipe); Object.DestroyImmediate(host);
         }
 
         static string[] ModuleNames(Transform entity)

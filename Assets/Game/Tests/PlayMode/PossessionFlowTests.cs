@@ -6,6 +6,7 @@ using RealmRaiders.Combat;
 using RealmRaiders.Controllers;
 using RealmRaiders.AI;
 using RealmRaiders.Possession;
+using RealmRaiders.Core;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -104,6 +105,23 @@ namespace RealmRaiders.Tests
                 Assert.That(manager.Possessed, Is.Null); Assert.That(player.IsActive, Is.False); Assert.That(ai.IsActive, Is.True); Assert.That(Time.timeScale, Is.EqualTo(1).Within(.001f)); Assert.That(rig.IsTransitioning, Is.False);
             }
             finally { Time.timeScale = 1; Time.fixedDeltaTime = .02f; Object.Destroy(managerObject); Object.Destroy(entityObject); Object.Destroy(cameraObject); Object.Destroy(definition); }
+        }
+
+        [UnityTest]
+        public IEnumerator BloodKnightHeroPrefab_BuildsAsVisualOnlyChild()
+        {
+            var heroRecipe = PrototypeRuntimeFactory.BloodKnightRecipe;
+            Assert.That(heroRecipe.BaseBodyPrefab, Is.Not.Null);
+            var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); var assembler = host.AddComponent<CharacterVisualAssembler>();
+            try
+            {
+                Assert.That(assembler.Assemble(heroRecipe), Is.True);
+                yield return null;
+                var root = host.transform.Find("Character Visual Modules");
+                Assert.That(root, Is.Not.Null); Assert.That(root.Find("Base Body"), Is.Not.Null);
+                foreach (var collider in root.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
+            }
+            finally { Object.Destroy(host); }
         }
 
         [UnityTest]

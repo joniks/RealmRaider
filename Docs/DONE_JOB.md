@@ -142,3 +142,27 @@ Completed on 2026-09-05; include this record with the next project commit.
 
 - Final 3D meshes, FBX import, rigs, animation clips, Animator graphs, textures, LODs, and character-production tooling.
 - Third-party asset selection and licence/provenance intake. A future pass must use a clearly licensed source and retain its licence record.
+
+## Diamond Pass 05.2 — Licensed Blood Knight Hero Intake
+
+Completed on 2026-09-05; include this record with the next project commit.
+
+### Delivered
+
+- Added the CC0-licensed Quaternius Animated Knight `KnightCharacter.fbx` and retained its local licence notice plus a project-wide provenance record.
+- Created the visual-only `Resources/Characters/BloodKnightHero` prefab and explicitly binds it through `BloodKnightRecipe`; the Blood Knight no longer uses a capsule fallback when the resource is present.
+- The imported model has Medium mesh compression, Read/Write disabled, and no imported colliders, cameras, lights, or animation clips.
+- The assembled hero remains a child of `CharacterVisualAssembler`; it does not add or replace the root `CharacterController`, health, combat, AI, input, camera, or possession systems.
+- Existing hero recipe modules are disabled so the imported knight silhouette remains readable. All other roster families remain on their modular fallback recipes.
+
+### Verification
+
+- EditMode: `27/27` passed, `0` failed.
+- PlayMode: `13/13` passed, `0` failed on 2026-09-05 at 11:08 EEST.
+- New tests verify the resource hero binding, visual hierarchy, disabled module colliders, and primitive fallback when a hero prefab is unavailable.
+- Manual Sylvan Realm smoke confirms Blood Knight uses the imported knight while HUD, camera, and controls start normally.
+- Console was clean after the smoke run; no new C# or runtime exceptions were recorded. `git diff --check` passes.
+
+### Known limitation
+
+- Unity reported an invalid Humanoid avatar mapping for this legacy FBX. It is intentionally imported as a safe Generic rig; no Animator Controller or animation playback was added. A future animation pass requires a compatible rig/model or a separately validated retargeting solution.
