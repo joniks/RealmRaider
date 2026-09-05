@@ -166,3 +166,27 @@ Completed on 2026-09-05; include this record with the next project commit.
 ### Known limitation
 
 - Unity reported an invalid Humanoid avatar mapping for this legacy FBX. It is intentionally imported as a safe Generic rig; no Animator Controller or animation playback was added. A future animation pass requires a compatible rig/model or a separately validated retargeting solution.
+
+## Diamond Pass 06.1 — Visual Motion Layer
+
+Completed on 2026-09-05; include this record with the next project commit.
+
+### Delivered
+
+- Added `CharacterVisualMotion` and a dedicated `Presentation Pivot` below each assembled visual hierarchy.
+- Recipe-built fallback creatures and the imported Blood Knight receive bounded presentation-only idle, movement, action-phase, and hit-reaction motion.
+- Motion never changes the `CombatEntity` root transform, `CharacterController`, combat timing, damage, target selection, camera target, possession, or controls.
+- `CombatFeedback` starts and clears only the visual hit reaction; cleanup restores the pivot's exact base position, rotation, and scale.
+- Missing visual roots continue to degrade safely without affecting gameplay.
+
+### Verification
+
+- EditMode: `28/28` passed, `0` failed.
+- PlayMode: `14/14` passed, `0` failed on 2026-09-05 at 13:49 EEST.
+- Regression tests prove bounded/restored pivot transforms, unchanged host roots, action/hit integration, cleanup, and no visual colliders.
+- Manual smoke: Sylvan Realm Blood Knight loaded, remained camera/root-stable through idle and a CLEAVE action; Infernal Keeper overview kept the fallback Brute, invader/trap flow, and stable camera.
+- Console was clean in both manual starts and during tests. `git diff --check` passes.
+
+### Remaining manual feel check
+
+- The pivot sway/bob is intentionally subtle and cannot be judged from a static screenshot. Confirm comfort and readability on a physical mobile device before treating its amplitude as final.

@@ -74,19 +74,36 @@ namespace RealmRaiders.Tests
             var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); var assembler = host.AddComponent<CharacterVisualAssembler>();
             Assert.That(assembler.Assemble(heroRecipe), Is.True);
             var root = host.transform.Find("Character Visual Modules");
-            Assert.That(root, Is.Not.Null); Assert.That(root.Find("Base Body"), Is.Not.Null);
+            Assert.That(root, Is.Not.Null); Assert.That(root.Find("Presentation Pivot/Base Body"), Is.Not.Null);
             foreach (var collider in root.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
 
             var unavailableRecipe = Object.Instantiate(heroRecipe); unavailableRecipe.BaseBodyPrefab = null;
             Assert.That(assembler.Assemble(unavailableRecipe), Is.True);
-            Assert.That(host.transform.Find("Character Visual Modules/Base Body"), Is.Not.Null);
+            Assert.That(host.transform.Find("Character Visual Modules/Presentation Pivot/Base Body"), Is.Not.Null);
             foreach (var collider in host.GetComponentsInChildren<Collider>(true)) if (collider.transform != host.transform) Assert.That(collider.enabled, Is.False);
             Object.DestroyImmediate(unavailableRecipe); Object.DestroyImmediate(host);
         }
 
+        [Test]
+        public void VisualMotion_UsesBoundedPivotWithoutChangingHostRoot()
+        {
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.Humanoid; recipe.Primary = Color.red; recipe.Secondary = Color.black; recipe.AccentColor = Color.yellow;
+            var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); host.transform.position = new Vector3(3, 2, 1);
+            var assembler = host.AddComponent<CharacterVisualAssembler>(); Assert.That(assembler.Assemble(recipe), Is.True);
+            var motion = host.GetComponent<CharacterVisualMotion>(); var rootPosition = host.transform.position; var rootRotation = host.transform.rotation;
+            motion.Sample(1f, .1f, new Vector3(3, 0, 2), CombatActionPhase.Windup);
+            Assert.That(host.transform.position, Is.EqualTo(rootPosition)); Assert.That(host.transform.rotation, Is.EqualTo(rootRotation));
+            Assert.That(Vector3.Distance(motion.PresentationPivot.localPosition, motion.BasePosition), Is.LessThan(.12f));
+            Assert.That(Quaternion.Angle(motion.PresentationPivot.localRotation, motion.BaseRotation), Is.GreaterThan(.1f));
+            Assert.That(motion.PresentationPivot.localScale.x, Is.EqualTo(motion.BaseScale.x).Within(.01f));
+            motion.ClearTransientReaction();
+            Assert.That(motion.PresentationPivot.localPosition, Is.EqualTo(motion.BasePosition)); Assert.That(motion.PresentationPivot.localRotation, Is.EqualTo(motion.BaseRotation)); Assert.That(motion.PresentationPivot.localScale, Is.EqualTo(motion.BaseScale));
+            Object.DestroyImmediate(recipe); Object.DestroyImmediate(host);
+        }
+
         static string[] ModuleNames(Transform entity)
         {
-            var root = entity.Find("Character Visual Modules"); var names = new string[root.childCount];
+            var root = entity.Find("Character Visual Modules/Presentation Pivot"); var names = new string[root.childCount];
             for (int i = 0; i < root.childCount; i++) names[i] = root.GetChild(i).name;
             return names;
         }

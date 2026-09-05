@@ -32,6 +32,7 @@ namespace RealmRaiders.Combat
         {
             renderers = GetComponentsInChildren<Renderer>();
             StartCoroutine(Flash());
+            GetComponent<CharacterVisualMotion>()?.ShowHitReaction();
             var entity = GetComponent<CombatEntity>();
             if (entity && entity.Motor && entity.Motor.enabled)
             {
@@ -53,6 +54,7 @@ namespace RealmRaiders.Combat
         public void Cleanup()
         {
             StopAllCoroutines(); ClearTelegraph();
+            GetComponent<CharacterVisualMotion>()?.ClearTransientReaction();
             foreach (var item in transient) if (item) Destroy(item);
             transient.Clear();
         }

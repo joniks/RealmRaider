@@ -10,6 +10,10 @@ namespace RealmRaiders.Characters
         static readonly Dictionary<Color, Material> materials = new();
         public CharacterVisualRecipe Recipe { get; private set; }
         Transform visualRoot;
+        Transform presentationPivot;
+
+        public Transform VisualRoot => visualRoot;
+        public Transform PresentationPivot => presentationPivot;
 
         public bool Assemble(CharacterVisualRecipe recipe)
         {
@@ -17,6 +21,8 @@ namespace RealmRaiders.Characters
             if (!recipe || !recipe.IsValid) return false;
             var baseRenderer = GetComponent<Renderer>(); if (baseRenderer) baseRenderer.enabled = false;
             visualRoot = new GameObject("Character Visual Modules").transform; visualRoot.SetParent(transform, false);
+            presentationPivot = new GameObject("Presentation Pivot").transform; presentationPivot.SetParent(visualRoot, false);
+            var motion = GetComponent<CharacterVisualMotion>() ?? gameObject.AddComponent<CharacterVisualMotion>(); motion.Bind(presentationPivot);
             BuildBase(recipe); BuildSlot("Head", recipe.Head, recipe.HeadPrefab, new Vector3(0, BodyHeight(recipe) * .55f, 0), recipe.AccentColor);
             BuildSlot("Back", recipe.Back, recipe.BackPrefab, new Vector3(0, .35f, -.28f), recipe.Secondary);
             BuildSlot("Arms", recipe.Arms, recipe.ArmsPrefab, new Vector3(0, .05f, .1f), recipe.Secondary);
@@ -26,7 +32,8 @@ namespace RealmRaiders.Characters
 
         public void Clear()
         {
-            if (visualRoot) { if (Application.isPlaying) Destroy(visualRoot.gameObject); else DestroyImmediate(visualRoot.gameObject); } visualRoot = null; Recipe = null;
+            GetComponent<CharacterVisualMotion>()?.Bind(null);
+            if (visualRoot) { if (Application.isPlaying) Destroy(visualRoot.gameObject); else DestroyImmediate(visualRoot.gameObject); } visualRoot = null; presentationPivot = null; Recipe = null;
             var baseRenderer = GetComponent<Renderer>(); if (baseRenderer) baseRenderer.enabled = true;
         }
 
@@ -48,10 +55,10 @@ namespace RealmRaiders.Characters
             else AddPrimitive(slot, type, position, scale, color);
         }
         void AddPrefab(string name, GameObject prefab, Vector3 position)
-        { var item = Instantiate(prefab, visualRoot); item.name = name; item.transform.localPosition = position; DisableColliders(item); }
+        { var item = Instantiate(prefab, presentationPivot); item.name = name; item.transform.localPosition = position; DisableColliders(item); }
         void AddPrimitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Color color)
         {
-            var item = GameObject.CreatePrimitive(type); item.name = name; item.transform.SetParent(visualRoot, false); item.transform.localPosition = position; item.transform.localScale = scale;
+            var item = GameObject.CreatePrimitive(type); item.name = name; item.transform.SetParent(presentationPivot, false); item.transform.localPosition = position; item.transform.localScale = scale;
             var collider = item.GetComponent<Collider>(); if (collider) collider.enabled = false;
             item.GetComponent<Renderer>().sharedMaterial = Material(color);
         }

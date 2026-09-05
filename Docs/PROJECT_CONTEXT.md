@@ -51,6 +51,16 @@ Realm Raiders must support both portrait and landscape as first-class play style
 - Camera framing must preserve gameplay fairness: landscape may show a wider composition, but must not reveal threats materially earlier or provide a competitive advantage.
 - Both modes must be independently laid out, safe-area aware, readable, and tested. A technically rotatable but broken secondary layout is not acceptable.
 
+## Combat camera framing decision
+
+An enemy that matters to the current fight must not remain silently outside the left or right edge of the screen.
+
+- When the player explicitly targets an enemy, enters its meaningful combat range, or starts an ability against it, the camera should use a **soft target focus**: ease its yaw/framing toward a composition that keeps both the controlled character and primary target readable.
+- Never hard-snap, steal the player's movement direction, or permanently lock the camera to an AI target. Focus must be bounded, ease in/out, and release on target death, distance, player retarget, possession release, terminal result, or manual camera transition.
+- If a relevant target cannot fit fairly in frame, show a compact edge indicator with direction and urgency instead of hiding the threat. This is especially important in portrait.
+- Landscape may allow a slightly wider soft-focus composition, but both orientations must preserve equivalent tactical information and avoid giving one orientation an unfair early-warning advantage.
+- Target focus is a future presentation/camera pass. It must not change targeting, damage, AI, movement, controls, or gameplay balance.
+
 This direction is supported by mobile-game precedent and interaction research: Mario Kart Tour exposes Portrait, Landscape, and automatic switching with landscape control-side choices; NIKKE added horizontal play after strong player demand but required later landscape UI improvements; usability research found strong two-thumb landscape accuracy while portrait retains one-hand convenience. The intended Realm Raiders split is therefore accessibility in portrait and traditional action control in landscape.
 
 ## Prototype races

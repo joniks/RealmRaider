@@ -118,10 +118,36 @@ namespace RealmRaiders.Tests
                 Assert.That(assembler.Assemble(heroRecipe), Is.True);
                 yield return null;
                 var root = host.transform.Find("Character Visual Modules");
-                Assert.That(root, Is.Not.Null); Assert.That(root.Find("Base Body"), Is.Not.Null);
+                Assert.That(root, Is.Not.Null); Assert.That(root.Find("Presentation Pivot/Base Body"), Is.Not.Null);
                 foreach (var collider in root.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
             }
             finally { Object.Destroy(host); }
+        }
+
+        [UnityTest]
+        public IEnumerator VisualMotion_MovesOnlyPresentationPivotAndRestoresAfterFeedbackCleanup()
+        {
+            var ability = ScriptableObject.CreateInstance<AbilityDefinition>(); var definition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); host.GetComponent<Collider>().enabled = false; host.AddComponent<CharacterController>(); host.AddComponent<Health>(); host.AddComponent<CombatEntity>();
+            try
+            {
+                ability.Kind = AbilityKind.Melee; ability.Damage = 5; ability.Range = 2; ability.Radius = 1; ability.Windup = .1f; ability.Cooldown = 0;
+                definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 }; definition.Abilities = new[] { ability };
+                definition.VisualRecipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); definition.VisualRecipe.Family = CharacterVisualFamily.Beast; definition.VisualRecipe.Primary = Color.green; definition.VisualRecipe.Secondary = Color.black; definition.VisualRecipe.AccentColor = Color.yellow;
+                var entity = host.GetComponent<CombatEntity>(); entity.Initialize(definition);
+                var motion = host.GetComponent<CharacterVisualMotion>(); var rootPosition = host.transform.position;
+                entity.Move(Vector3.forward * 3); yield return null;
+                Assert.That(host.transform.position.z, Is.GreaterThan(rootPosition.z));
+                Assert.That(Vector3.Distance(motion.PresentationPivot.localPosition, motion.BasePosition), Is.LessThan(.12f));
+                Assert.That(entity.TryUse(0, Vector3.forward), Is.True); yield return null;
+                Assert.That(Quaternion.Angle(motion.PresentationPivot.localRotation, motion.BaseRotation), Is.GreaterThan(.1f));
+                host.GetComponent<CombatFeedback>().ShowHit(3, host.transform.position, host.transform.position + Vector3.left);
+                yield return null;
+                host.GetComponent<CombatFeedback>().Cleanup();
+                Assert.That(motion.PresentationPivot.localPosition, Is.EqualTo(motion.BasePosition)); Assert.That(motion.PresentationPivot.localRotation, Is.EqualTo(motion.BaseRotation));
+                foreach (var collider in motion.PresentationPivot.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
+            }
+            finally { Object.Destroy(host); Object.Destroy(definition.VisualRecipe); Object.Destroy(definition); Object.Destroy(ability); }
         }
 
         [UnityTest]
@@ -140,7 +166,8 @@ namespace RealmRaiders.Tests
                 Assert.That(attacker.TryUse(0, Vector3.forward), Is.True);
                 Assert.That(attacker.ActionPhase, Is.EqualTo(CombatActionPhase.Windup));
                 Assert.That(attacker.TryUse(0, Vector3.forward), Is.False);
-                yield return new WaitForSecondsRealtime(.3f);
+                var actionDeadline = Time.realtimeSinceStartup + 1f;
+                while (attacker.IsActionResolving && Time.realtimeSinceStartup < actionDeadline) yield return null;
                 Assert.That(target.Health.Current, Is.LessThan(target.Health.Maximum));
                 Assert.That(attacker.IsActionResolving, Is.False);
                 yield return new WaitForSecondsRealtime(.8f);
