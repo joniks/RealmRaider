@@ -73,6 +73,9 @@ namespace RealmRaiders.Tests
         {
             var heroRecipe = PrototypeRuntimeFactory.BloodKnightRecipe;
             Assert.That(heroRecipe.BaseBodyPrefab, Is.Not.Null, "The project-owned Resources hero prefab must be available.");
+            var dependencies = UnityEditor.AssetDatabase.GetDependencies(UnityEditor.AssetDatabase.GetAssetPath(heroRecipe.BaseBodyPrefab));
+            Assert.That(dependencies, Has.Some.EndsWith("3DRT/FantasyWarrior/source/warrior_animated-armed.fbx"), "Blood Knight must bind the authorised 3DRT visual source.");
+            Assert.That(dependencies, Has.None.EndsWith("Quaternius/AnimatedKnight/KnightCharacter.fbx"), "The old visual remains a named fallback, not the active hero binding.");
             var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); var assembler = host.AddComponent<CharacterVisualAssembler>();
             Assert.That(assembler.Assemble(heroRecipe), Is.True);
             var root = host.transform.Find("Character Visual Modules");
@@ -84,6 +87,30 @@ namespace RealmRaiders.Tests
             Assert.That(host.transform.Find("Character Visual Modules/Presentation Pivot/Base Body"), Is.Not.Null);
             foreach (var collider in host.GetComponentsInChildren<Collider>(true)) if (collider.transform != host.transform) Assert.That(collider.enabled, Is.False);
             Object.DestroyImmediate(unavailableRecipe); Object.DestroyImmediate(host);
+        }
+
+        [Test]
+        public void ThreeDrtBloodKnightSource_UsesMobileVisualOnlyImportSettings()
+        {
+            const string modelPath = "Assets/Game/Art/ThirdParty/3DRT/FantasyWarrior/source/warrior_animated-armed.fbx";
+            const string texturePath = "Assets/Game/Art/ThirdParty/3DRT/FantasyWarrior/textures/warrior.jpg";
+            var model = UnityEditor.AssetImporter.GetAtPath(modelPath) as UnityEditor.ModelImporter;
+            var texture = UnityEditor.AssetImporter.GetAtPath(texturePath) as UnityEditor.TextureImporter;
+
+            Assert.That(model, Is.Not.Null);
+            Assert.That(model.meshCompression, Is.EqualTo(UnityEditor.ModelImporterMeshCompression.Medium));
+            Assert.That(model.isReadable, Is.False);
+            Assert.That(model.addCollider, Is.False);
+            Assert.That(model.importCameras, Is.False);
+            Assert.That(model.importLights, Is.False);
+            Assert.That(model.importAnimation, Is.True);
+            Assert.That(model.animationType, Is.EqualTo(UnityEditor.ModelImporterAnimationType.Generic));
+
+            Assert.That(texture, Is.Not.Null);
+            Assert.That(texture.isReadable, Is.False);
+            var android = texture.GetPlatformTextureSettings("Android");
+            Assert.That(android.overridden, Is.True);
+            Assert.That(android.maxTextureSize, Is.LessThanOrEqualTo(1024));
         }
 
         [Test]

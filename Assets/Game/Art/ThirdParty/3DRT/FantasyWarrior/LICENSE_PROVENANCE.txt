@@ -1,0 +1,19 @@
+3DRT Fantasy Warrior — licence and provenance
+
+Source: https://sketchfab.com/3d-models/3drt-fantasy-warrior-d39a0dee0f054c21b6751f7821aa7a8e
+Creator: 3DRT.com
+Downloaded from: the creator-published Sketchfab page on 2026-09-05.
+Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+Licence text: https://creativecommons.org/licenses/by/4.0/
+
+Required attribution:
+“3DRT - Fantasy Warrior” by 3DRT.com is licensed under CC BY 4.0.
+
+Original delivered archive: 3drt-fantasy-warrior.zip
+Original files: source/warrior_animated-armed.fbx and textures/warrior.jpg.
+
+Project-local modifications:
+- The source archive is retained unchanged alongside the extracted source files.
+- Unity import settings and the visual-only Resources prefab may be adjusted for
+  mobile presentation. No gameplay components, Animator Controller, or source
+  geometry edits are introduced by this intake.
