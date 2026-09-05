@@ -6,6 +6,7 @@ namespace RealmRaiders.Combat
     public sealed class Health : MonoBehaviour
     {
         public event Action<float, float> Changed;
+        public event Action<DamageInfo> Damaged;
         public event Action Died;
         public float Current { get; private set; }
         public float Maximum { get; private set; }
@@ -19,6 +20,7 @@ namespace RealmRaiders.Combat
             if (IsDead) return;
             var reduction = 100f / (100f + Mathf.Max(0, armor));
             Current = Mathf.Max(0, Current - hit.Amount * reduction);
+            Damaged?.Invoke(hit);
             Changed?.Invoke(Current, Maximum);
             if (IsDead) Died?.Invoke();
         }

@@ -12,6 +12,9 @@ namespace RealmRaiders.CameraSystem
         public CameraMode Mode { get; private set; }
         public bool IsTransitioning { get; private set; }
         Transform target;
+        Transform combatThreat;
+        float requestedFocus;
+        float focusWeight;
         Vector3 overviewPosition = new(0, 22, -11);
         Quaternion overviewRotation = Quaternion.Euler(60, 0, 0);
 
@@ -19,10 +22,11 @@ namespace RealmRaiders.CameraSystem
         { overviewPosition = position; overviewRotation = rotation; }
 
         public void SnapToOverview()
-        { target = null; Mode = CameraMode.KeeperOverview; transform.SetPositionAndRotation(overviewPosition, overviewRotation); }
+        { ClearCombatFocus(); target = null; Mode = CameraMode.KeeperOverview; transform.SetPositionAndRotation(overviewPosition, overviewRotation); }
 
         public void SnapTo(CombatEntity entity, CameraMode mode)
         {
+            ClearCombatFocus();
             target = entity ? entity.transform : null;
             Mode = mode;
             IsTransitioning = false;
@@ -31,14 +35,24 @@ namespace RealmRaiders.CameraSystem
         }
 
         public void TransitionTo(CombatEntity entity, CameraMode mode, float duration = .65f)
-        { StopAllCoroutines(); IsTransitioning = false; StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
+        { ClearCombatFocus(); StopAllCoroutines(); IsTransitioning = false; StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
 
         public bool FocusTrap(Transform trap, CombatEntity trapped, float easeIn = .25f, float hold = 1f, float easeOut = .4f)
         {
             if (!trap || !trapped || Mode != CameraMode.KeeperOverview || IsTransitioning || target) return false;
+            ClearCombatFocus();
             StartCoroutine(TrapFocus(trap, trapped.transform, easeIn, hold, easeOut));
             return true;
         }
+
+        public bool HasCombatFocus => combatThreat && focusWeight > .001f;
+        public float CombatFocusWeight => focusWeight;
+        public void RequestCombatFocus(Transform threat, float weight)
+        {
+            if (IsTransitioning || Mode == CameraMode.KeeperOverview || !target || !threat) return;
+            combatThreat = threat; requestedFocus = Mathf.Clamp01(weight);
+        }
+        public void ClearCombatFocus() { combatThreat = null; requestedFocus = 0; }
 
         IEnumerator Blend(Transform next, CameraMode mode, float duration)
         {
@@ -82,19 +96,31 @@ namespace RealmRaiders.CameraSystem
 
         void LateUpdate()
         {
+            focusWeight = Mathf.MoveTowards(focusWeight, combatThreat ? requestedFocus : 0, 2.8f * Time.deltaTime);
             if (IsTransitioning || !target) return;
-            var pose = DesiredPose(target, Mode);
+            var pose = DesiredPose(target, Mode, combatThreat, focusWeight);
             transform.position = Vector3.Lerp(transform.position, pose.position, 8 * Time.deltaTime);
             transform.rotation = Quaternion.Slerp(transform.rotation, pose.rotation, 8 * Time.deltaTime);
         }
 
-        Pose DesiredPose(Transform follow, CameraMode mode)
+        Pose DesiredPose(Transform follow, CameraMode mode, Transform threat = null, float threatWeight = 0)
         {
             if (!follow || mode == CameraMode.KeeperOverview) return new Pose(overviewPosition, overviewRotation);
             float scale = mode == CameraMode.PossessedCreature ? 1.25f : 1;
             var offset = new Vector3(0, 7 * scale, -7 * scale);
             var position = follow.position + offset;
-            return new Pose(position, Quaternion.LookRotation(follow.position + Vector3.up * 1.3f - position));
+            var lookAt = follow.position + Vector3.up * 1.3f;
+            if (threat && threatWeight > 0)
+            {
+                var direction = threat.position - follow.position; direction.y = 0;
+                if (direction.sqrMagnitude > .01f)
+                {
+                    var bias = direction.normalized * Mathf.Min(1.4f, direction.magnitude * .12f) * threatWeight;
+                    position += bias * .25f;
+                    lookAt += bias;
+                }
+            }
+            return new Pose(position, Quaternion.LookRotation(lookAt - position));
         }
     }
 }

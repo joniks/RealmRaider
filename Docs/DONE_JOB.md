@@ -216,3 +216,27 @@ Completed on 2026-09-05; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Full UI redesign, icon placement, Audio Mixer/settings UI, music, ambience, haptics, and additional third-party UI/audio packs.
+
+## Diamond Pass 06.3 — Combat Camera Awareness
+
+Completed on 2026-09-05; include this record with the next project commit.
+
+### Delivered
+
+- Added `CombatCameraAwareness`: a scene-local, presentation-only helper that considers a nearby threat only after an explicit player enemy tap or damage received from that threat.
+- Added a smooth, bounded camera framing request through `PrototypeCameraRig`; it never selects targets, changes player movement, rotates the player, spends abilities, or changes combat data.
+- Added one non-interactive, non-raycast UGUI screen-edge `THREAT` indicator for a currently eligible off-screen opponent.
+- Eligibility is limited to direct control, living nearby entities, a 2.2-second relevance window, and normal non-terminal combat state. Death, despawn, distance, terminal state, controller swap, possession release, scene reload, Keeper overview, and camera transitions clear the threat and camera request.
+- Trap focus, normal Snap/Transition flows, possession changes, and inactive player controllers safely release or avoid creating awareness state.
+
+### Verification
+
+- EditMode: `29/29` passed, `0` failed after the inactive-helper cleanup.
+- PlayMode: `16/16` passed, `0` failed on 2026-09-05 at 18:54 EEST; focused coverage verifies nearby reported threat eligibility, bounded focus, out-of-range release, terminal cleanup, and indicator state.
+- Manual smoke: Infernal Realm completed a Defender Victory route in portrait and then 800×480 landscape; Sylvan Realm started in landscape and then 800×480 portrait. HUD/camera stayed stable and no leftover indicator or Console errors appeared.
+- The short manual Sylvan run did not produce an explicitly reported/attacking off-screen threat, so the indicator/focus moment itself is verified by focused PlayMode coverage rather than a manually witnessed Game view instance.
+- Unity compilation was clean apart from pre-existing `CS0618` deprecation warnings. `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Hard target lock, aim assist, automatic combat, minimap/radar, camera settings, and any change to camera gameplay or balance.

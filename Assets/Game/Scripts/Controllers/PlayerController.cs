@@ -1,4 +1,5 @@
 using RealmRaiders.Characters;
+using RealmRaiders.CameraSystem;
 using RealmRaiders.Core;
 using RealmRaiders.UI;
 using UnityEngine;
@@ -27,7 +28,15 @@ namespace RealmRaiders.Controllers
         void Awake() => entity = GetComponent<CombatEntity>();
         int ControllerKey => GetEntityId().GetHashCode();
         void OnDestroy() => GameplayInput.SetDirectControl(ControllerKey, false);
-        public void SetControl(bool active) { IsActive = active; hasDestination = false; if (!active) ResetEscapeState(); view = Camera.main; GameplayInput.SetDirectControl(ControllerKey, active); }
+        public void SetControl(bool active)
+        {
+            IsActive = active; hasDestination = false; if (!active) ResetEscapeState(); view = Camera.main;
+            var rig = view ? view.GetComponent<PrototypeCameraRig>() : null;
+            var awareness = rig ? rig.GetComponent<CombatCameraAwareness>() : null;
+            if (active && rig && !awareness) awareness = rig.gameObject.AddComponent<CombatCameraAwareness>();
+            if (awareness) awareness.SetControlled(active ? entity : null);
+            GameplayInput.SetDirectControl(ControllerKey, active);
+        }
 
         public void Tick()
         {
@@ -57,6 +66,7 @@ namespace RealmRaiders.Controllers
                     var enemy = hit.collider.GetComponentInParent<CombatEntity>();
                     if (enemy && enemy != entity)
                     {
+                        view.GetComponent<CombatCameraAwareness>()?.ReportThreat(enemy);
                         var direction = enemy.transform.position - transform.position;
                         if (direction.magnitude <= 3.4f) entity.TryUse(0, direction);
                         else if (!usingJoystick) { destination = enemy.transform.position; hasDestination = true; }

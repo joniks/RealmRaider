@@ -196,5 +196,41 @@ namespace RealmRaiders.Tests
             }
             finally { Object.Destroy(cameraObject); Object.Destroy(attackerObject); Object.Destroy(targetObject); Object.Destroy(definition); Object.Destroy(targetDefinition); Object.Destroy(ability); }
         }
+
+        [UnityTest]
+        public IEnumerator CombatCameraAwareness_TracksOnlyNearbyReportedThreatAndCleansUp()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
+            var playerObject = new GameObject("Player", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
+            var threatObject = new GameObject("Threat", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); var threatDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            try
+            {
+                definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                threatDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                var player = playerObject.GetComponent<CombatEntity>(); var threat = threatObject.GetComponent<CombatEntity>(); player.Initialize(definition); threat.Initialize(threatDefinition);
+                threatObject.transform.position = new Vector3(9, 0, 2);
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat);
+                player.SetController(playerObject.GetComponent<PlayerController>());
+                var awareness = cameraObject.GetComponent<CombatCameraAwareness>(); awareness.SetControlled(player); awareness.ReportThreat(threat);
+                yield return null; yield return null;
+                Assert.That(awareness.HasEligibleThreat, Is.True);
+                Assert.That(rig.CombatFocusWeight, Is.GreaterThan(0));
+                Assert.That(awareness.IndicatorDirection, Is.EqualTo(1));
+
+                threatObject.transform.position = new Vector3(30, 0, 2);
+                yield return null;
+                Assert.That(awareness.HasEligibleThreat, Is.False);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(rig.HasCombatFocus, Is.False);
+
+                awareness.ReportThreat(threat); threatObject.transform.position = new Vector3(9, 0, 2); yield return null;
+                GameplayInput.SetTerminalState(true); yield return null;
+                Assert.That(awareness.HasEligibleThreat, Is.False);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                GameplayInput.SetTerminalState(false);
+            }
+            finally { GameplayInput.SetTerminalState(false); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }
+        }
     }
 }
