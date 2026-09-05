@@ -16,6 +16,7 @@ namespace RealmRaiders.UI
         Button heroButton, keeperButton;
         Button resetButton;
         CombatEntity hero, ent;
+        HudPresentation presentation;
 
         public void Initialize(PossessionManager manager, SandboxDirector director, CombatEntity heroEntity, CombatEntity entEntity)
         {
@@ -30,6 +31,7 @@ namespace RealmRaiders.UI
 
         void Build(SandboxDirector director)
         {
+            presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             gameObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1080, 1920);
@@ -39,7 +41,7 @@ namespace RealmRaiders.UI
             entHp = Label("", new Vector2(40, -155), 28, TextAnchor.UpperLeft);
             selected = Label("", new Vector2(0, -230), 32, TextAnchor.UpperCenter);
             hint = Label("Tap ENT to select • Swipe to dodge/charge • Tap enemy to attack", new Vector2(0, 55), 25, TextAnchor.LowerCenter, true);
-            possessButton = Button("POSSESS", new Vector2(0, 250), () => possession.PossessSelected());
+            possessButton = Button("POSSESS", new Vector2(0, 250), PossessSelected);
             releaseButton = Button("RELEASE", new Vector2(0, 250), possession.Release);
             attackButton = Button("SMASH", new Vector2(-190, 110), () => Ability(0));
             slamButton = Button("GROUND SLAM", new Vector2(190, 110), () => Ability(2));
@@ -51,6 +53,8 @@ namespace RealmRaiders.UI
 
         void Ability(int index)
         { if (possession.Possessed) possession.Possessed.Controller<PlayerController>()?.UseAbility(index); }
+        void PossessSelected()
+        { if (possession.PossessSelected()) presentation?.PlayConfirm(); }
         void OnSelection(CombatEntity value)
         { selected.text = value ? $"Selected: {value.Definition.DisplayName}" : "Keeper Overview"; possessButton.gameObject.SetActive(value && !possession.IsPossessing); }
         void OnPossession(CombatEntity value)
@@ -75,7 +79,7 @@ namespace RealmRaiders.UI
         {
             var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false);
             var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(320, 100);
-            go.GetComponent<Image>().color = new Color(.35f, .12f, .08f, .95f); var button = go.GetComponent<Button>(); button.onClick.AddListener(action);
+            go.GetComponent<Image>().color = new Color(.35f, .12f, .08f, .95f); var button = go.GetComponent<Button>(); presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick());
             var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero;
             var label = textGo.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = 30; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white;
             return button;

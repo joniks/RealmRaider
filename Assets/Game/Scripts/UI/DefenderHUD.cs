@@ -49,6 +49,7 @@ namespace RealmRaiders.UI
         TrapBase trap;
         DefenseHudConfig config;
         bool initialized;
+        HudPresentation presentation;
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
@@ -64,6 +65,7 @@ namespace RealmRaiders.UI
 
         void Build()
         {
+            presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(true);
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
             invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
@@ -71,7 +73,7 @@ namespace RealmRaiders.UI
             coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true);
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.gameObject.SetActive(false);
-            possess = Button($"POSSESS {config.DefenderName.ToUpperInvariant()}", new Vector2(0, 410), () => possessionManager.PossessSelected());
+            possess = Button($"POSSESS {config.DefenderName.ToUpperInvariant()}", new Vector2(0, 410), PossessSelected);
             release = Button("RELEASE", new Vector2(0, 410), possessionManager.Release);
             activateTrap = Button("ACTIVATE TRAP", new Vector2(0, 290), ActivateTrap);
             smash = Button("SMASH", new Vector2(-180, 165), () => Ability(0)); slam = Button("GROUND SLAM", new Vector2(180, 165), () => Ability(2));
@@ -84,9 +86,14 @@ namespace RealmRaiders.UI
         void ActivateTrap()
         {
             if (!trap.TryActivate()) { Refresh(); return; }
+            presentation?.PlayConfirm();
             if (!possessionManager.IsPossessing && !GameplayInput.TerminalState && !resultPanel.activeSelf)
                 Camera.main?.GetComponent<PrototypeCameraRig>()?.FocusTrap(trap.transform, invader);
             Refresh();
+        }
+        void PossessSelected()
+        {
+            if (possessionManager.PossessSelected()) presentation?.PlayConfirm();
         }
         void Ability(int index) => possessionManager.Possessed?.Controller<PlayerController>()?.UseAbility(index);
         void OnSelection(CombatEntity value)
@@ -104,7 +111,7 @@ namespace RealmRaiders.UI
             GameplayInput.SetTerminalState(value is DefenseState.DefenderVictory or DefenseState.RealmLost);
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
-            { resultPanel.SetActive(true); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured."; }
+            { resultPanel.SetActive(true); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured."; }
         }
         void Refresh()
         {
@@ -132,7 +139,7 @@ namespace RealmRaiders.UI
         }
         Button Button(string value, Vector2 position, UnityEngine.Events.UnityAction action)
         {
-            var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(340, 96); go.GetComponent<Image>().color = new Color(.12f, .38f, .17f, .96f); var button = go.GetComponent<Button>(); button.onClick.AddListener(action); var textObject = new GameObject("Text", typeof(RectTransform), typeof(Text)); textObject.transform.SetParent(go.transform, false); var textRect = (RectTransform)textObject.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textObject.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = 25; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button;
+            var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(340, 96); go.GetComponent<Image>().color = new Color(.12f, .38f, .17f, .96f); var button = go.GetComponent<Button>(); presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick()); var textObject = new GameObject("Text", typeof(RectTransform), typeof(Text)); textObject.transform.SetParent(go.transform, false); var textRect = (RectTransform)textObject.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textObject.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = 25; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button;
         }
     }
 }

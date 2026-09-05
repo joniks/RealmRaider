@@ -2,7 +2,9 @@ using NUnit.Framework;
 using RealmRaiders.Combat;
 using RealmRaiders.Characters;
 using RealmRaiders.Core;
+using RealmRaiders.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace RealmRaiders.Tests
 {
@@ -99,6 +101,24 @@ namespace RealmRaiders.Tests
             motion.ClearTransientReaction();
             Assert.That(motion.PresentationPivot.localPosition, Is.EqualTo(motion.BasePosition)); Assert.That(motion.PresentationPivot.localRotation, Is.EqualTo(motion.BaseRotation)); Assert.That(motion.PresentationPivot.localScale, Is.EqualTo(motion.BaseScale));
             Object.DestroyImmediate(recipe); Object.DestroyImmediate(host);
+        }
+
+        [Test]
+        public void HudPresentation_LoadsTheButtonSpriteAndKeepsItsHudRootListenerFree()
+        {
+            var hud = new GameObject("HUD Presentation Test");
+            var imageObject = new GameObject("Button Background", typeof(RectTransform), typeof(Image));
+            var image = imageObject.GetComponent<Image>(); image.color = new Color(.12f, .3f, .18f, .96f);
+            var presentation = hud.AddComponent<HudPresentation>();
+            presentation.ApplyButton(image);
+
+            Assert.That(image.sprite, Is.Not.Null);
+            Assert.That(image.type, Is.EqualTo(Image.Type.Sliced));
+            Assert.That(image.color, Is.EqualTo(new Color(.12f, .3f, .18f, .96f)));
+            Assert.That(hud.GetComponents<AudioSource>(), Has.Length.EqualTo(1));
+            Assert.That(hud.GetComponent<AudioListener>(), Is.Null);
+
+            Object.DestroyImmediate(imageObject); Object.DestroyImmediate(hud);
         }
 
         static string[] ModuleNames(Transform entity)

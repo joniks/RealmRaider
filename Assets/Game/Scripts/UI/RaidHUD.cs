@@ -13,6 +13,7 @@ namespace RealmRaiders.UI
         GameObject resultPanel;
         CombatEntity hero;
         RaidManager raid;
+        HudPresentation presentation;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero)
         {
@@ -26,6 +27,7 @@ namespace RealmRaiders.UI
 
         void Build()
         {
+            presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920);
             gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(true);
@@ -60,6 +62,7 @@ namespace RealmRaiders.UI
         {
             GameplayInput.SetTerminalState(true);
             resultPanel.SetActive(true);
+            presentation?.PlayResult();
             result.text = $"{(value.Victory ? "VICTORY" : "DEFEAT")}\n\nGold collected: {value.Gold}\nRare materials: {value.RareMaterials}\nEnemies defeated: {value.EnemiesDefeated}\nRooms discovered: {value.RoomsDiscovered}\nRaid duration: {value.Duration:0}s\nCore reached: {(value.CoreReached ? "yes" : "no")}";
         }
 
@@ -72,7 +75,7 @@ namespace RealmRaiders.UI
         Button Button(string value, Vector2 position, UnityEngine.Events.UnityAction action)
         {
             var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(240, 92);
-            go.GetComponent<Image>().color = new Color(.12f, .38f, .17f, .96f); var button = go.GetComponent<Button>(); button.onClick.AddListener(action);
+            go.GetComponent<Image>().color = new Color(.12f, .38f, .17f, .96f); var button = go.GetComponent<Button>(); presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick());
             var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textGo.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = 25; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button;
         }
     }

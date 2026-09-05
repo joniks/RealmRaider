@@ -7,6 +7,7 @@ using RealmRaiders.Controllers;
 using RealmRaiders.AI;
 using RealmRaiders.Possession;
 using RealmRaiders.Core;
+using RealmRaiders.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -14,6 +15,25 @@ namespace RealmRaiders.Tests
 {
     public sealed class PossessionFlowTests
     {
+        [UnityTest]
+        public IEnumerator HudPresentation_UsesOneSceneLocalSourceAndGuardsResultCue()
+        {
+            var hud = new GameObject("HUD Presentation Test");
+            var listener = new GameObject("Test Audio Listener", typeof(AudioListener));
+            try
+            {
+                var presentation = hud.AddComponent<HudPresentation>();
+                yield return null;
+
+                Assert.That(hud.GetComponents<HudPresentation>(), Has.Length.EqualTo(1));
+                Assert.That(hud.GetComponents<AudioSource>(), Has.Length.EqualTo(1));
+                Assert.That(hud.GetComponent<AudioListener>(), Is.Null);
+                presentation.PlayResult(); presentation.PlayResult();
+                Assert.That(presentation.ResultCuePlayed, Is.True);
+            }
+            finally { Object.Destroy(listener); Object.Destroy(hud); }
+        }
+
         [UnityTest]
         public IEnumerator PossessionPreservesEntityStateAndRestoresAiWithSingleView()
         {

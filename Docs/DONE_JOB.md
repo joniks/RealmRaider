@@ -190,3 +190,29 @@ Completed on 2026-09-05; include this record with the next project commit.
 ### Remaining manual feel check
 
 - The pivot sway/bob is intentionally subtle and cannot be judged from a static screenshot. Confirm comfort and readability on a physical mobile device before treating its amplitude as final.
+
+## Diamond Pass 06.2 — Interface & Audio First Read
+
+Completed on 2026-09-05; include this record with the next project commit.
+
+### Delivered
+
+- Added a small scene-local `HudPresentation` helper for the runtime-created UGUI HUDs. It skins buttons with the selected Kenney depth sprite while preserving existing realm/semantic tints and falls back safely when an imported resource is unavailable.
+- Hub, Build, Raid, Defender, and Character Sandbox HUD button factories now share that presentation layer without changing layouts, labels, pointer ownership, input routing, scene navigation, or gameplay actions.
+- Added one normal 2D `AudioSource` per HUD root, with no added `AudioListener`, persistent singleton, coroutine, or per-frame audio work.
+- Ordinary buttons receive a restrained click; successful possession and successful trap activation receive confirmation; victory/defeat receives one guarded result cue. Failed/unavailable Trap and possession attempts never receive a confirmation cue.
+- Added the selected Kenney CC0 UI/audio assets, Unity import metadata, local licence file, and project provenance record.
+- Hardened the presentation helper for Unity's editor/runtime differences: it lazily initializes in EditMode, handles Unity object null semantics correctly, and creates a 9-slice runtime Sprite from the source texture when Unity does not expose a Sprite asset directly.
+
+### Verification
+
+- EditMode: `29/29` passed, `0` failed on 2026-09-05 at 17:43 EEST.
+- PlayMode: `15/15` passed, `0` failed on 2026-09-05 at 17:45 EEST.
+- Focused regression coverage verifies button-skin resource fallback, preserved button tint, one scene-local audio source, no HUD audio listener, and guarded result-cue state.
+- Unity recompilation completed without C# errors. The final PlayMode run did not add an audio-listener warning or exception to the Editor log.
+- `git diff --check` passes.
+- Project owner manually tested the presentation pass and accepted the player-facing result.
+
+### Scope intentionally deferred
+
+- Full UI redesign, icon placement, Audio Mixer/settings UI, music, ambience, haptics, and additional third-party UI/audio packs.
