@@ -1,3 +1,4 @@
+using RealmRaiders.AI;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
 using RealmRaiders.Controllers;
@@ -13,7 +14,7 @@ namespace RealmRaiders.CameraSystem
     {
         const float NearbyDistance = 14f;
         const float RelevanceLifetime = 2.2f;
-        const float MaxBias = .85f;
+        const float MaxBias = 1f;
 
         PrototypeCameraRig rig;
         Camera view;
@@ -33,6 +34,8 @@ namespace RealmRaiders.CameraSystem
             CreateIndicator();
         }
 
+        void OnEnable() => CreatureBrain.HostileIntentChanged += ObserveHostileIntent;
+
         public void SetControlled(CombatEntity entity)
         {
             if (controlled == entity) return;
@@ -40,6 +43,7 @@ namespace RealmRaiders.CameraSystem
             controlled = entity;
             if (controlled && controlled.Health != null) { controlled.Health.Damaged += ObserveDamage; controlled.Health.Died += Clear; }
             ClearThreat();
+            if (controlled) FindExistingHostileIntent();
         }
 
         public void ReportThreat(CombatEntity candidate)
@@ -55,11 +59,39 @@ namespace RealmRaiders.CameraSystem
             ReportThreat(attacker);
         }
 
+        void ObserveHostileIntent(CreatureBrain brain)
+        {
+            if (!brain || !controlled || brain.Target != controlled || !IsHostileIntent(brain)) return;
+            var candidate = brain.GetComponent<CombatEntity>();
+            if (!candidate || candidate == controlled) return;
+
+            // Explicit player reports remain preferred until this attacker has lost active intent.
+            if (!threat || threat == candidate || !HasHostileIntent(threat) || !HasFreshReport(threat))
+            {
+                threat = candidate;
+                threatReportedAt = float.NegativeInfinity;
+            }
+        }
+
+        void FindExistingHostileIntent()
+        {
+            foreach (var brain in CreatureBrain.ActiveBrains) ObserveHostileIntent(brain);
+        }
+
         void LateUpdate()
         {
-            if (!IsEligible(threat)) { ClearThreat(); return; }
+            if (!IsEligible(threat))
+            {
+                ClearThreat();
+                // A second pursuer may already be in Chase/Attack without producing a new state transition.
+                // Reconcile only after cleanup; this is a bounded registry pass, never a per-frame scene scan.
+                FindExistingHostileIntent();
+                if (!IsEligible(threat)) return;
+            }
             var delta = threat.transform.position - controlled.transform.position; delta.y = 0;
-            rig.RequestCombatFocus(threat.transform, Mathf.Clamp01(delta.magnitude / NearbyDistance) * MaxBias);
+            // Even a close flank should be perceptible on a phone, while the rig keeps the hero primary.
+            var focus = Mathf.Lerp(.5f, 1f, Mathf.Clamp01(delta.magnitude / NearbyDistance)) * MaxBias;
+            rig.RequestCombatFocus(threat.transform, focus);
             UpdateIndicator();
         }
 
@@ -68,10 +100,20 @@ namespace RealmRaiders.CameraSystem
             if (!controlled || !candidate || !controlled.Health || !candidate.Health || controlled.Health.IsDead || candidate.Health.IsDead) return false;
             if (GameplayInput.TerminalState || rig.IsTransitioning || rig.Mode == CameraMode.KeeperOverview) return false;
             var player = controlled.Controller<PlayerController>();
-            if (player == null || !player.IsActive || Time.unscaledTime - threatReportedAt > RelevanceLifetime) return false;
+            if (player == null || !player.IsActive) return false;
             var delta = candidate.transform.position - controlled.transform.position; delta.y = 0;
-            return delta.sqrMagnitude <= NearbyDistance * NearbyDistance;
+            return delta.sqrMagnitude <= NearbyDistance * NearbyDistance && (HasFreshReport(candidate) || HasHostileIntent(candidate));
         }
+
+        bool HasFreshReport(CombatEntity candidate) => candidate == threat && Time.unscaledTime - threatReportedAt <= RelevanceLifetime;
+
+        bool HasHostileIntent(CombatEntity candidate)
+        {
+            if (!candidate) return false;
+            return IsHostileIntent(candidate.GetComponent<CreatureBrain>());
+        }
+
+        bool IsHostileIntent(CreatureBrain brain) => brain && brain.IsActive && brain.Target == controlled && (brain.State == BrainState.Chase || brain.State == BrainState.Attack);
 
         void UpdateIndicator()
         {
@@ -79,12 +121,20 @@ namespace RealmRaiders.CameraSystem
             bool offScreen = viewport.z <= 0 || viewport.x < .04f || viewport.x > .96f || viewport.y < .04f || viewport.y > .96f;
             indicator.gameObject.SetActive(offScreen);
             if (!offScreen) return;
-            IndicatorDirection = viewport.z > 0 ? (viewport.x < .5f ? -1 : 1) : (Vector3.Dot(view.transform.right, threat.transform.position - view.transform.position) < 0 ? -1 : 1);
-            indicator.text = IndicatorDirection < 0 ? "◀  THREAT" : "THREAT  ▶";
+            IndicatorDirection = IndicatorDirectionFor(viewport, view.transform.right, threat.transform.position - view.transform.position);
+            indicator.text = IndicatorDirection < 0 ? "◀  ATTACKER" : "ATTACKER  ▶";
             var rect = indicator.rectTransform;
-            rect.anchorMin = rect.anchorMax = new Vector2(IndicatorDirection < 0 ? 0 : 1, .54f);
+            var safe = Screen.safeArea;
+            var safeEdge = IndicatorDirection < 0 ? safe.xMin / Screen.width : safe.xMax / Screen.width;
+            rect.anchorMin = rect.anchorMax = new Vector2(safeEdge, .54f);
             rect.pivot = new Vector2(IndicatorDirection < 0 ? 0 : 1, .5f);
-            rect.anchoredPosition = new Vector2(IndicatorDirection < 0 ? 28 : -28, 0);
+            rect.anchoredPosition = new Vector2(IndicatorDirection < 0 ? 34 : -34, 0);
+        }
+
+        /// <summary>Maps a projected off-screen threat to its visible horizontal edge.</summary>
+        public static int IndicatorDirectionFor(Vector3 viewport, Vector3 cameraRight, Vector3 worldOffset)
+        {
+            return viewport.z > 0 ? (viewport.x < .5f ? -1 : 1) : (Vector3.Dot(cameraRight, worldOffset) < 0 ? -1 : 1);
         }
 
         public void Clear()
@@ -100,9 +150,10 @@ namespace RealmRaiders.CameraSystem
             if (rig) rig.ClearCombatFocus();
         }
 
-        void OnDisable() => ClearThreat();
+        void OnDisable() { CreatureBrain.HostileIntentChanged -= ObserveHostileIntent; ClearThreat(); }
         void OnDestroy()
         {
+            CreatureBrain.HostileIntentChanged -= ObserveHostileIntent;
             if (controlled && controlled.Health != null) { controlled.Health.Damaged -= ObserveDamage; controlled.Health.Died -= Clear; }
             if (rig) rig.ClearCombatFocus();
         }
@@ -114,8 +165,8 @@ namespace RealmRaiders.CameraSystem
             var screenCanvas = canvas.GetComponent<Canvas>(); screenCanvas.renderMode = RenderMode.ScreenSpaceOverlay; screenCanvas.sortingOrder = 12;
             var scaler = canvas.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920);
             var label = new GameObject("Threat Direction", typeof(RectTransform), typeof(Text)); label.transform.SetParent(canvas.transform, false);
-            indicator = label.GetComponent<Text>(); indicator.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); indicator.fontSize = 25; indicator.alignment = TextAnchor.MiddleCenter; indicator.color = new Color(1f, .72f, .2f, .92f); indicator.raycastTarget = false;
-            indicator.rectTransform.sizeDelta = new Vector2(185, 56); indicator.gameObject.SetActive(false);
+            indicator = label.GetComponent<Text>(); indicator.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); indicator.fontSize = 30; indicator.fontStyle = FontStyle.Bold; indicator.alignment = TextAnchor.MiddleCenter; indicator.color = new Color(1f, .72f, .2f, .96f); indicator.raycastTarget = false;
+            indicator.rectTransform.sizeDelta = new Vector2(245, 66); indicator.gameObject.SetActive(false);
         }
     }
 }

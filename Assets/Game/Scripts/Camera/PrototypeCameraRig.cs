@@ -46,6 +46,7 @@ namespace RealmRaiders.CameraSystem
         }
 
         public bool HasCombatFocus => combatThreat && focusWeight > .001f;
+        public bool HasRequestedCombatFocus => combatThreat && requestedFocus > .001f;
         public float CombatFocusWeight => focusWeight;
         public void RequestCombatFocus(Transform threat, float weight)
         {
@@ -115,8 +116,8 @@ namespace RealmRaiders.CameraSystem
                 var direction = threat.position - follow.position; direction.y = 0;
                 if (direction.sqrMagnitude > .01f)
                 {
-                    var bias = direction.normalized * Mathf.Min(1.4f, direction.magnitude * .12f) * threatWeight;
-                    position += bias * .25f;
+                    var bias = direction.normalized * Mathf.Min(2.1f, direction.magnitude * .16f) * threatWeight;
+                    position += bias * .32f;
                     lookAt += bias;
                 }
             }

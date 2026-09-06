@@ -76,6 +76,13 @@ namespace RealmRaiders.Tests
             var dependencies = UnityEditor.AssetDatabase.GetDependencies(UnityEditor.AssetDatabase.GetAssetPath(heroRecipe.BaseBodyPrefab));
             Assert.That(dependencies, Has.Some.EndsWith("3DRT/FantasyWarrior/source/warrior_animated-armed.fbx"), "Blood Knight must bind the authorised 3DRT visual source.");
             Assert.That(dependencies, Has.None.EndsWith("Quaternius/AnimatedKnight/KnightCharacter.fbx"), "The old visual remains a named fallback, not the active hero binding.");
+            Assert.That(heroRecipe.BaseBodyPrefab.GetComponentInChildren<Animator>(true), Is.Null, "The rejected Take 001 sequence must not add an Animator to the Blood Knight visual.");
+            var fallback = Resources.Load<GameObject>("Characters/BloodKnightHero_QuaterniusFallback");
+            Assert.That(fallback, Is.Not.Null);
+            var fallbackAnimator = fallback.GetComponentInChildren<Animator>(true);
+            Assert.That(fallbackAnimator, Is.Not.Null, "The retained Quaternius prefab has its pre-existing Animator component.");
+            Assert.That(fallbackAnimator.runtimeAnimatorController, Is.Null, "Fallback visuals must remain independent of the rejected 3DRT animation decision.");
+            Assert.That(fallbackAnimator.applyRootMotion, Is.False, "Fallback Animator must not gain locomotion authority.");
             var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); var assembler = host.AddComponent<CharacterVisualAssembler>();
             Assert.That(assembler.Assemble(heroRecipe), Is.True);
             var root = host.transform.Find("Character Visual Modules");

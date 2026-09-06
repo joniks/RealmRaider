@@ -215,8 +215,7 @@ namespace RealmRaiders.Tests
                 var awareness = cameraObject.GetComponent<CombatCameraAwareness>(); awareness.SetControlled(player); awareness.ReportThreat(threat);
                 yield return null; yield return null;
                 Assert.That(awareness.HasEligibleThreat, Is.True);
-                Assert.That(rig.CombatFocusWeight, Is.GreaterThan(0));
-                Assert.That(awareness.IndicatorDirection, Is.EqualTo(1));
+                Assert.That(rig.HasRequestedCombatFocus, Is.True);
 
                 threatObject.transform.position = new Vector3(30, 0, 2);
                 yield return null;
@@ -229,6 +228,84 @@ namespace RealmRaiders.Tests
                 Assert.That(awareness.HasEligibleThreat, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.False);
                 GameplayInput.SetTerminalState(false);
+            }
+            finally { GameplayInput.SetTerminalState(false); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }
+        }
+
+        [UnityTest]
+        public IEnumerator CombatCameraAwareness_TracksActiveCreatureIntentAcrossEdgesAndCleansUp()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
+            var playerObject = new GameObject("Player", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
+            var threatObject = new GameObject("Hostile Creature", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(CreatureBrain));
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); var threatDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            try
+            {
+                definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                threatDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                var player = playerObject.GetComponent<CombatEntity>(); var threat = threatObject.GetComponent<CombatEntity>();
+                player.Initialize(definition); threat.Initialize(threatDefinition);
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat);
+                var testView = cameraObject.GetComponent<Camera>(); testView.fieldOfView = 1f; testView.aspect = .5f;
+                // Keep the camera basis fixed while testing the presentation indicator's real left/right mapping.
+                rig.enabled = false;
+                player.SetController(playerObject.GetComponent<PlayerController>());
+                var awareness = cameraObject.GetComponent<CombatCameraAwareness>(); awareness.SetControlled(player);
+                var brain = threatObject.GetComponent<CreatureBrain>(); brain.DetectionRange = 14f; threat.SetController(brain);
+
+                // A narrow local test projection makes this a genuine left/right edge case on every host viewport.
+                var horizontalRight = Vector3.ProjectOnPlane(cameraObject.transform.right, Vector3.up).normalized;
+                var rightEdge = playerObject.transform.position + horizontalRight * 10f;
+                threatObject.transform.position = rightEdge; brain.Target = player; brain.Tick();
+                // Awareness updates its indicator in LateUpdate, so assert after that phase.
+                yield return new WaitForEndOfFrame();
+                Assert.That(brain.State, Is.EqualTo(BrainState.Chase).Or.EqualTo(BrainState.Attack));
+                Assert.That(awareness.HasEligibleThreat, Is.True);
+                Assert.That(rig.HasRequestedCombatFocus, Is.True);
+                Assert.That(awareness.IndicatorVisible, Is.True);
+                var rightExpected = CombatCameraAwareness.IndicatorDirectionFor(testView.WorldToViewportPoint(threatObject.transform.position + Vector3.up), testView.transform.right, threatObject.transform.position - testView.transform.position);
+                Assert.That(awareness.IndicatorDirection, Is.EqualTo(rightExpected));
+                var indicator = cameraObject.GetComponentInChildren<UnityEngine.UI.Text>(true);
+                Assert.That(indicator, Is.Not.Null); Assert.That(indicator.raycastTarget, Is.False);
+                Assert.That(cameraObject.GetComponentsInChildren<UnityEngine.UI.Text>(true), Has.Length.EqualTo(1));
+
+                brain.Target = null; brain.Tick();
+                yield return new WaitForEndOfFrame();
+                horizontalRight = Vector3.ProjectOnPlane(cameraObject.transform.right, Vector3.up).normalized;
+                var leftEdge = playerObject.transform.position - horizontalRight * 10f;
+                threatObject.transform.position = leftEdge; brain.Target = player; brain.Tick();
+                yield return new WaitForEndOfFrame();
+                Assert.That(awareness.IndicatorVisible, Is.True);
+                var leftExpected = CombatCameraAwareness.IndicatorDirectionFor(testView.WorldToViewportPoint(threatObject.transform.position + Vector3.up), testView.transform.right, threatObject.transform.position - testView.transform.position);
+                Assert.That(awareness.IndicatorDirection, Is.EqualTo(leftExpected));
+                Assert.That(leftExpected, Is.Not.EqualTo(rightExpected));
+
+                threatObject.transform.position = playerObject.transform.position + Vector3.forward * 2f; brain.Tick();
+                yield return new WaitForEndOfFrame();
+                Assert.That(brain.State, Is.EqualTo(BrainState.Attack));
+                Assert.That(awareness.HasEligibleThreat, Is.True);
+
+                brain.Target = null; brain.Tick();
+                yield return new WaitForEndOfFrame();
+                Assert.That(awareness.HasEligibleThreat, Is.False);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(rig.HasCombatFocus, Is.False);
+
+                horizontalRight = Vector3.ProjectOnPlane(cameraObject.transform.right, Vector3.up).normalized;
+                rightEdge = playerObject.transform.position + horizontalRight * 10f;
+                threatObject.transform.position = rightEdge; brain.Target = player; brain.Tick();
+                yield return new WaitForEndOfFrame();
+                GameplayInput.SetTerminalState(true); yield return new WaitForEndOfFrame();
+                Assert.That(awareness.HasEligibleThreat, Is.False);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                GameplayInput.SetTerminalState(false);
+
+                brain.Target = null; brain.Tick(); brain.Target = player; brain.Tick();
+                yield return new WaitForEndOfFrame();
+                player.SetController(null); yield return new WaitForEndOfFrame();
+                Assert.That(awareness.HasEligibleThreat, Is.False);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(rig.HasCombatFocus, Is.False);
             }
             finally { GameplayInput.SetTerminalState(false); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }
         }

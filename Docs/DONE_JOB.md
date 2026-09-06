@@ -240,3 +240,78 @@ Completed on 2026-09-05; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Hard target lock, aim assist, automatic combat, minimap/radar, camera settings, and any change to camera gameplay or balance.
+
+## Diamond Pass 07.1 — Licensed Fantasy Warrior Blood Knight
+
+Completed on 2026-09-06 in commit `c57d14e`.
+
+### Delivered
+
+- Replaced the active Blood Knight visual with the authorised 3DRT Fantasy Warrior, while preserving its visual-only `CharacterVisualAssembler` integration.
+- Retained the original Quaternius presentation as `BloodKnightHero_QuaterniusFallback.prefab`; no source art or gameplay system was removed.
+- Added the creator-published 3DRT archive, FBX and texture with a local provenance record and a full CC BY 4.0 register entry. The required attribution is recorded for a future player-facing third-party-notices screen.
+- Configured the imported visual for mobile: published ~2.5k-triangle source, Medium mesh compression, disabled Read/Write, no colliders/cameras/lights, and a 1024px Android texture override.
+- Attempted Humanoid validation; the asset remains safely Generic because Unity did not produce a human-bone mapping. Its one imported clip is retained, but no Animator Controller or gameplay animation system was introduced.
+- Added EditMode coverage proving the active 3DRT binding, preserved Quaternius fallback separation, and visual-only/mobile import settings.
+
+### Verification
+
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `16/16` passed, `0` failed.
+- Manual Sylvan smoke confirmed the 3DRT Blood Knight is visible and gameplay/HUD remains functional; Infernal fallback flow remained stable. Both runs left Console at `0` errors.
+- `git diff --check` passed before commit; generated Library, Logs and Builds content remains outside Git.
+
+### Scope intentionally deferred
+
+- Validation and optional use of the source animation clip.
+- A player-facing third-party-notices screen, further model/texture edits, LODs, retargeting, and new animation content.
+
+## Diamond Pass 07.2 — Blood Knight Animation Proof
+
+Completed on 2026-09-06; include this record with the next project commit.
+
+### Delivered
+
+- Inspected the authorised 3DRT `Take 001` source clip rather than assuming it was a usable idle.
+- Confirmed the Generic clip is 33.367 seconds at 30 FPS (frames 0–1001), with Loop Time and Loop Pose disabled and no Root Motion Node.
+- Previewed the sequence across its timeline; it is a long authored series of materially different poses, not a compact idle or showcase loop readable from the Sylvan camera.
+- Correctly retained the existing bounded `CharacterVisualMotion` presentation layer instead of forcing an Animator, controller, root motion or unsuitable clip into gameplay.
+- Added regression checks that the active 3DRT visual remains Animator-free and that the Quaternius fallback remains independent, with no controller or root-motion authority.
+
+### Verification
+
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `16/16` passed, `0` failed on 2026-09-06; `TestResults.xml` records 2026-09-05 21:36:18Z–21:36:21Z.
+- Manual Sylvan and Infernal starts remained stable with no new Animator/camera layer or Console exception.
+- `git diff --check` passes.
+
+### Decision
+
+No source animation was integrated. A future animation pass needs a short, deliberately selected licensed idle/combat set or a separately authorised retargeting pipeline; this pass does not pretend the existing long clip solves that need.
+
+## Diamond Pass 08.1 — Threat Readability on Mobile
+
+Completed on 2026-09-06; include this record with the next project commit.
+
+### Delivered
+
+- Extended the presentation-only combat camera awareness to recognise nearby creatures that are actively targeting the directly controlled character and are in `Chase` or `Attack`, while preserving explicit enemy-tap and damage reports.
+- Added a bounded active-creature registry and intent-change signal, avoiding per-frame scene scans. Existing eligible pursuers are reconciled safely after an old threat is cleared.
+- Made the off-screen indicator more legible on phones: it now says `ATTACKER`, is larger/bold, non-interactive, and anchored inside the device safe area on the correct horizontal edge.
+- Strengthened the still-bounded soft camera bias so a nearby flanking attacker is perceptible without hard lock-on, movement changes, player rotation, aim assist, target selection, or combat/balance changes.
+- Preserved cleanup on terminal state, controller release, possession changes, death, distance, camera transitions, and Keeper overview.
+
+### Verification
+
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `17/17` passed, `0` failed (final run duration: 3.177 seconds).
+- The focused PlayMode coverage now verifies real `CombatCameraAwareness` indicator visibility and actual left/right edge direction from active creature intent, plus nearby focus, release, terminal cleanup, and controller cleanup.
+- `git diff --check` passes.
+
+### Remaining player feel check
+
+- Automated coverage proves the behaviour and cleanup. Confirm on a physical phone that the stronger soft focus is noticeable but comfortable in both portrait and landscape; tune only the presentation constants if it feels too subtle or too assertive.
+
+### Scope intentionally deferred
+
+- Hard target lock, aim assist, automatic combat, minimap/radar, camera settings, and any gameplay or balance change.
