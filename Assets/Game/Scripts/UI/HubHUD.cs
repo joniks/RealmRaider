@@ -1,4 +1,5 @@
 using RealmRaiders.Core;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ namespace RealmRaiders.UI
         RawImage guardianEntHero;
         ResponsiveHudRoot responsive;
         HudPresentation presentation;
+        readonly Dictionary<string, Button> buttons = new();
         public void Initialize() { Build(); Refresh(); }
 
         void Build()
@@ -64,10 +66,38 @@ namespace RealmRaiders.UI
         {
             ApplyHeroArtLayout(orientation);
             var labels = new[] { title, subtitle, selected, orientationTitle, orientationHelp, controlTitle, controlHelp, journey, prototypeRoutes };
-            var ys = orientation == PrototypeOrientation.Landscape ? new[] { -70f, -190f, -300f, -410f, -460f, -540f, -590f, -670f, -760f } : new[] { -180f, -300f, -410f, -480f, -530f, -720f, -790f, -970f, -1180f };
-            var anchor = orientation == PrototypeOrientation.Landscape ? .25f : .5f;
-            var width = orientation == PrototypeOrientation.Landscape ? 820 : 950;
-            for (var i = 0; i < labels.Length; i++) { var rect = labels[i].rectTransform; rect.anchorMin = rect.anchorMax = new Vector2(anchor, 1); rect.anchoredPosition = new Vector2(0, ys[i]); rect.sizeDelta = new Vector2(width, rect.sizeDelta.y); }
+            var ys = orientation == PrototypeOrientation.Landscape ? new[] { -55f, -135f, -185f, -245f, -292f, -350f, -400f, -465f, -540f } : new[] { -180f, -300f, -410f, -480f, -530f, -720f, -790f, -970f, -1180f };
+            var anchor = .25f;
+            var width = orientation == PrototypeOrientation.Landscape ? 600 : 480;
+            var heights = orientation == PrototypeOrientation.Landscape ? new[] { 75f, 36f, 36f, 44f, 36f, 44f, 36f, 60f, 44f } : new[] { 90f, 90f, 36f, 44f, 36f, 44f, 50f, 70f, 44f };
+            for (var i = 0; i < labels.Length; i++) { var rect = labels[i].rectTransform; rect.anchorMin = rect.anchorMax = new Vector2(anchor, 1); rect.anchoredPosition = new Vector2(0, ys[i]); rect.sizeDelta = new Vector2(width, heights[i]); }
+            ApplyButtonLayout(orientation);
+        }
+
+        void ApplyButtonLayout(PrototypeOrientation orientation)
+        {
+            if (buttons.Count == 0) return;
+            if (orientation == PrototypeOrientation.Landscape)
+            {
+                Place("AUTO", new Vector2(-480, 640), new Vector2(150, 80)); Place("PORTRAIT", new Vector2(-280, 640), new Vector2(150, 80)); Place("LANDSCAPE", new Vector2(-80, 640), new Vector2(150, 80));
+                Place("CONTEXTUAL", new Vector2(-480, 540), new Vector2(150, 80)); Place("FINGERTAP", new Vector2(-280, 540), new Vector2(150, 80)); Place("JOYSTICK", new Vector2(-80, 540), new Vector2(150, 80));
+                Place("START SYLVAN JOURNEY", new Vector2(-20, 430), new Vector2(430, 85)); Place("BUILD SYLVAN", new Vector2(-20, 330), new Vector2(430, 75)); Place("DEFEND SYLVAN", new Vector2(-20, 245), new Vector2(430, 75));
+                Place("RAID SYLVAN", new Vector2(-20, 160), new Vector2(430, 75)); Place("DEFEND INFERNAL", new Vector2(-20, 75), new Vector2(430, 75)); Place("CHARACTER SANDBOX", new Vector2(-20, 0), new Vector2(430, 65));
+                return;
+            }
+
+            var portraitColumn = new Vector2(.58f, 0);
+            Place("AUTO", new Vector2(0, 1235), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("PORTRAIT", new Vector2(155, 1235), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("LANDSCAPE", new Vector2(310, 1235), new Vector2(140, 105), portraitColumn, Vector2.zero);
+            Place("CONTEXTUAL", new Vector2(0, 930), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("FINGERTAP", new Vector2(155, 930), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("JOYSTICK", new Vector2(310, 930), new Vector2(140, 105), portraitColumn, Vector2.zero);
+            Place("START SYLVAN JOURNEY", new Vector2(0, 770), new Vector2(360, 120), portraitColumn, Vector2.zero); Place("BUILD SYLVAN", new Vector2(0, 580), new Vector2(360, 105), portraitColumn, Vector2.zero);
+            Place("DEFEND SYLVAN", new Vector2(0, 440), new Vector2(360, 105), portraitColumn, Vector2.zero); Place("RAID SYLVAN", new Vector2(0, 300), new Vector2(360, 105), portraitColumn, Vector2.zero);
+            Place("DEFEND INFERNAL", new Vector2(0, 160), new Vector2(360, 105), portraitColumn, Vector2.zero); Place("CHARACTER SANDBOX", new Vector2(0, 20), new Vector2(360, 105), portraitColumn, Vector2.zero);
+        }
+
+        void Place(string name, Vector2 position, Vector2 size, Vector2? anchor = null, Vector2? pivot = null)
+        {
+            if (!buttons.TryGetValue(name, out var button)) return;
+            var rect = button.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = anchor ?? new Vector2(1, 0); rect.pivot = pivot ?? new Vector2(1, 0); rect.anchoredPosition = position; rect.sizeDelta = size;
         }
 
         void SelectAndLoad(string realm, string scene) { PrototypeSave.SelectRealm(realm); SceneManager.LoadScene(scene); }
@@ -77,6 +107,6 @@ namespace RealmRaiders.UI
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, float height = 90)
         { var go = new GameObject("Label " + value, typeof(RectTransform), typeof(Text)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 1); rect.pivot = new Vector2(.5f, 1); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(950, height); var text = go.GetComponent<Text>(); text.text = value; text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); text.fontSize = size; text.alignment = anchor; text.color = Color.white; return text; }
         Button Button(string value, Vector2 position, UnityEngine.Events.UnityAction action)
-        { var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(value == "AUTO" || value == "PORTRAIT" || value == "LANDSCAPE" ? 180 : 620, 105); if (value == "CONTEXTUAL" || value == "FINGERTAP" || value == "JOYSTICK") rect.sizeDelta = new Vector2(180, 105); if (value == "START SYLVAN JOURNEY") { rect.sizeDelta = new Vector2(760, 120); go.GetComponent<Image>().color = new Color(.22f, .55f, .3f, .98f); } else go.GetComponent<Image>().color = new Color(.12f, .3f, .18f, .96f); var button = go.GetComponent<Button>(); presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick()); var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textGo.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = value == "START SYLVAN JOURNEY" ? 36 : 32; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button; }
+        { var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(value == "AUTO" || value == "PORTRAIT" || value == "LANDSCAPE" ? 180 : 620, 105); if (value == "CONTEXTUAL" || value == "FINGERTAP" || value == "JOYSTICK") rect.sizeDelta = new Vector2(180, 105); if (value == "START SYLVAN JOURNEY") { rect.sizeDelta = new Vector2(760, 120); go.GetComponent<Image>().color = new Color(.22f, .55f, .3f, .98f); } else go.GetComponent<Image>().color = new Color(.12f, .3f, .18f, .96f); var button = go.GetComponent<Button>(); buttons[value] = button; presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick()); var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textGo.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = value == "START SYLVAN JOURNEY" ? 36 : 32; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button; }
     }
 }

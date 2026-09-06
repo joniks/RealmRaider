@@ -50,7 +50,9 @@ namespace RealmRaiders.UI
         }
         void ReflowActions(PrototypeOrientation orientation)
         {
-            if (GetComponent<BuildHUD>()) return;
+            // Hub owns its deliberate two-column landscape and stacked portrait layouts.
+            // Other HUDs keep this compact shared action reflow.
+            if (GetComponent<BuildHUD>() || GetComponent<HubHUD>()) return;
             var buttons = GetComponentsInChildren<Button>(true); var index = 0;
             foreach (var button in buttons)
             {

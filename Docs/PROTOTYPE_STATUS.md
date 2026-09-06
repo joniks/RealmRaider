@@ -4,8 +4,8 @@ Last reviewed: 2026-09-06
 
 ## Latest verification
 
-- Diamond Pass 08.1 combat-camera awareness is present: bounded hostile-intent framing and a non-interactive off-screen attacker indicator, with cleanup on controller, terminal and scene transitions.
-- Current Unity Test Runner baseline: EditMode 30/30 and PlayMode 17/17 passed on 2026-09-06.
+- Diamond Pass 08.3 possession presentation is present: a pulsing, camera-facing selection marker plus brief, non-interactive takeover and release feedback with idempotent cleanup.
+- Current Unity Test Runner baseline: EditMode 30/30 and PlayMode 18/18 passed on 2026-09-06.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -13,7 +13,7 @@ Last reviewed: 2026-09-06
 | Milestone | Status | Current implementation |
 | --- | --- | --- |
 | 1. Character Sandbox | Functional greybox | Blood Knight and Ent share combat, movement, abilities, AI, health and death. |
-| 2. Possession | Functional greybox | Keeper selection, same-entity controller swap, camera transition, release and death handling. |
+| 2. Possession | Functional greybox | Keeper selection, same-entity controller swap, camera transition, readable marker/feedback, release and death handling. |
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree and raid result. |
 | 4. Keeper Defense | Functional greybox | AI invader route, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
@@ -21,7 +21,7 @@ Last reviewed: 2026-09-06
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 30/30 and PlayMode 17/17 on 2026-09-06.
+- Current verified baseline: EditMode 30/30 and PlayMode 18/18 on 2026-09-06.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

@@ -120,10 +120,10 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
             var buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None); AssertNoButtonOverlap(buttons);
-            AssertHubLabelsClear(buttons, false);
+            AssertHubLabelsClear(buttons);
             Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
             AssertNoButtonOverlap(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
-            AssertHubLabelsClear(Object.FindObjectsByType<Button>(FindObjectsSortMode.None), true);
+            AssertHubLabelsClear(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
             AssertSingleViewAndListener();
             Screen.SetResolution(width, height, false);
         }
@@ -142,28 +142,20 @@ namespace RealmRaiders.Tests
             }
         }
 
-        static void AssertHubLabelsClear(Button[] buttons, bool portrait)
+        static void AssertHubLabelsClear(Button[] buttons)
         {
             var labels = new List<RectTransform>();
             foreach (var text in Object.FindObjectsByType<Text>(FindObjectsSortMode.None)) if (!text.GetComponentInParent<Button>()) labels.Add(text.rectTransform);
             for (var i = 0; i < labels.Count; i++)
             {
                 var label = labels[i];
-                foreach (var button in buttons) AssertNoOverlap(label, button.GetComponent<RectTransform>(), $"Hub label/button overlap: {label.name}/{button.name}", portrait);
-                for (var j = i + 1; j < labels.Count; j++) AssertNoOverlap(label, labels[j], $"Hub labels overlap: {label.name}/{labels[j].name}", portrait);
+                foreach (var button in buttons) AssertNoOverlap(label, button.GetComponent<RectTransform>(), $"Hub label/button overlap: {label.name}/{button.name}");
+                for (var j = i + 1; j < labels.Count; j++) AssertNoOverlap(label, labels[j], $"Hub labels overlap: {label.name}/{labels[j].name}");
             }
         }
 
-        static void AssertNoOverlap(RectTransform a, RectTransform b, string message, bool portrait = false)
+        static void AssertNoOverlap(RectTransform a, RectTransform b, string message)
         {
-            if (portrait)
-            {
-                var aTop = a.anchorMin.y > .5f ? 1920 + a.anchoredPosition.y : a.anchoredPosition.y + a.sizeDelta.y * .5f;
-                var bTop = b.anchorMin.y > .5f ? 1920 + b.anchoredPosition.y : b.anchoredPosition.y + b.sizeDelta.y * .5f;
-                var portraitOverlapX = Mathf.Min(a.anchoredPosition.x + a.sizeDelta.x * .5f, b.anchoredPosition.x + b.sizeDelta.x * .5f) - Mathf.Max(a.anchoredPosition.x - a.sizeDelta.x * .5f, b.anchoredPosition.x - b.sizeDelta.x * .5f);
-                var portraitOverlapY = Mathf.Min(aTop, bTop) - Mathf.Max(aTop - a.sizeDelta.y, bTop - b.sizeDelta.y);
-                Assert.That(portraitOverlapX > 0 && portraitOverlapY > 0, Is.False, message); return;
-            }
             var ac = new Vector3[4]; var bc = new Vector3[4]; a.GetWorldCorners(ac); b.GetWorldCorners(bc);
             var overlapX = Mathf.Min(ac[2].x, bc[2].x) - Mathf.Max(ac[0].x, bc[0].x); var overlapY = Mathf.Min(ac[2].y, bc[2].y) - Mathf.Max(ac[0].y, bc[0].y);
             Assert.That(overlapX > 0 && overlapY > 0, Is.False, message);

@@ -343,3 +343,31 @@ Completed on 2026-09-06; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Persistent tutorial completion, campaign/progression logic, new scenes, settings UI, additional art/audio, and any Build/Defense/Raid gameplay change.
+
+## Diamond Pass 08.3 — Possession Moment Readability
+
+Completed on 2026-09-06; include this record with the next project commit.
+
+### Delivered
+
+- Replaced the greybox possession selection ring/label with a visual-only `PossessionSelectionPresentation`: a restrained pulsing ground marker and camera-facing selected-creature label. It adds no input ownership or active collider and does not move the entity or camera.
+- Added one short, non-interactive HUD confirmation for takeover and voluntary/forced return, using the actual creature display name. Sandbox, Sylvan Defense, and Infernal Defense retain their existing possession energy, direct-control HUD, audio/haptic, slow beat, and camera transition.
+- Made selection, pulse, release, death, and destruction cleanup idempotent; the per-selection material instance is explicitly released on presentation destruction.
+- Corrected a discovered Hub responsive-layout regression: the Hub now owns explicit portrait and landscape action layouts rather than allowing the generic action reflow to overwrite them. Portrait uses distinct information and action columns; landscape retains a deliberate two-column layout.
+- Replaced the Hub overlap test's incorrect pivot/anchor approximation with real `RectTransform` world-corner checks.
+
+### Verification
+
+- Focused possession-presentation test passed, including billboard orientation, non-blocking colliders, same-entity takeover/release, feedback, and no canvas/EventSystem/AudioListener artifacts.
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `18/18` passed, `0` failed on 2026-09-06.
+- Manual Sandbox smoke passed: selection marker, takeover confirmation, ability use, release, and cleanup were visible with no artifacts. DefenderTest reached terminal cleanup with no exceptions; its rapid AI route prevented a manual possession before terminal, so automated possession coverage remains the proof for that boundary.
+- Unity compiled without C# errors or new runtime exceptions; `git diff --check` passes.
+
+### Remaining player feel check
+
+- On a physical device, confirm the pulse/label is readable but restrained in portrait and landscape, then repeat one full Defender possession before terminal. Tune only presentation constants if it feels too subtle or too prominent.
+
+### Scope intentionally deferred
+
+- New possession rules, camera effects, persistent tutorial/progression state, assets/packages, animation work, combat/trap/energy balance changes, and a general UI redesign.

@@ -24,6 +24,7 @@ namespace RealmRaiders.UI
             Build(director);
             manager.SelectionChanged += OnSelection;
             manager.PossessionChanged += OnPossession;
+            manager.MomentFeedback += ShowMomentFeedback;
             hero.Health.Changed += (_, _) => RefreshHealth();
             ent.Health.Changed += (_, _) => RefreshHealth();
             RefreshHealth(); OnSelection(null); OnPossession(null);
@@ -39,7 +40,7 @@ namespace RealmRaiders.UI
             title = Label("REALM RAIDERS — CHARACTER SANDBOX", new Vector2(0, -45), 35, TextAnchor.UpperCenter);
             heroHp = Label("", new Vector2(40, -115), 28, TextAnchor.UpperLeft);
             entHp = Label("", new Vector2(40, -155), 28, TextAnchor.UpperLeft);
-            selected = Label("", new Vector2(0, -230), 32, TextAnchor.UpperCenter);
+            selected = Label("", new Vector2(0, -230), 32, TextAnchor.UpperCenter); selected.raycastTarget = false;
             hint = Label("Tap ENT to select • Swipe to dodge/charge • Tap enemy to attack", new Vector2(0, 55), 25, TextAnchor.LowerCenter, true);
             possessButton = Button("POSSESS", new Vector2(0, 250), PossessSelected);
             releaseButton = Button("RELEASE", new Vector2(0, 250), possession.Release);
@@ -62,8 +63,16 @@ namespace RealmRaiders.UI
             bool active = value;
             releaseButton.gameObject.SetActive(active); attackButton.gameObject.SetActive(active); slamButton.gameObject.SetActive(active);
             hint.text = active ? "Tap ground to move • Tap Blood Knight or SMASH • Swipe to CHARGE" : "Tap ENT to select, then POSSESS";
+            selected.text = active ? $"YOU CONTROL: {value.Definition.DisplayName.ToUpperInvariant()}" : "Keeper Overview";
             if (!active) possessButton.gameObject.SetActive(false);
         }
+        void ShowMomentFeedback(string message)
+        {
+            if (!selected) return;
+            selected.text = message;
+            CancelInvoke(nameof(HideMomentFeedback)); Invoke(nameof(HideMomentFeedback), 1.5f);
+        }
+        void HideMomentFeedback() { if (possession) OnPossession(possession.Possessed); }
         void RefreshHealth()
         { heroHp.text = $"Blood Knight  {hero.Health.Current:0}/{hero.Health.Maximum:0} HP"; entHp.text = $"Ent  {ent.Health.Current:0}/{ent.Health.Maximum:0} HP"; }
 
