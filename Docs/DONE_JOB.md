@@ -371,3 +371,30 @@ Completed on 2026-09-06; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - New possession rules, camera effects, persistent tutorial/progression state, assets/packages, animation work, combat/trap/energy balance changes, and a general UI redesign.
+
+## Diamond Pass 08.4 — Raid Objective Compass
+
+Completed on 2026-09-06; include this record with the next project commit.
+
+### Delivered
+
+- Connected the existing Sylvan Heart Tree `RealmCore` and raid camera directly to the existing `RaidHUD`; no scene scan, second canvas, EventSystem, or AudioListener was added.
+- Added one safe-area, non-interactive `HEART TREE` edge cue that appears only when the active objective is outside the camera view. It maps real camera projection to the correct left/right edge in portrait and landscape.
+- Kept the objective cue distinct from the orange attacker warning: it is a calm goal signal only and never requests camera focus, selects a target, moves/rotates the hero, alters fog, or changes objective/combat timing.
+- The cue hides when the Heart Tree is visible, objective capture has begun, a terminal result is active, the hero is dead, references are missing, or the scene is being torn down.
+
+### Verification
+
+- Focused objective-compass PlayMode test: `1/1` passed, covering real camera projection left/right, on-screen hide, capture hide, terminal cleanup, and UI-input infrastructure invariants.
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `19/19` passed, `0` failed on 2026-09-06.
+- Manual Sylvan smoke observed `◀ HEART TREE` safely on the left in landscape and `HEART TREE ▶` safely on the right after the Hub portrait preference was selected; action buttons remained reachable.
+- Unity Console/Editor log had no new C# or runtime exceptions. `git diff --check` passes.
+
+### Remaining player feel check
+
+- Unity Game View remained Free Aspect during the manual check, so a true physical portrait viewport still needs confirmation on Android. Verify that the cue is calm, readable, and visually distinct from `ATTACKER` during one physical-device raid.
+
+### Scope intentionally deferred
+
+- Minimap/radar, waypoint path, automatic movement, hard target lock, camera focus, fog changes, gameplay balance changes, persistent settings, new art/assets/packages, or a UI redesign.

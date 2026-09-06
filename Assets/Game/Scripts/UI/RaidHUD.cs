@@ -1,6 +1,7 @@
 using RealmRaiders.Characters;
 using RealmRaiders.Controllers;
 using RealmRaiders.Raid;
+using RealmRaiders.Realm;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -9,21 +10,40 @@ namespace RealmRaiders.UI
 {
     public sealed class RaidHUD : MonoBehaviour
     {
-        Text state, health, stats, objective, result, rootPrompt;
+        Text state, health, stats, objective, result, rootPrompt, objectiveCompass;
         GameObject resultPanel;
         CombatEntity hero;
         RaidManager raid;
+        RealmCore core;
+        Camera view;
         HudPresentation presentation;
+        float objectiveProgress;
+        int compassDirection;
 
-        public void Initialize(RaidManager manager, CombatEntity raidHero)
+        public bool ObjectiveCompassVisible => objectiveCompass && objectiveCompass.gameObject.activeSelf;
+        public int ObjectiveCompassDirection => compassDirection;
+        public bool ObjectiveCompassRaycastTarget => objectiveCompass && objectiveCompass.raycastTarget;
+
+        public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
-            raid = manager; hero = raidHero; Build();
+            raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; Build();
             manager.StateChanged += OnState; manager.Finished += ShowResult;
             hero.Health.Changed += (_, _) => Refresh();
             Refresh(); OnState(manager.State);
         }
 
-        void Update() { if (raid) Refresh(); var controller = hero ? hero.Controller<PlayerController>() : null; if (rootPrompt) { var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState; rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; } }
+        void Update()
+        {
+            if (raid) Refresh();
+            var controller = hero ? hero.Controller<PlayerController>() : null;
+            if (rootPrompt)
+            {
+                var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState;
+                rootPrompt.gameObject.SetActive(rooted);
+                if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5";
+            }
+            UpdateObjectiveCompass();
+        }
 
         void Build()
         {
@@ -35,6 +55,7 @@ namespace RealmRaiders.UI
             health = Label("", new Vector2(35, -105), 28, TextAnchor.UpperLeft);
             stats = Label("", new Vector2(35, -150), 25, TextAnchor.UpperLeft);
             objective = Label("Reach the Heart Tree", new Vector2(0, -205), 28, TextAnchor.UpperCenter);
+            objectiveCompass = Label("", Vector2.zero, 24, TextAnchor.MiddleCenter); objectiveCompass.name = "Heart Tree Compass"; objectiveCompass.raycastTarget = false; objectiveCompass.gameObject.SetActive(false);
             rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             Label("Tap ground: move • Tap enemy: attack • Swipe: Blood Rush", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true);
             Button("SLASH", new Vector2(-260, 110), () => Ability(0));
@@ -51,7 +72,7 @@ namespace RealmRaiders.UI
         }
 
         void Ability(int index) => hero.Controller<PlayerController>()?.UseAbility(index);
-        public void SetObjectiveProgress(float progress) => objective.text = progress > 0 ? $"Capturing Heart Tree  {progress * 100:0}%" : "Reach the Heart Tree";
+        public void SetObjectiveProgress(float progress) { objectiveProgress = progress; objective.text = progress > 0 ? $"Capturing Heart Tree  {progress * 100:0}%" : "Reach the Heart Tree"; }
         void OnState(RaidState value) => state.text = $"SYLVAN RAID — {value}";
         void Refresh()
         {
@@ -61,9 +82,42 @@ namespace RealmRaiders.UI
         void ShowResult(RaidResult value)
         {
             GameplayInput.SetTerminalState(true);
+            SetCompassVisible(false);
             resultPanel.SetActive(true);
             presentation?.PlayResult();
             result.text = $"{(value.Victory ? "VICTORY" : "DEFEAT")}\n\nGold collected: {value.Gold}\nRare materials: {value.RareMaterials}\nEnemies defeated: {value.EnemiesDefeated}\nRooms discovered: {value.RoomsDiscovered}\nRaid duration: {value.Duration:0}s\nCore reached: {(value.CoreReached ? "yes" : "no")}";
+        }
+
+        void UpdateObjectiveCompass()
+        {
+            if (!objectiveCompass) return;
+            if (!view || !core || !hero || hero.Health.IsDead || objectiveProgress > .001f || GameplayInput.TerminalState || resultPanel && resultPanel.activeSelf || !IsActionableRaidState()) { SetCompassVisible(false); return; }
+            var viewport = view.WorldToViewportPoint(core.transform.position + Vector3.up * 2f);
+            if (viewport.z > 0 && viewport.x >= 0 && viewport.x <= 1 && viewport.y >= 0 && viewport.y <= 1) { SetCompassVisible(false); return; }
+            var direction = ObjectiveDirectionFor(view, viewport, core.transform.position - view.transform.position);
+            if (direction != compassDirection)
+            {
+                compassDirection = direction;
+                objectiveCompass.text = direction < 0 ? "◀  HEART TREE" : "HEART TREE  ▶";
+                var rect = objectiveCompass.rectTransform; var safe = Screen.safeArea;
+                var edge = direction < 0 ? safe.xMin / Mathf.Max(1, Screen.width) : safe.xMax / Mathf.Max(1, Screen.width);
+                rect.anchorMin = rect.anchorMax = new Vector2(edge, .5f); rect.pivot = new Vector2(direction < 0 ? 0 : 1, .5f); rect.anchoredPosition = new Vector2(direction < 0 ? 28 : -28, 0); rect.sizeDelta = new Vector2(220, 64);
+            }
+            SetCompassVisible(true);
+        }
+
+        bool IsActionableRaidState() => raid && raid.State is RaidState.RaidStarting or RaidState.Exploring or RaidState.Combat;
+        void SetCompassVisible(bool visible) { if (objectiveCompass && objectiveCompass.gameObject.activeSelf != visible) objectiveCompass.gameObject.SetActive(visible); if (!visible) compassDirection = 0; }
+        public static int ObjectiveDirectionFor(Camera camera, Vector3 viewport, Vector3 worldOffset)
+        {
+            if (viewport.x < 0) return -1;
+            if (viewport.x > 1) return 1;
+            return Vector3.Dot(camera.transform.right, worldOffset) < 0 ? -1 : 1;
+        }
+
+        void OnDestroy()
+        {
+            if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; }
         }
 
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, bool bottom = false)
