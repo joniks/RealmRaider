@@ -61,7 +61,7 @@ namespace RealmRaiders.UI
         }
         float LandscapeButtonY(string name, int index)
         {
-            if (GetComponent<HubHUD>()) return name == "AUTO" || name == "PORTRAIT" || name == "LANDSCAPE" ? 900 : name == "CONTEXTUAL" || name == "FINGERTAP" || name == "JOYSTICK" ? 760 : name == "BUILD SYLVAN" ? 620 : name == "DEFEND SYLVAN" ? 500 : name == "RAID SYLVAN" ? 380 : name == "DEFEND INFERNAL" ? 260 : 140;
+            if (GetComponent<HubHUD>()) return name == "START SYLVAN JOURNEY" ? 860 : name == "AUTO" || name == "PORTRAIT" || name == "LANDSCAPE" ? 700 : name == "CONTEXTUAL" || name == "FINGERTAP" || name == "JOYSTICK" ? 570 : name == "BUILD SYLVAN" ? 430 : name == "DEFEND SYLVAN" ? 325 : name == "RAID SYLVAN" ? 220 : name == "DEFEND INFERNAL" ? 115 : 10;
             return 110 + index * 108;
         }
         float LandscapeButtonX(string name) => GetComponent<HubHUD>() && (name == "AUTO" || name == "PORTRAIT" || name == "LANDSCAPE" || name == "CONTEXTUAL" || name == "FINGERTAP" || name == "JOYSTICK") ? name == "AUTO" || name == "CONTEXTUAL" ? -620 : name == "PORTRAIT" || name == "FINGERTAP" ? -310 : -70 : -70;

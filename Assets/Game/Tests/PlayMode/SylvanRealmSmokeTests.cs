@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Raid;
@@ -13,6 +14,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace RealmRaiders.Tests
 {
@@ -105,10 +107,23 @@ namespace RealmRaiders.Tests
             var width = Screen.width; var height = Screen.height; Screen.SetResolution(1920, 1080, false); SceneManager.LoadScene("PrototypeHub");
             yield return null;
             yield return null;
-            Assert.That(Object.FindFirstObjectByType<HubHUD>(), Is.Not.Null); Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+            var hub = Object.FindFirstObjectByType<HubHUD>(); Assert.That(hub, Is.Not.Null);
+            Assert.That(HubHUD.DestinationForButton("START SYLVAN JOURNEY"), Is.EqualTo("RealmBuild"));
+            Assert.That(HubHUD.DestinationForButton("BUILD SYLVAN"), Is.EqualTo("RealmBuild"));
+            Assert.That(HubHUD.DestinationForButton("DEFEND SYLVAN"), Is.EqualTo("DefenderTest"));
+            Assert.That(HubHUD.DestinationForButton("RAID SYLVAN"), Is.EqualTo("SylvanRealm"));
+            Assert.That(HubHUD.DestinationForButton("DEFEND INFERNAL"), Is.EqualTo("InfernalRealm"));
+            Assert.That(HubHUD.DestinationForButton("CHARACTER SANDBOX"), Is.EqualTo("CharacterSandbox"));
+            foreach (var route in new[] { "START SYLVAN JOURNEY", "BUILD SYLVAN", "DEFEND SYLVAN", "RAID SYLVAN", "DEFEND INFERNAL", "CHARACTER SANDBOX" }) Assert.That(GameObject.Find(route), Is.Not.Null);
+            Assert.That(GameObject.Find("Label " + HubHUD.JourneyExplanation).GetComponent<Text>().text, Is.EqualTo(HubHUD.JourneyExplanation));
+            Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
             var buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None); AssertNoButtonOverlap(buttons);
+            AssertHubLabelsClear(buttons, false);
             Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
             AssertNoButtonOverlap(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
+            AssertHubLabelsClear(Object.FindObjectsByType<Button>(FindObjectsSortMode.None), true);
             AssertSingleViewAndListener();
             Screen.SetResolution(width, height, false);
         }
@@ -125,6 +140,33 @@ namespace RealmRaiders.Tests
                     Assert.That(overlapX > 0 && overlapY > 0, Is.False, $"HUD buttons overlap: {a.name}/{b.name}");
                 }
             }
+        }
+
+        static void AssertHubLabelsClear(Button[] buttons, bool portrait)
+        {
+            var labels = new List<RectTransform>();
+            foreach (var text in Object.FindObjectsByType<Text>(FindObjectsSortMode.None)) if (!text.GetComponentInParent<Button>()) labels.Add(text.rectTransform);
+            for (var i = 0; i < labels.Count; i++)
+            {
+                var label = labels[i];
+                foreach (var button in buttons) AssertNoOverlap(label, button.GetComponent<RectTransform>(), $"Hub label/button overlap: {label.name}/{button.name}", portrait);
+                for (var j = i + 1; j < labels.Count; j++) AssertNoOverlap(label, labels[j], $"Hub labels overlap: {label.name}/{labels[j].name}", portrait);
+            }
+        }
+
+        static void AssertNoOverlap(RectTransform a, RectTransform b, string message, bool portrait = false)
+        {
+            if (portrait)
+            {
+                var aTop = a.anchorMin.y > .5f ? 1920 + a.anchoredPosition.y : a.anchoredPosition.y + a.sizeDelta.y * .5f;
+                var bTop = b.anchorMin.y > .5f ? 1920 + b.anchoredPosition.y : b.anchoredPosition.y + b.sizeDelta.y * .5f;
+                var portraitOverlapX = Mathf.Min(a.anchoredPosition.x + a.sizeDelta.x * .5f, b.anchoredPosition.x + b.sizeDelta.x * .5f) - Mathf.Max(a.anchoredPosition.x - a.sizeDelta.x * .5f, b.anchoredPosition.x - b.sizeDelta.x * .5f);
+                var portraitOverlapY = Mathf.Min(aTop, bTop) - Mathf.Max(aTop - a.sizeDelta.y, bTop - b.sizeDelta.y);
+                Assert.That(portraitOverlapX > 0 && portraitOverlapY > 0, Is.False, message); return;
+            }
+            var ac = new Vector3[4]; var bc = new Vector3[4]; a.GetWorldCorners(ac); b.GetWorldCorners(bc);
+            var overlapX = Mathf.Min(ac[2].x, bc[2].x) - Mathf.Max(ac[0].x, bc[0].x); var overlapY = Mathf.Min(ac[2].y, bc[2].y) - Mathf.Max(ac[0].y, bc[0].y);
+            Assert.That(overlapX > 0 && overlapY > 0, Is.False, message);
         }
 
         [UnityTest]

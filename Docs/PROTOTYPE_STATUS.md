@@ -1,12 +1,12 @@
 # Realm Raiders — Prototype Status
 
-Last reviewed: 2026-09-04
+Last reviewed: 2026-09-06
 
 ## Latest verification
 
-- Diamond Pass 02.6 Root Trap tap-to-escape implementation is present: five-tap escape prompt/progress, input consumption, timeout fallback, reset handling and non-blocking trap collider.
-- Unity Test Runner rerun after the Root Trap fixes: EditMode 24/24 and PlayMode 10/10 passed on 2026-09-04 at 15:27 EEST.
-- Physical portrait/landscape Root Trap feel validation remains for the project owner.
+- Diamond Pass 08.1 combat-camera awareness is present: bounded hostile-intent framing and a non-interactive off-screen attacker indicator, with cleanup on controller, terminal and scene transitions.
+- Current Unity Test Runner baseline: EditMode 30/30 and PlayMode 17/17 passed on 2026-09-06.
+- Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
 
@@ -17,25 +17,24 @@ Last reviewed: 2026-09-04
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree and raid result. |
 | 4. Keeper Defense | Functional greybox | AI invader route, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
-| Prototype Hub | Functional | Routes between the available scenes and stores the selected Realm locally. |
+| Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route while retaining prototype-scene access. |
 
 ## Verification baseline
 
-- Previous verified baseline: EditMode 17/17 and PlayMode 9/9 on 2026-09-04.
-- Final Unity Test Runner rerun completed on 2026-09-04 15:05 EEST: EditMode 24/24 and PlayMode 10/10 passed.
-- The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm.
+- Current verified baseline: EditMode 30/30 and PlayMode 17/17 on 2026-09-06.
+- The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
 - The BUILD step is a compact five-slot runtime greybox; full device usability and performance remain unvalidated.
-- Combat has no production animation, audio, VFX, hit pause, hit reaction, telegraphs or tuned dodge.
+- Combat presentation uses bounded visual motion, action telegraphs and concise HUD/audio feedback; it still has no final animation rig, production VFX or tuned dodge.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding.
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
-- Device controls and performance have not yet been validated on a mid-range Android phone.
-- Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented, but device/simulator rotation and focus-loss checks remain outstanding.
-- Camera framing/state continuity review remains code-level only; device rotation, camera framing and continuity have not been manually verified.
+- Device controls, audio balance and performance have not yet been validated on a representative Android phone.
+- Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
+- Camera framing and state-continuity behavior is covered in code/tests, but physical-device framing and rotation continuity remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 
 ## Directory guide

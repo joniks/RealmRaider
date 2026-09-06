@@ -315,3 +315,31 @@ Completed on 2026-09-06; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Hard target lock, aim assist, automatic combat, minimap/radar, camera settings, and any gameplay or balance change.
+
+## Diamond Pass 08.2 — First-Play Route & Hub Clarity
+
+Completed on 2026-09-06; include this record with the next project commit.
+
+### Delivered
+
+- Added a visually primary `START SYLVAN JOURNEY` action in the Prototype Hub. It begins at the existing Sylvan Build scene and makes the intended loop explicit: build defences → defend the realm → raid the enemy.
+- Kept Build Sylvan, Sylvan Defense, Sylvan Raid, Infernal Defense, and Character Sandbox intact as secondary prototype routes with their original scene destinations.
+- Added compact explanations for orientation and control preferences: `AUTO` follows rotation, while `CONTEXTUAL` uses fingertap in portrait and joystick in landscape. The saved preferences and their behavior were not changed.
+- Re-spaced the Hub hierarchy for portrait and landscape, including compact helper-label heights and a landscape-specific text placement, so labels, controls, journey callout, and route buttons remain distinct.
+- Refreshed `PROTOTYPE_STATUS.md` to reflect the current mobile controls, visual/audio presentation, camera-awareness delivery, verification baseline, and still-open physical-device checks.
+
+### Verification
+
+- Focused Hub smoke: `1/1` passed.
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `17/17` passed, `0` failed on 2026-09-06.
+- The Hub test now proves the primary and legacy route destinations, journey copy, one EventSystem/GraphicRaycaster, and no label/button or label/label overlap in both portrait and landscape.
+- Unity compiled without new C# errors; Console only contained pre-existing obsolete-API warnings. `git diff --check` passes.
+
+### Remaining player feel check
+
+- The Unity main window was unavailable after Test Runner, so no manual Hub smoke is claimed. On the next Android build, open the Hub in portrait and landscape, confirm the journey action is obvious and everything is comfortably readable, then tap it once to confirm it enters the existing Build scene.
+
+### Scope intentionally deferred
+
+- Persistent tutorial completion, campaign/progression logic, new scenes, settings UI, additional art/audio, and any Build/Defense/Raid gameplay change.
