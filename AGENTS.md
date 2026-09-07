@@ -1,0 +1,68 @@
+# Realm Raiders — Shared Agent Context
+
+This file is the compact operating context for every coding agent working in this repository. Read it before changing gameplay code. For product detail, current verified state, and the next assigned task, read these in order:
+
+1. `Docs/PROJECT_CONTEXT.md`
+2. `Docs/PROTOTYPE_STATUS.md`
+3. `Docs/NEXT_JOB.md` — local handoff; intentionally Git-ignored
+
+## Product truth
+
+Realm Raiders is a mobile-first fantasy action/strategy game.
+
+> Build your Realm. Raid theirs. Become your monsters.
+
+The prototype must make this compact loop satisfying and truthful:
+
+`BUILD → INVADE → FIGHT → POSSESS → DEFEND → RESULT → BUILD`
+
+Design laws:
+
+- Everything built must be playable; do not add decorative systems that imply unavailable gameplay.
+- Creatures are characters, not towers.
+- Sylvan and Infernal must differ in play rhythm, not only color.
+- Mobile portrait and landscape are equal first-class modes.
+- Camera assistance is bounded presentation only: never take movement, targeting, or combat authority from the player.
+- The most important proof remains the 30–60 second Keeper → possession → direct combat → release/return moment.
+
+## Technical boundaries
+
+- Unity `6000.6.0f1`, URP, New Input System; Android first, iOS supported. Desktop is future scope.
+- `CombatEntity` owns authoritative stats, health, movement, abilities, and one active controller.
+- Possession swaps `CreatureBrain` and `PlayerController` on the **same entity**. Never replace, respawn, or reset that entity to implement possession.
+- Character gameplay uses the root `CharacterController`; visuals are children built by `CharacterVisualAssembler` under `Presentation Pivot`. Visual motion, hit reaction, and future animation must never move gameplay roots/colliders or change combat timing.
+- Use `CharacterVisualRecipe` and shared body families for characters. Do not introduce one bespoke gameplay implementation per model.
+- Reuse existing scene-local UI roots and `ResponsiveHudRoot`. New informational labels are non-raycast by default. Never casually add a Canvas, EventSystem, AudioListener, singleton, scene, package, or per-frame scene scan.
+- Keep both portrait and landscape intentional. A technically rotating but overlapping layout is a defect.
+- UI owns its full gestures; world taps, joystick and buttons must not leak into each other.
+- Preserve the current camera awareness contract: soft bounded focus, no lock-on/aim assist/auto-combat, and prompt cleanup on controller change, death, terminal state, transition, and teardown.
+
+## Persistence and results
+
+- Existing Build layout, orientation, control-style, selected-realm, and any later progress saves are local `PlayerPrefs` JSON records with versioning and malformed-data fallback.
+- A result must be credited or persisted exactly once. Duplicate callbacks, scene transitions, refreshes, and reloads must be idempotent.
+- Do not claim cloud sync, accounts, stored rewards, progression, unlocks, or upgrades until the code genuinely provides them.
+
+## Art and performance direction
+
+- Character production is modular: three shared body families (`Humanoid`, `LargeCreature`, `Beast`), shared rigs/animation profiles, visual modules, palettes, and data recipes.
+- Keep a character's gameplay collider and visual meshes separate. Visual modules must not add blocking colliders.
+- Prefer a few substantial meshes/materials to many tiny GameObjects. Share materials and use mobile-appropriate mesh/texture budgets.
+- Third-party art must have a documented commercial-use licence, local licence/provenance record, and explicit import settings. Never download a substitute asset when a selected source is unavailable.
+
+## Working protocol
+
+1. Inspect `git status`, the task scope, and nearby code/tests before editing.
+2. Implement the smallest vertical slice that solves the assigned player problem. Preserve explicit non-goals.
+3. Add focused regression coverage for new behavior and lifecycle cleanup.
+4. Run one focused test while developing. When code and tests are final, run full EditMode once and full PlayMode once. Do **not** repeat green full suites unless code, imports, or tests change afterwards.
+5. Run `git diff --check`. Do not commit or push unless explicitly asked.
+6. Report only: changed files, focused test, final EditMode/PlayMode totals, one manual-smoke result, and blockers. Never claim a manual smoke that did not occur.
+
+## Collaboration rules
+
+- `Docs/NEXT_JOB.md` is the active handoff and is Git-ignored. Update it before a new implementation task starts.
+- When a task is accepted, record it in `Docs/DONE_JOB.md` and refresh `Docs/PROTOTYPE_STATUS.md`; these are committed with the implementation.
+- One agent owns a shared gameplay/UI file at a time. Parallel work should use separate file areas: implementation, research/assets, or review/tests.
+- Preserve user changes and unrelated files. Generated `Library`, `Logs`, `Temp`, `UserSettings`, IDE files, and platform Build exports stay out of Git.
+- Ask before materially broadening scope. Favor a clean next task over silently bundling unrelated polish.

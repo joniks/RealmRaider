@@ -8,12 +8,13 @@ namespace RealmRaiders.UI
 {
     public sealed class HubHUD : MonoBehaviour
     {
-        Text title, subtitle, selected, orientationTitle, controlTitle;
+        Text title, subtitle, selected, realmStores, orientationTitle, controlTitle;
         Text journey, prototypeRoutes, orientationHelp, controlHelp;
         RawImage guardianEntHero;
         ResponsiveHudRoot responsive;
         HudPresentation presentation;
         readonly Dictionary<string, Button> buttons = new();
+        public string RealmStoresText => realmStores ? realmStores.text : string.Empty;
         public void Initialize() { Build(); Refresh(); }
 
         void Build()
@@ -21,7 +22,7 @@ namespace RealmRaiders.UI
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); guardianEntHero = HeroArt(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyHubLayout;
             title = Label("REALM RAIDERS", new Vector2(0, -180), 62, TextAnchor.UpperCenter); subtitle = Label("Prototype Hub", new Vector2(0, -300), 30, TextAnchor.UpperCenter);
-            selected = Label("", new Vector2(0, -410), 26, TextAnchor.UpperCenter, 36); orientationTitle = Label("ORIENTATION", new Vector2(0, -480), 24, TextAnchor.UpperCenter, 44);
+            selected = Label("", new Vector2(0, -410), 26, TextAnchor.UpperCenter, 36); realmStores = Label("", new Vector2(0, -590), 22, TextAnchor.UpperCenter, 36); realmStores.name = "Realm Stores"; realmStores.raycastTarget = false; orientationTitle = Label("ORIENTATION", new Vector2(0, -480), 24, TextAnchor.UpperCenter, 44);
             orientationHelp = Label("AUTO follows device rotation", new Vector2(0, -530), 20, TextAnchor.UpperCenter, 36); controlTitle = Label("CONTROL STYLE", new Vector2(0, -720), 24, TextAnchor.UpperCenter, 44);
             controlHelp = Label("CONTEXTUAL: fingertap in portrait • joystick in landscape", new Vector2(0, -790), 20, TextAnchor.UpperCenter, 36); journey = Label(JourneyExplanation, new Vector2(0, -970), 22, TextAnchor.UpperCenter, 50); prototypeRoutes = Label("PROTOTYPE ROUTES", new Vector2(0, -1180), 24, TextAnchor.UpperCenter, 44);
             Button("AUTO", new Vector2(-230, 1300), () => ChooseOrientation("Auto")); Button("PORTRAIT", new Vector2(0, 1300), () => ChooseOrientation("Portrait")); Button("LANDSCAPE", new Vector2(230, 1300), () => ChooseOrientation("Landscape"));
@@ -65,11 +66,11 @@ namespace RealmRaiders.UI
         void ApplyHubLayout(PrototypeOrientation orientation)
         {
             ApplyHeroArtLayout(orientation);
-            var labels = new[] { title, subtitle, selected, orientationTitle, orientationHelp, controlTitle, controlHelp, journey, prototypeRoutes };
-            var ys = orientation == PrototypeOrientation.Landscape ? new[] { -55f, -135f, -185f, -245f, -292f, -350f, -400f, -465f, -540f } : new[] { -180f, -300f, -410f, -480f, -530f, -720f, -790f, -970f, -1180f };
+            var labels = new[] { title, subtitle, selected, realmStores, orientationTitle, orientationHelp, controlTitle, controlHelp, journey, prototypeRoutes };
+            var ys = orientation == PrototypeOrientation.Landscape ? new[] { -55f, -135f, -185f, -230f, -280f, -330f, -390f, -440f, -505f, -590f } : new[] { -150f, -260f, -340f, -395f, -465f, -515f, -665f, -725f, -920f, -1140f };
             var anchor = .25f;
             var width = orientation == PrototypeOrientation.Landscape ? 600 : 480;
-            var heights = orientation == PrototypeOrientation.Landscape ? new[] { 75f, 36f, 36f, 44f, 36f, 44f, 36f, 60f, 44f } : new[] { 90f, 90f, 36f, 44f, 36f, 44f, 50f, 70f, 44f };
+            var heights = orientation == PrototypeOrientation.Landscape ? new[] { 75f, 36f, 36f, 36f, 44f, 36f, 44f, 36f, 60f, 44f } : new[] { 90f, 50f, 36f, 36f, 44f, 36f, 44f, 50f, 70f, 44f };
             for (var i = 0; i < labels.Length; i++) { var rect = labels[i].rectTransform; rect.anchorMin = rect.anchorMax = new Vector2(anchor, 1); rect.anchoredPosition = new Vector2(0, ys[i]); rect.sizeDelta = new Vector2(width, heights[i]); }
             ApplyButtonLayout(orientation);
         }
@@ -103,7 +104,11 @@ namespace RealmRaiders.UI
         void SelectAndLoad(string realm, string scene) { PrototypeSave.SelectRealm(realm); SceneManager.LoadScene(scene); }
         void ChooseOrientation(string value) { PrototypeSave.SetOrientation(value); Refresh(); }
         void ChooseControl(string value) { PrototypeSave.SetControlStyle(value); Refresh(); }
-        void Refresh() => selected.text = $"Selected realm: {PrototypeSave.SelectedRealm} • {PrototypeSave.OrientationPreference} • {PrototypeSave.ControlStylePreference}";
+        void Refresh()
+        {
+            selected.text = $"Selected realm: {PrototypeSave.SelectedRealm} • {PrototypeSave.OrientationPreference} • {PrototypeSave.ControlStylePreference}";
+            realmStores.text = RealmProgress.StoreCopy();
+        }
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, float height = 90)
         { var go = new GameObject("Label " + value, typeof(RectTransform), typeof(Text)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 1); rect.pivot = new Vector2(.5f, 1); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(950, height); var text = go.GetComponent<Text>(); text.text = value; text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); text.fontSize = size; text.alignment = anchor; text.color = Color.white; return text; }
         Button Button(string value, Vector2 position, UnityEngine.Events.UnityAction action)

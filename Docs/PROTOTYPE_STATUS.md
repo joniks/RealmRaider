@@ -8,7 +8,8 @@ Last reviewed: 2026-09-07
 - Diamond Pass 08.8 Defender Route Readability is present: the defense HUD states the invader's real opening, approach, engagement, and terminal route situation without changing AI or controls.
 - Diamond Pass 08.9 Combat Target Readability is present: the existing awareness system identifies a visible eligible attacker with real health and hands off cleanly to its off-screen direction cue.
 - Diamond Pass 09.0 Raid Loop Closure is present: factual raid results now have a primary route back to the saved Build plan, while retry and Hub remain available.
-- Current Unity Test Runner baseline: EditMode 33/33 and PlayMode 24/24 passed on 2026-09-07.
+- Diamond Pass 09.1 Realm Stores Foundation is present: real raid Gold and Rare Materials are locally recorded once per shown result and are visible as read-only stores in Hub and Build.
+- Current Unity Test Runner baseline: EditMode 35/35 and PlayMode 24/24 passed on 2026-09-07.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -20,12 +21,12 @@ Last reviewed: 2026-09-07
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree, objective compass, ability readiness and result-to-Build loop closure. |
 | 4. Keeper Defense | Functional greybox | Brief opening hold, readable live invader route state, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
-| Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route while retaining prototype-scene access. |
+| Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route and current read-only Realm Stores while retaining prototype-scene access. |
 | Build Plan | Functional greybox | Fixed five-slot defense configuration with live lane/role/cost copy and a non-interactive invader-to-Heart-Tree plan. |
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 33/33 and PlayMode 24/24 on 2026-09-07.
+- Current verified baseline: EditMode 35/35 and PlayMode 24/24 on 2026-09-07.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

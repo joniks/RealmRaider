@@ -561,3 +561,26 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Persistent rewards/currencies, upgrades, progression, achievements, analytics, tutorial state, reward-number changes, new scenes/assets/packages, or a wider result-screen redesign.
+
+## Diamond Pass 09.1 — Realm Stores Foundation
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Added a compact, versioned local `RealmProgress` JSON record using the established PlayerPrefs persistence style. It stores only Gold, Rare Materials, completed raids, and victories; invalid or malformed input safely returns an empty record.
+- Raid HUD secures the exact Gold and Rare Materials from a shown `RaidResult` once. The same RaidManager and HUD both guard duplicate result callbacks, while the existing raid reward calculation remains authoritative and unchanged.
+- Hub and Build now show the non-interactive `REALM STORES  •  GOLD  •  RARE MATERIALS` line without new Canvas, EventSystem, AudioListener, scene, spending or upgrade behavior.
+- Portrait Build places the stores line in the authored gap between the live defense plan and Save & Defend. Landscape keeps it in the left information column. Existing responsive safe-area layout and pointer ownership are reused.
+
+### Verification
+
+- Focused Raid/stores PlayMode class: `13/13` passed on 2026-09-07.
+- EditMode: `35/35` passed, `0` failed on 2026-09-07.
+- PlayMode: `24/24` passed, `0` failed on 2026-09-07.
+- Coverage proves real victory/defeat accounting, malformed-data fallback, test reset path, duplicate-result idempotency, persisted Build-to-Hub store copy, non-raycast stores, infrastructure invariants, and portrait/landscape label/button separation.
+- Manual Unity Build check confirmed the readable portrait stores line and found the initial overlap before it was corrected. Full Raid Result → Build → Hub persistence flow is covered by the deterministic PlayMode scenario; no physical-device result is claimed. Console had no C# errors or runtime exceptions, and `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Spending, upgrades, unlocks, new currencies, balancing, server/cloud sync, accounts, analytics, reset/settings UI, new scenes/assets/packages, or a general UI redesign.

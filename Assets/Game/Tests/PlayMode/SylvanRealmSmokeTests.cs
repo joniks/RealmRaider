@@ -43,6 +43,8 @@ namespace RealmRaiders.Tests
                 Assert.That(hud.DefensePlanText, Does.Contain("ROOT GATE: ROOT TRAP"));
                 Assert.That(hud.DefensePlanText, Does.Contain("HEART GUARD: ENT [POSSESSABLE]"));
                 Assert.That(GameObject.Find("Defense Plan Summary").GetComponent<Text>().raycastTarget, Is.False);
+                Assert.That(hud.RealmStoresText, Does.StartWith("REALM STORES  •"));
+                Assert.That(GameObject.Find("Realm Stores").GetComponent<Text>().raycastTarget, Is.False);
                 Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
@@ -155,6 +157,8 @@ namespace RealmRaiders.Tests
             Assert.That(HubHUD.DestinationForButton("CHARACTER SANDBOX"), Is.EqualTo("CharacterSandbox"));
             foreach (var route in new[] { "START SYLVAN JOURNEY", "BUILD SYLVAN", "DEFEND SYLVAN", "RAID SYLVAN", "DEFEND INFERNAL", "CHARACTER SANDBOX" }) Assert.That(GameObject.Find(route), Is.Not.Null);
             Assert.That(GameObject.Find("Label " + HubHUD.JourneyExplanation).GetComponent<Text>().text, Is.EqualTo(HubHUD.JourneyExplanation));
+            Assert.That(hub.RealmStoresText, Does.StartWith("REALM STORES  •"));
+            Assert.That(GameObject.Find("Realm Stores").GetComponent<Text>().raycastTarget, Is.False);
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
@@ -192,8 +196,12 @@ namespace RealmRaiders.Tests
             // unchanged. Validate the authored reference-layout rectangles instead of its
             // distorted world corners, while the regular button check above covers live UI.
             var reference = Object.FindFirstObjectByType<CanvasScaler>().referenceResolution;
-            for (var index = 0; index < buttons.Length; index++) AssertNoDesignOverlap(plan, buttons[index].GetComponent<RectTransform>(), reference, $"Build plan/button overlap: slot {index} in {Object.FindFirstObjectByType<ResponsiveHudRoot>().Orientation}");
-            foreach (var label in labels) if (label != plan) AssertNoDesignOverlap(plan, label, reference, $"Build plan/label overlap: {label.name}");
+            for (var index = 0; index < labels.Count; index++)
+            {
+                var label = labels[index];
+                foreach (var button in buttons) AssertNoDesignOverlap(label, button.GetComponent<RectTransform>(), reference, $"Build label/button overlap: {label.name}/{button.name}");
+                for (var other = index + 1; other < labels.Count; other++) AssertNoDesignOverlap(label, labels[other], reference, $"Build labels overlap: {label.name}/{labels[other].name}");
+            }
         }
 
         static void AssertHubLabelsClear(Button[] buttons)

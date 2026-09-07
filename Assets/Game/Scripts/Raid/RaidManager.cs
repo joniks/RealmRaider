@@ -29,6 +29,7 @@ namespace RealmRaiders.Raid
         public int EnemiesDefeated { get; private set; }
         public int RoomsDiscovered { get; private set; }
         float startedAt;
+        bool realmRewardClaimed;
         CombatEntity hero;
 
         public void Initialize(CombatEntity raidHero, RealmNodeView[] nodes, CombatEntity[] enemies)
@@ -46,6 +47,14 @@ namespace RealmRaiders.Raid
         {
             if (State != RaidState.ObjectiveReached) return;
             Gold += 100; RareMaterials += 1; SetState(RaidState.Victory); StartCoroutine(ShowResult(true));
+        }
+
+        // The result screen can be refreshed or recreated, but this raid may secure its rewards once.
+        public bool TryClaimRealmRewards()
+        {
+            if (realmRewardClaimed) return false;
+            realmRewardClaimed = true;
+            return true;
         }
 
         void OnRoomVisited(RealmNodeView node) { RoomsDiscovered++; Gold += 5; }

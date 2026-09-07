@@ -1,5 +1,6 @@
 using RealmRaiders.Characters;
 using RealmRaiders.Controllers;
+using RealmRaiders.Core;
 using RealmRaiders.Raid;
 using RealmRaiders.Realm;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace RealmRaiders.UI
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
         int compassDirection;
+        bool resultRewardCredited;
 
         public bool ObjectiveCompassVisible => objectiveCompass && objectiveCompass.gameObject.activeSelf;
         public int ObjectiveCompassDirection => compassDirection;
@@ -55,7 +57,7 @@ namespace RealmRaiders.UI
             var outcome = value.Victory
                 ? "VICTORY\n\nThe Heart Tree fell. Return to your Realm and plan the next defense."
                 : "DEFEAT\n\nRevise the next defense, or try this raid again.";
-            return $"{outcome}\n\nGold collected: {value.Gold}\nRare materials: {value.RareMaterials}\nEnemies defeated: {value.EnemiesDefeated}\nRooms discovered: {value.RoomsDiscovered}\nRaid duration: {value.Duration:0}s\nCore reached: {(value.CoreReached ? "yes" : "no")}";
+            return $"{outcome}\n\nGold collected: {value.Gold}\nRare materials: {value.RareMaterials}\nEnemies defeated: {value.EnemiesDefeated}\nRooms discovered: {value.RoomsDiscovered}\nRaid duration: {value.Duration:0}s\nCore reached: {(value.CoreReached ? "yes" : "no")}\n\nSecured for your Realm: {value.Gold} GOLD • {value.RareMaterials} RARE MATERIALS";
         }
 
         void Update()
@@ -146,11 +148,20 @@ namespace RealmRaiders.UI
         }
         void ShowResult(RaidResult value)
         {
+            CreditResultOnce(value);
             GameplayInput.SetTerminalState(true);
             SetCompassVisible(false);
             resultPanel.SetActive(true);
             presentation?.PlayResult();
             result.text = ResultCopy(value);
+        }
+
+        void CreditResultOnce(RaidResult value)
+        {
+            if (resultRewardCredited) return;
+            if (raid && !raid.TryClaimRealmRewards()) return;
+            RealmProgress.Credit(value);
+            resultRewardCredited = true;
         }
 
         void UpdateObjectiveCompass()

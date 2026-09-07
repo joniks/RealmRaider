@@ -10,15 +10,16 @@ namespace RealmRaiders.UI
     {
         public int SlotCount => slots.Length;
         public string DefensePlanText => plan ? plan.text : string.Empty;
+        public string RealmStoresText => realmStores ? realmStores.text : string.Empty;
         public string SlotCopy(int index) => index >= 0 && index < slots.Length ? slots[index].GetComponentInChildren<Text>().text : string.Empty;
         public bool SaveInteractable => saveButton && saveButton.interactable;
-        Button[] slots = Array.Empty<Button>(); Button saveButton; Text title; Text budget; Text reason; Text plan; DefenseLayout layout; ResponsiveHudRoot responsive; HudPresentation presentation;
+        Button[] slots = Array.Empty<Button>(); Button saveButton; Text title; Text budget; Text reason; Text realmStores; Text plan; DefenseLayout layout; ResponsiveHudRoot responsive; HudPresentation presentation;
         public void Initialize() { layout = DefenseLayoutSave.Load(); Build(); Refresh(); }
         void Build()
         {
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>();
-            title = Label("SYLVAN BUILD", new Vector2(0, -120), 52); budget = Label("", new Vector2(0, -215), 30); reason = Label("", new Vector2(0, -310), 24);
+            title = Label("SYLVAN BUILD", new Vector2(0, -120), 52); budget = Label("", new Vector2(0, -215), 30); reason = Label("", new Vector2(0, -310), 24); realmStores = Label("", new Vector2(0, -385), 21); realmStores.name = "Realm Stores"; realmStores.rectTransform.sizeDelta = new Vector2(950, 48); realmStores.raycastTarget = false;
             plan = Label("", new Vector2(0, -400), 18); plan.name = "Defense Plan Summary"; plan.rectTransform.sizeDelta = new Vector2(950, 90); plan.raycastTarget = false;
             slots = new Button[5]; for (int i = 0; i < slots.Length; i++) { int index = i; slots[i] = Button("", new Vector2(0, 280 - i * 140), () => Cycle(index)); }
             saveButton = Button("SAVE & DEFEND", new Vector2(0, -650), SaveAndDefend);
@@ -27,7 +28,7 @@ namespace RealmRaiders.UI
         public void CycleSlotForTests(int index) => Cycle(index);
         void Cycle(int index) { var slot = layout.Slots[index]; var next = slot.Piece; for (int i = 0; i < 4; i++) { next = (DefensePieceType)(((int)next + 1) % 4); var candidate = new DefenseSlotLayout(slot.SlotType, next); if (DefenseLayoutRules.IsAllowed(candidate)) { layout.Slots[index] = candidate; break; } } Refresh(); }
         void SaveAndDefend() { if (!DefenseLayoutRules.IsValid(layout, out _)) return; DefenseLayoutSave.Save(layout); SceneManager.LoadScene("DefenderTest"); }
-        void Refresh() { var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = $"Threat: {DefenseLayoutRules.Used(layout)}/{DefenseLayoutRules.Budget}"; reason.text = valid ? "Ready to defend" : message; plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid; for (int i = 0; i < slots.Length; i++) slots[i].GetComponentInChildren<Text>().text = FormatSlotCopy(i, layout.Slots[i]); }
+        void Refresh() { var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = $"Threat: {DefenseLayoutRules.Used(layout)}/{DefenseLayoutRules.Budget}"; reason.text = valid ? "Ready to defend" : message; realmStores.text = RealmProgress.StoreCopy(); plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid; for (int i = 0; i < slots.Length; i++) slots[i].GetComponentInChildren<Text>().text = FormatSlotCopy(i, layout.Slots[i]); }
         void ApplyOrientation(PrototypeOrientation orientation)
         {
             if (!saveButton) return;
@@ -41,6 +42,9 @@ namespace RealmRaiders.UI
             reason.rectTransform.anchoredPosition = new Vector2(copyX, landscape ? -235 : -310);
             if (landscape)
             {
+                realmStores.rectTransform.anchorMin = realmStores.rectTransform.anchorMax = new Vector2(.5f, 1);
+                realmStores.rectTransform.pivot = new Vector2(.5f, 1);
+                realmStores.rectTransform.anchoredPosition = new Vector2(copyX, -470);
                 plan.rectTransform.anchorMin = plan.rectTransform.anchorMax = new Vector2(.5f, 1);
                 plan.rectTransform.pivot = new Vector2(.5f, 1);
                 plan.rectTransform.anchoredPosition = new Vector2(copyX, -340);
@@ -48,6 +52,9 @@ namespace RealmRaiders.UI
             else
             {
                 // This is the clear gap between the fixed five-slot stack and SAVE & DEFEND.
+                realmStores.rectTransform.anchorMin = realmStores.rectTransform.anchorMax = new Vector2(.5f, 0);
+                realmStores.rectTransform.pivot = new Vector2(.5f, 0);
+                realmStores.rectTransform.anchoredPosition = new Vector2(0, 372);
                 plan.rectTransform.anchorMin = plan.rectTransform.anchorMax = new Vector2(.5f, 0);
                 plan.rectTransform.pivot = new Vector2(.5f, 0);
                 plan.rectTransform.anchoredPosition = new Vector2(0, 430);

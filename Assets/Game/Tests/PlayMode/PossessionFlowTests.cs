@@ -14,6 +14,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace RealmRaiders.Tests
 {
@@ -536,8 +537,11 @@ namespace RealmRaiders.Tests
             var initialCanvasCount = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
             var initialEventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
             var initialListenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+            var hadProgress = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
+            var previousProgress = PlayerPrefs.GetString(RealmProgress.KeyForTests, string.Empty);
             try
             {
+                RealmProgress.ResetForTests();
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
                 var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition);
                 var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
@@ -548,6 +552,10 @@ namespace RealmRaiders.Tests
 
                 Assert.That(hud.ResultPanelVisible, Is.True);
                 Assert.That(hud.ResultText, Does.Contain("The Heart Tree fell").And.Contain("115").And.Contain("2").And.Contain("4").And.Contain("3").And.Contain("47s").And.Contain("yes"));
+                var credited = RealmProgress.Load();
+                Assert.That(credited.Gold, Is.EqualTo(115)); Assert.That(credited.RareMaterials, Is.EqualTo(2)); Assert.That(credited.CompletedRaids, Is.EqualTo(1)); Assert.That(credited.Victories, Is.EqualTo(1));
+                hud.SendMessage("ShowResult", new RaidResult(true, 115, 2, 4, 3, 46.8f, true), SendMessageOptions.RequireReceiver);
+                Assert.That(RealmProgress.Load().CompletedRaids, Is.EqualTo(1), "A result refresh must not duplicate stored rewards.");
                 var actions = new[] { GameObject.Find(RaidHUD.PlanNextDefenseAction).GetComponent<UnityEngine.UI.Button>(), GameObject.Find("RAID AGAIN").GetComponent<UnityEngine.UI.Button>(), GameObject.Find("MY REALM").GetComponent<UnityEngine.UI.Button>() };
                 foreach (var action in actions) Assert.That(action.GetComponent<UiPointerOwnership>(), Is.Not.Null);
                 Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(initialCanvasCount + 1));
@@ -561,11 +569,16 @@ namespace RealmRaiders.Tests
                 actions[0].onClick.Invoke();
                 yield return null; yield return null;
                 Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo(RaidHUD.PlanNextDefenseScene));
-                Assert.That(Object.FindFirstObjectByType<BuildHUD>(), Is.Not.Null);
+                var build = Object.FindFirstObjectByType<BuildHUD>(); Assert.That(build, Is.Not.Null); Assert.That(build.RealmStoresText, Is.EqualTo("REALM STORES  •  115 GOLD  •  2 RARE MATERIALS"));
+                var buildStores = GameObject.Find("Realm Stores").GetComponent<Text>(); Assert.That(buildStores.raycastTarget, Is.False);
+                SceneManager.LoadScene("PrototypeHub"); yield return null; yield return null;
+                var hub = Object.FindFirstObjectByType<HubHUD>(); Assert.That(hub, Is.Not.Null); Assert.That(hub.RealmStoresText, Is.EqualTo("REALM STORES  •  115 GOLD  •  2 RARE MATERIALS"));
+                Assert.That(GameObject.Find("Realm Stores").GetComponent<Text>().raycastTarget, Is.False);
             }
             finally
             {
                 GameplayInput.SetTerminalState(false);
+                if (hadProgress) PlayerPrefs.SetString(RealmProgress.KeyForTests, previousProgress); else PlayerPrefs.DeleteKey(RealmProgress.KeyForTests); PlayerPrefs.Save();
                 Object.Destroy(hudObject); Object.Destroy(raidObject); Object.Destroy(coreObject); Object.Destroy(heroObject); Object.Destroy(eventSystemObject); Object.Destroy(cameraObject); Object.Destroy(definition);
             }
         }
