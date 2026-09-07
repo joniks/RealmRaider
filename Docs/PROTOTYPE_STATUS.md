@@ -14,7 +14,8 @@ Last reviewed: 2026-09-08
 - Diamond Pass 09.4 Module Host Boundary is present: an independent, passive character-catalogue contract assembly now lets future Modules packages describe data without gaining gameplay or scene authority.
 - Diamond Pass 09.5 Visual-Tuning Package Wiring is present: the reviewed local visual-tuning package is resolved through the pinned Modules submodule, while remaining unused by runtime presentation.
 - Module Pass MCT 01 Starter Character Catalogue is staged in the pinned Modules submodule: it describes the five starter characters through the passive contracts boundary, but is intentionally not yet installed or consumed by runtime presentation.
-- Current Unity Test Runner baseline: EditMode 45/45 and PlayMode 25/25 passed on 2026-09-08.
+- Diamond Pass 09.6 Dodge: Player Escape is present: direct-controlled characters have a narrow, collision-aware escape with explicit 0.18-second damage immunity and lifecycle-safe cleanup; AI behavior remains unchanged.
+- Current Unity Test Runner baseline: EditMode 46/46 and PlayMode 28/28 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -31,14 +32,14 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 45/45 and PlayMode 25/25 on 2026-09-08.
+- Current verified baseline: EditMode 46/46 and PlayMode 28/28 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
 - The BUILD step is a compact five-slot runtime greybox with a live defense-plan summary; full device usability and performance remain unvalidated.
-- Combat presentation uses bounded visual motion, action telegraphs and concise HUD/audio feedback; it still has no final animation rig, production VFX or tuned dodge.
+- Combat presentation uses bounded visual motion, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge; it still has no final animation rig or production VFX.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding.
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.

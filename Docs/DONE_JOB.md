@@ -709,3 +709,27 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Package installation, runtime discovery/registry, character instantiation, visual-profile application, changes to combat/AI/save/UI/scenes, and any model, texture, rig, or licence intake.
+
+## Diamond Pass 09.6 — Dodge: Player Escape
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one direct-control-only `DODGE` action for the Blood Knight during a raid and a possessed defender during defense. It remains unavailable to AI creatures, Keeper view, rooted/dead/terminal states, and while another combat action resolves.
+- Dodge uses the most recent meaningful direct movement or tap-to-move direction, with facing as its fallback. It uses the same living entity and `CharacterController`: no respawn, physics body, target change, or ownership swap occurs.
+- The move is deliberately narrow and truthful: up to `2.6` units over `0.18s`, with damage immunity only for that same `0.18s` window and a `1.5s` cooldown. It cannot overlap an ability, and root/death/controller release/terminal/disable teardown clean it up.
+- Raid and Defender HUDs own a compact non-raycast Dodge control with ready, cooling-down, rooted, busy, and dodging states. Existing ability, release, trap, root-escape, orientation, and pointer-ownership behavior remains intact.
+
+### Verification
+
+- Focused `DodgeFlowTests`: `3/3` passed after scene-isolation cleanup.
+- Focused possession regression: `CombatCameraAwareness_TracksActiveCreatureIntentAcrossEdgesAndCleansUp` `1/1` passed.
+- Final EditMode: `46/46` passed, `0` failed.
+- Final PlayMode: `28/28` passed, `0` failed.
+- QA caught that the first test candidate left Sylvan/Defender scenes loaded, which created duplicate AudioListeners for later possession tests. Core corrected only the test teardown; QA then reran the focused checks and final suites. `git diff --check` passes.
+- A manual Unity smoke was not run; no physical-device result is claimed.
+
+### Scope intentionally deferred
+
+- Dodge upgrades, stamina, input buffers, AI dodges, i-frame stacking, aim assist, lock-on, haptics, new attacks, new scenes/assets/packages, or changes to combat damage/AI balance.

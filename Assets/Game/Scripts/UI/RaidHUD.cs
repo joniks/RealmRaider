@@ -13,10 +13,10 @@ namespace RealmRaiders.UI
     {
         public const string PlanNextDefenseAction = "PLAN NEXT DEFENSE";
         public const string PlanNextDefenseScene = "RealmBuild";
-        Text state, health, stats, objective, result, rootPrompt, objectiveCompass;
+        Text state, health, stats, objective, result, rootPrompt, objectiveCompass, dodgeLabel;
         GameObject resultPanel;
         RectTransform resultRect;
-        Button planNextDefense, raidAgain, realmHub;
+        Button planNextDefense, raidAgain, realmHub, dodge;
         ResponsiveHudRoot responsive;
         CombatEntity hero;
         RaidManager raid;
@@ -26,6 +26,7 @@ namespace RealmRaiders.UI
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
         int compassDirection;
+        int displayedDodgeCooldownTenths = -1;
         bool resultRewardCredited;
 
         public bool ObjectiveCompassVisible => objectiveCompass && objectiveCompass.gameObject.activeSelf;
@@ -35,6 +36,10 @@ namespace RealmRaiders.UI
         public string ResultText => result ? result.text : string.Empty;
         public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
         public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
+        public string DodgeButtonText => dodgeLabel ? dodgeLabel.text : string.Empty;
+        public bool DodgeButtonInteractable => dodge && dodge.interactable;
+        public bool DodgeButtonVisible => dodge && dodge.gameObject.activeSelf;
+        public RectTransform DodgeButtonRect => dodge ? (RectTransform)dodge.transform : null;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
@@ -64,6 +69,7 @@ namespace RealmRaiders.UI
         {
             if (raid) Refresh();
             RefreshAbilityButtons();
+            RefreshDodgeButton();
             var controller = hero ? hero.Controller<PlayerController>() : null;
             if (rootPrompt)
             {
@@ -93,6 +99,7 @@ namespace RealmRaiders.UI
                 new AbilityButtonReadiness(Button("BLOOD RUSH", new Vector2(0, 110), () => Ability(1)), "BLOOD RUSH", 1),
                 new AbilityButtonReadiness(Button("CLEAVE", new Vector2(260, 110), () => Ability(2)), "CLEAVE", 2)
             };
+            dodge = Button("DODGE", new Vector2(0, 220), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
             resultPanel = new GameObject("Raid Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false);
             var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .24f); rect.anchorMax = new Vector2(.92f, .76f); rect.offsetMin = rect.offsetMax = Vector2.zero;
             resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
@@ -132,6 +139,7 @@ namespace RealmRaiders.UI
         }
 
         void Ability(int index) => hero.Controller<PlayerController>()?.UseAbility(index);
+        void Dodge() => hero.Controller<PlayerController>()?.Dodge();
         public void SetObjectiveProgress(float progress) { objectiveProgress = progress; objective.text = progress > 0 ? $"Capturing Heart Tree  {progress * 100:0}%" : "Reach the Heart Tree"; }
         void OnState(RaidState value) => state.text = $"SYLVAN RAID — {value}";
         void Refresh()
@@ -146,10 +154,33 @@ namespace RealmRaiders.UI
             var direct = player && player.IsActive && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
             foreach (var button in abilityButtons) button.Refresh(hero, direct);
         }
+        void RefreshDodgeButton()
+        {
+            if (!dodge) return;
+            var player = hero ? hero.Controller<PlayerController>() : null;
+            var direct = player && player.IsActive && hero.Health != null && !hero.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            if (dodge.gameObject.activeSelf != direct) dodge.gameObject.SetActive(direct);
+            if (!direct) { dodge.interactable = false; return; }
+            var remaining = hero.DodgeCooldownRemaining;
+            string label;
+            if (hero.IsDodging) { displayedDodgeCooldownTenths = -1; label = "DODGING"; }
+            else if (hero.IsRooted) { displayedDodgeCooldownTenths = -1; label = "DODGE — ROOTED"; }
+            else if (hero.IsActionResolving) { displayedDodgeCooldownTenths = -1; label = "DODGE — BUSY"; }
+            else if (remaining > .001f)
+            {
+                var tenths = Mathf.CeilToInt(remaining * 10);
+                label = displayedDodgeCooldownTenths == tenths && dodgeLabel ? dodgeLabel.text : $"DODGE  {tenths / 10f:0.0}s";
+                displayedDodgeCooldownTenths = tenths;
+            }
+            else { displayedDodgeCooldownTenths = -1; label = "DODGE"; }
+            if (dodgeLabel && dodgeLabel.text != label) dodgeLabel.text = label;
+            dodge.interactable = hero.CanDodge;
+        }
         void ShowResult(RaidResult value)
         {
             CreditResultOnce(value);
             GameplayInput.SetTerminalState(true);
+            RefreshDodgeButton();
             SetCompassVisible(false);
             resultPanel.SetActive(true);
             presentation?.PlayResult();

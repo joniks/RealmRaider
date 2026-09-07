@@ -56,6 +56,15 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void DodgePrototypeTuning_UsesTheBoundedEscapeContract()
+        {
+            Assert.That(CombatEntity.DodgeDistance, Is.EqualTo(2.6f));
+            Assert.That(CombatEntity.DodgeDuration, Is.EqualTo(.18f));
+            Assert.That(CombatEntity.DodgeImmunityDuration, Is.EqualTo(.18f));
+            Assert.That(CombatEntity.DodgeCooldown, Is.EqualTo(1.5f));
+        }
+
+        [Test]
         public void VisualRecipe_AssemblerIsDeterministicAndFallbackKeepsBaseVisual()
         {
             var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.Beast; recipe.Head = VisualModuleStyle.Horns; recipe.Arms = VisualModuleStyle.Claws; recipe.Primary = Color.red; recipe.Secondary = Color.black; recipe.AccentColor = Color.yellow;

@@ -58,7 +58,7 @@ Baseline suites remain green at EditMode 24/24 and PlayMode 10/10 (rerun 2026-09
 ## Pass 04 — Combat feel
 
 - [ ] Action state with windup, impact and recovery.
-- [ ] Dodge with an intentional invulnerability window.
+- [x] Dodge with an intentional invulnerability window.
 - [ ] Input buffering and mobile aim assistance.
 - [ ] Enemy telegraphs.
 - [ ] Hit flash, reaction, knockback, hit pause and camera shake.

@@ -10,6 +10,10 @@ namespace RealmRaiders.Characters
     [RequireComponent(typeof(CharacterController), typeof(Health))]
     public sealed class CombatEntity : MonoBehaviour
     {
+        public const float DodgeDistance = 2.6f;
+        public const float DodgeDuration = .18f;
+        public const float DodgeImmunityDuration = .18f;
+        public const float DodgeCooldown = 1.5f;
         public event Action<CombatEntity> Selected;
         public CharacterDefinition Definition { get; private set; }
         public Health Health { get; private set; }
@@ -23,10 +27,16 @@ namespace RealmRaiders.Characters
         IEntityController[] controllers;
         CombatFeedback feedback;
         Coroutine actionRoutine;
+        Coroutine dodgeRoutine;
+        bool isDodging;
+        float dodgeReadyAt;
         float rootedUntil;
         public bool IsRooted => Time.time < rootedUntil;
         public CombatActionPhase ActionPhase => action.Phase;
         public bool IsActionResolving => action.IsResolving;
+        public bool IsDodging => isDodging;
+        public float DodgeCooldownRemaining => Mathf.Max(0, dodgeReadyAt - Time.time);
+        public bool CanDodge => Health != null && Motor && Motor.enabled && !Health.IsDead && !IsRooted && !isDodging && !action.IsResolving && DodgeCooldownRemaining <= 0 && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive;
 
         public void Initialize(CharacterDefinition definition)
         {
@@ -47,7 +57,7 @@ namespace RealmRaiders.Characters
         public void SetController(IEntityController next)
         {
             if (controllers == null) controllers = GetComponents<IEntityController>();
-            if (ActiveController != null && ActiveController != next) CancelActionPresentation();
+            if (ActiveController != null && ActiveController != next) { CancelActionPresentation(); CancelDodge(); }
             foreach (var controller in controllers) controller.SetControl(controller == next);
             ActiveController = next;
         }
@@ -61,11 +71,15 @@ namespace RealmRaiders.Characters
 
         public void RefreshControllers() => controllers = GetComponents<IEntityController>();
 
-        void Update() { if (!Health.IsDead) ActiveController?.Tick(); }
+        void Update()
+        {
+            if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
+            if (!Health.IsDead) ActiveController?.Tick();
+        }
 
         public bool TryUse(int index, Vector3 direction)
         {
-            if (Health.IsDead || index < 0 || index >= abilities.Count || !action.TryBegin()) return false;
+            if (Health.IsDead || isDodging || index < 0 || index >= abilities.Count || !action.TryBegin()) return false;
             if (!abilities[index].TryConsume()) { action.Complete(); return false; }
             actionRoutine = StartCoroutine(Execute(abilities[index].Definition, direction.sqrMagnitude > .01f ? direction.normalized : transform.forward));
             return true;
@@ -109,26 +123,82 @@ namespace RealmRaiders.Characters
             action.Complete(); actionRoutine = null;
         }
 
+        public bool TryDodge(Vector3 direction)
+        {
+            if (!CanDodge) return false;
+            direction.y = 0;
+            if (direction.sqrMagnitude <= .01f) { direction = transform.forward; direction.y = 0; }
+            if (direction.sqrMagnitude <= .01f) direction = Vector3.forward;
+            direction.Normalize();
+            transform.rotation = Quaternion.LookRotation(direction);
+            isDodging = true;
+            dodgeReadyAt = Time.time + DodgeCooldown;
+            Health.BeginDamageImmunity(DodgeImmunityDuration);
+            dodgeRoutine = StartCoroutine(ExecuteDodge(direction));
+            return true;
+        }
+
+        IEnumerator ExecuteDodge(Vector3 direction)
+        {
+            var elapsed = 0f;
+            var moved = 0f;
+            while (elapsed < DodgeDuration && isDodging)
+            {
+                var stepTime = Mathf.Min(Time.deltaTime, DodgeDuration - elapsed);
+                var step = Mathf.Min(DodgeDistance - moved, DodgeDistance / DodgeDuration * stepTime);
+                if (step > 0 && Motor && Motor.enabled) Motor.Move(direction * step);
+                moved += step;
+                elapsed += stepTime;
+                yield return null;
+            }
+            FinishDodge(true);
+        }
+
         public void Move(Vector3 velocity)
         {
+            if (isDodging) return;
             if (Time.time < rootedUntil) velocity = Vector3.zero;
             if (velocity.sqrMagnitude > .01f) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 15 * Time.deltaTime);
             Motor.Move((velocity + Physics.gravity) * Time.deltaTime);
         }
 
-        public void ApplyRoot(float seconds) => rootedUntil = Mathf.Max(rootedUntil, Time.time + Mathf.Max(0, seconds));
+        public void ApplyRoot(float seconds)
+        {
+            rootedUntil = Mathf.Max(rootedUntil, Time.time + Mathf.Max(0, seconds));
+            if (IsRooted) CancelDodge(false);
+        }
         public void BreakRoot() => rootedUntil = 0;
 
         void OnMouseDown() => Selected?.Invoke(this);
         void OnDeath()
         {
-            rootedUntil = 0; CancelActionPresentation();
+            rootedUntil = 0; CancelActionPresentation(); CancelDodge();
             Controller<PlayerController>()?.ResetEscapeState(); Motor.enabled = false; transform.localScale *= .75f;
         }
 
         void CancelActionPresentation()
         {
             action.Complete(); if (actionRoutine != null) StopCoroutine(actionRoutine); actionRoutine = null; feedback?.Cleanup();
+        }
+
+        void CancelDodge(bool clearImmunity = true)
+        {
+            if (dodgeRoutine != null) StopCoroutine(dodgeRoutine);
+            FinishDodge(clearImmunity);
+        }
+
+        void FinishDodge(bool clearImmunity)
+        {
+            dodgeRoutine = null;
+            isDodging = false;
+            if (clearImmunity && Health) Health.ClearDamageImmunity();
+        }
+
+        void OnDisable() => CancelDodge();
+        void OnDestroy()
+        {
+            if (Health != null) Health.Died -= OnDeath;
+            CancelDodge();
         }
     }
 }

@@ -58,9 +58,9 @@ namespace RealmRaiders.UI
 
     public sealed class DefenderHUD : MonoBehaviour
     {
-        Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus;
+        Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel;
         Image energyFill;
-        Button possess, release, smash, slam, activateTrap;
+        Button possess, release, smash, slam, activateTrap, dodge;
         GameObject resultPanel;
         PossessionManager possessionManager;
         PossessionEnergy energy;
@@ -78,6 +78,7 @@ namespace RealmRaiders.UI
         CombatEntity displayedRouteTarget;
         bool displayedRouteOpening;
         bool routeStatusVisible;
+        int displayedDodgeCooldownTenths = -1;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
@@ -89,6 +90,10 @@ namespace RealmRaiders.UI
         public RectTransform DefenderHealthRect => entHealth ? entHealth.rectTransform : null;
         public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
         public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
+        public string DodgeButtonText => dodge && dodge.gameObject.activeSelf && dodgeLabel ? dodgeLabel.text : string.Empty;
+        public bool DodgeButtonInteractable => dodge && dodge.interactable;
+        public bool DodgeButtonVisible => dodge && dodge.gameObject.activeSelf;
+        public RectTransform DodgeButtonRect => dodge ? (RectTransform)dodge.transform : null;
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
@@ -128,6 +133,7 @@ namespace RealmRaiders.UI
                 new AbilityButtonReadiness(smash, "SMASH", 0),
                 new AbilityButtonReadiness(slam, "GROUND SLAM", 2)
             };
+            dodge = Button("DODGE", new Vector2(0, 530), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
             resultPanel = new GameObject("Defense Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false); var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .28f); rect.anchorMax = new Vector2(.92f, .72f); rect.offsetMin = rect.offsetMax = Vector2.zero; resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
             result = Label("", Vector2.zero, 42, TextAnchor.MiddleCenter); result.transform.SetParent(resultPanel.transform, false); var resultRect = (RectTransform)result.transform; resultRect.anchorMin = new Vector2(0, .35f); resultRect.anchorMax = Vector2.one; resultRect.offsetMin = resultRect.offsetMax = Vector2.zero;
             var retry = Button("DEFEND AGAIN", new Vector2(0, 160), () => SceneManager.LoadScene(config.RetryScene)); retry.transform.SetParent(resultPanel.transform, false); var raid = Button(config.NextActionLabel, new Vector2(0, 48), () => SceneManager.LoadScene(config.NextActionScene)); raid.transform.SetParent(resultPanel.transform, false); resultPanel.SetActive(false);
@@ -147,11 +153,12 @@ namespace RealmRaiders.UI
             if (possessionManager.PossessSelected()) presentation?.PlayConfirm();
         }
         void Ability(int index) => possessionManager.Possessed?.Controller<PlayerController>()?.UseAbility(index);
+        void Dodge() => possessionManager.Possessed?.Controller<PlayerController>()?.Dodge();
         void OnSelection(CombatEntity value)
         { selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it"; possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted); }
         void OnPossession(CombatEntity value)
         {
-            bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active);
+            bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active);
             if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); }
             if (!active) possess.gameObject.SetActive(false);
             selection.text = active ? $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}" : $"Tap the {config.DefenderName} to select it";
@@ -168,6 +175,7 @@ namespace RealmRaiders.UI
         {
             var terminal = value is DefenseState.DefenderVictory or DefenseState.RealmLost;
             GameplayInput.SetTerminalState(terminal);
+            RefreshDodgeButton();
             guardianEntGrowth?.SetVisible(!terminal);
             if (guardianEntVitality) guardianEntVitality.gameObject.SetActive(guardianEntGrowth && !terminal);
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); ClearRouteStatus(); }
@@ -252,6 +260,31 @@ namespace RealmRaiders.UI
             var player = controlled ? controlled.Controller<PlayerController>() : null;
             var direct = player && player.IsActive && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
             foreach (var button in abilityButtons) button.Refresh(controlled, direct);
+            RefreshDodgeButton();
+        }
+
+        void RefreshDodgeButton()
+        {
+            if (!dodge) return;
+            var controlled = possessionManager ? possessionManager.Possessed : null;
+            var player = controlled ? controlled.Controller<PlayerController>() : null;
+            var direct = player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            if (dodge.gameObject.activeSelf != direct) dodge.gameObject.SetActive(direct);
+            if (!direct) { dodge.interactable = false; return; }
+            var remaining = controlled.DodgeCooldownRemaining;
+            string label;
+            if (controlled.IsDodging) { displayedDodgeCooldownTenths = -1; label = "DODGING"; }
+            else if (controlled.IsRooted) { displayedDodgeCooldownTenths = -1; label = "DODGE — ROOTED"; }
+            else if (controlled.IsActionResolving) { displayedDodgeCooldownTenths = -1; label = "DODGE — BUSY"; }
+            else if (remaining > .001f)
+            {
+                var tenths = Mathf.CeilToInt(remaining * 10);
+                label = displayedDodgeCooldownTenths == tenths && dodgeLabel ? dodgeLabel.text : $"DODGE  {tenths / 10f:0.0}s";
+                displayedDodgeCooldownTenths = tenths;
+            }
+            else { displayedDodgeCooldownTenths = -1; label = "DODGE"; }
+            if (dodgeLabel && dodgeLabel.text != label) dodgeLabel.text = label;
+            dodge.interactable = controlled.CanDodge;
         }
 
         public static string GuardianEntVitalityCopy(int rank)
