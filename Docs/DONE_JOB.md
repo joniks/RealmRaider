@@ -453,3 +453,31 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Combat balance/timing changes, combos or input buffering, aim assist, new abilities, haptics/audio/VFX, camera work, a new HUD/canvas, persistent settings, scenes/assets/packages, or a UI redesign.
+
+## Diamond Pass 08.7 — Build Plan Readability
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Kept the five existing fixed Build slots and their cycle/save/defend flow, but made each choice self-explanatory: lane, selected defender or trap, tactical role, and the existing Threat cost are now visible together.
+- Added one live, non-interactive `DEFENSE PLAN — INVADER → HEART TREE` summary that follows the actual route: Root Gate, Outer Guard, Mid Guard, Inner Root, Heart Guard, then Heart Tree.
+- The plan updates directly from the current `DefenseLayout`, including the `ENT [POSSESSABLE]` designation when an Ent occupies a slot; it never stores a duplicate layout or combat rule.
+- Reused the existing responsive safe-area layout. Portrait places the plan in the deliberate space before Save & Defend; landscape places explanatory copy opposite the fixed slot stack.
+- No JSON/save format, Threat budget, allowed-slot rule, slot cycle order, Defender handoff, spawn positions, scene navigation, pointer ownership, or input behavior changed.
+
+### Verification
+
+- Focused Build PlayMode smoke: `1/1` passed.
+- EditMode: `31/31` passed, `0` failed on 2026-09-07.
+- PlayMode: `23/23` passed, `0` failed on 2026-09-07.
+- Coverage proves default and edited plan copy, roles/costs, possessed-Ent designation, portrait/landscape layout separation, non-interactive plan UI, invalid-layout Save disablement, and existing save-to-Defender handoff.
+- Unity compiled with no new C# errors or runtime exceptions; `git diff --check` passes.
+
+### Remaining player feel check
+
+- On Android, open Build in portrait and landscape, cycle at least one slot, and confirm the plan is readable at a glance without crowding the fixed controls. Automated layout checks cover the geometry; this manual check is about comfort and first-read clarity.
+
+### Scope intentionally deferred
+
+- Free placement, new slot types, 3D Build previews, drag-and-drop, new defenses, balance changes, a separate planning scene, save/progression changes, or a wider UI redesign.

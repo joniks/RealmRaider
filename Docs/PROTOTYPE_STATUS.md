@@ -4,8 +4,8 @@ Last reviewed: 2026-09-07
 
 ## Latest verification
 
-- Diamond Pass 08.6 ability readiness is present: existing mobile ability buttons visibly communicate ready, acting, and cooldown states from the authoritative combat runtime.
-- Current Unity Test Runner baseline: EditMode 30/30 and PlayMode 22/22 passed on 2026-09-07.
+- Diamond Pass 08.7 Build Plan Readability is present: the fixed five-slot Build screen now shows each lane, role, cost, and a live invader-to-Heart-Tree defense sequence without changing defense rules.
+- Current Unity Test Runner baseline: EditMode 31/31 and PlayMode 23/23 passed on 2026-09-07.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -18,16 +18,17 @@ Last reviewed: 2026-09-07
 | 4. Keeper Defense | Functional greybox | Brief opening hold, AI invader route, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
 | Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route while retaining prototype-scene access. |
+| Build Plan | Functional greybox | Fixed five-slot defense configuration with live lane/role/cost copy and a non-interactive invader-to-Heart-Tree plan. |
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 30/30 and PlayMode 22/22 on 2026-09-07.
+- Current verified baseline: EditMode 31/31 and PlayMode 23/23 on 2026-09-07.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
-- The BUILD step is a compact five-slot runtime greybox; full device usability and performance remain unvalidated.
+- The BUILD step is a compact five-slot runtime greybox with a live defense-plan summary; full device usability and performance remain unvalidated.
 - Combat presentation uses bounded visual motion, action telegraphs and concise HUD/audio feedback; it still has no final animation rig, production VFX or tuned dodge.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding.

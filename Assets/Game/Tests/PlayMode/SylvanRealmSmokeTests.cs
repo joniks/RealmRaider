@@ -29,6 +29,45 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator RealmBuild_ExplainsLiveFixedPlanWithoutInputOrLayoutArtifacts()
+        {
+            var previous = PlayerPrefs.GetString(DefenseLayoutSave.KeyForTests, null);
+            try
+            {
+                DefenseLayoutSave.Save(DefenseLayout.Default());
+                SceneManager.LoadScene("RealmBuild"); yield return null; yield return null;
+                var hud = Object.FindFirstObjectByType<BuildHUD>(); var root = Object.FindFirstObjectByType<ResponsiveHudRoot>();
+                Assert.That(hud, Is.Not.Null); Assert.That(root, Is.Not.Null);
+                Assert.That(hud.SlotCopy(0), Does.Contain("OUTER GUARD\nWOLF • FAST INTERCEPT • 2 THREAT"));
+                Assert.That(hud.SlotCopy(2), Does.Contain("HEART GUARD\nENT • POSSESSABLE GUARDIAN • 4 THREAT"));
+                Assert.That(hud.DefensePlanText, Does.Contain("ROOT GATE: ROOT TRAP"));
+                Assert.That(hud.DefensePlanText, Does.Contain("HEART GUARD: ENT [POSSESSABLE]"));
+                Assert.That(GameObject.Find("Defense Plan Summary").GetComponent<Text>().raycastTarget, Is.False);
+                Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertBuildPlanClear();
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertBuildPlanClear();
+
+                hud.CycleSlotForTests(2);
+                Assert.That(hud.SlotCopy(2), Does.Contain("HEART GUARD\nOPEN • UNASSIGNED • 0 THREAT"));
+                Assert.That(hud.DefensePlanText, Does.Contain("HEART GUARD: OPEN"));
+                Assert.That(hud.SaveInteractable, Is.False);
+                hud.CycleSlotForTests(1);
+                Assert.That(hud.SlotCopy(1), Does.Contain("MID GUARD\nENT • POSSESSABLE GUARDIAN • 4 THREAT"));
+                Assert.That(hud.DefensePlanText, Does.Contain("MID GUARD: ENT [POSSESSABLE]"));
+                Assert.That(hud.SaveInteractable, Is.True);
+
+                GameObject.Find("SAVE & DEFEND").GetComponent<Button>().onClick.Invoke();
+                yield return null; yield return null;
+                Assert.That(Object.FindFirstObjectByType<DefenseManager>(), Is.Not.Null);
+                AssertSingleViewAndListener();
+            }
+            finally { if (previous == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previous); PlayerPrefs.Save(); }
+        }
+
+        [UnityTest]
         public IEnumerator DefenderTest_UsesSavedCustomLayoutAndFixedPositions()
         {
             var previous = PlayerPrefs.GetString(DefenseLayoutSave.KeyForTests, null);
@@ -142,6 +181,21 @@ namespace RealmRaiders.Tests
             }
         }
 
+        static void AssertBuildPlanClear()
+        {
+            var buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None);
+            AssertNoButtonOverlap(buttons);
+            var plan = GameObject.Find("Defense Plan Summary").GetComponent<Text>().rectTransform;
+            var labels = new List<RectTransform>();
+            foreach (var text in Object.FindObjectsByType<Text>(FindObjectsSortMode.None)) if (!text.GetComponentInParent<Button>()) labels.Add(text.rectTransform);
+            // The orientation override deliberately keeps the Test Runner's physical window
+            // unchanged. Validate the authored reference-layout rectangles instead of its
+            // distorted world corners, while the regular button check above covers live UI.
+            var reference = Object.FindFirstObjectByType<CanvasScaler>().referenceResolution;
+            for (var index = 0; index < buttons.Length; index++) AssertNoDesignOverlap(plan, buttons[index].GetComponent<RectTransform>(), reference, $"Build plan/button overlap: slot {index} in {Object.FindFirstObjectByType<ResponsiveHudRoot>().Orientation}");
+            foreach (var label in labels) if (label != plan) AssertNoDesignOverlap(plan, label, reference, $"Build plan/label overlap: {label.name}");
+        }
+
         static void AssertHubLabelsClear(Button[] buttons)
         {
             var labels = new List<RectTransform>();
@@ -159,6 +213,18 @@ namespace RealmRaiders.Tests
             var ac = new Vector3[4]; var bc = new Vector3[4]; a.GetWorldCorners(ac); b.GetWorldCorners(bc);
             var overlapX = Mathf.Min(ac[2].x, bc[2].x) - Mathf.Max(ac[0].x, bc[0].x); var overlapY = Mathf.Min(ac[2].y, bc[2].y) - Mathf.Max(ac[0].y, bc[0].y);
             Assert.That(overlapX > 0 && overlapY > 0, Is.False, message);
+        }
+        static void AssertNoDesignOverlap(RectTransform a, RectTransform b, Vector2 reference, string message)
+        {
+            var aRect = DesignRect(a, reference); var bRect = DesignRect(b, reference);
+            Assert.That(aRect.Overlaps(bRect), Is.False, message);
+        }
+        static Rect DesignRect(RectTransform rect, Vector2 parentSize)
+        {
+            Assert.That(rect.anchorMin, Is.EqualTo(rect.anchorMax), $"Expected a fixed anchor for {rect.name}");
+            var pivotPoint = Vector2.Scale(rect.anchorMin, parentSize) + rect.anchoredPosition;
+            var min = pivotPoint - Vector2.Scale(rect.pivot, rect.sizeDelta);
+            return new Rect(min, rect.sizeDelta);
         }
 
         [UnityTest]
