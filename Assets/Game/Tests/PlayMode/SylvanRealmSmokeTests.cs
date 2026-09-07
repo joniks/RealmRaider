@@ -177,6 +177,7 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<RootTrap>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<RealmCore>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertSylvanRaidRoutes();
             AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
             AssertLandmarkPresentation("Root Trap", 6, "Inward Root 1", "Inward Root 4");
             AssertSingleViewAndListener();
@@ -195,6 +196,7 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindFirstObjectByType<RaidInvaderBrain>(), Is.Not.Null);
             Assert.That(Object.FindObjectsByType<RootTrap>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertDefenseRoute("Sylvan Path", RealmRoutePresentation.DefenseRendererCeiling, "Organic Lane Mass 1", "Organic Lane Mass 4");
             AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
             AssertLandmarkPresentation("Manual Root Trap", 6, "Inward Root 1", "Inward Root 4");
             AssertSingleViewAndListener();
@@ -212,6 +214,7 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindFirstObjectByType<FlameTrap>(), Is.Not.Null);
             Assert.That(Object.FindFirstObjectByType<LavaGate>(), Is.Not.Null);
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertDefenseRoute("Volcanic Floor", RealmRoutePresentation.DefenseRendererCeiling, "Basalt Causeway Plate 1", "Basalt Causeway Plate 4");
             AssertLandmarkPresentation("Infernal Heart", 6, "Heavy Core", "Claw Left");
             AssertLandmarkPresentation("Flame Trap", 6, "Chevron 1 Left", "Chevron 3 Right");
             AssertSingleViewAndListener();
@@ -385,6 +388,55 @@ namespace RealmRaiders.Tests
             var namedRootCount = 0;
             foreach (Transform child in authoritative.transform) if (child.name == RealmLandmarkPresentation.RootName) namedRootCount++;
             Assert.That(namedRootCount, Is.EqualTo(1));
+        }
+
+        static void AssertSylvanRaidRoutes()
+        {
+            var paths = new List<Transform>();
+            foreach (var candidate in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (candidate.name == "Living Path") paths.Add(candidate);
+            Assert.That(paths, Has.Count.EqualTo(6));
+
+            var positions = new[] { new Vector3(0, -.06f, -40), new Vector3(-7, -.06f, -20), new Vector3(7, -.06f, -13), new Vector3(0, -.06f, -12), new Vector3(5, -.06f, 16), new Vector3(5, -.06f, 39) };
+            var scales = new[] { new Vector3(7, .12f, 20), new Vector3(6, .12f, 28), new Vector3(6, .12f, 38), new Vector3(7, .12f, 36), new Vector3(7, .12f, 26), new Vector3(7, .12f, 25) };
+            var yaws = new[] { 0f, -35f, 25f, 0f, -22f, 24f };
+            for (var index = 0; index < positions.Length; index++)
+            {
+                Transform path = null;
+                foreach (var candidate in paths) if (Vector3.Distance(candidate.position, positions[index]) < .01f) { path = candidate; break; }
+                Assert.That(path, Is.Not.Null, $"Missing authoritative Living Path at {positions[index]}.");
+                Assert.That(path.localScale, Is.EqualTo(scales[index]));
+                Assert.That(Quaternion.Angle(path.rotation, Quaternion.Euler(0, yaws[index], 0)), Is.LessThan(.01f));
+                AssertRoutePresentation(path, RealmRoutePresentation.SegmentRendererCeiling, false, "Organic Route Band", "Organic Route Band");
+            }
+        }
+
+        static void AssertDefenseRoute(string authoritativeName, int rendererCount, string firstPart, string lastPart)
+        {
+            var route = GameObject.Find(authoritativeName);
+            Assert.That(route, Is.Not.Null);
+            Assert.That(route.transform.position, Is.EqualTo(new Vector3(0, -.25f, 0)));
+            Assert.That(route.transform.localScale, Is.EqualTo(new Vector3(14, .5f, 68)));
+            AssertRoutePresentation(route.transform, rendererCount, true, firstPart, lastPart);
+        }
+
+        static void AssertRoutePresentation(Transform authoritative, int rendererCount, bool authoritativeRendererEnabled, string firstPart, string lastPart)
+        {
+            var presentation = authoritative.Find(RealmRoutePresentation.RootName);
+            Assert.That(presentation, Is.Not.Null);
+            Assert.That(presentation.localPosition, Is.EqualTo(Vector3.zero));
+            Assert.That(presentation.localRotation, Is.EqualTo(Quaternion.identity));
+            Assert.That(presentation.GetComponentsInChildren<Renderer>(true), Has.Length.EqualTo(rendererCount));
+            Assert.That(presentation.Find(firstPart), Is.Not.Null);
+            Assert.That(presentation.Find(lastPart), Is.Not.Null);
+            Assert.That(presentation.GetComponentsInChildren<Collider>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<MonoBehaviour>(true), Is.Empty);
+            Assert.That(authoritative.GetComponent<Collider>().enabled, Is.True);
+            Assert.That(authoritative.GetComponent<Renderer>().enabled, Is.EqualTo(authoritativeRendererEnabled));
+
+            var presentationCount = 0;
+            foreach (Transform child in authoritative) if (child.name == RealmRoutePresentation.RootName) presentationCount++;
+            Assert.That(presentationCount, Is.EqualTo(1));
         }
 
         static void AssertSingleViewAndListener()

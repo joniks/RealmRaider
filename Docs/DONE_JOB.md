@@ -866,3 +866,30 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Installing the package, concrete family/faction profiles, approved rigs/clips/licences, Animator assets, Core motion adapter, root-motion/event gameplay, runtime discovery, or any visual/gameplay/save integration.
+
+## Diamond Pass 10.0 — Realm Route Readability Blockout
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one idempotent presentation-only route builder with distinct Sylvan organic and Infernal fractured styles using existing Unity opaque primitive meshes.
+- Sylvan raid paths now receive one low rounded visual band per authoritative path root; Sylvan defense receives four staggered organic lane masses; Infernal defense receives four low angular causeway plates.
+- Generated visual children have no active colliders or gameplay components. Authoritative route/floor roots retain their transforms, colliders, layers, tags, route ownership, navigation and gameplay behavior.
+- Construction is deterministic and duplicate-safe, uses bounded renderer counts and shared cached materials, and cleans up with the owning route root and scene.
+
+### Verification
+
+- Focused `RealmRoutePresentationTests`: `4/4` passed.
+- Focused `SylvanRealmSmokeTests`: `9/9` passed.
+- Final EditMode: `58/58` passed, `0` failed. Final PlayMode: `34/34` passed, `0` failed.
+- QA observed the Sylvan landscape Keeper route as continuous with Root Trap and HUD visible; the Infernal angular causeway was exercised by the final PlayMode suite. Console reported `0` errors and `0` warnings apart from two Test Runner information logs.
+- No source changed after the final suites and `git diff --check` passes.
+
+### Remaining manual validation
+
+- Portrait Game View and physical Android readability/performance remain user-owned and were not claimed by QA.
+
+### Scope intentionally deferred
+
+- Boundary dressing, terrain replacement, imported assets/textures, custom shaders, particles, fog/light changes, animation, VFX/audio/haptics, new paths or waypoints, collider/NavMesh changes, procedural generation, BUILD/Hub decoration, and gameplay/balance/save changes.

@@ -15,7 +15,6 @@ namespace RealmRaiders.Core
 {
     public static class SylvanRealmBootstrap
     {
-        static readonly Color Forest = new(.08f, .22f, .1f);
         static readonly Color Moss = new(.14f, .4f, .16f);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -87,7 +86,7 @@ namespace RealmRaiders.Core
 
         static void CreatePath(Vector3 center, Vector2 size, float yaw = 0)
         {
-            var path = GameObject.CreatePrimitive(PrimitiveType.Cube); path.name = "Living Path"; path.transform.position = center + Vector3.down * .06f; path.transform.rotation = Quaternion.Euler(0, yaw, 0); path.transform.localScale = new Vector3(size.x, .12f, size.y); path.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(Forest);
+            var path = GameObject.CreatePrimitive(PrimitiveType.Cube); path.name = "Living Path"; path.transform.position = center + Vector3.down * .06f; path.transform.rotation = Quaternion.Euler(0, yaw, 0); path.transform.localScale = new Vector3(size.x, .12f, size.y); RealmRoutePresentation.BuildSegment(path.transform, RealmRouteStyle.SylvanOrganic);
         }
 
         static GameObject CreateHeartTree(Vector3 position)
