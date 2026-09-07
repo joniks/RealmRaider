@@ -12,7 +12,7 @@ The shared checkout is the **integration workspace**. It is never edited concurr
 | --- | --- | --- | --- |
 | Architect / Project Manager | Product owner, architecture, integration, committer | `Docs/`, `AGENTS.md`, task definitions, acceptance records, and accepted commits in the main and Modules repositories | Implement a feature in parallel with Core developer, run redundant full suites, import assets without provenance, push |
 | Core developer | One active vertical-slice implementation | Main checkout: only files explicitly reserved in the active task; authoritative gameplay, save, bootstraps, shared UI when task requires it | Work on a second feature before the first is accepted; launch, close, restart, or control Unity; run Unity tests/manual smoke; edit Docs ownership/process files; commit/push |
-| Module developer | Isolated content/module lane | Its own Git worktree and branch; new self-contained module/assets/docs only | Edit the main checkout, shared gameplay/UI files, project settings, or Unity scenes; launch, close, restart, or control Unity; integrate its own work; commit/push |
+| Game Designer / Modules | Player-facing design plus isolated content/module lane | Its own Git worktree and branch; implementation-ready UX/art briefs, research, and new self-contained module/assets/docs only | Edit the main checkout or shared gameplay/UI files; control Unity; assign implementation directly to Core; integrate its own work; commit/push |
 | Reviewer / QA | Independent review and verification owner | Read-only source review; the only role permitted to launch, close, restart, or control Unity for compilation, Test Runner, and team manual smoke | Edit tracked files, repeat green full suites, commit/push |
 
 ## Worktree model
@@ -21,8 +21,9 @@ The shared checkout is the **integration workspace**. It is never edited concurr
 main checkout — Core implementation, then QA verification (never simultaneously)
   └─ QA accepted work → Architect commit → user push
 
-module worktree — Module developer only
-  └─ isolated diff/branch → QA review → Architect commits Modules repo → user push
+design/module worktree — Game Designer / Modules only
+  ├─ design brief/research → Architect review → next Core task
+  └─ isolated package diff → QA review → Architect commits Modules repo → user push
 
 Reviewer / QA — read-only source review plus serial Unity verification of a frozen diff
 Architect — task ownership, review decisions, documentation and commits
@@ -30,7 +31,8 @@ Architect — task ownership, review decisions, documentation and commits
 
 - A worktree task starts from a named committed base revision.
 - A module task must create new, namespaced files whenever possible, for example `Assets/Game/Modules/<Feature>/...`.
-- If a module needs an existing shared file changed, it stops and asks Architect to schedule integration after Core developer is finished.
+- A design brief states the player problem, two bounded options, one recommendation, all visible states, portrait/landscape behavior, accessibility and performance limits, non-goals, and a short manual acceptance scenario. It does not implement the design.
+- If a design or module task needs an existing shared file changed, it stops and asks Architect to schedule integration after Core developer is finished.
 - Architect commits accepted work in both repositories. The user alone pushes those commits.
 
 ## Task lease
@@ -38,7 +40,7 @@ Architect — task ownership, review decisions, documentation and commits
 Every active task must state these five fields at the top of `Docs/NEXT_JOB.md` or in its assignment message:
 
 ```text
-Owner: Core developer | Module developer | Reviewer / QA
+Owner: Core developer | Game Designer / Modules | Reviewer / QA
 Workspace: main checkout | named worktree | read-only
 Base commit: <short hash>
 Reserved files/folders: <exact paths>
@@ -49,13 +51,14 @@ One owner at a time may write a reserved path. A task is released only after Arc
 
 ## Operating sequence
 
-1. Architect defines the smallest valuable player problem and records its scope/non-goals in `Docs/NEXT_JOB.md`.
-2. Core developer implements one vertical slice in the main checkout without launching or controlling Unity. It freezes its diff and sends the changed-path list plus intended behaviors directly to Reviewer / QA.
-3. Reviewer / QA reviews the frozen diff, then alone launches and controls Unity for compilation and focused verification. It reports concrete defects directly to Core developer.
-4. Core developer fixes only the reported defects without touching Unity, freezes the checkout again, and returns it to QA. This loop continues until QA has no blocker.
-5. Reviewer / QA runs the final full EditMode and PlayMode suites exactly once against the final frozen diff, then accepts or rejects it.
-6. Architect records acceptance in `Docs/DONE_JOB.md` and `Docs/PROTOTYPE_STATUS.md`, commits accepted main/module work, and tells the user what to push.
-7. Module work is reviewed and integrated only between committed Core tasks.
+1. Game Designer / Modules prepares the next bounded player-facing brief in parallel when no package task is ready; Architect accepts, revises, or rejects it.
+2. Architect defines the smallest valuable player problem and records its scope/non-goals in `Docs/NEXT_JOB.md`.
+3. Core developer implements one vertical slice in the main checkout without launching or controlling Unity. It freezes its diff and sends the changed-path list plus intended behaviors directly to Reviewer / QA.
+4. Reviewer / QA reviews the frozen diff, then alone launches and controls Unity for compilation and focused verification. It reports concrete defects directly to Core developer.
+5. Core developer fixes only the reported defects without touching Unity, freezes the checkout again, and returns it to QA. This loop continues until QA has no blocker.
+6. Reviewer / QA runs the final full EditMode and PlayMode suites exactly once against the final frozen diff, then accepts or rejects it.
+7. Architect records acceptance in `Docs/DONE_JOB.md` and `Docs/PROTOTYPE_STATUS.md`, commits accepted main/module work, and tells the user what to push.
+8. Design/module work is reviewed and integrated only between committed Core tasks.
 
 ## Verification discipline
 
@@ -66,12 +69,23 @@ One owner at a time may write a reserved path. A task is released only after Arc
 
 ## Unity and asset safety
 
-- Only Reviewer / QA may launch, close, restart, or control Unity. Core and Module developer never use Unity UI or Unity processes.
+- Only Reviewer / QA may launch, close, restart, or control Unity. Core and Game Designer / Modules never use Unity UI or Unity processes.
 - Reviewer / QA owns all Unity compilation, Test Runner/manual-smoke execution, and test evidence.
-- Module developer uses a separate worktree and does not touch shared `Library`, `ProjectSettings`, scenes, or bootstraps.
+- Game Designer / Modules uses a separate worktree and does not touch shared `Library`, `ProjectSettings`, scenes, or bootstraps.
 - Third-party assets remain research-only until licence, source, import plan, and provenance record are accepted. Original generated art is a mood reference until converted into an explicitly reviewed game asset.
 
 ## Communication format
+
+Game Designer / Modules → Architect handoff, maximum six lines:
+
+```text
+Brief: <player problem and recommendation>
+States: <visible states plus portrait/landscape behavior>
+Acceptance: <short manual scenario and measurable checks>
+Risks: <accessibility, performance, licence, or none>
+Files: <isolated design/module paths only>
+Unity/commit/push: not performed
+```
 
 Core → QA handoff, maximum six lines:
 

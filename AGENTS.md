@@ -66,5 +66,6 @@ Design laws:
 - Follow `Docs/TEAM_WORKFLOW.md`: only the named owner may write a reserved path, and only Core developer edits the main Unity checkout during an active feature.
 - When a task is accepted, record it in `Docs/DONE_JOB.md` and refresh `Docs/PROTOTYPE_STATUS.md`; these are committed with the implementation.
 - One agent owns a shared gameplay/UI file at a time. Parallel work should use separate file areas: implementation, research/assets, or review/tests.
+- `Game Designer / Modules` is the fourth persistent role. When no isolated package task is ready, it prepares the next player-facing UX, art-direction, mobile-layout, accessibility, or asset-intake brief in a named Modules worktree. It never edits the main checkout or controls Unity; Architect converts an accepted brief into `Docs/NEXT_JOB.md`.
 - Preserve user changes and unrelated files. Generated `Library`, `Logs`, `Temp`, `UserSettings`, IDE files, and platform Build exports stay out of Git.
 - Ask before materially broadening scope. Favor a clean next task over silently bundling unrelated polish.
