@@ -11,9 +11,11 @@ namespace RealmRaiders.UI
         public int SlotCount => slots.Length;
         public string DefensePlanText => plan ? plan.text : string.Empty;
         public string RealmStoresText => realmStores ? realmStores.text : string.Empty;
+        public string GuardianEntUpgradeText => cultivateEnt ? cultivateEnt.GetComponentInChildren<Text>().text : string.Empty;
         public string SlotCopy(int index) => index >= 0 && index < slots.Length ? slots[index].GetComponentInChildren<Text>().text : string.Empty;
         public bool SaveInteractable => saveButton && saveButton.interactable;
-        Button[] slots = Array.Empty<Button>(); Button saveButton; Text title; Text budget; Text reason; Text realmStores; Text plan; DefenseLayout layout; ResponsiveHudRoot responsive; HudPresentation presentation;
+        public bool GuardianEntUpgradeInteractable => cultivateEnt && cultivateEnt.interactable;
+        Button[] slots = Array.Empty<Button>(); Button saveButton, cultivateEnt; Text title; Text budget; Text reason; Text realmStores; Text plan; DefenseLayout layout; ResponsiveHudRoot responsive; HudPresentation presentation;
         public void Initialize() { layout = DefenseLayoutSave.Load(); Build(); Refresh(); }
         void Build()
         {
@@ -22,13 +24,33 @@ namespace RealmRaiders.UI
             title = Label("SYLVAN BUILD", new Vector2(0, -120), 52); budget = Label("", new Vector2(0, -215), 30); reason = Label("", new Vector2(0, -310), 24); realmStores = Label("", new Vector2(0, -385), 21); realmStores.name = "Realm Stores"; realmStores.rectTransform.sizeDelta = new Vector2(950, 48); realmStores.raycastTarget = false;
             plan = Label("", new Vector2(0, -400), 18); plan.name = "Defense Plan Summary"; plan.rectTransform.sizeDelta = new Vector2(950, 90); plan.raycastTarget = false;
             slots = new Button[5]; for (int i = 0; i < slots.Length; i++) { int index = i; slots[i] = Button("", new Vector2(0, 280 - i * 140), () => Cycle(index)); }
+            cultivateEnt = Button("CULTIVATE GUARDIAN ENT", Vector2.zero, OnPurchaseGuardianEntVitality); cultivateEnt.name = "CULTIVATE GUARDIAN ENT"; cultivateEnt.GetComponentInChildren<Text>().fontSize = 17;
             saveButton = Button("SAVE & DEFEND", new Vector2(0, -650), SaveAndDefend);
             responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyOrientation; responsive.Initialize(false);
         }
         public void CycleSlotForTests(int index) => Cycle(index);
+        public bool PurchaseGuardianEntVitalityForTests() => PurchaseGuardianEntVitality();
         void Cycle(int index) { var slot = layout.Slots[index]; var next = slot.Piece; for (int i = 0; i < 4; i++) { next = (DefensePieceType)(((int)next + 1) % 4); var candidate = new DefenseSlotLayout(slot.SlotType, next); if (DefenseLayoutRules.IsAllowed(candidate)) { layout.Slots[index] = candidate; break; } } Refresh(); }
         void SaveAndDefend() { if (!DefenseLayoutRules.IsValid(layout, out _)) return; DefenseLayoutSave.Save(layout); SceneManager.LoadScene("DefenderTest"); }
-        void Refresh() { var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = $"Threat: {DefenseLayoutRules.Used(layout)}/{DefenseLayoutRules.Budget}"; reason.text = valid ? "Ready to defend" : message; realmStores.text = RealmProgress.StoreCopy(); plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid; for (int i = 0; i < slots.Length; i++) slots[i].GetComponentInChildren<Text>().text = FormatSlotCopy(i, layout.Slots[i]); }
+        bool PurchaseGuardianEntVitality()
+        {
+            if (!RealmProgress.TryPurchaseGuardianEntVitality(out _)) return false;
+            presentation?.PlayConfirm();
+            Refresh();
+            return true;
+        }
+        void OnPurchaseGuardianEntVitality() => PurchaseGuardianEntVitality();
+        void Refresh()
+        {
+            var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = $"Threat: {DefenseLayoutRules.Used(layout)}/{DefenseLayoutRules.Budget}"; reason.text = valid ? "Ready to defend" : message; realmStores.text = RealmProgress.StoreCopy(); plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid;
+            if (cultivateEnt)
+            {
+                var progress = RealmProgress.Load();
+                cultivateEnt.interactable = RealmProgress.CanPurchaseGuardianEntVitality();
+                cultivateEnt.GetComponentInChildren<Text>().text = GuardianEntUpgradeCopy(progress);
+            }
+            for (int i = 0; i < slots.Length; i++) slots[i].GetComponentInChildren<Text>().text = FormatSlotCopy(i, layout.Slots[i]);
+        }
         void ApplyOrientation(PrototypeOrientation orientation)
         {
             if (!saveButton) return;
@@ -45,6 +67,7 @@ namespace RealmRaiders.UI
                 realmStores.rectTransform.anchorMin = realmStores.rectTransform.anchorMax = new Vector2(.5f, 1);
                 realmStores.rectTransform.pivot = new Vector2(.5f, 1);
                 realmStores.rectTransform.anchoredPosition = new Vector2(copyX, -470);
+                PlaceUpgrade(new Vector2(.5f, 1), new Vector2(copyX, -570), new Vector2(.5f, 1));
                 plan.rectTransform.anchorMin = plan.rectTransform.anchorMax = new Vector2(.5f, 1);
                 plan.rectTransform.pivot = new Vector2(.5f, 1);
                 plan.rectTransform.anchoredPosition = new Vector2(copyX, -340);
@@ -55,10 +78,35 @@ namespace RealmRaiders.UI
                 realmStores.rectTransform.anchorMin = realmStores.rectTransform.anchorMax = new Vector2(.5f, 0);
                 realmStores.rectTransform.pivot = new Vector2(.5f, 0);
                 realmStores.rectTransform.anchoredPosition = new Vector2(0, 372);
+                // Keep the cultivation card in the clear portrait lane between the status copy
+                // and the five fixed build slots. This also stays separate at scaled test sizes.
+                PlaceUpgrade(new Vector2(.5f, 0), new Vector2(0, 1350), new Vector2(.5f, 0));
                 plan.rectTransform.anchorMin = plan.rectTransform.anchorMax = new Vector2(.5f, 0);
                 plan.rectTransform.pivot = new Vector2(.5f, 0);
                 plan.rectTransform.anchoredPosition = new Vector2(0, 430);
             }
+        }
+        void PlaceUpgrade(Vector2 anchor, Vector2 position, Vector2 pivot)
+        {
+            if (!cultivateEnt) return;
+            var rect = cultivateEnt.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = anchor; rect.pivot = pivot; rect.anchoredPosition = position; rect.sizeDelta = new Vector2(720, 100);
+        }
+        public static string GuardianEntUpgradeCopy(RealmProgressData progress)
+        {
+            if (progress.GuardianEntVitalityRank >= RealmProgress.GuardianEntVitalityRankCap) return "GUARDIAN ENT FULLY CULTIVATED\nRANK 3/3 • +30% MAX HEALTH IN NEXT DEFENSE";
+            var rank = progress.GuardianEntVitalityRank;
+            var nextRank = rank + 1;
+            var canAfford = progress.Gold >= RealmProgress.GuardianEntVitalityGoldCost && progress.RareMaterials >= RealmProgress.GuardianEntVitalityRareMaterialCost;
+            var costLine = canAfford
+                ? $"COST: {RealmProgress.GuardianEntVitalityGoldCost} GOLD • {RealmProgress.GuardianEntVitalityRareMaterialCost} RARE MATERIAL"
+                : $"NEEDS: {MissingGuardianEntCost(progress)}";
+            return $"CULTIVATE GUARDIAN ENT — RANK {rank}/3\nCURRENT: +{rank * 10}% MAX HEALTH IN NEXT DEFENSE\nNEXT CULTIVATION: +{nextRank * 10}% TOTAL\n{costLine}";
+        }
+        static string MissingGuardianEntCost(RealmProgressData progress)
+        {
+            var gold = Mathf.Max(0, RealmProgress.GuardianEntVitalityGoldCost - progress.Gold);
+            var rare = Mathf.Max(0, RealmProgress.GuardianEntVitalityRareMaterialCost - progress.RareMaterials);
+            return gold > 0 && rare > 0 ? $"{gold} GOLD • {rare} RARE MATERIAL" : gold > 0 ? $"{gold} GOLD" : $"{rare} RARE MATERIAL";
         }
         public static string FormatSlotCopy(int index, DefenseSlotLayout slot)
         {

@@ -9,7 +9,8 @@ Last reviewed: 2026-09-07
 - Diamond Pass 08.9 Combat Target Readability is present: the existing awareness system identifies a visible eligible attacker with real health and hands off cleanly to its off-screen direction cue.
 - Diamond Pass 09.0 Raid Loop Closure is present: factual raid results now have a primary route back to the saved Build plan, while retry and Hub remain available.
 - Diamond Pass 09.1 Realm Stores Foundation is present: real raid Gold and Rare Materials are locally recorded once per shown result and are visible as read-only stores in Hub and Build.
-- Current Unity Test Runner baseline: EditMode 35/35 and PlayMode 24/24 passed on 2026-09-07.
+- Diamond Pass 09.2 Guardian Ent Cultivation is present: earned stores can buy one capped, persistent, truthful Ent vitality upgrade for the next Sylvan defense.
+- Current Unity Test Runner baseline: EditMode 37/37 and PlayMode 25/25 passed on 2026-09-07.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -22,11 +23,11 @@ Last reviewed: 2026-09-07
 | 4. Keeper Defense | Functional greybox | Brief opening hold, readable live invader route state, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
 | Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route and current read-only Realm Stores while retaining prototype-scene access. |
-| Build Plan | Functional greybox | Fixed five-slot defense configuration with live lane/role/cost copy and a non-interactive invader-to-Heart-Tree plan. |
+| Build Plan | Functional greybox | Fixed five-slot defense configuration with live lane/role/cost copy, one capped Ent-vitality investment using earned local stores, and a non-interactive invader-to-Heart-Tree plan. |
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 35/35 and PlayMode 24/24 on 2026-09-07.
+- Current verified baseline: EditMode 37/37 and PlayMode 25/25 on 2026-09-07.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

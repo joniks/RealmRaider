@@ -5,6 +5,7 @@ This file is the compact operating context for every coding agent working in thi
 1. `Docs/PROJECT_CONTEXT.md`
 2. `Docs/PROTOTYPE_STATUS.md`
 3. `Docs/NEXT_JOB.md` — local handoff; intentionally Git-ignored
+4. `Docs/TEAM_WORKFLOW.md` — role ownership, worktree and handoff rules
 
 ## Product truth
 
@@ -62,6 +63,7 @@ Design laws:
 ## Collaboration rules
 
 - `Docs/NEXT_JOB.md` is the active handoff and is Git-ignored. Update it before a new implementation task starts.
+- Follow `Docs/TEAM_WORKFLOW.md`: only the named owner may write a reserved path, and only Core developer edits the main Unity checkout during an active feature.
 - When a task is accepted, record it in `Docs/DONE_JOB.md` and refresh `Docs/PROTOTYPE_STATUS.md`; these are committed with the implementation.
 - One agent owns a shared gameplay/UI file at a time. Parallel work should use separate file areas: implementation, research/assets, or review/tests.
 - Preserve user changes and unrelated files. Generated `Library`, `Logs`, `Temp`, `UserSettings`, IDE files, and platform Build exports stay out of Git.

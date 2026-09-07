@@ -584,3 +584,32 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Spending, upgrades, unlocks, new currencies, balancing, server/cloud sync, accounts, analytics, reset/settings UI, new scenes/assets/packages, or a general UI redesign.
+
+## Diamond Pass 09.2 — Guardian Ent Cultivation
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Added the first honest use for locally earned Realm Stores: Guardian Ent Cultivation has three persistent ranks, each costing exactly `100 GOLD` and `1 RARE MATERIAL`.
+- The Build screen now presents a compact, responsive cultivation action with current active bonus, next-rank total, precise cost or missing resources, and a clear fully-cultivated state at rank three.
+- Each rank gives only the Guardian Ent in the next Sylvan defense `+10%` of its original maximum health. Rank one therefore changes its real maximum from `340` to `374`; rank three reaches `+30%`.
+- Purchases are saved immediately, cannot double-spend while unavailable/capped, and keep the existing five-slot defense plan, threat budget, combat stats, abilities, controls, camera, AI, and Infernal roster unchanged.
+- The change is deliberately one prototype investment, not a generic upgrade tree or economy expansion.
+
+### Verification
+
+- Focused Guardian Ent PlayMode coverage: `9/9` passed, including purchase/persistence, truthful UI copy, missing-resource state, portrait/landscape containment, one-time Defender application, and Infernal Brute non-regression.
+- EditMode: `37/37` passed, `0` failed.
+- PlayMode: `25/25` passed, `0` failed on 2026-09-07 at 22:33 EEST.
+- Reviewer / QA independently accepted the frozen diff after finding and verifying fixes for the initially misleading rank copy and insufficient-resource presentation.
+- `git diff --check` passes. Unity Console had no new errors.
+
+### Remaining player validation
+
+- On Android, complete one raid or use a future developer-safe grant path, buy rank one, enter Sylvan Defense, and confirm the Ent's `374 / 340` health difference feels understandable through the existing HUD. Rotate once while reviewing the Build card.
+- The live successful-purchase smoke was not claimed because this prototype has no player-facing resource grant shortcut; the deterministic PlayMode flow covers it.
+
+### Scope intentionally deferred
+
+- Additional upgrades, new currencies, reset/respec, unlock trees, timers, cloud sync, account data, economy balancing, new units or traps, rewards changes, new assets/packages/scenes, or a broader Build UI redesign.

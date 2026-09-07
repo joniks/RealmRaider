@@ -46,7 +46,14 @@ namespace RealmRaiders.Core
                 var piece = layout.Slots[i].Piece;
                 var spawnPosition = creaturePositions[i];
                 if (piece == DefensePieceType.Wolf) { spawnPosition.y = .7f; var wolf = Entity($"Realm Wolf {(char)('A' + wolfIndex++)}", spawnPosition, wolfStats, new Color(.42f - wolfIndex * .04f, .45f - wolfIndex * .04f, .4f - wolfIndex * .035f), false, PrototypeRuntimeFactory.SylvanBeastRecipe, .7f); defenders.Add(wolf); }
-                else if (piece == DefensePieceType.Ent) { spawnPosition.y = 2.1f; ent = Entity("Guardian Ent", spawnPosition, CombatStats.Ent, new Color(.18f, .43f, .14f), true, PrototypeRuntimeFactory.GuardianEntRecipe, 1.4f); defenders.Add(ent); }
+                else if (piece == DefensePieceType.Ent)
+                {
+                    spawnPosition.y = 2.1f;
+                    var entStats = CombatStats.Ent;
+                    entStats.MaxHealth = RealmProgress.GuardianEntMaximumHealth(entStats.MaxHealth);
+                    ent = Entity("Guardian Ent", spawnPosition, entStats, new Color(.18f, .43f, .14f), true, PrototypeRuntimeFactory.GuardianEntRecipe, 1.4f);
+                    defenders.Add(ent);
+                }
             }
             foreach (var defender in defenders) { var brain = defender.Controller<CreatureBrain>(); brain.Target = invader; defender.SetController(brain); }
 

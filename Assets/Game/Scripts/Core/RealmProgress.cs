@@ -12,6 +12,7 @@ namespace RealmRaiders.Core
         public int RareMaterials;
         public int CompletedRaids;
         public int Victories;
+        public int GuardianEntVitalityRank;
     }
 
     /// <summary>Small local record of rewards already brought back from completed raids.</summary>
@@ -19,6 +20,9 @@ namespace RealmRaiders.Core
     {
         const string Key = "realmraiders.realmProgress.v1";
         const int CurrentVersion = 1;
+        public const int GuardianEntVitalityRankCap = 3;
+        public const int GuardianEntVitalityGoldCost = 100;
+        public const int GuardianEntVitalityRareMaterialCost = 1;
 
         public static RealmProgressData Load()
         {
@@ -49,7 +53,30 @@ namespace RealmRaiders.Core
             return $"REALM STORES  •  {value.Gold} GOLD  •  {value.RareMaterials} RARE MATERIALS";
         }
 
-        static bool IsValid(RealmProgressData value) => value != null && value.Version == CurrentVersion && value.Gold >= 0 && value.RareMaterials >= 0 && value.CompletedRaids >= 0 && value.Victories >= 0 && value.Victories <= value.CompletedRaids;
+        public static bool CanPurchaseGuardianEntVitality()
+        {
+            var value = Load();
+            return value.GuardianEntVitalityRank < GuardianEntVitalityRankCap && value.Gold >= GuardianEntVitalityGoldCost && value.RareMaterials >= GuardianEntVitalityRareMaterialCost;
+        }
+
+        public static bool TryPurchaseGuardianEntVitality(out RealmProgressData updated)
+        {
+            updated = Load();
+            if (updated.GuardianEntVitalityRank >= GuardianEntVitalityRankCap || updated.Gold < GuardianEntVitalityGoldCost || updated.RareMaterials < GuardianEntVitalityRareMaterialCost) return false;
+            updated.Gold -= GuardianEntVitalityGoldCost;
+            updated.RareMaterials -= GuardianEntVitalityRareMaterialCost;
+            updated.GuardianEntVitalityRank++;
+            Save(updated);
+            return true;
+        }
+
+        public static float GuardianEntMaximumHealth(float baseMaximum)
+        {
+            var rank = Load().GuardianEntVitalityRank;
+            return Mathf.Max(1, baseMaximum) * (1 + rank * .1f);
+        }
+
+        static bool IsValid(RealmProgressData value) => value != null && value.Version == CurrentVersion && value.Gold >= 0 && value.RareMaterials >= 0 && value.CompletedRaids >= 0 && value.Victories >= 0 && value.Victories <= value.CompletedRaids && value.GuardianEntVitalityRank >= 0 && value.GuardianEntVitalityRank <= GuardianEntVitalityRankCap;
         static RealmProgressData Default() => new();
         static void Save(RealmProgressData value) { value.Version = CurrentVersion; PlayerPrefs.SetString(Key, JsonUtility.ToJson(value)); PlayerPrefs.Save(); }
 

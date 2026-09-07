@@ -92,6 +92,50 @@ namespace RealmRaiders.Tests
             finally { if (previous == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previous); PlayerPrefs.Save(); }
         }
 
+        [UnityTest]
+        public IEnumerator GuardianEntVitality_BuildPurchasePersistsAndOnlyChangesTheNextSylvanEnt()
+        {
+            var previousLayout = PlayerPrefs.GetString(DefenseLayoutSave.KeyForTests, null);
+            var hadProgress = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
+            var previousProgress = PlayerPrefs.GetString(RealmProgress.KeyForTests, string.Empty);
+            try
+            {
+                RealmProgress.ResetForTests();
+                RealmProgress.Credit(new RaidResult(true, 100, 1, 0, 0, 1, true));
+                DefenseLayoutSave.Save(DefenseLayout.Default());
+                SceneManager.LoadScene("RealmBuild"); yield return null; yield return null;
+                var hud = Object.FindFirstObjectByType<BuildHUD>(); var root = Object.FindFirstObjectByType<ResponsiveHudRoot>();
+                Assert.That(hud, Is.Not.Null); Assert.That(root, Is.Not.Null);
+                Assert.That(hud.GuardianEntUpgradeText, Does.Contain("RANK 0/3").And.Contain("CURRENT: +0% MAX HEALTH IN NEXT DEFENSE").And.Contain("NEXT CULTIVATION: +10% TOTAL").And.Contain("COST: 100 GOLD • 1 RARE MATERIAL"));
+                Assert.That(hud.GuardianEntUpgradeInteractable, Is.True);
+                Assert.That(GameObject.Find("CULTIVATE GUARDIAN ENT").GetComponent<UiPointerOwnership>(), Is.Not.Null);
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertBuildPlanClear();
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertBuildPlanClear();
+
+                Assert.That(hud.PurchaseGuardianEntVitalityForTests(), Is.True);
+                Assert.That(hud.RealmStoresText, Is.EqualTo("REALM STORES  •  0 GOLD  •  0 RARE MATERIALS"));
+                Assert.That(hud.GuardianEntUpgradeText, Does.Contain("RANK 1/3").And.Contain("CURRENT: +10% MAX HEALTH IN NEXT DEFENSE").And.Contain("NEXT CULTIVATION: +20% TOTAL").And.Contain("NEEDS: 100 GOLD • 1 RARE MATERIAL"));
+                Assert.That(hud.GuardianEntUpgradeInteractable, Is.False);
+                Assert.That(hud.PurchaseGuardianEntVitalityForTests(), Is.False);
+
+                GameObject.Find("SAVE & DEFEND").GetComponent<Button>().onClick.Invoke();
+                yield return null; yield return null;
+                var ent = GameObject.Find("Guardian Ent").GetComponent<CombatEntity>();
+                Assert.That(ent.Health.Maximum, Is.EqualTo(374).Within(.01f));
+                Assert.That(GameObject.Find("Realm Wolf A").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(52).Within(.01f));
+                Assert.That(GameObject.Find("Invading Blood Knight").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(220).Within(.01f));
+
+                SceneManager.LoadScene("InfernalRealm"); yield return null; yield return null;
+                Assert.That(GameObject.Find("Infernal Brute").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(380).Within(.01f));
+            }
+            finally
+            {
+                if (previousLayout == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previousLayout);
+                if (hadProgress) PlayerPrefs.SetString(RealmProgress.KeyForTests, previousProgress); else PlayerPrefs.DeleteKey(RealmProgress.KeyForTests);
+                PlayerPrefs.Save();
+            }
+        }
+
         static void AssertSlotPosition(Vector3 actual, Vector3 expected)
         {
             Assert.That(actual.x, Is.EqualTo(expected.x).Within(.01f));

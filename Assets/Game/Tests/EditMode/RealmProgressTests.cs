@@ -41,6 +41,38 @@ namespace RealmRaiders.Tests
             });
         }
 
+        [Test]
+        public void GuardianEntVitalityPurchaseUsesExactCostsAndStopsAtTheThreeRankCap()
+        {
+            WithSavedProgress(() =>
+            {
+                RealmProgress.ResetForTests();
+                Assert.That(RealmProgress.TryPurchaseGuardianEntVitality(out _), Is.False);
+                RealmProgress.Credit(new RaidResult(true, 300, 3, 0, 0, 1, true));
+
+                Assert.That(RealmProgress.TryPurchaseGuardianEntVitality(out var first), Is.True);
+                Assert.That(first.Gold, Is.EqualTo(200)); Assert.That(first.RareMaterials, Is.EqualTo(2)); Assert.That(first.GuardianEntVitalityRank, Is.EqualTo(1));
+                Assert.That(RealmProgress.TryPurchaseGuardianEntVitality(out _), Is.True);
+                Assert.That(RealmProgress.TryPurchaseGuardianEntVitality(out var capped), Is.True);
+                Assert.That(capped.Gold, Is.Zero); Assert.That(capped.RareMaterials, Is.Zero); Assert.That(capped.GuardianEntVitalityRank, Is.EqualTo(3));
+                Assert.That(RealmProgress.CanPurchaseGuardianEntVitality(), Is.False);
+                Assert.That(RealmProgress.TryPurchaseGuardianEntVitality(out var unchanged), Is.False);
+                Assert.That(unchanged.GuardianEntVitalityRank, Is.EqualTo(3)); Assert.That(unchanged.Gold, Is.Zero);
+            });
+        }
+
+        [Test]
+        public void GuardianEntVitalityCalculatesTenPercentPerRankFromTheOriginalEntMaximumHealth()
+        {
+            WithSavedProgress(() =>
+            {
+                RealmProgress.ResetForTests();
+                RealmProgress.Credit(new RaidResult(true, 200, 2, 0, 0, 1, true));
+                RealmProgress.TryPurchaseGuardianEntVitality(out _); RealmProgress.TryPurchaseGuardianEntVitality(out _);
+                Assert.That(RealmProgress.GuardianEntMaximumHealth(340), Is.EqualTo(408).Within(.01f));
+            });
+        }
+
         static void WithSavedProgress(System.Action action)
         {
             var hadValue = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
