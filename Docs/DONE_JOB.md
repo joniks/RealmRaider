@@ -845,3 +845,24 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Imported assets/textures, shaders, particles, animation, audio/haptics, paths/boundaries/terrain dressing, full 12-module environment kit, collider changes, gameplay/balance/save changes, and portrait/physical-device visual acceptance.
+
+## Module Pass MMP 01 — Character Motion Profile Contracts
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added an isolated `com.realmraiders.character-motion-profiles` package with immutable metadata for one body family, rig/Animator profile IDs, the fixed `idle`, `locomotion`, `attack_primary`, `attack_ability`, `hit`, and `death` clip keys, faction rhythm, fallback profile, and provenance source IDs.
+- Added deterministic validation for schema, IDs, family/rhythm, exactly six unique clip bindings, source-declared family/rig/key compatibility, and globally unique ordinal-sorted source IDs.
+- Added validated fixed-order BOM-less UTF-8 serialization and a lowercase SHA-256 content hash. The closed input-field policy excludes mutable display data, asset/scene paths, timestamps, random values, and unknown fields.
+- The package remains passive and uninstalled. It contains no animation assets, `Animator`/`AnimationClip` references, gameplay timings or curves, discovery, roster profiles, runtime adapter, root motion, event authority, or gameplay behavior.
+
+### Verification
+
+- Reviewer / QA accepted the frozen package through read-only static review: immutable defensive collections, closed six-clip schema, compatibility checks, non-adjacent duplicate handling, deterministic canonicalization, factual documentation, and dependency boundaries.
+- Package and assembly-definition JSON parsed successfully. The runtime assembly references only `RealmRaiders.ModuleContracts`, declares `noEngineReferences`, and contains no `UnityEngine` or `RealmRaiders.Runtime` reference.
+- Eight focused Editor NUnit tests are authored inside the uninstalled package but were intentionally not run. `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Installing the package, concrete family/faction profiles, approved rigs/clips/licences, Animator assets, Core motion adapter, root-motion/event gameplay, runtime discovery, or any visual/gameplay/save integration.
