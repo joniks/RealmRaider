@@ -1,0 +1,3 @@
+[submodule "Modules/RealmRaider.Modules"]
+	path = Modules/RealmRaider.Modules
+	url = git@github.com:joniks/RealmRaider.Modules.git
