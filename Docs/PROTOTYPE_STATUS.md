@@ -13,6 +13,7 @@ Last reviewed: 2026-09-08
 - Diamond Pass 09.3 Guardian Ent Growth Readability is present: the cultivated defender visibly grows and states its exact earned maximum-health bonus during Sylvan defense.
 - Diamond Pass 09.4 Module Host Boundary is present: an independent, passive character-catalogue contract assembly now lets future Modules packages describe data without gaining gameplay or scene authority.
 - Diamond Pass 09.5 Visual-Tuning Package Wiring is present: the reviewed local visual-tuning package is resolved through the pinned Modules submodule, while remaining unused by runtime presentation.
+- Module Pass MCT 01 Starter Character Catalogue is staged in the pinned Modules submodule: it describes the five starter characters through the passive contracts boundary, but is intentionally not yet installed or consumed by runtime presentation.
 - Current Unity Test Runner baseline: EditMode 45/45 and PlayMode 25/25 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 

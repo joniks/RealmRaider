@@ -688,3 +688,24 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Loading/applying a visual profile, material-role adapter, tint/scale/pose/shader changes, model or texture import, animation/rig work, runtime module discovery, third-party downloads, new gameplay/UI/scene/save behavior, or any visual adjustment without a deliberate Game View/device review.
+
+## Module Pass MCT 01 — Starter Character Catalogue
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added the isolated `com.realmraiders.starter-character-catalog` Modules package with one explicit, passive catalogue provider.
+- Its five ordered entries describe the current starter roster only: Blood Knight, Guardian Ent, Sylvan Wolf, Infernal Brute, and Hellhound. Each uses a stable lowercase ID, a shared body family, and a visual-profile key.
+- The package depends only on the existing plain `RealmRaiders.ModuleContracts` boundary. It has no Unity-engine reference, gameplay authority, automatic registration, prefab, asset, save, or scene access.
+- The package remains staged in the Modules submodule but is deliberately not installed or consumed by the main Unity runtime. A future Core task must choose the first player-visible use and explicitly adapt it.
+
+### Verification
+
+- Reviewer / QA accepted the static package review: exact roster data, assembly isolation, data-only tests, factual documentation, and no copied art/licence record or runtime integration.
+- The test assertion was checked for Unity NUnit compatibility before review; Unity was intentionally not opened because the package is not installed in the project.
+- `git diff --check` passes for the frozen module candidate.
+
+### Scope intentionally deferred
+
+- Package installation, runtime discovery/registry, character instantiation, visual-profile application, changes to combat/AI/save/UI/scenes, and any model, texture, rig, or licence intake.
