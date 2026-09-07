@@ -398,3 +398,30 @@ Completed on 2026-09-06; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Minimap/radar, waypoint path, automatic movement, hard target lock, camera focus, fog changes, gameplay balance changes, persistent settings, new art/assets/packages, or a UI redesign.
+
+## Diamond Pass 08.5 — Defender Opening Beat
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Added a three-second automatic opening hold to `RaidInvaderBrain`. During it, the invader remains still and cannot target/attack defenders, advance waypoints, activate traps, or reach the core; it then releases once into the existing unchanged invasion AI.
+- Added a compact, non-interactive `INVASION INCOMING — SELECT AND POSSESS` Defender HUD cue with a cached per-second countdown. It is shown only during the opening hold and never intercepts touch.
+- Applied the same pacing to Sylvan and Infernal defense while preserving their existing defender names, possession energy, traps, controls, camera, and terminal result flows.
+- Made the preparation cue one-shot per defense run: beginning possession dismisses it even if the player releases during the remaining opening hold.
+
+### Verification
+
+- Focused opening-beat PlayMode test proves hold immobility/no target, automatic route resumption, possession and terminal cleanup, and Canvas/EventSystem/AudioListener/raycast invariants.
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `20/20` passed, `0` failed on 2026-09-07.
+- Manual Sylvan and Infernal smoke confirmed: preparation cue → normal live invasion after about three seconds → Defender Victory, with no Console C# or runtime exceptions.
+- `git diff --check` passes.
+
+### Remaining player feel check
+
+- On Android, confirm three seconds feels like a dramatic invitation rather than a wait. The player must comfortably select and possess during that window, while returning players should not feel held up.
+
+### Scope intentionally deferred
+
+- Manual start/pause controls, a tutorial state machine, post-opener AI/combat/trap/core/energy-balance changes, pathfinding, camera framing changes, persistent settings, scenes/assets/packages, or a UI redesign.

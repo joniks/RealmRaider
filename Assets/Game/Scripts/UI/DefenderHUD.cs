@@ -5,6 +5,7 @@ using RealmRaiders.Realm;
 using RealmRaiders.Traps;
 using RealmRaiders.Controllers;
 using RealmRaiders.CameraSystem;
+using RealmRaiders.AI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -38,7 +39,7 @@ namespace RealmRaiders.UI
 
     public sealed class DefenderHUD : MonoBehaviour
     {
-        Text state, invaderHealth, entHealth, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice;
+        Text state, invaderHealth, entHealth, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue;
         Image energyFill;
         Button possess, release, smash, slam, activateTrap;
         GameObject resultPanel;
@@ -50,6 +51,11 @@ namespace RealmRaiders.UI
         DefenseHudConfig config;
         bool initialized;
         HudPresentation presentation;
+        int displayedOpeningSeconds = -1;
+        bool openingCueDismissed;
+
+        public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
+        public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
@@ -61,7 +67,13 @@ namespace RealmRaiders.UI
             OnSelection(null); OnPossession(null); OnDefenseState(defenseManager.State); Refresh();
         }
 
-        void Update() { if (!initialized) return; Refresh(); var controller = possessionManager?.Possessed?.Controller<PlayerController>(); var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState; if (rootPrompt) { rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; } }
+        void Update()
+        {
+            if (!initialized) return;
+            Refresh(); RefreshOpeningCue();
+            var controller = possessionManager?.Possessed?.Controller<PlayerController>(); var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState;
+            if (rootPrompt) { rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; }
+        }
 
         void Build()
         {
@@ -70,7 +82,7 @@ namespace RealmRaiders.UI
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
             invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
-            coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true);
+            coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true);
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.raycastTarget = false; releaseNotice.gameObject.SetActive(false);
             possess = Button($"POSSESS {config.DefenderName.ToUpperInvariant()}", new Vector2(0, 410), PossessSelected);
@@ -101,6 +113,7 @@ namespace RealmRaiders.UI
         void OnPossession(CombatEntity value)
         {
             bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active);
+            if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); }
             if (!active) possess.gameObject.SetActive(false);
             selection.text = active ? $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}" : $"Tap the {config.DefenderName} to select it";
         }
@@ -115,9 +128,31 @@ namespace RealmRaiders.UI
         void OnDefenseState(DefenseState value)
         {
             GameplayInput.SetTerminalState(value is DefenseState.DefenderVictory or DefenseState.RealmLost);
+            if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) SetOpeningCueVisible(false);
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
             { HideReleaseNotice(); resultPanel.SetActive(true); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured."; }
+        }
+
+        void RefreshOpeningCue()
+        {
+            var brain = invader ? invader.Controller<RaidInvaderBrain>() : null;
+            var show = brain && brain.IsOpeningHold && !openingCueDismissed && !possessionManager.IsPossessing && !defense.IsFinished && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            if (!show) { SetOpeningCueVisible(false); return; }
+            var seconds = Mathf.Max(1, Mathf.CeilToInt(brain.OpeningSecondsRemaining));
+            if (seconds != displayedOpeningSeconds)
+            {
+                displayedOpeningSeconds = seconds;
+                openingCue.text = $"INVASION INCOMING — SELECT AND POSSESS\n{seconds}";
+            }
+            SetOpeningCueVisible(true);
+        }
+
+        void SetOpeningCueVisible(bool visible)
+        {
+            if (!openingCue) return;
+            if (!visible) displayedOpeningSeconds = -1;
+            if (openingCue.gameObject.activeSelf != visible) openingCue.gameObject.SetActive(visible);
         }
         void Refresh()
         {

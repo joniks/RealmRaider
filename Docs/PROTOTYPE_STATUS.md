@@ -4,8 +4,8 @@ Last reviewed: 2026-09-06
 
 ## Latest verification
 
-- Diamond Pass 08.4 raid-objective guidance is present: the existing Raid HUD shows a non-interactive, safe-area Heart Tree edge cue only when the active objective is off-screen and actionable.
-- Current Unity Test Runner baseline: EditMode 30/30 and PlayMode 19/19 passed on 2026-09-06.
+- Diamond Pass 08.5 defender opening beat is present: each defense gives a brief, non-interactive opening hold so possession is practical before the normal automatic invasion begins.
+- Current Unity Test Runner baseline: EditMode 30/30 and PlayMode 20/20 passed on 2026-09-07.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -15,13 +15,13 @@ Last reviewed: 2026-09-06
 | 1. Character Sandbox | Functional greybox | Blood Knight and Ent share combat, movement, abilities, AI, health and death. |
 | 2. Possession | Functional greybox | Keeper selection, same-entity controller swap, camera transition, readable marker/feedback, release and death handling. |
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree, objective compass and raid result. |
-| 4. Keeper Defense | Functional greybox | AI invader route, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
+| 4. Keeper Defense | Functional greybox | Brief opening hold, AI invader route, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
 | Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route while retaining prototype-scene access. |
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 30/30 and PlayMode 19/19 on 2026-09-06.
+- Current verified baseline: EditMode 30/30 and PlayMode 20/20 on 2026-09-07.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

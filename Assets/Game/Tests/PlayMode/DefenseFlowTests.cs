@@ -2,10 +2,16 @@ using System.Collections;
 using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
+using RealmRaiders.AI;
+using RealmRaiders.CameraSystem;
+using RealmRaiders.Controllers;
 using RealmRaiders.Possession;
 using RealmRaiders.Raid;
 using RealmRaiders.Realm;
+using RealmRaiders.Traps;
+using RealmRaiders.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 
 namespace RealmRaiders.Tests
@@ -88,6 +94,71 @@ namespace RealmRaiders.Tests
                 Object.Destroy(coreObject);
                 Object.Destroy(invaderObject);
                 Object.Destroy(definition);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DefenderOpeningBeat_HoldsInvaderThenResumesAndCleansPreparationCue()
+        {
+            var cameraObject = new GameObject("Test Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig)); cameraObject.tag = "MainCamera";
+            var invaderObject = new GameObject("Test Invader", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(RaidInvaderBrain));
+            var defenderObject = new GameObject("Test Defender", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
+            var coreObject = new GameObject("Test Core", typeof(RealmCore));
+            var possessionObject = new GameObject("Test Possession", typeof(PossessionManager));
+            var defenseObject = new GameObject("Test Defense", typeof(DefenseManager));
+            var trapObject = new GameObject("Test Trap", typeof(RootTrap));
+            var hudObject = new GameObject("Test Defender HUD", typeof(DefenderHUD));
+            var invaderDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var defenderDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            GameplayInput.SetTerminalState(false);
+            try
+            {
+                invaderDefinition.DisplayName = "Test Invader"; invaderDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 4, AttackSpeed = 1 }; invaderDefinition.Abilities = System.Array.Empty<AbilityDefinition>();
+                defenderDefinition.DisplayName = "Test Defender"; defenderDefinition.Possessable = true; defenderDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3, AttackSpeed = 1 }; defenderDefinition.Abilities = System.Array.Empty<AbilityDefinition>();
+                var invader = invaderObject.GetComponent<CombatEntity>(); invader.Initialize(invaderDefinition);
+                var defender = defenderObject.GetComponent<CombatEntity>(); defenderObject.transform.position = new Vector3(100, 1, 0); defender.Initialize(defenderDefinition); defender.SetController(defender.Controller<CreatureBrain>());
+                var brain = invaderObject.GetComponent<RaidInvaderBrain>(); brain.Configure(new[] { invaderObject.transform.position, new Vector3(0, 1, 5) }, new[] { defender }, .25f); invader.SetController(brain);
+                var core = coreObject.GetComponent<RealmCore>(); coreObject.transform.position = new Vector3(0, 0, 40); core.Initialize(invader);
+                var possession = possessionObject.GetComponent<PossessionManager>(); var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.ConfigureOverview(new Vector3(0, 12, -12), Quaternion.Euler(45, 0, 0)); rig.SnapToOverview(); possession.Initialize(rig); var energy = new PossessionEnergy(30); possession.ConfigureEnergy(energy); possession.Register(defender);
+                var defense = defenseObject.GetComponent<DefenseManager>(); defense.Initialize(invader, core, possession);
+                var trap = trapObject.GetComponent<RootTrap>(); trap.Automatic = false; trap.Initialize(invader);
+                var canvasBeforeHud = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
+                var eventSystemsBeforeHud = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
+                var listenersBeforeHud = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+                var hud = hudObject.GetComponent<DefenderHUD>(); hud.Initialize(defense, possession, energy, invader, defender, trap, core, DefenseHudConfig.Sylvan);
+
+                var start = invaderObject.transform.position;
+                brain.Tick(); hud.SendMessage("RefreshOpeningCue", SendMessageOptions.RequireReceiver);
+                Assert.That(brain.IsOpeningHold, Is.True);
+                Assert.That(brain.CurrentTarget, Is.Null);
+                Assert.That(invaderObject.transform.position.x, Is.EqualTo(start.x).Within(.001f));
+                Assert.That(invaderObject.transform.position.z, Is.EqualTo(start.z).Within(.001f));
+                Assert.That(defender.Health.Current, Is.EqualTo(defender.Health.Maximum));
+                Assert.That(hud.OpeningCueVisible, Is.True);
+                Assert.That(hud.OpeningCueRaycastTarget, Is.False);
+                Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(canvasBeforeHud + 1));
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(eventSystemsBeforeHud));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenersBeforeHud));
+
+                possession.Select(defender);
+                Assert.That(possession.PossessSelected(), Is.True);
+                Assert.That(hud.OpeningCueVisible, Is.False);
+                possession.Release(); hud.SendMessage("RefreshOpeningCue", SendMessageOptions.RequireReceiver);
+                Assert.That(hud.OpeningCueVisible, Is.False);
+                yield return new WaitForSecondsRealtime(.35f);
+                brain.Tick();
+                Assert.That(brain.IsOpeningHold, Is.False);
+                Assert.That(brain.WaypointIndex, Is.EqualTo(1));
+
+                invader.Health.TakeDamage(new DamageInfo(1000, null, invader.transform.position), 0);
+                Assert.That(defense.State, Is.EqualTo(DefenseState.DefenderVictory));
+                Assert.That(hud.OpeningCueVisible, Is.False);
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                Object.Destroy(hudObject); Object.Destroy(trapObject); Object.Destroy(defenseObject); Object.Destroy(possessionObject); Object.Destroy(coreObject);
+                Object.Destroy(defenderObject); Object.Destroy(invaderObject); Object.Destroy(cameraObject); Object.Destroy(invaderDefinition); Object.Destroy(defenderDefinition);
             }
         }
     }

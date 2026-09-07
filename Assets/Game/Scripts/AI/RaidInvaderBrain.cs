@@ -7,21 +7,44 @@ namespace RealmRaiders.AI
     [RequireComponent(typeof(CombatEntity))]
     public sealed class RaidInvaderBrain : MonoBehaviour, IEntityController
     {
+        public const float DefaultOpeningHoldDuration = 3f;
         public bool IsActive { get; private set; }
         public int WaypointIndex { get; private set; }
         public CombatEntity CurrentTarget { get; private set; }
+        public bool IsOpeningHold => IsActive && openingStarted && !openingReleased && Time.time < openingEndsAt;
+        public float OpeningSecondsRemaining => IsOpeningHold ? Mathf.Max(0, openingEndsAt - Time.time) : 0;
         CombatEntity entity;
         CombatEntity[] defenders;
         Vector3[] waypoints;
         float pauseUntil;
+        float openingEndsAt;
+        bool openingStarted;
+        bool openingReleased;
 
         void Awake() => entity = GetComponent<CombatEntity>();
-        public void Configure(Vector3[] route, CombatEntity[] realmDefenders)
-        { waypoints = route; defenders = realmDefenders; WaypointIndex = 0; }
-        public void SetControl(bool active) { IsActive = active; CurrentTarget = null; }
+        public void Configure(Vector3[] route, CombatEntity[] realmDefenders, float openingHoldDuration = DefaultOpeningHoldDuration)
+        {
+            waypoints = route; defenders = realmDefenders; WaypointIndex = 0;
+            openingEndsAt = 0; openingStarted = false; openingReleased = false;
+            OpeningHoldDuration = Mathf.Max(0, openingHoldDuration);
+        }
+
+        public float OpeningHoldDuration { get; private set; } = DefaultOpeningHoldDuration;
+
+        public void SetControl(bool active)
+        {
+            IsActive = active; CurrentTarget = null;
+            if (active && !openingStarted)
+            {
+                openingStarted = true;
+                openingEndsAt = Time.time + OpeningHoldDuration;
+            }
+        }
 
         public void Tick()
         {
+            if (IsOpeningHold) { CurrentTarget = null; entity.Move(Vector3.zero); return; }
+            if (openingStarted && !openingReleased) openingReleased = true;
             if (Time.time < pauseUntil) { entity.Move(Vector3.zero); return; }
             CurrentTarget = ClosestDefender(7.5f);
             if (CurrentTarget)
