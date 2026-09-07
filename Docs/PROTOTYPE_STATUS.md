@@ -22,6 +22,7 @@ Last reviewed: 2026-09-08
 - Diamond Pass 09.9 Realm Landmark Silhouette Blockout is present: the two realm objectives and race-specific traps now differ through lean visual-only organic versus angular primitive silhouettes while their gameplay roots, colliders and rules remain unchanged.
 - Module Pass MMP 01 Character Motion Profile Contracts is staged in the pinned Modules submodule: it defines deterministic six-clip family motion metadata while remaining uninstalled and free of animation assets or runtime authority.
 - Diamond Pass 10.0 Realm Route Readability Blockout is present: Sylvan raid and defense routes now use low organic bands/masses while Infernal defense uses low angular causeway plates, without changing authoritative transforms, colliders, navigation or gameplay.
+- Design Pass DUX 01 First Playable Minute v1 is staged in the pinned Modules submodule: it specifies a truthful, non-modal BUILD-to-possession onboarding thread for the existing loop, but no tutorial runtime or persistence has been implemented yet.
 - Current Unity Test Runner baseline: EditMode 58/58 and PlayMode 34/34 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
@@ -57,6 +58,7 @@ Last reviewed: 2026-09-08
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 - The modular-character-recipes package is staged in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package is staged but uninstalled; no approved shared rigs, clips, concrete motion profiles or Core presentation adapter exist yet.
+- The first-playable-minute design is accepted, but its contextual presenter, minimal local guide record and ordered success observations are not implemented.
 - Realm landmarks and central routes now have distinct organic versus angular primitive blockouts, but boundaries, terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 
 ## Directory guide

@@ -893,3 +893,23 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Boundary dressing, terrain replacement, imported assets/textures, custom shaders, particles, fog/light changes, animation, VFX/audio/haptics, new paths or waypoints, collider/NavMesh changes, procedural generation, BUILD/Hub decoration, and gameplay/balance/save changes.
+
+## Design Pass DUX 01 — First Playable Minute v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Defined one non-modal contextual onboarding thread for the existing `BUILD → DEFEND → POSSESS → RETURN → RESULT` route, with exact factual copy, targets and authoritative success signals.
+- Covered Contextual, Fingertap and Joystick controls in portrait and landscape, including rotation continuity, multi-touch ownership, dismissal, persistent skip, forced return, death and terminal cleanup.
+- Specified one minimal versioned local guide record with idempotent `NotStarted`, `Active`, `Completed` and `Skipped` transitions plus malformed-data fallback.
+- Preserved all gameplay, possession, camera, result and save authorities and explicitly rejected tutorial scenes, modal gates, auto-actions, rewards, telemetry and new presentation assets.
+
+### Verification
+
+- Architect reviewed the full brief against the current Hub, Build, Defender HUD, control-style, possession and result code. Current scene routes, button names and authoritative signals match the normative brief.
+- Static `git diff --check` passes. No Unity project, runtime source or asset was changed, so Unity suites were intentionally not rerun.
+
+### Scope intentionally deferred
+
+- Guide persistence and presentation code, HUD binding, gameplay observation hooks, focused automated coverage, Game View/device acceptance, localization and any wider tutorial or progression system.
