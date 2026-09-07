@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.realmraiders.character-visual-tuning": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-visual-tuning",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.burst": {
       "version": "2.0.0",
       "depth": 2,

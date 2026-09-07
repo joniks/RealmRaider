@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.realmraiders.character-visual-tuning": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-visual-tuning",
     "com.unity.inputsystem": "1.20.0",
     "com.unity.render-pipelines.universal": "17.6.0",
     "com.unity.test-framework": "1.8.0",
@@ -12,5 +13,8 @@
     "com.unity.modules.timelinefoundation": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.vectorgraphics": "1.0.0"
-  }
+  },
+  "testables": [
+    "com.realmraiders.character-visual-tuning"
+  ]
 }

@@ -667,3 +667,24 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Installing a package, changing `Packages/manifest.json`, automatic discovery, a runtime registry/adapter, moving existing gameplay or visual types, third-party assets, new characters, scene changes, and any player-visible feature.
+
+## Diamond Pass 09.5 — Visual-Tuning Package Wiring
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added the reviewed `com.realmraiders.character-visual-tuning` package through an explicit local `file:` dependency pointing into the pinned Modules submodule.
+- Registered that package as testable, so its two pure-data Editor tests run with the project. Unity generated only the expected depth-zero local `packages-lock.json` entry; no registry or network dependency was introduced.
+- Kept the package passive: no profile is loaded or applied, and no Blood Knight prefab, material, transform, scene, gameplay, UI, model, rig, asset, or third-party provenance record changed.
+
+### Verification
+
+- Focused package tests: `VisualTuningDescriptorTests` included and passed in EditMode.
+- Final EditMode: `45/45` passed, `0` failed.
+- Final PlayMode: `25/25` passed, `0` failed.
+- QA confirmed local resolution, the expected local lock entry, unchanged runtime presentation, and a clean `git diff --check`. Manual smoke was not required because the package remains unconsumed by gameplay.
+
+### Scope intentionally deferred
+
+- Loading/applying a visual profile, material-role adapter, tint/scale/pose/shader changes, model or texture import, animation/rig work, runtime module discovery, third-party downloads, new gameplay/UI/scene/save behavior, or any visual adjustment without a deliberate Game View/device review.

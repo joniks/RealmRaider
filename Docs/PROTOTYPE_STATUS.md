@@ -12,7 +12,8 @@ Last reviewed: 2026-09-08
 - Diamond Pass 09.2 Guardian Ent Cultivation is present: earned stores can buy one capped, persistent, truthful Ent vitality upgrade for the next Sylvan defense.
 - Diamond Pass 09.3 Guardian Ent Growth Readability is present: the cultivated defender visibly grows and states its exact earned maximum-health bonus during Sylvan defense.
 - Diamond Pass 09.4 Module Host Boundary is present: an independent, passive character-catalogue contract assembly now lets future Modules packages describe data without gaining gameplay or scene authority.
-- Current Unity Test Runner baseline: EditMode 43/43 and PlayMode 25/25 passed on 2026-09-08.
+- Diamond Pass 09.5 Visual-Tuning Package Wiring is present: the reviewed local visual-tuning package is resolved through the pinned Modules submodule, while remaining unused by runtime presentation.
+- Current Unity Test Runner baseline: EditMode 45/45 and PlayMode 25/25 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -29,7 +30,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 43/43 and PlayMode 25/25 on 2026-09-08.
+- Current verified baseline: EditMode 45/45 and PlayMode 25/25 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -44,7 +45,7 @@ Last reviewed: 2026-09-08
 - Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
 - Camera framing and state-continuity behavior is covered in code/tests, but physical-device framing and rotation continuity remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
-- The module host contract exists, but no external Modules package is installed, discovered, or integrated into runtime yet.
+- The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 
 ## Directory guide
 
