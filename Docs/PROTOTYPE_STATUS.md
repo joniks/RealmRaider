@@ -19,7 +19,8 @@ Last reviewed: 2026-09-08
 - Diamond Pass 09.7 Infernal Flame Trap Identity is present: the Keeper manually ignites the invader for three separate eight-damage pulses without root or slow, while the HUD truthfully exposes the active burn and cooldown.
 - Diamond Pass 09.8 Combat Camera Readability v2 is present: one eligible nearby threat now receives an unmistakable HUD-owned target plate or responsive left/right `ATTACKER`/`ATTACKING` edge tab without changing targeting, movement, combat, or bounded camera authority.
 - Module Pass MCR 01 Modular Character Recipe Contracts is staged in the pinned Modules submodule: it defines a deterministic, immutable five-slot recipe boundary, but is intentionally not installed or consumed by runtime presentation.
-- Current Unity Test Runner baseline: EditMode 49/49 and PlayMode 34/34 passed on 2026-09-08.
+- Diamond Pass 09.9 Realm Landmark Silhouette Blockout is present: the two realm objectives and race-specific traps now differ through lean visual-only organic versus angular primitive silhouettes while their gameplay roots, colliders and rules remain unchanged.
+- Current Unity Test Runner baseline: EditMode 54/54 and PlayMode 34/34 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -36,7 +37,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 49/49 and PlayMode 34/34 on 2026-09-08.
+- Current verified baseline: EditMode 54/54 and PlayMode 34/34 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -53,6 +54,7 @@ Last reviewed: 2026-09-08
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 - The modular-character-recipes package is staged in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
+- Realm landmarks now have distinct primitive silhouette blockouts, but paths, boundaries, terrain, materials, textures, final environment assets and physical-device portrait review remain unfinished.
 
 ## Directory guide
 

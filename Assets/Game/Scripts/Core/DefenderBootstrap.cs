@@ -63,7 +63,7 @@ namespace RealmRaiders.Core
             invader.RefreshControllers();
             invaderBrain.Configure(new[] { new Vector3(0, 1, -20), new Vector3(0, 1, -7), new Vector3(0, 1, 5), new Vector3(0, 1, 18), new Vector3(0, 1, 29) }, defenders.ToArray()); invader.SetController(invaderBrain);
 
-            for (int slot = 3; slot < 5; slot++) if (layout.Slots[slot].Piece == DefensePieceType.RootTrap) { var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Manual Root Trap"; trapObject.transform.position = slot == 3 ? new Vector3(0, .1f, -7) : new Vector3(6, .1f, 8); trapObject.transform.localScale = new Vector3(2.7f, .1f, 2.7f); trapObject.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.2f, .75f, .28f)); trap = trapObject.AddComponent<RootTrap>(); trap.Initialize(invader); trap.Automatic = false; trap.TriggerRadius = 3.5f; }
+            for (int slot = 3; slot < 5; slot++) if (layout.Slots[slot].Piece == DefensePieceType.RootTrap) { var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Manual Root Trap"; trapObject.transform.position = slot == 3 ? new Vector3(0, .1f, -7) : new Vector3(6, .1f, 8); trapObject.transform.localScale = new Vector3(2.7f, .1f, 2.7f); RealmLandmarkPresentation.Build(trapObject.transform, RealmLandmarkRecipe.SylvanRootTrap); trap = trapObject.AddComponent<RootTrap>(); trap.Initialize(invader); trap.Automatic = false; trap.TriggerRadius = 3.5f; }
             var heart = HeartTree(new Vector3(0, 2.5f, 30)); var core = heart.GetComponent<RealmCore>(); core.Initialize(invader);
 
             var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(30); possession.Initialize(cameraRig); possession.ConfigureEnergy(energy); if (ent) possession.Register(ent);
@@ -79,6 +79,6 @@ namespace RealmRaiders.Core
         }
 
         static void CreateTree(Vector3 position) { var tree = GameObject.CreatePrimitive(PrimitiveType.Cylinder); tree.name = "Ancient Tree"; tree.transform.position = position; tree.transform.localScale = new Vector3(.7f, 3.5f, .7f); tree.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.18f, .27f, .09f)); }
-        static GameObject HeartTree(Vector3 position) { var root = new GameObject("Heart Tree"); root.transform.position = position; var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trunk.transform.SetParent(root.transform); trunk.transform.localScale = new Vector3(1.8f, 2.5f, 1.8f); trunk.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.28f, .15f, .06f)); var crown = GameObject.CreatePrimitive(PrimitiveType.Sphere); crown.transform.SetParent(root.transform); crown.transform.localPosition = new Vector3(0, 3.5f, 0); crown.transform.localScale = new Vector3(4.5f, 3.5f, 4.5f); crown.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.12f, .72f, .26f)); root.AddComponent<RealmCore>(); return root; }
+        static GameObject HeartTree(Vector3 position) { var root = new GameObject("Heart Tree"); root.transform.position = position; RealmLandmarkPresentation.Build(root.transform, RealmLandmarkRecipe.SylvanHeartTree); root.AddComponent<RealmCore>(); return root; }
     }
 }

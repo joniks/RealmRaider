@@ -57,7 +57,7 @@ namespace RealmRaiders.Core
             nodeViews.Add(Node(root, graph.Nodes["Wolf Grove"], hero, new Vector3(-14, 0, -10), "WOLF GROVE", wolfOne.gameObject, wolfTwo.gameObject));
             nodeViews.Add(Node(root, graph.Nodes["Ent Grove"], hero, new Vector3(14, 0, 4), "ENT GROVE", ent.gameObject));
 
-            var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Root Trap"; trapObject.transform.position = new Vector3(0, .12f, 4); trapObject.transform.localScale = new Vector3(2.4f, .12f, 2.4f); trapObject.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.2f, .75f, .28f)); trapObject.AddComponent<RootTrap>().Initialize(hero);
+            var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Root Trap"; trapObject.transform.position = new Vector3(0, .12f, 4); trapObject.transform.localScale = new Vector3(2.4f, .12f, 2.4f); RealmLandmarkPresentation.Build(trapObject.transform, RealmLandmarkRecipe.SylvanRootTrap); trapObject.AddComponent<RootTrap>().Initialize(hero);
             nodeViews.Add(Node(root, graph.Nodes["Root Path"], hero, new Vector3(0, 0, 5), "ROOT PATH", trapObject));
             nodeViews.Add(Node(root, graph.Nodes["Moonwell"], hero, new Vector3(10, 0, 27), "MOONWELL"));
 
@@ -93,8 +93,7 @@ namespace RealmRaiders.Core
         static GameObject CreateHeartTree(Vector3 position)
         {
             var root = new GameObject("Heart Tree"); root.transform.position = position;
-            var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trunk.transform.SetParent(root.transform); trunk.transform.localPosition = Vector3.zero; trunk.transform.localScale = new Vector3(1.7f, 2.5f, 1.7f); trunk.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.27f, .15f, .07f));
-            var crown = GameObject.CreatePrimitive(PrimitiveType.Sphere); crown.transform.SetParent(root.transform); crown.transform.localPosition = new Vector3(0, 3.5f, 0); crown.transform.localScale = new Vector3(4.5f, 3.5f, 4.5f); crown.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.16f, .7f, .3f));
+            RealmLandmarkPresentation.Build(root.transform, RealmLandmarkRecipe.SylvanHeartTree);
             root.AddComponent<RealmCore>(); return root;
         }
 

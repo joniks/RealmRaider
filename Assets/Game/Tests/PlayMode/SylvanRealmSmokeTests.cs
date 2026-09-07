@@ -177,6 +177,8 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<RootTrap>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<RealmCore>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
+            AssertLandmarkPresentation("Root Trap", 6, "Inward Root 1", "Inward Root 4");
             AssertSingleViewAndListener();
             AssertCombatHudBinding();
         }
@@ -193,6 +195,8 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindFirstObjectByType<RaidInvaderBrain>(), Is.Not.Null);
             Assert.That(Object.FindObjectsByType<RootTrap>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
+            AssertLandmarkPresentation("Manual Root Trap", 6, "Inward Root 1", "Inward Root 4");
             AssertSingleViewAndListener();
             AssertCombatHudBinding();
         }
@@ -208,6 +212,8 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindFirstObjectByType<FlameTrap>(), Is.Not.Null);
             Assert.That(Object.FindFirstObjectByType<LavaGate>(), Is.Not.Null);
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertLandmarkPresentation("Infernal Heart", 6, "Heavy Core", "Claw Left");
+            AssertLandmarkPresentation("Flame Trap", 6, "Chevron 1 Left", "Chevron 3 Right");
             AssertSingleViewAndListener();
             AssertCombatHudBinding();
         }
@@ -346,6 +352,39 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+        }
+
+        static void AssertLandmarkPresentation(string authoritativeName, int rendererCount, string firstSilhouettePart, string secondSilhouettePart)
+        {
+            GameObject authoritative = null;
+            var authoritativeCount = 0;
+            foreach (var candidate in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (candidate.name != authoritativeName) continue;
+                authoritative = candidate.gameObject;
+                authoritativeCount++;
+            }
+            Assert.That(authoritativeCount, Is.EqualTo(1), $"Expected one authoritative {authoritativeName} root.");
+            var presentation = authoritative.transform.Find(RealmLandmarkPresentation.RootName);
+            Assert.That(presentation, Is.Not.Null, $"{authoritativeName} has no landmark presentation root.");
+            Assert.That(presentation.localPosition, Is.EqualTo(Vector3.zero));
+            Assert.That(presentation.localRotation, Is.EqualTo(Quaternion.identity));
+            Assert.That(presentation.GetComponentsInChildren<Renderer>(true), Has.Length.EqualTo(rendererCount));
+            Assert.That(presentation.Find(firstSilhouettePart), Is.Not.Null);
+            Assert.That(presentation.Find(secondSilhouettePart), Is.Not.Null);
+            Assert.That(presentation.GetComponentsInChildren<Collider>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<Rigidbody>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<CharacterController>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<Camera>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<Light>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<AudioListener>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<Canvas>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<EventSystem>(true), Is.Empty);
+            Assert.That(presentation.GetComponentsInChildren<MonoBehaviour>(true), Is.Empty);
+
+            var namedRootCount = 0;
+            foreach (Transform child in authoritative.transform) if (child.name == RealmLandmarkPresentation.RootName) namedRootCount++;
+            Assert.That(namedRootCount, Is.EqualTo(1));
         }
 
         static void AssertSingleViewAndListener()

@@ -822,3 +822,26 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Installing the package, runtime discovery/adapter work, an approved module library, concrete starter recipes, models/textures/rigs/animations, Blender tooling, scene integration, or any gameplay/UI/save behavior.
+
+## Diamond Pass 09.9 — Realm Landmark Silhouette Blockout
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one idempotent presentation-only builder for the Sylvan Heart Tree, Sylvan Root Trap, Infernal Heart and Infernal Flame Trap using existing Unity primitive meshes.
+- Heart Tree and Root Trap now use wide organic crown/root and low inward-radial silhouettes; Infernal Heart and Flame Trap use compact claw/spire and lane-aligned chevron silhouettes. Their identity no longer depends only on green versus red.
+- The same Heart Tree recipe is used in Sylvan raid and defense. Every new primitive child is non-authoritative and loses its generated collider; objective/trap roots, transforms, colliders, state, damage, cooldown, route, fog and results remain unchanged.
+- Presentation construction is duplicate-safe and bounded to `8` added renderers per objective and `6` per trap, with shared cached materials and scene-root cleanup.
+
+### Verification
+
+- Focused `RealmLandmarkPresentationTests`: `5/5` passed.
+- Focused final-delta `SylvanRealmSmokeTests`: `9/9` passed after correcting an inactive-only test lookup for the fog-hidden Heart Tree; production behavior did not change.
+- Final EditMode: `54/54` passed, `0` failed.
+- Final PlayMode: `34/34` passed, `0` failed.
+- QA observed the Defender landscape Keeper view with readable route, Root Trap center and HUD/action lane. Console reported `0` errors and `0` warnings; no code changed after the suites and `git diff --check` passes. Portrait and physical Android smoke were not run.
+
+### Scope intentionally deferred
+
+- Imported assets/textures, shaders, particles, animation, audio/haptics, paths/boundaries/terrain dressing, full 12-module environment kit, collider changes, gameplay/balance/save changes, and portrait/physical-device visual acceptance.
