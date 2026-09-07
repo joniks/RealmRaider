@@ -13,6 +13,7 @@ using RealmRaiders.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace RealmRaiders.Tests
 {
@@ -136,9 +137,14 @@ namespace RealmRaiders.Tests
                 Assert.That(defender.Health.Current, Is.EqualTo(defender.Health.Maximum));
                 Assert.That(hud.OpeningCueVisible, Is.True);
                 Assert.That(hud.OpeningCueRaycastTarget, Is.False);
+                Assert.That(hud.RouteStatusText, Does.Contain("INVADER HOLDING — ROOT GATE AHEAD"));
+                Assert.That(hud.RouteStatusRaycastTarget, Is.False);
                 Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(canvasBeforeHud + 1));
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(eventSystemsBeforeHud));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenersBeforeHud));
+                var responsive = Object.FindFirstObjectByType<ResponsiveHudRoot>();
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait); AssertRouteStatusClear();
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape); AssertRouteStatusClear();
 
                 possession.Select(defender);
                 Assert.That(possession.PossessSelected(), Is.True);
@@ -149,10 +155,20 @@ namespace RealmRaiders.Tests
                 brain.Tick();
                 Assert.That(brain.IsOpeningHold, Is.False);
                 Assert.That(brain.WaypointIndex, Is.EqualTo(1));
+                hud.SendMessage("RefreshRouteStatus", SendMessageOptions.RequireReceiver);
+                Assert.That(hud.RouteStatusText, Does.Contain("ROOT GATE"));
+
+                brain.Configure(System.Array.Empty<Vector3>(), new[] { defender }, 0);
+                invader.SetController(brain);
+                defenderObject.transform.position = invaderObject.transform.position + Vector3.forward;
+                brain.Tick(); hud.SendMessage("RefreshRouteStatus", SendMessageOptions.RequireReceiver);
+                Assert.That(brain.CurrentTarget, Is.EqualTo(defender));
+                Assert.That(hud.RouteStatusText, Is.EqualTo("INVADER ENGAGING TEST DEFENDER"));
 
                 invader.Health.TakeDamage(new DamageInfo(1000, null, invader.transform.position), 0);
                 Assert.That(defense.State, Is.EqualTo(DefenseState.DefenderVictory));
                 Assert.That(hud.OpeningCueVisible, Is.False);
+                Assert.That(hud.RouteStatusText, Is.Empty);
             }
             finally
             {
@@ -160,6 +176,26 @@ namespace RealmRaiders.Tests
                 Object.Destroy(hudObject); Object.Destroy(trapObject); Object.Destroy(defenseObject); Object.Destroy(possessionObject); Object.Destroy(coreObject);
                 Object.Destroy(defenderObject); Object.Destroy(invaderObject); Object.Destroy(cameraObject); Object.Destroy(invaderDefinition); Object.Destroy(defenderDefinition);
             }
+        }
+
+        static void AssertRouteStatusClear()
+        {
+            var route = GameObject.Find("Invader Route Status").GetComponent<RectTransform>();
+            var reference = Object.FindFirstObjectByType<CanvasScaler>().referenceResolution;
+            foreach (var button in Object.FindObjectsByType<Button>(FindObjectsSortMode.None))
+                Assert.That(DesignRect(route, reference).Overlaps(DesignRect(button.GetComponent<RectTransform>(), reference)), Is.False, $"Route status overlaps {button.name}");
+            foreach (var label in Object.FindObjectsByType<Text>(FindObjectsSortMode.None))
+                if (label.rectTransform != route && !label.GetComponentInParent<Button>())
+                    Assert.That(DesignRect(route, reference).Overlaps(DesignRect(label.rectTransform, reference)), Is.False, $"Route status overlaps {label.name}");
+        }
+
+        static Rect DesignRect(RectTransform rect, Vector2 parentSize)
+        {
+            var anchorMin = Vector2.Scale(rect.anchorMin, parentSize);
+            var anchorSize = Vector2.Scale(rect.anchorMax - rect.anchorMin, parentSize);
+            var size = anchorSize + rect.sizeDelta;
+            var pivotPoint = anchorMin + Vector2.Scale(anchorSize, rect.pivot) + rect.anchoredPosition;
+            return new Rect(pivotPoint - Vector2.Scale(size, rect.pivot), size);
         }
     }
 }

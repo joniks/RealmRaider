@@ -23,6 +23,14 @@ namespace RealmRaiders.Tests
             Assert.That(DefenseHudConfig.Infernal.DefenderName, Is.EqualTo("Brute"));
             Assert.That(DefenseHudConfig.Infernal.CoreName, Is.EqualTo("Infernal Heart"));
             Assert.That(DefenseHudConfig.Infernal.RetryScene, Is.EqualTo("InfernalRealm"));
+            Assert.That(DefenseHudConfig.Sylvan.OpeningRouteStatus, Does.Contain("ROOT GATE"));
+            Assert.That(DefenseHudConfig.Sylvan.RouteStatus(1), Does.Contain("ROOT GATE"));
+            Assert.That(DefenseHudConfig.Sylvan.RouteStatus(2), Does.Contain("GUARD LINE"));
+            Assert.That(DefenseHudConfig.Sylvan.RouteStatus(3), Does.Contain("INNER ROOT").And.Contain("HEART GUARD"));
+            Assert.That(DefenseHudConfig.Sylvan.RouteStatus(4), Does.Contain("HEART TREE"));
+            Assert.That(DefenseHudConfig.Infernal.RouteStatus(1), Does.Contain("FLAME TRAP LINE"));
+            Assert.That(DefenseHudConfig.Infernal.RouteStatus(2), Does.Contain("HOUND LINE").And.Contain("LAVA GATE"));
+            Assert.That(DefenseHudConfig.Infernal.RouteStatus(3), Does.Contain("LAVA GATE").And.Contain("BRUTE GUARD"));
         }
     }
 }

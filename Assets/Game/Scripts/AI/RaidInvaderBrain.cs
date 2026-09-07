@@ -24,7 +24,7 @@ namespace RealmRaiders.AI
         void Awake() => entity = GetComponent<CombatEntity>();
         public void Configure(Vector3[] route, CombatEntity[] realmDefenders, float openingHoldDuration = DefaultOpeningHoldDuration)
         {
-            waypoints = route; defenders = realmDefenders; WaypointIndex = 0;
+            waypoints = route; defenders = realmDefenders; WaypointIndex = 0; pauseUntil = 0;
             openingEndsAt = 0; openingStarted = false; openingReleased = false;
             OpeningHoldDuration = Mathf.Max(0, openingHoldDuration);
         }

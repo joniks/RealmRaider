@@ -481,3 +481,31 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Free placement, new slot types, 3D Build previews, drag-and-drop, new defenses, balance changes, a separate planning scene, save/progression changes, or a wider UI redesign.
+
+## Diamond Pass 08.8 — Defender Route Readability
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Added one compact, non-interactive Defender HUD route status using the real `RaidInvaderBrain` opening, current target, and next waypoint state.
+- The status reports the actual tactical situation: the invader holding at the opening, advancing toward the next configured defense landmark, actively engaging a living defender, or nothing after terminal cleanup.
+- Sylvan wording follows the physical route honestly: Root Gate, Guard Line, Inner Root and Heart Guard, then Heart Tree. Infernal uses its matching Flame Trap Line, Hound Line/Lava Gate, Brute Guard, and Infernal Heart sequence.
+- The status considers `WaypointIndex` as the next target waypoint. It uses no distance guesswork, scene scan, new timer, or AI-state duplicate, and cached visible state avoids rebuilding text every frame.
+- Existing route speed/positions, attack radius, opening hold, targeting, trap behavior, possession, camera, controls, result routing, and the remaining Defender HUD presentation remain unchanged.
+
+### Verification
+
+- Focused Defender opening/route test: `1/1` passed on 2026-09-07.
+- EditMode: `31/31` passed, `0` failed on 2026-09-07.
+- PlayMode: `23/23` passed, `0` failed on 2026-09-07.
+- Coverage proves opening text, real waypoint transition, living-defender engagement, terminal cleanup, non-raycast UI, no extra Canvas/EventSystem/AudioListener, and portrait/landscape non-overlap with existing Defender controls.
+- Unity Console had no new C# errors, `NullReferenceException`, or runtime exception; `git diff --check` passes.
+
+### Remaining player feel check
+
+- Unity Game View could not be started by the UI automation in this session, so no manual smoke is claimed. On Android, start Sylvan Defense and verify that the route line remains calm and useful through opening, approach, engagement, and result; briefly open Infernal Defense to check its realm-specific names.
+
+### Scope intentionally deferred
+
+- A minimap/radar, world markers, automatic camera focus, target lock, AI/pathfinding/balance changes, additional defenders/traps, tutorial/progression, new scenes/assets/packages, or a general HUD redesign.

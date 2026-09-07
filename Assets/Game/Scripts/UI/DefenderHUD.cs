@@ -21,8 +21,12 @@ namespace RealmRaiders.UI
         public readonly string RetryScene;
         public readonly string NextActionLabel;
         public readonly string NextActionScene;
+        public readonly string RouteStart;
+        public readonly string RouteGuardLine;
+        public readonly string RouteInner;
+        public readonly string RouteFinalGuard;
 
-        public DefenseHudConfig(string realmTitle, string defenderName, string coreName, string trapName, string retryScene, string nextActionLabel, string nextActionScene)
+        public DefenseHudConfig(string realmTitle, string defenderName, string coreName, string trapName, string retryScene, string nextActionLabel, string nextActionScene, string routeStart, string routeGuardLine, string routeInner, string routeFinalGuard)
         {
             RealmTitle = realmTitle;
             DefenderName = defenderName;
@@ -31,15 +35,30 @@ namespace RealmRaiders.UI
             RetryScene = retryScene;
             NextActionLabel = nextActionLabel;
             NextActionScene = nextActionScene;
+            RouteStart = routeStart;
+            RouteGuardLine = routeGuardLine;
+            RouteInner = routeInner;
+            RouteFinalGuard = routeFinalGuard;
         }
 
-        public static DefenseHudConfig Sylvan => new("SYLVAN DEFENSE", "Ent", "Heart Tree", "Root Trap", "DefenderTest", "RETURN TO BUILD", "RealmBuild");
-        public static DefenseHudConfig Infernal => new("INFERNAL DEFENSE", "Brute", "Infernal Heart", "Flame Trap", "InfernalRealm", "PLAY SYLVAN RAID", "SylvanRealm");
+        public string OpeningRouteStatus => $"INVADER HOLDING — {RouteStart.ToUpperInvariant()} AHEAD";
+        public string RouteStatus(int waypointIndex) => waypointIndex switch
+        {
+            <= 0 => $"INVADER ADVANCING — {RouteStart.ToUpperInvariant()} AHEAD",
+            1 => $"INVADER APPROACHING {RouteStart.ToUpperInvariant()}",
+            2 => $"{RouteStart.ToUpperInvariant()} — {RouteGuardLine.ToUpperInvariant()} AHEAD",
+            3 => $"{RouteInner.ToUpperInvariant()} — {RouteFinalGuard.ToUpperInvariant()} AHEAD",
+            4 => $"FINAL APPROACH — {CoreName.ToUpperInvariant()} AHEAD",
+            _ => $"INVADER AT {CoreName.ToUpperInvariant()}"
+        };
+
+        public static DefenseHudConfig Sylvan => new("SYLVAN DEFENSE", "Ent", "Heart Tree", "Root Trap", "DefenderTest", "RETURN TO BUILD", "RealmBuild", "Root Gate", "Guard Line", "Inner Root", "Heart Guard");
+        public static DefenseHudConfig Infernal => new("INFERNAL DEFENSE", "Brute", "Infernal Heart", "Flame Trap", "InfernalRealm", "PLAY SYLVAN RAID", "SylvanRealm", "Flame Trap Line", "Hound Line — Lava Gate", "Lava Gate", "Brute Guard");
     }
 
     public sealed class DefenderHUD : MonoBehaviour
     {
-        Text state, invaderHealth, entHealth, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue;
+        Text state, invaderHealth, entHealth, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus;
         Image energyFill;
         Button possess, release, smash, slam, activateTrap;
         GameObject resultPanel;
@@ -54,9 +73,15 @@ namespace RealmRaiders.UI
         AbilityButtonReadiness[] abilityButtons;
         int displayedOpeningSeconds = -1;
         bool openingCueDismissed;
+        int displayedRouteWaypoint = int.MinValue;
+        CombatEntity displayedRouteTarget;
+        bool displayedRouteOpening;
+        bool routeStatusVisible;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
+        public string RouteStatusText => routeStatus && routeStatus.gameObject.activeSelf ? routeStatus.text : string.Empty;
+        public bool RouteStatusRaycastTarget => routeStatus && routeStatus.raycastTarget;
         public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
         public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
 
@@ -67,13 +92,13 @@ namespace RealmRaiders.UI
             manager.SelectionChanged += OnSelection; manager.PossessionChanged += OnPossession; manager.Released += OnReleased; manager.MomentFeedback += ShowMomentFeedback;
             defenseManager.StateChanged += OnDefenseState; possessionEnergy.Changed += (_, _) => Refresh(); core.ProgressChanged += value => coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
             initialized = true;
-            OnSelection(null); OnPossession(null); OnDefenseState(defenseManager.State); Refresh();
+            OnSelection(null); OnPossession(null); OnDefenseState(defenseManager.State); Refresh(); RefreshRouteStatus();
         }
 
         void Update()
         {
             if (!initialized) return;
-            Refresh(); RefreshOpeningCue();
+            Refresh(); RefreshOpeningCue(); RefreshRouteStatus();
             RefreshAbilityButtons();
             var controller = possessionManager?.Possessed?.Controller<PlayerController>(); var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState;
             if (rootPrompt) { rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; }
@@ -86,7 +111,7 @@ namespace RealmRaiders.UI
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
             invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
-            coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true);
+            coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); routeStatus = Label("", new Vector2(0, -445), 24, TextAnchor.UpperCenter); routeStatus.name = "Invader Route Status"; routeStatus.raycastTarget = false; routeStatus.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true);
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.raycastTarget = false; releaseNotice.gameObject.SetActive(false);
             possess = Button($"POSSESS {config.DefenderName.ToUpperInvariant()}", new Vector2(0, 410), PossessSelected);
@@ -137,7 +162,7 @@ namespace RealmRaiders.UI
         void OnDefenseState(DefenseState value)
         {
             GameplayInput.SetTerminalState(value is DefenseState.DefenderVictory or DefenseState.RealmLost);
-            if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) SetOpeningCueVisible(false);
+            if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); ClearRouteStatus(); }
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
             { HideReleaseNotice(); resultPanel.SetActive(true); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured."; }
@@ -162,6 +187,35 @@ namespace RealmRaiders.UI
             if (!openingCue) return;
             if (!visible) displayedOpeningSeconds = -1;
             if (openingCue.gameObject.activeSelf != visible) openingCue.gameObject.SetActive(visible);
+        }
+        void RefreshRouteStatus()
+        {
+            if (!routeStatus) return;
+            var brain = invader ? invader.Controller<RaidInvaderBrain>() : null;
+            var canShow = invader && invader.Health != null && !invader.Health.IsDead && defense != null && !defense.IsFinished && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf) && brain && brain.IsActive;
+            if (!canShow) { ClearRouteStatus(); return; }
+            var opening = brain.IsOpeningHold;
+            var target = !opening && brain.CurrentTarget && brain.CurrentTarget.Health != null && !brain.CurrentTarget.Health.IsDead ? brain.CurrentTarget : null;
+            var waypoint = brain.WaypointIndex;
+            if (routeStatusVisible && opening == displayedRouteOpening && target == displayedRouteTarget && waypoint == displayedRouteWaypoint) return;
+            routeStatus.text = opening ? config.OpeningRouteStatus : target ? $"INVADER ENGAGING {target.Definition.DisplayName.ToUpperInvariant()}" : config.RouteStatus(waypoint);
+            routeStatusVisible = true;
+            displayedRouteOpening = opening;
+            displayedRouteTarget = target;
+            displayedRouteWaypoint = waypoint;
+            routeStatus.gameObject.SetActive(true);
+        }
+        void ClearRouteStatus()
+        {
+            if (!routeStatus) { routeStatusVisible = false; displayedRouteTarget = null; displayedRouteWaypoint = int.MinValue; return; }
+            if (!routeStatusVisible && !routeStatus.gameObject.activeSelf) return;
+            routeStatusVisible = false;
+            displayedRouteOpening = false;
+            displayedRouteTarget = null;
+            displayedRouteWaypoint = int.MinValue;
+            if (!routeStatus) return;
+            routeStatus.text = string.Empty;
+            routeStatus.gameObject.SetActive(false);
         }
         void Refresh()
         {

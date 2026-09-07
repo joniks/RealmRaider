@@ -5,6 +5,7 @@ Last reviewed: 2026-09-07
 ## Latest verification
 
 - Diamond Pass 08.7 Build Plan Readability is present: the fixed five-slot Build screen now shows each lane, role, cost, and a live invader-to-Heart-Tree defense sequence without changing defense rules.
+- Diamond Pass 08.8 Defender Route Readability is present: the defense HUD states the invader's real opening, approach, engagement, and terminal route situation without changing AI or controls.
 - Current Unity Test Runner baseline: EditMode 31/31 and PlayMode 23/23 passed on 2026-09-07.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
@@ -15,7 +16,7 @@ Last reviewed: 2026-09-07
 | 1. Character Sandbox | Functional greybox | Blood Knight and Ent share combat, movement, abilities, AI, health/death and ability-readiness UI. |
 | 2. Possession | Functional greybox | Keeper selection, same-entity controller swap, camera transition, readable marker/feedback, release and death handling. |
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree, objective compass, ability readiness and raid result. |
-| 4. Keeper Defense | Functional greybox | Brief opening hold, AI invader route, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
+| 4. Keeper Defense | Functional greybox | Brief opening hold, readable live invader route state, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
 | Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route while retaining prototype-scene access. |
 | Build Plan | Functional greybox | Fixed five-slot defense configuration with live lane/role/cost copy and a non-interactive invader-to-Heart-Tree plan. |
