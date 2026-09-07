@@ -68,7 +68,7 @@ namespace RealmRaiders.Core
             var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), new[] { wolfOne, wolfTwo, ent });
             var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero); core.InteractionStarted += manager.BeginObjective; core.Completed += manager.CompleteObjective;
             PrototypeRuntimeFactory.EventSystem(root.transform);
-            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>()); core.ProgressChanged += hud.SetObjectiveProgress;
+            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>()); cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
             graph.Nodes["Portal"].Visit();
         }
 

@@ -47,6 +47,37 @@ namespace RealmRaiders.Tests
             var landscape = CombatCameraAwareness.TargetPlateAnchorFor(new Vector3(-.2f, 1.2f, 1), landscapeSafe, new Vector2(1920, 1080));
             Assert.That(landscape.x, Is.InRange(landscapeSafe.xMin / 1920f + .17f, landscapeSafe.xMax / 1920f - .17f));
             Assert.That(landscape.y, Is.InRange(landscapeSafe.yMin / 1080f + .06f, landscapeSafe.yMax / 1080f - .06f));
+
+            Assert.That(CombatCameraAwareness.EdgeSizeFor(PrototypeOrientation.Portrait), Is.EqualTo(new Vector2(300, 80)));
+            Assert.That(CombatCameraAwareness.EdgeSizeFor(PrototypeOrientation.Landscape), Is.EqualTo(new Vector2(260, 68)));
+            Assert.That(CombatCameraAwareness.TargetPlateSizeFor(PrototypeOrientation.Portrait), Is.EqualTo(new Vector2(380, 64)));
+            Assert.That(CombatCameraAwareness.TargetPlateSizeFor(PrototypeOrientation.Landscape), Is.EqualTo(new Vector2(340, 58)));
+
+            var portraitSize = CombatCameraAwareness.TargetPlateSizeFor(PrototypeOrientation.Portrait);
+            var portraitPosition = CombatCameraAwareness.TargetPlatePositionFor(new Vector3(1.2f, -.1f, 1), new Rect(0, 80, 1080, 1760), new Vector2(1080, 1920), new Vector2(1080, 1920), portraitSize);
+            Assert.That(portraitPosition.x - portraitSize.x * .5f, Is.GreaterThanOrEqualTo(20));
+            Assert.That(portraitPosition.x + portraitSize.x * .5f, Is.LessThanOrEqualTo(1060));
+            Assert.That(portraitPosition.y, Is.GreaterThanOrEqualTo(20));
+            Assert.That(portraitPosition.y + portraitSize.y, Is.LessThanOrEqualTo(1900));
+
+            var landscapeSize = CombatCameraAwareness.TargetPlateSizeFor(PrototypeOrientation.Landscape);
+            var landscapePosition = CombatCameraAwareness.TargetPlatePositionFor(new Vector3(-.2f, 1.2f, 1), landscapeSafe, new Vector2(1920, 1080), new Vector2(1920, 1080), landscapeSize);
+            Assert.That(landscapePosition.x - landscapeSize.x * .5f, Is.GreaterThanOrEqualTo(20));
+            Assert.That(landscapePosition.x + landscapeSize.x * .5f, Is.LessThanOrEqualTo(1900));
+            Assert.That(landscapePosition.y, Is.GreaterThanOrEqualTo(20));
+            Assert.That(landscapePosition.y + landscapeSize.y, Is.LessThanOrEqualTo(1060));
+        }
+
+        [Test]
+        public void ThreatEdgeUsesSixAndNinePercentHysteresisAndMapsBehindCamera()
+        {
+            Assert.That(CombatCameraAwareness.ShouldUseEdge(new Vector3(.05f, .5f, 1), false), Is.True);
+            Assert.That(CombatCameraAwareness.ShouldUseEdge(new Vector3(.07f, .5f, 1), false), Is.False);
+            Assert.That(CombatCameraAwareness.ShouldUseEdge(new Vector3(.07f, .5f, 1), true), Is.True);
+            Assert.That(CombatCameraAwareness.ShouldUseEdge(new Vector3(.1f, .5f, 1), true), Is.False);
+            Assert.That(CombatCameraAwareness.ShouldUseEdge(new Vector3(.5f, .5f, -1), false), Is.True);
+            Assert.That(CombatCameraAwareness.IndicatorDirectionFor(new Vector3(.5f, .5f, -1), Vector3.right, Vector3.left), Is.EqualTo(-1));
+            Assert.That(CombatCameraAwareness.IndicatorDirectionFor(new Vector3(.5f, .5f, -1), Vector3.right, Vector3.right), Is.EqualTo(1));
         }
 
         [Test]

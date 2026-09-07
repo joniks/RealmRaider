@@ -59,10 +59,26 @@ namespace RealmRaiders.UI
                 var buttonRect = (RectTransform)button.transform; if (!original.ContainsKey(buttonRect)) continue;
                 // RaidHUD owns the deliberate result-panel action lane; only its live combat actions use the shared reflow.
                 if (GetComponent<RaidHUD>() && button.transform.parent != transform) continue;
-                if (orientation == PrototypeOrientation.Landscape) { buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(1, 0); buttonRect.pivot = new Vector2(1, 0); buttonRect.anchoredPosition = new Vector2(LandscapeButtonX(button.name), LandscapeButtonY(button.name, index++)); }
+                if (orientation == PrototypeOrientation.Landscape)
+                {
+                    buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(1, 0); buttonRect.pivot = new Vector2(1, 0);
+                    var defenderAction = GetComponent<DefenderHUD>() && button.transform.parent == transform;
+                    var layoutIndex = index++;
+                    buttonRect.anchoredPosition = new Vector2(LandscapeButtonX(button.name), defenderAction ? LandscapeDefenderButtonY(button.name) : LandscapeButtonY(button.name, layoutIndex));
+                }
                 else { var value = original[buttonRect]; buttonRect.anchorMin = value.min; buttonRect.anchorMax = value.max; buttonRect.pivot = value.pivot; buttonRect.anchoredPosition = value.position; }
             }
         }
+        static float LandscapeDefenderButtonY(string name) => name switch
+        {
+            "ACTIVATE TRAP" => 110,
+            "SMASH" => 218,
+            "GROUND SLAM" => 326,
+            "DODGE" => 650,
+            "RELEASE" => 758,
+            _ when name.StartsWith("POSSESS ") => 866,
+            _ => 110
+        };
         float LandscapeButtonY(string name, int index)
         {
             if (GetComponent<HubHUD>()) return name == "START SYLVAN JOURNEY" ? 860 : name == "AUTO" || name == "PORTRAIT" || name == "LANDSCAPE" ? 700 : name == "CONTEXTUAL" || name == "FINGERTAP" || name == "JOYSTICK" ? 570 : name == "BUILD SYLVAN" ? 430 : name == "DEFEND SYLVAN" ? 325 : name == "RAID SYLVAN" ? 220 : name == "DEFEND INFERNAL" ? 115 : 10;

@@ -40,6 +40,7 @@ namespace RealmRaiders.UI
         public bool DodgeButtonInteractable => dodge && dodge.interactable;
         public bool DodgeButtonVisible => dodge && dodge.gameObject.activeSelf;
         public RectTransform DodgeButtonRect => dodge ? (RectTransform)dodge.transform : null;
+        public RectTransform ObjectiveCompassRect => objectiveCompass ? objectiveCompass.rectTransform : null;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {

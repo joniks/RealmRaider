@@ -68,7 +68,7 @@ namespace RealmRaiders.Core
 
             var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(30); possession.Initialize(cameraRig); possession.ConfigureEnergy(energy); if (ent) possession.Register(ent);
             var defense = root.AddComponent<DefenseManager>(); defense.Initialize(invader, core, possession);
-            var hudObject = new GameObject("Defender HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, ent, trap, core, DefenseHudConfig.Sylvan);
+            var hudObject = new GameObject("Defender HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, ent, trap, core, DefenseHudConfig.Sylvan); cameraRig.BindCombatHud(hudObject.GetComponent<ResponsiveHudRoot>());
             PrototypeRuntimeFactory.EventSystem(root.transform);
         }
 

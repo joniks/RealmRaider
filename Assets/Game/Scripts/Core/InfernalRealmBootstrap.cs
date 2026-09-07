@@ -42,7 +42,7 @@ namespace RealmRaiders.Core
             var heart = InfernalHeart(new Vector3(0, 2.5f, 30)); var core = heart.GetComponent<RealmCore>(); core.Initialize(invader);
             var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(30); possession.Initialize(rig); possession.ConfigureEnergy(energy); possession.Register(brute);
             var defense = root.AddComponent<DefenseManager>(); defense.Initialize(invader, core, possession);
-            var hudObject = new GameObject("Infernal HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, brute, flame, core, DefenseHudConfig.Infernal);
+            var hudObject = new GameObject("Infernal HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, brute, flame, core, DefenseHudConfig.Infernal); rig.BindCombatHud(hudObject.GetComponent<ResponsiveHudRoot>());
             PrototypeRuntimeFactory.EventSystem(root.transform);
         }
         static GameObject InfernalHeart(Vector3 position) { var root = new GameObject("Infernal Heart"); root.transform.position = position; var rock = GameObject.CreatePrimitive(PrimitiveType.Sphere); rock.transform.SetParent(root.transform); rock.transform.localScale = new Vector3(3.5f, 4.5f, 3.5f); rock.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.85f, .08f, .015f)); root.AddComponent<RealmCore>(); return root; }

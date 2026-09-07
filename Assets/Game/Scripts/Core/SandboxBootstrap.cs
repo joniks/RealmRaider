@@ -51,7 +51,7 @@ namespace RealmRaiders.Core
 
             var possession = root.AddComponent<PossessionManager>(); possession.Initialize(rig); possession.Register(ent);
             var director = root.AddComponent<SandboxDirector>(); director.Initialize(hero, ent, possession, rig);
-            var hud = new GameObject("Prototype HUD", typeof(PrototypeHUD)); hud.transform.SetParent(root.transform); hud.GetComponent<PrototypeHUD>().Initialize(possession, director, hero, ent);
+            var hud = new GameObject("Prototype HUD", typeof(PrototypeHUD)); hud.transform.SetParent(root.transform); hud.GetComponent<PrototypeHUD>().Initialize(possession, director, hero, ent); rig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>());
             PrototypeRuntimeFactory.EventSystem(root.transform);
         }
 

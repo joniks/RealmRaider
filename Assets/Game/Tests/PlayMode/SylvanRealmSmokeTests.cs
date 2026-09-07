@@ -11,6 +11,7 @@ using RealmRaiders.AI;
 using RealmRaiders.UI;
 using RealmRaiders.Core;
 using RealmRaiders.Controllers;
+using RealmRaiders.CameraSystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -177,6 +178,7 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<RealmCore>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
             AssertSingleViewAndListener();
+            AssertCombatHudBinding();
         }
 
         [UnityTest]
@@ -192,6 +194,7 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<RootTrap>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
             AssertSingleViewAndListener();
+            AssertCombatHudBinding();
         }
 
         [UnityTest]
@@ -206,6 +209,7 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindFirstObjectByType<LavaGate>(), Is.Not.Null);
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
             AssertSingleViewAndListener();
+            AssertCombatHudBinding();
         }
 
         [UnityTest]
@@ -325,7 +329,23 @@ namespace RealmRaiders.Tests
             GameplayInput.SetTerminalState(false); GameplayInput.SetDirectControl(4242, false); yield return null; Assert.That(joystick.gameObject.activeSelf, Is.False);
             foreach (var button in Object.FindObjectsByType<Button>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) { var corners = new Vector3[4]; button.GetComponent<RectTransform>().GetWorldCorners(corners); Assert.That(corners[0].x, Is.GreaterThanOrEqualTo(-1)); Assert.That(corners[2].x, Is.LessThanOrEqualTo(Screen.width + 1)); }
             AssertSingleViewAndListener();
+            AssertCombatHudBinding();
             PrototypeSave.SetControlStyle(previousStyle); GameplayInput.ResetForTests(); Screen.SetResolution(width, height, false);
+        }
+
+        static void AssertCombatHudBinding()
+        {
+            var awareness = Object.FindFirstObjectByType<CombatCameraAwareness>();
+            var responsive = Object.FindFirstObjectByType<ResponsiveHudRoot>();
+            Assert.That(Object.FindObjectsByType<CombatCameraAwareness>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(awareness, Is.Not.Null);
+            Assert.That(awareness.HasHudBinding, Is.True);
+            Assert.That(awareness.PresentationRoot.parent, Is.EqualTo(responsive.transform));
+            Assert.That(GameObject.Find("Combat Threat Indicator"), Is.Null);
+            Assert.That(awareness.GetComponentsInChildren<Canvas>(true), Is.Empty);
+            Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
         }
 
         static void AssertSingleViewAndListener()

@@ -1,5 +1,6 @@
 using System.Collections;
 using RealmRaiders.Characters;
+using RealmRaiders.UI;
 using UnityEngine;
 
 namespace RealmRaiders.CameraSystem
@@ -48,6 +49,12 @@ namespace RealmRaiders.CameraSystem
         public bool HasCombatFocus => combatThreat && focusWeight > .001f;
         public bool HasRequestedCombatFocus => combatThreat && requestedFocus > .001f;
         public float CombatFocusWeight => focusWeight;
+        public CombatCameraAwareness BindCombatHud(ResponsiveHudRoot hud, RectTransform competingEdgeCue = null)
+        {
+            var awareness = GetComponent<CombatCameraAwareness>() ?? gameObject.AddComponent<CombatCameraAwareness>();
+            awareness.BindHud(hud, competingEdgeCue);
+            return awareness;
+        }
         public void RequestCombatFocus(Transform threat, float weight)
         {
             if (IsTransitioning || Mode == CameraMode.KeeperOverview || !target || !threat) return;

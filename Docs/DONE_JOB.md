@@ -778,3 +778,26 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Generic status-effect framework, stacking burns, new VFX/audio/haptics, balance progression, AI activation, trap upgrades, new assets, or changes to the Sylvan Root Trap.
+
+## Diamond Pass 09.8 — Combat Camera Readability v2
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Replaced the camera-child threat Canvas with one visual presentation under each scene's existing gameplay HUD and `ResponsiveHudRoot`. Prototype, raid, Sylvan defense and Infernal defense use explicit scene-local binding without adding discovery, EventSystems, AudioListeners, or input authority.
+- A visible eligible attacker receives one factual name/health plate; an off-screen or behind-camera attacker receives one charcoal-backed directional tab. The tab distinguishes `ATTACKER` from `ATTACKING` through words, arrows and secondary color.
+- Added `6%` leave / `9%` return hysteresis and bounded `0.20s` one-shot arrival/urgency pulses. The cue remains non-interactive and preserves the existing single-threat selection, `14m` eligibility, `2.2s` explicit relevance and camera-bias caps.
+- Added portrait/landscape safe-area sizing, objective-cue separation and a Defender-only landscape action gap so the edge tab does not cover possession, trap, ability, Dodge or release controls.
+
+### Verification
+
+- Focused final-delta combat-camera set: `3/3` passed.
+- Focused `SylvanRealmSmokeTests`: `9/9` passed.
+- Final EditMode: `49/49` passed, `0` failed.
+- Final PlayMode: `34/34` passed, `0` failed.
+- QA confirmed no code changed after the final suites and `git diff --check` passes. No manual scene or physical-device smoke was run, and no Console state is claimed.
+
+### Scope intentionally deferred
+
+- Lock-on, target cycling, aim assist, auto-facing/combat, minimap/radar, stronger camera bias, new art/audio/haptics, settings, generic objective navigation, or physical-device noticeability acceptance.

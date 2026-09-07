@@ -17,7 +17,8 @@ Last reviewed: 2026-09-08
 - Diamond Pass 09.6 Dodge: Player Escape is present: direct-controlled characters have a narrow, collision-aware escape with explicit 0.18-second damage immunity and lifecycle-safe cleanup; AI behavior remains unchanged.
 - Module Pass MVT 02 Starter Creature Visual Profiles is present in the installed tuning package: four mobile-budgeted design profiles are validated but deliberately unconsumed by runtime presentation.
 - Diamond Pass 09.7 Infernal Flame Trap Identity is present: the Keeper manually ignites the invader for three separate eight-damage pulses without root or slow, while the HUD truthfully exposes the active burn and cooldown.
-- Current Unity Test Runner baseline: EditMode 48/48 and PlayMode 33/33 passed on 2026-09-08.
+- Diamond Pass 09.8 Combat Camera Readability v2 is present: one eligible nearby threat now receives an unmistakable HUD-owned target plate or responsive left/right `ATTACKER`/`ATTACKING` edge tab without changing targeting, movement, combat, or bounded camera authority.
+- Current Unity Test Runner baseline: EditMode 49/49 and PlayMode 34/34 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -34,7 +35,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 48/48 and PlayMode 33/33 on 2026-09-08.
+- Current verified baseline: EditMode 49/49 and PlayMode 34/34 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -47,7 +48,7 @@ Last reviewed: 2026-09-08
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
 - Device controls, audio balance and performance have not yet been validated on a representative Android phone.
 - Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
-- Camera framing and state-continuity behavior is covered in code/tests, but physical-device framing and rotation continuity remain unverified.
+- Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests, but physical-device noticeability and rotation continuity remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 

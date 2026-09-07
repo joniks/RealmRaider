@@ -258,6 +258,7 @@ namespace RealmRaiders.Tests
             var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
             var playerObject = new GameObject("Player", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
             var threatObject = new GameObject("Threat", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var hudObject = new GameObject("Test Gameplay HUD", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(ResponsiveHudRoot));
             var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); var threatDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
             try
             {
@@ -266,25 +267,37 @@ namespace RealmRaiders.Tests
                 var player = playerObject.GetComponent<CombatEntity>(); var threat = threatObject.GetComponent<CombatEntity>(); player.Initialize(definition); threat.Initialize(threatDefinition);
                 threatObject.transform.position = new Vector3(9, 0, 2);
                 var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat);
+                hudObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                var responsive = hudObject.GetComponent<ResponsiveHudRoot>(); responsive.Initialize(false); rig.BindCombatHud(responsive);
                 player.SetController(playerObject.GetComponent<PlayerController>());
                 var awareness = cameraObject.GetComponent<CombatCameraAwareness>(); awareness.SetControlled(player); awareness.ReportThreat(threat);
                 yield return null; yield return null;
                 Assert.That(awareness.HasEligibleThreat, Is.True);
                 Assert.That(rig.HasRequestedCombatFocus, Is.True);
+                Assert.That(awareness.IndicatorVisible || awareness.TargetPlateVisible, Is.True);
 
                 threatObject.transform.position = new Vector3(30, 0, 2);
                 yield return null;
                 Assert.That(awareness.HasEligibleThreat, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
                 Assert.That(rig.HasCombatFocus, Is.False);
 
                 awareness.ReportThreat(threat); threatObject.transform.position = new Vector3(9, 0, 2); yield return null;
                 GameplayInput.SetTerminalState(true); yield return null;
                 Assert.That(awareness.HasEligibleThreat, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
                 GameplayInput.SetTerminalState(false);
+
+                awareness.ReportThreat(threat); yield return null;
+                threat.Health.TakeDamage(new DamageInfo(1000, playerObject, threatObject.transform.position), 0);
+                yield return null;
+                Assert.That(awareness.HasEligibleThreat, Is.False);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
             }
-            finally { GameplayInput.SetTerminalState(false); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }
+            finally { GameplayInput.SetTerminalState(false); Object.Destroy(hudObject); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }
         }
 
         [UnityTest]
@@ -293,6 +306,8 @@ namespace RealmRaiders.Tests
             var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
             var playerObject = new GameObject("Player", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
             var threatObject = new GameObject("Hostile Creature", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(CreatureBrain));
+            var hudObject = new GameObject("Test Gameplay HUD", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(ResponsiveHudRoot));
+            var eventObject = new GameObject("Test EventSystem", typeof(EventSystem));
             var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); var threatDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
             try
             {
@@ -301,6 +316,11 @@ namespace RealmRaiders.Tests
                 var player = playerObject.GetComponent<CombatEntity>(); var threat = threatObject.GetComponent<CombatEntity>();
                 player.Initialize(definition); threat.Initialize(threatDefinition);
                 var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat);
+                var canvas = hudObject.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                var responsive = hudObject.GetComponent<ResponsiveHudRoot>(); responsive.Initialize(false);
+                var objectiveObject = new GameObject("Test Objective Cue", typeof(RectTransform)); objectiveObject.transform.SetParent(hudObject.transform, false);
+                var objectiveRect = (RectTransform)objectiveObject.transform; objectiveRect.anchorMin = objectiveRect.anchorMax = new Vector2(1, .5f); objectiveRect.anchoredPosition = new Vector2(-28, 0); objectiveRect.sizeDelta = new Vector2(220, 64);
+                rig.BindCombatHud(responsive, objectiveRect);
                 var testView = cameraObject.GetComponent<Camera>(); testView.transform.SetPositionAndRotation(new Vector3(0, 2, -10), Quaternion.LookRotation(Vector3.forward)); testView.fieldOfView = 60f; testView.aspect = 1f;
                 // Keep the camera basis fixed while testing the presentation indicator's real left/right mapping.
                 rig.enabled = false;
@@ -308,30 +328,51 @@ namespace RealmRaiders.Tests
                 var awareness = cameraObject.GetComponent<CombatCameraAwareness>(); awareness.SetControlled(player);
                 var brain = threatObject.GetComponent<CreatureBrain>(); brain.DetectionRange = 14f; threat.SetController(brain);
 
-                // Keep both points behind the camera: their off-screen state is independent of the runner's aspect ratio.
                 var pointAhead = testView.transform.position + testView.transform.forward * 10f;
                 var behindPoint = testView.transform.position - testView.transform.forward * 2f;
                 var rightEdge = behindPoint + testView.transform.right * 5f;
-                threatObject.transform.position = rightEdge; Physics.SyncTransforms(); brain.Target = player; brain.Tick();
+                threatObject.transform.position = pointAhead; Physics.SyncTransforms(); brain.Target = player; brain.Tick();
+                awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.TargetPlateVisible, Is.True);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+
+                // Keep edge points behind the camera so direction is independent of the runner's aspect ratio.
+                threatObject.transform.position = rightEdge; Physics.SyncTransforms(); brain.Tick();
                 awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(brain.State, Is.EqualTo(BrainState.Chase).Or.EqualTo(BrainState.Attack));
                 Assert.That(awareness.HasEligibleThreat, Is.True);
                 Assert.That(rig.HasRequestedCombatFocus, Is.True);
                 Assert.That(CombatCameraAwareness.IndicatorDirectionFor(new Vector3(1.1f, .5f, 1), Vector3.right, Vector3.right), Is.EqualTo(1));
-                var indicator = cameraObject.GetComponentInChildren<UnityEngine.UI.Text>(true);
-                Assert.That(indicator, Is.Not.Null); Assert.That(indicator.raycastTarget, Is.False);
+                var indicator = awareness.IndicatorRect.GetComponentInChildren<UnityEngine.UI.Text>(true);
+                Assert.That(indicator, Is.Not.Null); Assert.That(awareness.IndicatorRaycastTarget, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.True);
                 Assert.That(awareness.TargetPlateVisible, Is.False);
-                Assert.That(cameraObject.GetComponentsInChildren<UnityEngine.UI.Text>(true), Has.Length.EqualTo(2));
-                Assert.That(cameraObject.GetComponentsInChildren<Canvas>(true), Has.Length.EqualTo(1));
+                Assert.That(awareness.IndicatorText, Is.EqualTo("ATTACKER  ▶"));
+                Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacker));
+                Assert.That(awareness.EdgePulseCount, Is.EqualTo(1));
+                Assert.That(objectiveRect.anchoredPosition.y, Is.EqualTo(-76));
+                Assert.That(awareness.PresentationRoot.parent, Is.EqualTo(hudObject.transform));
+                Assert.That(cameraObject.GetComponentsInChildren<UnityEngine.UI.Text>(true), Is.Empty);
+                Assert.That(cameraObject.GetComponentsInChildren<Canvas>(true), Is.Empty);
+                Assert.That(hudObject.GetComponentsInChildren<Canvas>(true), Has.Length.EqualTo(1));
                 Assert.That(cameraObject.GetComponentsInChildren<EventSystem>(true), Is.Empty);
                 Assert.That(cameraObject.GetComponentsInChildren<AudioListener>(true), Has.Length.EqualTo(1));
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.IndicatorRect.sizeDelta, Is.EqualTo(new Vector2(300, 80)));
+                Assert.That(awareness.IndicatorRect.anchorMin.y, Is.EqualTo(.54f));
+                Assert.That(awareness.IndicatorRect.anchoredPosition.x, Is.EqualTo(-24));
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.IndicatorRect.sizeDelta, Is.EqualTo(new Vector2(260, 68)));
+                Assert.That(awareness.IndicatorRect.anchorMin.y, Is.EqualTo(.5f));
+                Assert.That(awareness.IndicatorRect.anchoredPosition.x, Is.EqualTo(-28));
 
                 threatObject.transform.position = pointAhead; Physics.SyncTransforms(); brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(awareness.IndicatorVisible, Is.False);
                 Assert.That(awareness.TargetPlateVisible, Is.True);
                 Assert.That(awareness.TargetPlateRaycastTarget, Is.False);
                 Assert.That(awareness.TargetPlateText, Is.EqualTo("ATTACKER  TEST ATTACKER  100/100 HP"));
+                Assert.That(awareness.TargetPlateRect.sizeDelta, Is.EqualTo(new Vector2(340, 58)));
+                Assert.That(objectiveRect.anchoredPosition.y, Is.Zero);
                 threat.Health.TakeDamage(new DamageInfo(20, playerObject, threatObject.transform.position), 0);
                 awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(awareness.TargetPlateText, Is.EqualTo("ATTACKER  TEST ATTACKER  80/100 HP"));
@@ -343,13 +384,30 @@ namespace RealmRaiders.Tests
                 Assert.That(CombatCameraAwareness.IndicatorDirectionFor(new Vector3(-.1f, .5f, 1), Vector3.right, -Vector3.right), Is.EqualTo(-1));
                 Assert.That(awareness.IndicatorVisible, Is.True);
                 Assert.That(awareness.TargetPlateVisible, Is.False);
+                Assert.That(awareness.IndicatorText, Is.EqualTo("◀  ATTACKER"));
+                Assert.That(awareness.EdgePulseCount, Is.EqualTo(1), "Returning across the edge boundary must not replay arrival.");
+
+                player.Health.TakeDamage(new DamageInfo(1, threatObject, playerObject.transform.position), 0);
+                awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.IndicatorText, Is.EqualTo("◀  ATTACKING"));
+                Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking));
+                Assert.That(awareness.EdgePulseCount, Is.EqualTo(2));
+                yield return new WaitForSecondsRealtime(.82f);
+                awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.IndicatorText, Is.EqualTo("◀  ATTACKER"));
+                Assert.That(awareness.EdgePulsePlaying, Is.False);
+                player.Health.TakeDamage(new DamageInfo(1, threatObject, playerObject.transform.position), 0);
+                awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.EdgePulseCount, Is.EqualTo(2), "Later urgency changes must not replay the one-shot pulse.");
+                yield return new WaitForSecondsRealtime(.82f);
 
                 threatObject.transform.position = playerObject.transform.position + Vector3.forward * 2f; Physics.SyncTransforms(); brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(brain.State, Is.EqualTo(BrainState.Attack));
                 Assert.That(awareness.HasEligibleThreat, Is.True);
+                Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking), "Active Attack intent is independently immediate after damage recency expires.");
 
                 brain.Target = null; brain.Tick();
-                yield return new WaitForEndOfFrame();
+                yield return new WaitForSecondsRealtime(2.25f);
                 Assert.That(awareness.HasEligibleThreat, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.False);
                 Assert.That(awareness.TargetPlateVisible, Is.False);
@@ -370,7 +428,7 @@ namespace RealmRaiders.Tests
                 Assert.That(awareness.TargetPlateVisible, Is.False);
                 Assert.That(rig.HasCombatFocus, Is.False);
             }
-            finally { GameplayInput.SetTerminalState(false); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }
+            finally { GameplayInput.SetTerminalState(false); Object.Destroy(eventObject); Object.Destroy(hudObject); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }
         }
 
         [UnityTest]
