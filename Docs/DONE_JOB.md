@@ -425,3 +425,31 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Manual start/pause controls, a tutorial state machine, post-opener AI/combat/trap/core/energy-balance changes, pathfinding, camera framing changes, persistent settings, scenes/assets/packages, or a UI redesign.
+
+## Diamond Pass 08.6 — Mobile Ability Readiness
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Added authoritative read-only `CooldownRemaining` to the existing `AbilityRuntime`; UI does not keep a duplicate cooldown clock or alter combat behavior.
+- Added shared presentation-only `AbilityButtonReadiness` for existing Raid, Defender, and Character Sandbox ability buttons.
+- Buttons now show their normal action name while ready, `NAME  1.2s` while cooling down, or `NAME — ACTING` while another combat action is resolving. Unavailable buttons are visibly disabled and never intercept additional action input.
+- Ability UI immediately follows the directly controlled entity and clears safely on possession/release, death, terminal state, missing ability, and scene transition.
+- Cooldown text is rebuilt only when its displayed tenths value changes; ordinary ready-state refreshes create no per-frame countdown text.
+
+### Verification
+
+- Focused PlayMode coverage proves authoritative ready → acting → cooldown → ready transitions, direct-control cleanup, possession/release binding, and Canvas/EventSystem/AudioListener invariants.
+- EditMode: `30/30` passed, `0` failed.
+- PlayMode: `22/22` passed, `0` failed on 2026-09-07.
+- Manual Sylvan Raid and Defender smoke confirmed readable existing ability rows with no Console exceptions; deterministic tests cover action/cooldown and possession/release transitions.
+- Unity compiled cleanly and `git diff --check` passes.
+
+### Remaining player feel check
+
+- On Android, use a long-cooldown ability in portrait and landscape. Confirm the countdown is readable, the temporary disabled color is clear, and the action row remains comfortable beside joystick/touch controls.
+
+### Scope intentionally deferred
+
+- Combat balance/timing changes, combos or input buffering, aim assist, new abilities, haptics/audio/VFX, camera work, a new HUD/canvas, persistent settings, scenes/assets/packages, or a UI redesign.

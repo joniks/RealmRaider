@@ -358,6 +358,110 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator AbilityReadiness_RaidHudReflectsAuthoritativeCooldownAndActionState()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener)); cameraObject.tag = "MainCamera";
+            var heroObject = new GameObject("Raid Hero", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
+            var coreObject = new GameObject("Heart Tree", typeof(RealmCore));
+            var raidObject = new GameObject("Raid Manager", typeof(RaidManager));
+            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD));
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var first = ScriptableObject.CreateInstance<AbilityDefinition>(); var second = ScriptableObject.CreateInstance<AbilityDefinition>(); var third = ScriptableObject.CreateInstance<AbilityDefinition>();
+            var initialCanvasCount = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
+            var initialEventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
+            var initialListenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+            GameplayInput.SetTerminalState(false);
+            try
+            {
+                first.DisplayName = "Slash"; first.Kind = AbilityKind.Melee; first.Windup = .05f; first.Cooldown = .08f;
+                second.DisplayName = "Blood Rush"; second.Kind = AbilityKind.Dash; second.Windup = .05f; second.Cooldown = .08f; second.DashDistance = 1;
+                third.DisplayName = "Cleave"; third.Kind = AbilityKind.Area; third.Windup = .05f; third.Cooldown = .08f;
+                definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
+                definition.Abilities = new[] { first, second, third };
+                var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition); hero.SetController(hero.Controller<PlayerController>());
+                var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
+                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, System.Array.Empty<RealmNodeView>(), System.Array.Empty<CombatEntity>());
+                var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(raid, hero, core, cameraObject.GetComponent<Camera>());
+                yield return null;
+
+                Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SLASH"));
+                Assert.That(hud.AbilityButtonText(1), Is.EqualTo("BLOOD RUSH"));
+                Assert.That(hud.AbilityButtonText(2), Is.EqualTo("CLEAVE"));
+                Assert.That(hud.AbilityButtonInteractable(0), Is.True);
+                Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(initialCanvasCount + 1));
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(initialEventSystemCount));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(initialListenerCount));
+
+                Assert.That(hero.TryUse(0, Vector3.forward), Is.True);
+                yield return null;
+                Assert.That(hud.AbilityButtonText(0), Does.Contain("ACTING"));
+                Assert.That(hud.AbilityButtonText(1), Does.Contain("ACTING"));
+                Assert.That(hud.AbilityButtonInteractable(0), Is.False);
+                yield return new WaitForSecondsRealtime(.25f);
+                yield return null;
+                Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SLASH"));
+                Assert.That(hud.AbilityButtonInteractable(0), Is.True);
+
+                hero.SetController(null);
+                yield return null;
+                Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SLASH"));
+                Assert.That(hud.AbilityButtonInteractable(0), Is.False);
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                Object.Destroy(hudObject); Object.Destroy(raidObject); Object.Destroy(coreObject); Object.Destroy(heroObject); Object.Destroy(cameraObject);
+                Object.Destroy(definition); Object.Destroy(first); Object.Destroy(second); Object.Destroy(third);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator AbilityReadiness_PrototypeHudBindsPossessionAndClearsOnRelease()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig)); cameraObject.tag = "MainCamera";
+            var heroObject = new GameObject("Blood Knight", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
+            var entObject = new GameObject("Guardian Ent", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
+            var managerObject = new GameObject("Possession Manager", typeof(PossessionManager));
+            var directorObject = new GameObject("Sandbox Director", typeof(SandboxDirector));
+            var hudObject = new GameObject("Prototype HUD", typeof(PrototypeHUD));
+            var heroDefinition = ScriptableObject.CreateInstance<CharacterDefinition>(); var entDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var smash = ScriptableObject.CreateInstance<AbilityDefinition>(); var charge = ScriptableObject.CreateInstance<AbilityDefinition>(); var slam = ScriptableObject.CreateInstance<AbilityDefinition>();
+            GameplayInput.SetTerminalState(false);
+            try
+            {
+                heroDefinition.DisplayName = "Blood Knight"; heroDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 4 };
+                entDefinition.DisplayName = "Guardian Ent"; entDefinition.Possessable = true; entDefinition.Stats = new CombatStats { MaxHealth = 120, MoveSpeed = 3 };
+                smash.DisplayName = "Smash"; charge.DisplayName = "Charge"; slam.DisplayName = "Ground Slam";
+                entDefinition.Abilities = new[] { smash, charge, slam };
+                var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(heroDefinition);
+                var ent = entObject.GetComponent<CombatEntity>(); ent.Initialize(entDefinition);
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapToOverview();
+                var possession = managerObject.GetComponent<PossessionManager>(); possession.Initialize(rig); possession.Register(ent);
+                var director = directorObject.GetComponent<SandboxDirector>(); director.Initialize(hero, ent, possession, rig);
+                var hud = hudObject.GetComponent<PrototypeHUD>(); hud.Initialize(possession, director, hero, ent);
+                possession.Select(ent); Assert.That(possession.PossessSelected(), Is.True);
+                yield return null;
+
+                Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SMASH"));
+                Assert.That(hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM"));
+                Assert.That(hud.AbilityButtonInteractable(0), Is.True);
+                Assert.That(ent.Controller<PlayerController>().IsActive, Is.True);
+
+                possession.Release();
+                yield return null;
+                Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SMASH"));
+                Assert.That(hud.AbilityButtonInteractable(0), Is.False);
+                Assert.That(ent.Controller<PlayerController>().IsActive, Is.False);
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                Object.Destroy(hudObject); Object.Destroy(directorObject); Object.Destroy(managerObject); Object.Destroy(entObject); Object.Destroy(heroObject); Object.Destroy(cameraObject);
+                Object.Destroy(heroDefinition); Object.Destroy(entDefinition); Object.Destroy(smash); Object.Destroy(charge); Object.Destroy(slam);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator RaidObjectiveCompass_MapsCoreProjectionAndCleansUpWithoutInputArtifacts()
         {
             var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener)); cameraObject.tag = "MainCamera";

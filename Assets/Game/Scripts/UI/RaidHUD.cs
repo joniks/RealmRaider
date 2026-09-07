@@ -17,12 +17,15 @@ namespace RealmRaiders.UI
         RealmCore core;
         Camera view;
         HudPresentation presentation;
+        AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
         int compassDirection;
 
         public bool ObjectiveCompassVisible => objectiveCompass && objectiveCompass.gameObject.activeSelf;
         public int ObjectiveCompassDirection => compassDirection;
         public bool ObjectiveCompassRaycastTarget => objectiveCompass && objectiveCompass.raycastTarget;
+        public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
+        public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
@@ -35,6 +38,7 @@ namespace RealmRaiders.UI
         void Update()
         {
             if (raid) Refresh();
+            RefreshAbilityButtons();
             var controller = hero ? hero.Controller<PlayerController>() : null;
             if (rootPrompt)
             {
@@ -58,9 +62,12 @@ namespace RealmRaiders.UI
             objectiveCompass = Label("", Vector2.zero, 24, TextAnchor.MiddleCenter); objectiveCompass.name = "Heart Tree Compass"; objectiveCompass.raycastTarget = false; objectiveCompass.gameObject.SetActive(false);
             rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             Label("Tap ground: move • Tap enemy: attack • Swipe: Blood Rush", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true);
-            Button("SLASH", new Vector2(-260, 110), () => Ability(0));
-            Button("BLOOD RUSH", new Vector2(0, 110), () => Ability(1));
-            Button("CLEAVE", new Vector2(260, 110), () => Ability(2));
+            abilityButtons = new[]
+            {
+                new AbilityButtonReadiness(Button("SLASH", new Vector2(-260, 110), () => Ability(0)), "SLASH", 0),
+                new AbilityButtonReadiness(Button("BLOOD RUSH", new Vector2(0, 110), () => Ability(1)), "BLOOD RUSH", 1),
+                new AbilityButtonReadiness(Button("CLEAVE", new Vector2(260, 110), () => Ability(2)), "CLEAVE", 2)
+            };
             resultPanel = new GameObject("Raid Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false);
             var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .24f); rect.anchorMax = new Vector2(.92f, .76f); rect.offsetMin = rect.offsetMax = Vector2.zero;
             resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
@@ -78,6 +85,13 @@ namespace RealmRaiders.UI
         {
             health.text = $"Blood Knight  {hero.Health.Current:0}/{hero.Health.Maximum:0} HP";
             stats.text = $"Gold {raid.Gold}   Enemies {raid.EnemiesDefeated}   Rooms {raid.RoomsDiscovered}   {raid.Duration:0}s";
+        }
+        void RefreshAbilityButtons()
+        {
+            if (abilityButtons == null) return;
+            var player = hero ? hero.Controller<PlayerController>() : null;
+            var direct = player && player.IsActive && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            foreach (var button in abilityButtons) button.Refresh(hero, direct);
         }
         void ShowResult(RaidResult value)
         {

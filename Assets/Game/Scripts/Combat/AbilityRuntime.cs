@@ -7,6 +7,7 @@ namespace RealmRaiders.Combat
         public AbilityDefinition Definition { get; }
         public float ReadyAt { get; private set; }
         public bool IsReady => Time.time >= ReadyAt;
+        public float CooldownRemaining => Mathf.Max(0f, ReadyAt - Time.time);
         public AbilityRuntime(AbilityDefinition definition) => Definition = definition;
         public bool TryConsume()
         {

@@ -17,6 +17,9 @@ namespace RealmRaiders.UI
         Button resetButton;
         CombatEntity hero, ent;
         HudPresentation presentation;
+        AbilityButtonReadiness[] abilityButtons;
+        public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
+        public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
 
         public void Initialize(PossessionManager manager, SandboxDirector director, CombatEntity heroEntity, CombatEntity entEntity)
         {
@@ -46,6 +49,11 @@ namespace RealmRaiders.UI
             releaseButton = Button("RELEASE", new Vector2(0, 250), possession.Release);
             attackButton = Button("SMASH", new Vector2(-190, 110), () => Ability(0));
             slamButton = Button("GROUND SLAM", new Vector2(190, 110), () => Ability(2));
+            abilityButtons = new[]
+            {
+                new AbilityButtonReadiness(attackButton, "SMASH", 0),
+                new AbilityButtonReadiness(slamButton, "GROUND SLAM", 2)
+            };
             heroButton = Button("PLAY HERO", new Vector2(-190, 370), director.EnterHero);
             keeperButton = Button("KEEPER", new Vector2(190, 370), director.EnterKeeper);
             resetButton = Button("RESET", new Vector2(0, 490), () => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex));
@@ -54,6 +62,7 @@ namespace RealmRaiders.UI
 
         void Ability(int index)
         { if (possession.Possessed) possession.Possessed.Controller<PlayerController>()?.UseAbility(index); }
+        void Update() => RefreshAbilityButtons();
         void PossessSelected()
         { if (possession.PossessSelected()) presentation?.PlayConfirm(); }
         void OnSelection(CombatEntity value)
@@ -75,6 +84,14 @@ namespace RealmRaiders.UI
         void HideMomentFeedback() { if (possession) OnPossession(possession.Possessed); }
         void RefreshHealth()
         { heroHp.text = $"Blood Knight  {hero.Health.Current:0}/{hero.Health.Maximum:0} HP"; entHp.text = $"Ent  {ent.Health.Current:0}/{ent.Health.Maximum:0} HP"; }
+        void RefreshAbilityButtons()
+        {
+            if (abilityButtons == null) return;
+            var controlled = possession ? possession.Possessed : null;
+            var player = controlled ? controlled.Controller<PlayerController>() : null;
+            var direct = player && player.IsActive && !GameplayInput.TerminalState;
+            foreach (var button in abilityButtons) button.Refresh(controlled, direct);
+        }
 
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, bool bottom = false)
         {

@@ -51,11 +51,14 @@ namespace RealmRaiders.UI
         DefenseHudConfig config;
         bool initialized;
         HudPresentation presentation;
+        AbilityButtonReadiness[] abilityButtons;
         int displayedOpeningSeconds = -1;
         bool openingCueDismissed;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
+        public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
+        public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
@@ -71,6 +74,7 @@ namespace RealmRaiders.UI
         {
             if (!initialized) return;
             Refresh(); RefreshOpeningCue();
+            RefreshAbilityButtons();
             var controller = possessionManager?.Possessed?.Controller<PlayerController>(); var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState;
             if (rootPrompt) { rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; }
         }
@@ -89,6 +93,11 @@ namespace RealmRaiders.UI
             release = Button("RELEASE", new Vector2(0, 410), possessionManager.Release);
             activateTrap = Button("ACTIVATE TRAP", new Vector2(0, 290), ActivateTrap);
             smash = Button("SMASH", new Vector2(-180, 165), () => Ability(0)); slam = Button("GROUND SLAM", new Vector2(180, 165), () => Ability(2));
+            abilityButtons = new[]
+            {
+                new AbilityButtonReadiness(smash, "SMASH", 0),
+                new AbilityButtonReadiness(slam, "GROUND SLAM", 2)
+            };
             resultPanel = new GameObject("Defense Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false); var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .28f); rect.anchorMax = new Vector2(.92f, .72f); rect.offsetMin = rect.offsetMax = Vector2.zero; resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
             result = Label("", Vector2.zero, 42, TextAnchor.MiddleCenter); result.transform.SetParent(resultPanel.transform, false); var resultRect = (RectTransform)result.transform; resultRect.anchorMin = new Vector2(0, .35f); resultRect.anchorMax = Vector2.one; resultRect.offsetMin = resultRect.offsetMax = Vector2.zero;
             var retry = Button("DEFEND AGAIN", new Vector2(0, 160), () => SceneManager.LoadScene(config.RetryScene)); retry.transform.SetParent(resultPanel.transform, false); var raid = Button(config.NextActionLabel, new Vector2(0, 48), () => SceneManager.LoadScene(config.NextActionScene)); raid.transform.SetParent(resultPanel.transform, false); resultPanel.SetActive(false);
@@ -172,6 +181,15 @@ namespace RealmRaiders.UI
                 trapText.text = trap is RootTrap root && root.RecentlyActivated ? "ROOTED!  12 DAMAGE — INVADER HELD" : $"{config.TrapName.ToUpperInvariant()} COOLDOWN — {trap.CooldownRemaining:0.0}s";
                 activateTrap.GetComponent<Image>().color = new Color(.28f, .14f, .08f, .75f);
             }
+        }
+
+        void RefreshAbilityButtons()
+        {
+            if (abilityButtons == null) return;
+            var controlled = possessionManager ? possessionManager.Possessed : null;
+            var player = controlled ? controlled.Controller<PlayerController>() : null;
+            var direct = player && player.IsActive && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            foreach (var button in abilityButtons) button.Refresh(controlled, direct);
         }
 
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, bool bottom = false)
