@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using RealmRaiders.Characters;
+using RealmRaiders.Combat;
 using RealmRaiders.Raid;
 using RealmRaiders.Realm;
 using RealmRaiders.Traps;
@@ -121,12 +122,33 @@ namespace RealmRaiders.Tests
                 GameObject.Find("SAVE & DEFEND").GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;
                 var ent = GameObject.Find("Guardian Ent").GetComponent<CombatEntity>();
+                var growth = ent.GetComponent<GuardianEntGrowthPresentation>();
+                var defenderHud = Object.FindFirstObjectByType<DefenderHUD>();
                 Assert.That(ent.Health.Maximum, Is.EqualTo(374).Within(.01f));
                 Assert.That(GameObject.Find("Realm Wolf A").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(52).Within(.01f));
                 Assert.That(GameObject.Find("Invading Blood Knight").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(220).Within(.01f));
+                Assert.That(growth, Is.Not.Null); Assert.That(growth.Rank, Is.EqualTo(1)); Assert.That(growth.TierCount, Is.EqualTo(1));
+                Assert.That(growth.MarkerRoot.parent, Is.EqualTo(ent.GetComponent<CharacterVisualAssembler>().PresentationPivot));
+                foreach (var collider in growth.MarkerRoot.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
+                Assert.That(growth.MarkerRoot.GetComponentInChildren<UiPointerOwnership>(true), Is.Null);
+                Assert.That(GameObject.Find("Realm Wolf A").GetComponent<GuardianEntGrowthPresentation>(), Is.Null);
+                Assert.That(GameObject.Find("Invading Blood Knight").GetComponent<GuardianEntGrowthPresentation>(), Is.Null);
+                Assert.That(defenderHud.GuardianEntVitalityText, Is.EqualTo("GUARDIAN ENT — RANK 1/3 • +10% MAX HEALTH"));
+                Assert.That(defenderHud.GuardianEntVitalityRaycastTarget, Is.False);
+
+                var defenseRoot = Object.FindFirstObjectByType<ResponsiveHudRoot>();
+                defenseRoot.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertGuardianEntStatusContained(defenderHud);
+                defenseRoot.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertGuardianEntStatusContained(defenderHud);
+                var marker = growth.MarkerRoot; var possession = Object.FindFirstObjectByType<PossessionManager>();
+                possession.Select(ent); Assert.That(possession.PossessSelected(), Is.True); Assert.That(growth.MarkerRoot, Is.SameAs(marker));
+                possession.Release(); Assert.That(growth.MarkerRoot, Is.SameAs(marker)); Assert.That(growth.TierCount, Is.EqualTo(1));
+
+                GameObject.Find("Invading Blood Knight").GetComponent<CombatEntity>().Health.TakeDamage(new DamageInfo(1000, null, Vector3.zero), 0);
+                Assert.That(marker.gameObject.activeSelf, Is.False); Assert.That(defenderHud.GuardianEntVitalityText, Is.Empty);
 
                 SceneManager.LoadScene("InfernalRealm"); yield return null; yield return null;
                 Assert.That(GameObject.Find("Infernal Brute").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(380).Within(.01f));
+                Assert.That(GameObject.Find("Infernal Brute").GetComponent<GuardianEntGrowthPresentation>(), Is.Null);
             }
             finally
             {
@@ -246,6 +268,17 @@ namespace RealmRaiders.Tests
                 foreach (var button in buttons) AssertNoDesignOverlap(label, button.GetComponent<RectTransform>(), reference, $"Build label/button overlap: {label.name}/{button.name}");
                 for (var other = index + 1; other < labels.Count; other++) AssertNoDesignOverlap(label, labels[other], reference, $"Build labels overlap: {label.name}/{labels[other].name}");
             }
+        }
+
+        static void AssertGuardianEntStatusContained(DefenderHUD hud)
+        {
+            var reference = Object.FindFirstObjectByType<CanvasScaler>().referenceResolution;
+            var status = DesignRect(hud.GuardianEntVitalityRect, reference);
+            Assert.That(status.xMin, Is.GreaterThanOrEqualTo(0)); Assert.That(status.yMin, Is.GreaterThanOrEqualTo(0));
+            Assert.That(status.xMax, Is.LessThanOrEqualTo(reference.x)); Assert.That(status.yMax, Is.LessThanOrEqualTo(reference.y));
+            Assert.That(status.Overlaps(DesignRect(hud.DefenderHealthRect, reference)), Is.False, "Guardian vitality status overlaps defender health");
+            foreach (var button in Object.FindObjectsByType<Button>(FindObjectsSortMode.None))
+                Assert.That(status.Overlaps(DesignRect(button.GetComponent<RectTransform>(), reference)), Is.False, $"Guardian vitality status overlaps {button.name}");
         }
 
         static void AssertHubLabelsClear(Button[] buttons)

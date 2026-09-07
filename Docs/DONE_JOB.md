@@ -613,3 +613,32 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Additional upgrades, new currencies, reset/respec, unlock trees, timers, cloud sync, account data, economy balancing, new units or traps, rewards changes, new assets/packages/scenes, or a broader Build UI redesign.
+
+## Diamond Pass 09.3 — Guardian Ent Growth Readability
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Made Guardian Ent cultivation tangible in the actual Sylvan defense: rank zero has no growth mark, while ranks one through three receive a restrained one-, two-, or three-tier leaf-crown presentation below the existing `Presentation Pivot`.
+- Added one non-interactive Defender HUD status line that truthfully displays `UNTENDED` or the current rank's exact `+10%`, `+20%`, or `+30%` maximum-health bonus.
+- The presentation is visual-only: it adds no enabled collider, rigidbody, input target, Canvas, EventSystem, AudioListener, root movement, combat authority, or saved rank duplicate.
+- Only the built Sylvan Guardian Ent receives the presentation and status. Wolves, Blood Knight, Infernal Brute/Hounds, Sandbox, raids, abilities, camera, possession, controls, health calculations, and threat budget remain unchanged.
+- Reconfiguration, death, terminal result, disable, destruction, release, and missing-visual paths clean up the owned marker safely; no empty marker roots remain in EditMode teardown.
+
+### Verification
+
+- Focused Guardian Ent EditMode: `7/7` passed.
+- Focused Sylvan Realm PlayMode: `9/9` passed.
+- Final EditMode: `42/42` passed, `0` failed.
+- Final PlayMode: `25/25` passed, `0` failed.
+- QA reviewed the frozen diff, found and verified lifecycle cleanup fixes before acceptance. `git diff --check` passes.
+
+### Remaining player validation
+
+- On Android, buy rank one, enter Sylvan Defense, and confirm the subtle Ent growth mark and the right-side vitality line are readable but do not steal attention from possession or combat in portrait and landscape.
+- No manual smoke is claimed by the team for this pass.
+
+### Scope intentionally deferred
+
+- New upgrades/currencies, stat changes, combat effects, final VFX/shaders/textures/packages, animation/rig work, world UI markers, a new HUD canvas, generic skill trees, new units/traps, or a Build redesign.

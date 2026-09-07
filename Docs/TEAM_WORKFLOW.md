@@ -11,9 +11,9 @@ The shared checkout is the **integration workspace**. It is never edited concurr
 | Conversation | Role | Write scope | Must not do |
 | --- | --- | --- | --- |
 | Architect / Project Manager | Product owner, architecture, integration, committer | `Docs/`, `AGENTS.md`, task definitions, acceptance records, and accepted commits in the main and Modules repositories | Implement a feature in parallel with Core developer, run redundant full suites, import assets without provenance, push |
-| Core developer | One active vertical-slice implementation | Main checkout: only files explicitly reserved in the active task; authoritative gameplay, save, bootstraps, shared UI when task requires it | Work on a second feature before the first is accepted; run Unity tests/manual smoke; edit Docs ownership/process files; commit/push |
-| Module developer | Isolated content/module lane | Its own Git worktree and branch; new self-contained module/assets/docs only | Edit the main checkout, shared gameplay/UI files, project settings, or Unity scenes; integrate its own work; commit/push |
-| Reviewer / QA | Independent review and verification owner | Read-only source review; runs Unity verification only after Core freezes and releases the checkout | Edit tracked files, run Unity while Core developer is using Unity, repeat green full suites, commit/push |
+| Core developer | One active vertical-slice implementation | Main checkout: only files explicitly reserved in the active task; authoritative gameplay, save, bootstraps, shared UI when task requires it | Work on a second feature before the first is accepted; launch, close, restart, or control Unity; run Unity tests/manual smoke; edit Docs ownership/process files; commit/push |
+| Module developer | Isolated content/module lane | Its own Git worktree and branch; new self-contained module/assets/docs only | Edit the main checkout, shared gameplay/UI files, project settings, or Unity scenes; launch, close, restart, or control Unity; integrate its own work; commit/push |
+| Reviewer / QA | Independent review and verification owner | Read-only source review; the only role permitted to launch, close, restart, or control Unity for compilation, Test Runner, and team manual smoke | Edit tracked files, repeat green full suites, commit/push |
 
 ## Worktree model
 
@@ -50,24 +50,24 @@ One owner at a time may write a reserved path. A task is released only after Arc
 ## Operating sequence
 
 1. Architect defines the smallest valuable player problem and records its scope/non-goals in `Docs/NEXT_JOB.md`.
-2. Core developer implements one vertical slice in the main checkout. It does **not** run Unity Test Runner or manual smoke. It freezes its diff, closes/releases Unity, and sends the changed-path list plus intended behaviors directly to Reviewer / QA.
-3. Reviewer / QA reviews the frozen diff and runs the focused verification. It reports concrete defects directly to Core developer.
-4. Core developer fixes only the reported defects, freezes/releases the checkout again, and returns it to QA. This loop continues until QA has no blocker.
+2. Core developer implements one vertical slice in the main checkout without launching or controlling Unity. It freezes its diff and sends the changed-path list plus intended behaviors directly to Reviewer / QA.
+3. Reviewer / QA reviews the frozen diff, then alone launches and controls Unity for compilation and focused verification. It reports concrete defects directly to Core developer.
+4. Core developer fixes only the reported defects without touching Unity, freezes the checkout again, and returns it to QA. This loop continues until QA has no blocker.
 5. Reviewer / QA runs the final full EditMode and PlayMode suites exactly once against the final frozen diff, then accepts or rejects it.
 6. Architect records acceptance in `Docs/DONE_JOB.md` and `Docs/PROTOTYPE_STATUS.md`, commits accepted main/module work, and tells the user what to push.
 7. Module work is reviewed and integrated only between committed Core tasks.
 
 ## Verification discipline
 
-- Core developer does not run tests. It communicates test impact and expected outcomes to QA with each frozen handoff.
+- Core developer does not launch, close, restart, or control Unity, and does not run tests. It communicates test impact and expected outcomes to QA with each frozen handoff.
 - QA runs a focused check after a new frozen candidate or concrete fix.
 - QA runs full EditMode once and full PlayMode once only after the final code/test change. It reruns a green suite only if the candidate changes afterwards or it found a concrete reason.
 - Manual device checks belong to the user; reports must say exactly what was observed and never invent a smoke result.
 
 ## Unity and asset safety
 
-- Never have two agents actively operate the same Unity project checkout. Core explicitly releases Unity before QA begins verification; QA announces when it is finished.
-- Core developer never uses Unity Test Runner. Reviewer / QA owns all test execution and test evidence.
+- Only Reviewer / QA may launch, close, restart, or control Unity. Core and Module developer never use Unity UI or Unity processes.
+- Reviewer / QA owns all Unity compilation, Test Runner/manual-smoke execution, and test evidence.
 - Module developer uses a separate worktree and does not touch shared `Library`, `ProjectSettings`, scenes, or bootstraps.
 - Third-party assets remain research-only until licence, source, import plan, and provenance record are accepted. Original generated art is a mood reference until converted into an explicitly reviewed game asset.
 
@@ -79,7 +79,7 @@ Core → QA handoff, maximum six lines:
 Changed: <files>
 Expected: <player-visible behavior and non-goals>
 Test impact: <focused tests/risks QA should cover>
-Unity: closed/released for QA
+Unity: not touched — QA owns Unity
 Question: <none or one concrete uncertainty>
 Commit/push: not performed
 ```

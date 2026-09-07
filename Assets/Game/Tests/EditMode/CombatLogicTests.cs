@@ -138,6 +138,55 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void GuardianEntGrowth_BuildsRanksUnderThePresentationPivotAndCleansSafely()
+        {
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.LargeCreature; recipe.Primary = new Color(.18f, .43f, .14f); recipe.AccentColor = new Color(.4f, .8f, .3f);
+            var host = new GameObject("Guardian Ent Visual Test", typeof(Health)); host.GetComponent<Health>().Initialize(10); var assembler = host.AddComponent<CharacterVisualAssembler>(); Assert.That(assembler.Assemble(recipe), Is.True);
+            var growth = host.AddComponent<GuardianEntGrowthPresentation>(); var rootPosition = host.transform.position; var rootRotation = host.transform.rotation; var rootScale = host.transform.localScale;
+            try
+            {
+                for (var rank = 0; rank <= 3; rank++)
+                {
+                    growth.Configure(rank);
+                    Assert.That(growth.Rank, Is.EqualTo(rank));
+                    Assert.That(growth.TierCount, Is.EqualTo(rank));
+                    if (rank == 0) Assert.That(growth.MarkerRoot, Is.Null);
+                    else
+                    {
+                        Assert.That(growth.MarkerRoot.parent, Is.EqualTo(assembler.PresentationPivot));
+                        for (var tier = 0; tier < rank; tier++) Assert.That(growth.MarkerRoot.GetChild(tier).name, Is.EqualTo($"Cultivation Tier {tier + 1}"));
+                        foreach (var collider in growth.MarkerRoot.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
+                        Assert.That(growth.MarkerRoot.GetComponentInChildren<Canvas>(true), Is.Null);
+                        Assert.That(growth.MarkerRoot.GetComponentInChildren<Rigidbody>(true), Is.Null);
+                    }
+                    Assert.That(host.transform.position, Is.EqualTo(rootPosition)); Assert.That(host.transform.rotation, Is.EqualTo(rootRotation)); Assert.That(host.transform.localScale, Is.EqualTo(rootScale));
+                }
+
+                Object.DestroyImmediate(growth);
+                Assert.That(assembler.PresentationPivot.Find("Guardian Ent Cultivation") == null, Is.True);
+                growth = host.AddComponent<GuardianEntGrowthPresentation>(); growth.Configure(3);
+                host.GetComponent<Health>().TakeDamage(new DamageInfo(100, null, host.transform.position), 0);
+                Assert.That(growth.MarkerRoot, Is.Null); Assert.That(growth.Rank, Is.EqualTo(3));
+                growth.Clear();
+                Assert.That(growth.MarkerRoot, Is.Null); Assert.That(growth.TierCount, Is.Zero); Assert.That(growth.Rank, Is.Zero);
+                var missingVisualHost = new GameObject("Missing Visual Guardian Ent");
+                try { var missing = missingVisualHost.AddComponent<GuardianEntGrowthPresentation>(); Assert.DoesNotThrow(() => missing.Configure(2)); Assert.That(missing.MarkerRoot, Is.Null); }
+                finally { Object.DestroyImmediate(missingVisualHost); }
+            }
+            finally { Object.DestroyImmediate(recipe); Object.DestroyImmediate(host); }
+        }
+
+        [TestCase(0, "GUARDIAN ENT — UNTENDED")]
+        [TestCase(1, "GUARDIAN ENT — RANK 1/3 • +10% MAX HEALTH")]
+        [TestCase(2, "GUARDIAN ENT — RANK 2/3 • +20% MAX HEALTH")]
+        [TestCase(3, "GUARDIAN ENT — RANK 3/3 • +30% MAX HEALTH")]
+        public void GuardianEntVitalityHudCopy_MapsEachRankTruthfully(int rank, string expected)
+        {
+            Assert.That(DefenderHUD.GuardianEntVitalityCopy(rank), Is.EqualTo(expected));
+            if (rank == 0) Assert.That(DefenderHUD.GuardianEntVitalityCopy(rank), Does.Not.Contain("%"));
+        }
+
+        [Test]
         public void HudPresentation_LoadsTheButtonSpriteAndKeepsItsHudRootListenerFree()
         {
             var hud = new GameObject("HUD Presentation Test");

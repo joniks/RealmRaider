@@ -36,6 +36,7 @@ namespace RealmRaiders.Core
             var invaderStats = CombatStats.BloodKnight; invaderStats.MaxHealth = 220; invaderStats.MoveSpeed = 3.8f;
             var invader = Entity("Invading Blood Knight", new Vector3(0, 1, -30), invaderStats, new Color(.72f, .05f, .07f), false, PrototypeRuntimeFactory.BloodKnightRecipe, .95f);
             var layout = DefenseLayoutSave.Load();
+            var guardianEntRank = RealmProgress.Load().GuardianEntVitalityRank;
             var wolfStats = new CombatStats { MaxHealth = 52, AttackDamage = 9, AttackSpeed = 1.5f, MoveSpeed = 6.5f, Armor = 2, AbilityPower = 4 };
             var defenders = new System.Collections.Generic.List<CombatEntity>();
             CombatEntity ent = null; RootTrap trap = null;
@@ -52,6 +53,7 @@ namespace RealmRaiders.Core
                     var entStats = CombatStats.Ent;
                     entStats.MaxHealth = RealmProgress.GuardianEntMaximumHealth(entStats.MaxHealth);
                     ent = Entity("Guardian Ent", spawnPosition, entStats, new Color(.18f, .43f, .14f), true, PrototypeRuntimeFactory.GuardianEntRecipe, 1.4f);
+                    ent.gameObject.AddComponent<GuardianEntGrowthPresentation>().Configure(guardianEntRank);
                     defenders.Add(ent);
                 }
             }

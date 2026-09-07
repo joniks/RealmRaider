@@ -58,7 +58,7 @@ namespace RealmRaiders.UI
 
     public sealed class DefenderHUD : MonoBehaviour
     {
-        Text state, invaderHealth, entHealth, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus;
+        Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus;
         Image energyFill;
         Button possess, release, smash, slam, activateTrap;
         GameObject resultPanel;
@@ -66,6 +66,7 @@ namespace RealmRaiders.UI
         PossessionEnergy energy;
         DefenseManager defense;
         CombatEntity invader, ent;
+        GuardianEntGrowthPresentation guardianEntGrowth;
         TrapBase trap;
         DefenseHudConfig config;
         bool initialized;
@@ -82,12 +83,16 @@ namespace RealmRaiders.UI
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
         public string RouteStatusText => routeStatus && routeStatus.gameObject.activeSelf ? routeStatus.text : string.Empty;
         public bool RouteStatusRaycastTarget => routeStatus && routeStatus.raycastTarget;
+        public string GuardianEntVitalityText => guardianEntVitality && guardianEntVitality.gameObject.activeSelf ? guardianEntVitality.text : string.Empty;
+        public bool GuardianEntVitalityRaycastTarget => guardianEntVitality && guardianEntVitality.raycastTarget;
+        public RectTransform GuardianEntVitalityRect => guardianEntVitality ? guardianEntVitality.rectTransform : null;
+        public RectTransform DefenderHealthRect => entHealth ? entHealth.rectTransform : null;
         public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
         public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
-            defense = defenseManager; possessionManager = manager; energy = possessionEnergy; invader = raidInvader; ent = defender; trap = rootTrap; config = hudConfig;
+            defense = defenseManager; possessionManager = manager; energy = possessionEnergy; invader = raidInvader; ent = defender; trap = rootTrap; config = hudConfig; guardianEntGrowth = defender ? defender.GetComponent<GuardianEntGrowthPresentation>() : null;
             Build();
             manager.SelectionChanged += OnSelection; manager.PossessionChanged += OnPossession; manager.Released += OnReleased; manager.MomentFeedback += ShowMomentFeedback;
             defenseManager.StateChanged += OnDefenseState; possessionEnergy.Changed += (_, _) => Refresh(); core.ProgressChanged += value => coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
@@ -109,7 +114,7 @@ namespace RealmRaiders.UI
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(true);
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
-            invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
+            invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); ConstrainDefenderHealthLabel(); guardianEntVitality = GuardianEntVitalityLabel(); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
             coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); routeStatus = Label("", new Vector2(0, -445), 24, TextAnchor.UpperCenter); routeStatus.name = "Invader Route Status"; routeStatus.raycastTarget = false; routeStatus.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true);
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
@@ -161,7 +166,10 @@ namespace RealmRaiders.UI
         void HideReleaseNotice() { if (releaseNotice) releaseNotice.gameObject.SetActive(false); }
         void OnDefenseState(DefenseState value)
         {
-            GameplayInput.SetTerminalState(value is DefenseState.DefenderVictory or DefenseState.RealmLost);
+            var terminal = value is DefenseState.DefenderVictory or DefenseState.RealmLost;
+            GameplayInput.SetTerminalState(terminal);
+            guardianEntGrowth?.SetVisible(!terminal);
+            if (guardianEntVitality) guardianEntVitality.gameObject.SetActive(guardianEntGrowth && !terminal);
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); ClearRouteStatus(); }
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
@@ -244,6 +252,41 @@ namespace RealmRaiders.UI
             var player = controlled ? controlled.Controller<PlayerController>() : null;
             var direct = player && player.IsActive && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
             foreach (var button in abilityButtons) button.Refresh(controlled, direct);
+        }
+
+        public static string GuardianEntVitalityCopy(int rank)
+        {
+            rank = Mathf.Clamp(rank, 0, 3);
+            return rank == 0 ? "GUARDIAN ENT — UNTENDED" : $"GUARDIAN ENT — RANK {rank}/3 • +{rank * 10}% MAX HEALTH";
+        }
+
+        Text GuardianEntVitalityLabel()
+        {
+            var go = new GameObject("Guardian Ent Vitality Status", typeof(RectTransform), typeof(Text));
+            go.transform.SetParent(transform, false);
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(1, 1);
+            rect.pivot = new Vector2(1, 1);
+            rect.anchoredPosition = new Vector2(-35, -145);
+            rect.sizeDelta = new Vector2(500, 42);
+            var text = go.GetComponent<Text>();
+            text.text = guardianEntGrowth ? GuardianEntVitalityCopy(guardianEntGrowth.Rank) : string.Empty;
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = 20;
+            text.alignment = TextAnchor.UpperRight;
+            text.color = new Color(.62f, .94f, .58f);
+            text.raycastTarget = false;
+            go.SetActive(guardianEntGrowth);
+            return text;
+        }
+
+        void ConstrainDefenderHealthLabel()
+        {
+            entHealth.name = "Defender Health";
+            var rect = entHealth.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
+            rect.pivot = new Vector2(0, 1);
+            rect.sizeDelta = new Vector2(450, 70);
         }
 
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, bool bottom = false)
