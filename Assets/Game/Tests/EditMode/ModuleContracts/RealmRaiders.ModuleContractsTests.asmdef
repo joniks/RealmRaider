@@ -1,0 +1,9 @@
+{
+  "name": "RealmRaiders.ModuleContractsTests",
+  "rootNamespace": "RealmRaiders.Tests.Modules",
+  "references": ["RealmRaiders.ModuleContracts"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false,
+  "noEngineReferences": true
+}

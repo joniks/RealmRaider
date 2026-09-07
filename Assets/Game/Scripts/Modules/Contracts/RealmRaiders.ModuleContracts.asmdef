@@ -1,0 +1,7 @@
+{
+  "name": "RealmRaiders.ModuleContracts",
+  "rootNamespace": "RealmRaiders.Modules",
+  "references": [],
+  "autoReferenced": false,
+  "noEngineReferences": true
+}

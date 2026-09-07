@@ -642,3 +642,28 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - New upgrades/currencies, stat changes, combat effects, final VFX/shaders/textures/packages, animation/rig work, world UI markers, a new HUD canvas, generic skill trees, new units/traps, or a Build redesign.
+
+## Diamond Pass 09.4 — Module Host Boundary
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added the independent `RealmRaiders.ModuleContracts` assembly under `Assets/Game/Scripts/Modules/Contracts/`. It uses no Unity-engine or game-runtime reference.
+- Defined the first stable package-facing character-catalogue API: body family, a plain entry with stable ID/display name/body family/visual-profile key, and an explicit catalogue provider with module ID.
+- Kept the boundary deliberately passive: there is no package manifest edit, package loading, reflection, automatic registry, scene/object lookup, gameplay type, save, bootstrap, UI, asset, or player-visible change.
+- Added a dedicated EditMode test assembly which references only the contracts assembly and Unity test infrastructure. The existing shared EditMode assembly remains independent of the new boundary.
+- Added `Docs/MODULE_API.md`, documenting one-way dependency rules, explicit later Core integration, and the rule that visual material mapping remains a Core-owned adapter beside `CharacterVisualAssembler`.
+- Added `/.worktrees/` to Git ignore rules so isolated team worktrees cannot accidentally enter the main project commit.
+
+### Verification
+
+- Focused `CharacterCatalogueProvider_ExposesPlainContractEntries`: `1/1` passed.
+- Final EditMode: `43/43` passed, `0` failed.
+- Final PlayMode: `25/25` passed, `0` failed.
+- QA confirmed both contract and dedicated test assemblies have no engine or `RealmRaiders.Runtime` reference. Manual smoke was not required because the change has no player-visible behavior.
+- `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Installing a package, changing `Packages/manifest.json`, automatic discovery, a runtime registry/adapter, moving existing gameplay or visual types, third-party assets, new characters, scene changes, and any player-visible feature.

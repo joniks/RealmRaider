@@ -74,3 +74,6 @@ Desktop.ini
 
 # Local Modules repository until it is linked as a Git submodule
 /RealmRaider.Modules/
+
+# Local isolated Git worktrees used by the team
+/.worktrees/
