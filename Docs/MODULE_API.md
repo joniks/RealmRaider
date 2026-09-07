@@ -31,9 +31,9 @@ These types are data descriptions only. They do not replace or alias current run
 ## Integration sequence
 
 1. Module developer builds and freezes a self-contained package in its own Modules worktree.
-2. Reviewer / QA reviews it. The Architect commits the accepted package in the Modules repository; the user pushes it.
+2. Reviewer / QA reviews it. The Architect commits the accepted package in the Modules repository; the user pushes it. The Architect may then advance the main repository's Git submodule pointer in an explicit staging commit. A Git submodule pointer alone never installs or executes a package.
 3. A separate Core task chooses one known provider explicitly, adds the reviewed package to `Packages/manifest.json`, and writes the narrow adapter required by the existing runtime.
-4. QA verifies that integration in the main Unity project. Only then may the Architect update the main repository's submodule pointer.
+4. QA verifies that integration in the main Unity project before the integration change is committed.
 
 There is no implicit runtime integration before step 3. This keeps an experimental package from changing the playable prototype merely by being present.
 
