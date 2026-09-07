@@ -6,14 +6,15 @@ Last reviewed: 2026-09-07
 
 - Diamond Pass 08.7 Build Plan Readability is present: the fixed five-slot Build screen now shows each lane, role, cost, and a live invader-to-Heart-Tree defense sequence without changing defense rules.
 - Diamond Pass 08.8 Defender Route Readability is present: the defense HUD states the invader's real opening, approach, engagement, and terminal route situation without changing AI or controls.
-- Current Unity Test Runner baseline: EditMode 31/31 and PlayMode 23/23 passed on 2026-09-07.
+- Diamond Pass 08.9 Combat Target Readability is present: the existing awareness system identifies a visible eligible attacker with real health and hands off cleanly to its off-screen direction cue.
+- Current Unity Test Runner baseline: EditMode 32/32 and PlayMode 23/23 passed on 2026-09-07.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
 
 | Milestone | Status | Current implementation |
 | --- | --- | --- |
-| 1. Character Sandbox | Functional greybox | Blood Knight and Ent share combat, movement, abilities, AI, health/death and ability-readiness UI. |
+| 1. Character Sandbox | Functional greybox | Blood Knight and Ent share combat, movement, abilities, AI, health/death, ability-readiness UI and eligible-attacker identification. |
 | 2. Possession | Functional greybox | Keeper selection, same-entity controller swap, camera transition, readable marker/feedback, release and death handling. |
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree, objective compass, ability readiness and raid result. |
 | 4. Keeper Defense | Functional greybox | Brief opening hold, readable live invader route state, manual Root Trap, possessable Guardian Ent and 30-second energy pool. |
@@ -23,7 +24,7 @@ Last reviewed: 2026-09-07
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 31/31 and PlayMode 23/23 on 2026-09-07.
+- Current verified baseline: EditMode 32/32 and PlayMode 23/23 on 2026-09-07.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

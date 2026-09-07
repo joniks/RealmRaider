@@ -295,7 +295,7 @@ namespace RealmRaiders.Tests
             try
             {
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
-                threatDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                threatDefinition.DisplayName = "Test Attacker"; threatDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
                 var player = playerObject.GetComponent<CombatEntity>(); var threat = threatObject.GetComponent<CombatEntity>();
                 player.Initialize(definition); threat.Initialize(threatDefinition);
                 var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat);
@@ -306,30 +306,43 @@ namespace RealmRaiders.Tests
                 var awareness = cameraObject.GetComponent<CombatCameraAwareness>(); awareness.SetControlled(player);
                 var brain = threatObject.GetComponent<CreatureBrain>(); brain.DetectionRange = 14f; threat.SetController(brain);
 
-                // Keep both off-screen points symmetric around a fixed test camera pose.
+                // Keep both points behind the camera: their off-screen state is independent of the runner's aspect ratio.
                 var pointAhead = testView.transform.position + testView.transform.forward * 10f;
-                var rightEdge = pointAhead + testView.transform.right * 10f;
-                threatObject.transform.position = rightEdge; brain.Target = player; brain.Tick();
-                // Awareness updates its indicator in LateUpdate, so assert after that phase.
-                yield return new WaitForEndOfFrame();
+                var behindPoint = testView.transform.position - testView.transform.forward * 2f;
+                var rightEdge = behindPoint + testView.transform.right * 5f;
+                threatObject.transform.position = rightEdge; Physics.SyncTransforms(); brain.Target = player; brain.Tick();
+                awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(brain.State, Is.EqualTo(BrainState.Chase).Or.EqualTo(BrainState.Attack));
                 Assert.That(awareness.HasEligibleThreat, Is.True);
                 Assert.That(rig.HasRequestedCombatFocus, Is.True);
                 Assert.That(CombatCameraAwareness.IndicatorDirectionFor(new Vector3(1.1f, .5f, 1), Vector3.right, Vector3.right), Is.EqualTo(1));
                 var indicator = cameraObject.GetComponentInChildren<UnityEngine.UI.Text>(true);
                 Assert.That(indicator, Is.Not.Null); Assert.That(indicator.raycastTarget, Is.False);
-                Assert.That(cameraObject.GetComponentsInChildren<UnityEngine.UI.Text>(true), Has.Length.EqualTo(1));
+                Assert.That(awareness.IndicatorVisible, Is.True);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
+                Assert.That(cameraObject.GetComponentsInChildren<UnityEngine.UI.Text>(true), Has.Length.EqualTo(2));
+                Assert.That(cameraObject.GetComponentsInChildren<Canvas>(true), Has.Length.EqualTo(1));
+                Assert.That(cameraObject.GetComponentsInChildren<EventSystem>(true), Is.Empty);
+                Assert.That(cameraObject.GetComponentsInChildren<AudioListener>(true), Has.Length.EqualTo(1));
+
+                threatObject.transform.position = pointAhead; Physics.SyncTransforms(); brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateVisible, Is.True);
+                Assert.That(awareness.TargetPlateRaycastTarget, Is.False);
+                Assert.That(awareness.TargetPlateText, Is.EqualTo("ATTACKER  TEST ATTACKER  100/100 HP"));
+                threat.Health.TakeDamage(new DamageInfo(20, playerObject, threatObject.transform.position), 0);
+                awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.TargetPlateText, Is.EqualTo("ATTACKER  TEST ATTACKER  80/100 HP"));
 
                 brain.Target = null; brain.Tick();
-                yield return new WaitForEndOfFrame();
-                var leftEdge = pointAhead - testView.transform.right * 10f;
-                threatObject.transform.position = leftEdge; brain.Target = player; brain.Tick();
-                yield return new WaitForEndOfFrame();
+                var leftEdge = behindPoint - testView.transform.right * 5f;
+                threatObject.transform.position = leftEdge; Physics.SyncTransforms(); brain.Target = player; brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(awareness.HasEligibleThreat, Is.True);
                 Assert.That(CombatCameraAwareness.IndicatorDirectionFor(new Vector3(-.1f, .5f, 1), Vector3.right, -Vector3.right), Is.EqualTo(-1));
+                Assert.That(awareness.IndicatorVisible, Is.True);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
 
-                threatObject.transform.position = playerObject.transform.position + Vector3.forward * 2f; brain.Tick();
-                yield return new WaitForEndOfFrame();
+                threatObject.transform.position = playerObject.transform.position + Vector3.forward * 2f; Physics.SyncTransforms(); brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(brain.State, Is.EqualTo(BrainState.Attack));
                 Assert.That(awareness.HasEligibleThreat, Is.True);
 
@@ -337,21 +350,22 @@ namespace RealmRaiders.Tests
                 yield return new WaitForEndOfFrame();
                 Assert.That(awareness.HasEligibleThreat, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
                 Assert.That(rig.HasCombatFocus, Is.False);
 
-                rightEdge = pointAhead + testView.transform.right * 10f;
-                threatObject.transform.position = rightEdge; brain.Target = player; brain.Tick();
-                yield return new WaitForEndOfFrame();
-                GameplayInput.SetTerminalState(true); yield return new WaitForEndOfFrame();
+                rightEdge = behindPoint + testView.transform.right * 5f;
+                threatObject.transform.position = rightEdge; Physics.SyncTransforms(); brain.Target = player; brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                GameplayInput.SetTerminalState(true); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(awareness.HasEligibleThreat, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
                 GameplayInput.SetTerminalState(false);
 
-                brain.Target = null; brain.Tick(); brain.Target = player; brain.Tick();
-                yield return new WaitForEndOfFrame();
-                player.SetController(null); yield return new WaitForEndOfFrame();
+                brain.Target = null; brain.Tick(); brain.Target = player; brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                player.SetController(null);
                 Assert.That(awareness.HasEligibleThreat, Is.False);
                 Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateVisible, Is.False);
                 Assert.That(rig.HasCombatFocus, Is.False);
             }
             finally { GameplayInput.SetTerminalState(false); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(definition); Object.Destroy(threatDefinition); }

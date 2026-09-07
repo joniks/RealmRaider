@@ -509,3 +509,31 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - A minimap/radar, world markers, automatic camera focus, target lock, AI/pathfinding/balance changes, additional defenders/traps, tutorial/progression, new scenes/assets/packages, or a general HUD redesign.
+
+## Diamond Pass 08.9 — Combat Target Readability
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Completed the existing combat-awareness presentation pair without changing its threat rules: a visible eligible attacker now receives a compact `ATTACKER  NAME  current/max HP` plate, while an off-screen attacker retains the existing directional `ATTACKER` arrow.
+- Reused the existing eligible threat, relevance lifetime, camera awareness, and scene-local Canvas. No new target-selection system, Canvas, EventSystem, AudioListener, scene scan, or health authority was added.
+- The plate uses the real display name and health, follows camera projection inside the device safe area, and is non-interactive. It hides before the off-screen arrow appears, so the two signals never compete.
+- Plate text is cached and rebuilds only when the target or its displayed health changes. Threat replacement, death, range/intent expiry, terminal state, controller release, disable, and scene cleanup clear it through the existing awareness lifecycle.
+- Camera bias, AI, damage/timing, movement, possession, objective compass, HUDs, and mobile controls remain unchanged; this is not lock-on, aim assist, or automatic combat.
+
+### Verification
+
+- Focused combat-awareness PlayMode test: `1/1` passed on 2026-09-07.
+- EditMode: `32/32` passed, `0` failed on 2026-09-07.
+- PlayMode: `23/23` passed, `0` failed on 2026-09-07.
+- Coverage proves visible/off-screen mutual exclusion, real name/health update, safe-area anchors in portrait and landscape, terminal/intent/controller cleanup, non-raycast presentation, and no extra Canvas/EventSystem/AudioListener.
+- Unity compiled without C# errors or new runtime exceptions; `git diff --check` passes.
+
+### Remaining player feel check
+
+- Unity Game View could not be started by the UI automation, so no manual smoke is claimed. On Android, bring a nearby attacker into view, damage it once, let it leave the frame, and confirm the quiet plate → directional arrow handoff is informative but not distracting in both orientations.
+
+### Scope intentionally deferred
+
+- Hard target lock, reticle/aim assist, auto-attack, new combat stats or health mechanics, minimap/radar, new camera behavior, VFX/audio/haptics, assets/packages/scenes, or a wider UI redesign.

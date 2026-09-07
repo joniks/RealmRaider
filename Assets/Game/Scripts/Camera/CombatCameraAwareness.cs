@@ -1,3 +1,4 @@
+using System;
 using RealmRaiders.AI;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
@@ -22,8 +23,15 @@ namespace RealmRaiders.CameraSystem
         CombatEntity threat;
         float threatReportedAt = float.NegativeInfinity;
         Text indicator;
+        Text targetPlate;
+        CombatEntity displayedPlateTarget;
+        float displayedPlateHealth = float.NaN;
+        float displayedPlateMaximum = float.NaN;
 
         public bool IndicatorVisible => indicator && indicator.gameObject.activeSelf;
+        public bool TargetPlateVisible => targetPlate && targetPlate.gameObject.activeSelf;
+        public bool TargetPlateRaycastTarget => targetPlate && targetPlate.raycastTarget;
+        public string TargetPlateText => TargetPlateVisible ? targetPlate.text : string.Empty;
         public int IndicatorDirection { get; private set; }
         public bool HasEligibleThreat => IsEligible(threat);
 
@@ -120,7 +128,8 @@ namespace RealmRaiders.CameraSystem
             var viewport = view.WorldToViewportPoint(threat.transform.position + Vector3.up);
             bool offScreen = viewport.z <= 0 || viewport.x < .04f || viewport.x > .96f || viewport.y < .04f || viewport.y > .96f;
             indicator.gameObject.SetActive(offScreen);
-            if (!offScreen) return;
+            if (!offScreen) { UpdateTargetPlate(viewport); return; }
+            ClearTargetPlate();
             IndicatorDirection = IndicatorDirectionFor(viewport, view.transform.right, threat.transform.position - view.transform.position);
             indicator.text = IndicatorDirection < 0 ? "◀  ATTACKER" : "ATTACKER  ▶";
             var rect = indicator.rectTransform;
@@ -129,6 +138,39 @@ namespace RealmRaiders.CameraSystem
             rect.anchorMin = rect.anchorMax = new Vector2(safeEdge, .54f);
             rect.pivot = new Vector2(IndicatorDirection < 0 ? 0 : 1, .5f);
             rect.anchoredPosition = new Vector2(IndicatorDirection < 0 ? 34 : -34, 0);
+        }
+
+        void UpdateTargetPlate(Vector3 viewport)
+        {
+            if (!targetPlate) return;
+            var health = threat.Health.Current;
+            var maximum = threat.Health.Maximum;
+            if (displayedPlateTarget != threat || !Mathf.Approximately(displayedPlateHealth, health) || !Mathf.Approximately(displayedPlateMaximum, maximum))
+            {
+                var displayName = threat.Definition && !string.IsNullOrWhiteSpace(threat.Definition.DisplayName) ? threat.Definition.DisplayName : threat.name;
+                targetPlate.text = $"ATTACKER  {displayName.ToUpperInvariant()}  {health:0}/{maximum:0} HP";
+                displayedPlateTarget = threat;
+                displayedPlateHealth = health;
+                displayedPlateMaximum = maximum;
+            }
+            var anchor = TargetPlateAnchorFor(viewport, Screen.safeArea, new Vector2(Screen.width, Screen.height));
+            var rect = targetPlate.rectTransform;
+            rect.anchorMin = rect.anchorMax = anchor;
+            rect.pivot = new Vector2(.5f, 0);
+            rect.anchoredPosition = new Vector2(0, 28);
+            targetPlate.gameObject.SetActive(true);
+        }
+
+        /// <summary>Clamps a visible threat annotation inside the device safe area without changing its target.</summary>
+        public static Vector2 TargetPlateAnchorFor(Vector3 viewport, Rect safeAreaPixels, Vector2 screenSize)
+        {
+            var width = Mathf.Max(1, screenSize.x);
+            var height = Mathf.Max(1, screenSize.y);
+            var safeMin = new Vector2(safeAreaPixels.xMin / width, safeAreaPixels.yMin / height);
+            var safeMax = new Vector2(safeAreaPixels.xMax / width, safeAreaPixels.yMax / height);
+            const float horizontalMargin = .17f;
+            const float verticalMargin = .06f;
+            return new Vector2(Mathf.Clamp(viewport.x, safeMin.x + horizontalMargin, safeMax.x - horizontalMargin), Mathf.Clamp(viewport.y, safeMin.y + verticalMargin, safeMax.y - verticalMargin));
         }
 
         /// <summary>Maps a projected off-screen threat to its visible horizontal edge.</summary>
@@ -147,7 +189,16 @@ namespace RealmRaiders.CameraSystem
         {
             threat = null; threatReportedAt = float.NegativeInfinity; IndicatorDirection = 0;
             if (indicator) indicator.gameObject.SetActive(false);
+            ClearTargetPlate();
             if (rig) rig.ClearCombatFocus();
+        }
+
+        void ClearTargetPlate()
+        {
+            displayedPlateTarget = null;
+            displayedPlateHealth = float.NaN;
+            displayedPlateMaximum = float.NaN;
+            if (targetPlate) targetPlate.gameObject.SetActive(false);
         }
 
         void OnDisable() { CreatureBrain.HostileIntentChanged -= ObserveHostileIntent; ClearThreat(); }
@@ -167,6 +218,9 @@ namespace RealmRaiders.CameraSystem
             var label = new GameObject("Threat Direction", typeof(RectTransform), typeof(Text)); label.transform.SetParent(canvas.transform, false);
             indicator = label.GetComponent<Text>(); indicator.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); indicator.fontSize = 30; indicator.fontStyle = FontStyle.Bold; indicator.alignment = TextAnchor.MiddleCenter; indicator.color = new Color(1f, .72f, .2f, .96f); indicator.raycastTarget = false;
             indicator.rectTransform.sizeDelta = new Vector2(245, 66); indicator.gameObject.SetActive(false);
+            var plate = new GameObject("Threat Target Plate", typeof(RectTransform), typeof(Text)); plate.transform.SetParent(canvas.transform, false);
+            targetPlate = plate.GetComponent<Text>(); targetPlate.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); targetPlate.fontSize = 24; targetPlate.fontStyle = FontStyle.Bold; targetPlate.alignment = TextAnchor.MiddleCenter; targetPlate.color = new Color(1f, .9f, .55f, .96f); targetPlate.raycastTarget = false;
+            targetPlate.rectTransform.sizeDelta = new Vector2(340, 58); targetPlate.gameObject.SetActive(false);
         }
     }
 }
