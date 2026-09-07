@@ -57,6 +57,8 @@ namespace RealmRaiders.UI
             foreach (var button in buttons)
             {
                 var buttonRect = (RectTransform)button.transform; if (!original.ContainsKey(buttonRect)) continue;
+                // RaidHUD owns the deliberate result-panel action lane; only its live combat actions use the shared reflow.
+                if (GetComponent<RaidHUD>() && button.transform.parent != transform) continue;
                 if (orientation == PrototypeOrientation.Landscape) { buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(1, 0); buttonRect.pivot = new Vector2(1, 0); buttonRect.anchoredPosition = new Vector2(LandscapeButtonX(button.name), LandscapeButtonY(button.name, index++)); }
                 else { var value = original[buttonRect]; buttonRect.anchorMin = value.min; buttonRect.anchorMax = value.max; buttonRect.pivot = value.pivot; buttonRect.anchoredPosition = value.position; }
             }

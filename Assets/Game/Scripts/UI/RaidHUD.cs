@@ -10,8 +10,13 @@ namespace RealmRaiders.UI
 {
     public sealed class RaidHUD : MonoBehaviour
     {
+        public const string PlanNextDefenseAction = "PLAN NEXT DEFENSE";
+        public const string PlanNextDefenseScene = "RealmBuild";
         Text state, health, stats, objective, result, rootPrompt, objectiveCompass;
         GameObject resultPanel;
+        RectTransform resultRect;
+        Button planNextDefense, raidAgain, realmHub;
+        ResponsiveHudRoot responsive;
         CombatEntity hero;
         RaidManager raid;
         RealmCore core;
@@ -24,6 +29,8 @@ namespace RealmRaiders.UI
         public bool ObjectiveCompassVisible => objectiveCompass && objectiveCompass.gameObject.activeSelf;
         public int ObjectiveCompassDirection => compassDirection;
         public bool ObjectiveCompassRaycastTarget => objectiveCompass && objectiveCompass.raycastTarget;
+        public bool ResultPanelVisible => resultPanel && resultPanel.activeSelf;
+        public string ResultText => result ? result.text : string.Empty;
         public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
         public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
 
@@ -33,6 +40,22 @@ namespace RealmRaiders.UI
             manager.StateChanged += OnState; manager.Finished += ShowResult;
             hero.Health.Changed += (_, _) => Refresh();
             Refresh(); OnState(manager.State);
+        }
+
+        public static string ResultActionDestination(string action) => action switch
+        {
+            PlanNextDefenseAction => PlanNextDefenseScene,
+            "RAID AGAIN" => "SylvanRealm",
+            "MY REALM" => "PrototypeHub",
+            _ => string.Empty
+        };
+
+        public static string ResultCopy(RaidResult value)
+        {
+            var outcome = value.Victory
+                ? "VICTORY\n\nThe Heart Tree fell. Return to your Realm and plan the next defense."
+                : "DEFEAT\n\nRevise the next defense, or try this raid again.";
+            return $"{outcome}\n\nGold collected: {value.Gold}\nRare materials: {value.RareMaterials}\nEnemies defeated: {value.EnemiesDefeated}\nRooms discovered: {value.RoomsDiscovered}\nRaid duration: {value.Duration:0}s\nCore reached: {(value.CoreReached ? "yes" : "no")}";
         }
 
         void Update()
@@ -54,7 +77,7 @@ namespace RealmRaiders.UI
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920);
-            gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(true);
+            gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyResultLayout; responsive.Initialize(true);
             state = Label("SYLVAN RAID", new Vector2(0, -40), 38, TextAnchor.UpperCenter);
             health = Label("", new Vector2(35, -105), 28, TextAnchor.UpperLeft);
             stats = Label("", new Vector2(35, -150), 25, TextAnchor.UpperLeft);
@@ -71,11 +94,39 @@ namespace RealmRaiders.UI
             resultPanel = new GameObject("Raid Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false);
             var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .24f); rect.anchorMax = new Vector2(.92f, .76f); rect.offsetMin = rect.offsetMax = Vector2.zero;
             resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
-            result = Label("", new Vector2(0, -560), 32, TextAnchor.UpperCenter); result.transform.SetParent(resultPanel.transform, false); var resultRect = (RectTransform)result.transform; resultRect.anchorMin = new Vector2(0, 1); resultRect.anchorMax = new Vector2(1, 1); resultRect.anchoredPosition = new Vector2(0, -55); resultRect.sizeDelta = new Vector2(0, 430);
-            var again = Button("RAID AGAIN", new Vector2(0, 170), () => SceneManager.LoadScene("SylvanRealm")); again.transform.SetParent(resultPanel.transform, false);
-            var back = Button("CHARACTER SANDBOX", new Vector2(0, 55), () => SceneManager.LoadScene("CharacterSandbox")); back.transform.SetParent(resultPanel.transform, false);
-            var hub = Button("MY REALM", new Vector2(0, -60), () => SceneManager.LoadScene("PrototypeHub")); hub.transform.SetParent(resultPanel.transform, false);
+            result = Label("", new Vector2(0, -560), 32, TextAnchor.UpperCenter); result.transform.SetParent(resultPanel.transform, false); resultRect = (RectTransform)result.transform;
+            planNextDefense = Button(PlanNextDefenseAction, Vector2.zero, () => SceneManager.LoadScene(PlanNextDefenseScene)); planNextDefense.transform.SetParent(resultPanel.transform, false); planNextDefense.GetComponent<Image>().color = new Color(.24f, .58f, .25f, .98f); ((RectTransform)planNextDefense.transform).sizeDelta = new Vector2(280, 100);
+            raidAgain = Button("RAID AGAIN", Vector2.zero, () => SceneManager.LoadScene("SylvanRealm")); raidAgain.transform.SetParent(resultPanel.transform, false);
+            realmHub = Button("MY REALM", Vector2.zero, () => SceneManager.LoadScene("PrototypeHub")); realmHub.transform.SetParent(resultPanel.transform, false);
+            ApplyResultLayout(responsive.Orientation);
             resultPanel.SetActive(false);
+        }
+
+        void ApplyResultLayout(PrototypeOrientation orientation)
+        {
+            if (!resultPanel || !resultRect || !planNextDefense || !raidAgain || !realmHub) return;
+            var panelRect = (RectTransform)resultPanel.transform;
+            panelRect.anchorMin = orientation == PrototypeOrientation.Landscape ? new Vector2(.08f, .1f) : new Vector2(.08f, .18f);
+            panelRect.anchorMax = orientation == PrototypeOrientation.Landscape ? new Vector2(.92f, .9f) : new Vector2(.92f, .82f);
+            if (orientation == PrototypeOrientation.Landscape)
+            {
+                resultRect.anchorMin = new Vector2(0, 1); resultRect.anchorMax = new Vector2(.62f, 1); resultRect.pivot = new Vector2(.5f, 1); resultRect.anchoredPosition = new Vector2(0, -48); resultRect.sizeDelta = new Vector2(0, 500); result.alignment = TextAnchor.UpperLeft;
+                PlaceResultAction(planNextDefense, new Vector2(.82f, .5f), new Vector2(0, 135));
+                PlaceResultAction(raidAgain, new Vector2(.82f, .5f), Vector2.zero);
+                PlaceResultAction(realmHub, new Vector2(.82f, .5f), new Vector2(0, -135));
+            }
+            else
+            {
+                resultRect.anchorMin = new Vector2(0, 1); resultRect.anchorMax = new Vector2(1, 1); resultRect.pivot = new Vector2(.5f, 1); resultRect.anchoredPosition = new Vector2(0, -55); resultRect.sizeDelta = new Vector2(0, 470); result.alignment = TextAnchor.UpperCenter;
+                PlaceResultAction(planNextDefense, new Vector2(.5f, 0), new Vector2(0, 265));
+                PlaceResultAction(raidAgain, new Vector2(.5f, 0), new Vector2(0, 155));
+                PlaceResultAction(realmHub, new Vector2(.5f, 0), new Vector2(0, 50));
+            }
+        }
+
+        static void PlaceResultAction(Button button, Vector2 anchor, Vector2 position)
+        {
+            var rect = (RectTransform)button.transform; rect.anchorMin = rect.anchorMax = anchor; rect.pivot = new Vector2(.5f, .5f); rect.anchoredPosition = position;
         }
 
         void Ability(int index) => hero.Controller<PlayerController>()?.UseAbility(index);
@@ -99,7 +150,7 @@ namespace RealmRaiders.UI
             SetCompassVisible(false);
             resultPanel.SetActive(true);
             presentation?.PlayResult();
-            result.text = $"{(value.Victory ? "VICTORY" : "DEFEAT")}\n\nGold collected: {value.Gold}\nRare materials: {value.RareMaterials}\nEnemies defeated: {value.EnemiesDefeated}\nRooms discovered: {value.RoomsDiscovered}\nRaid duration: {value.Duration:0}s\nCore reached: {(value.CoreReached ? "yes" : "no")}";
+            result.text = ResultCopy(value);
         }
 
         void UpdateObjectiveCompass()
@@ -132,6 +183,7 @@ namespace RealmRaiders.UI
         void OnDestroy()
         {
             if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; }
+            if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
         }
 
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, bool bottom = false)

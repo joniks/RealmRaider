@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using RealmRaiders.CameraSystem;
+using RealmRaiders.Raid;
 using RealmRaiders.UI;
 using UnityEditor;
 using UnityEngine;
@@ -46,6 +47,19 @@ namespace RealmRaiders.Tests
             var landscape = CombatCameraAwareness.TargetPlateAnchorFor(new Vector3(-.2f, 1.2f, 1), landscapeSafe, new Vector2(1920, 1080));
             Assert.That(landscape.x, Is.InRange(landscapeSafe.xMin / 1920f + .17f, landscapeSafe.xMax / 1920f - .17f));
             Assert.That(landscape.y, Is.InRange(landscapeSafe.yMin / 1080f + .06f, landscapeSafe.yMax / 1080f - .06f));
+        }
+
+        [Test]
+        public void RaidResultCopyRetainsActualValuesAndKeepsLoopRoutesHonest()
+        {
+            var victory = new RaidResult(true, 115, 2, 4, 3, 46.8f, true);
+            var defeat = new RaidResult(false, 25, 0, 1, 2, 18.2f, false);
+
+            Assert.That(RaidHUD.ResultCopy(victory), Does.Contain("The Heart Tree fell").And.Contain("115").And.Contain("2").And.Contain("4").And.Contain("3").And.Contain("47s").And.Contain("yes"));
+            Assert.That(RaidHUD.ResultCopy(defeat), Does.Contain("Revise the next defense").And.Contain("25").And.Contain("0").And.Contain("1").And.Contain("2").And.Contain("18s").And.Contain("no"));
+            Assert.That(RaidHUD.ResultActionDestination(RaidHUD.PlanNextDefenseAction), Is.EqualTo("RealmBuild"));
+            Assert.That(RaidHUD.ResultActionDestination("RAID AGAIN"), Is.EqualTo("SylvanRealm"));
+            Assert.That(RaidHUD.ResultActionDestination("MY REALM"), Is.EqualTo("PrototypeHub"));
         }
     }
 }

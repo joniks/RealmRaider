@@ -537,3 +537,27 @@ Completed on 2026-09-07; include this record with the next project commit.
 ### Scope intentionally deferred
 
 - Hard target lock, reticle/aim assist, auto-attack, new combat stats or health mechanics, minimap/radar, new camera behavior, VFX/audio/haptics, assets/packages/scenes, or a wider UI redesign.
+
+## Diamond Pass 09.0 — Raid Loop Closure
+
+Completed on 2026-09-07; include this record with the next project commit.
+
+### Delivered
+
+- Raid Result now presents the actual victory or defeat outcome in player language while retaining every real result value: Gold, Rare Materials, enemies defeated, rooms discovered, duration, and core result.
+- Added the primary `PLAN NEXT DEFENSE` result action. It loads the existing `RealmBuild` scene for both victory and defeat, completing the prototype's Build → Defense → Raid → Build loop without introducing a progression or economy system.
+- Retained `RAID AGAIN` and `MY REALM`; Character Sandbox remains accessible through the Hub instead of occupying a primary post-raid slot.
+- Gave the result panel its own deliberate action lane: a vertical, compact portrait stack and a landscape side lane beside the result copy. The normal live-combat HUD reflow leaves these terminal actions intact.
+- Raid state/timing, reward calculation, capture/combat/fog/camera/control behavior, existing result audio, scene IDs, and saved Build layout behavior are unchanged.
+
+### Verification
+
+- Focused Raid Result PlayMode test: `1/1` passed on 2026-09-07.
+- EditMode: `33/33` passed, `0` failed on 2026-09-07.
+- PlayMode: `24/24` passed, `0` failed on 2026-09-07.
+- Coverage proves factual victory/defeat copy, all three result routes, `PLAN NEXT DEFENSE` loading the real Build HUD, normal pointer ownership, one Canvas/EventSystem/AudioListener, and portrait/landscape action containment with no overlap.
+- Manual Play check opened RealmBuild and confirmed the Build HUD after the result-loop implementation. Full manual raid-result playthrough remains covered by the deterministic PlayMode scenario rather than claimed as observed. Console had no new C# errors, `NullReferenceException`, or runtime exception; `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Persistent rewards/currencies, upgrades, progression, achievements, analytics, tutorial state, reward-number changes, new scenes/assets/packages, or a wider result-screen redesign.

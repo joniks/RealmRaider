@@ -12,6 +12,7 @@ using RealmRaiders.Core;
 using RealmRaiders.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace RealmRaiders.Tests
@@ -520,6 +521,65 @@ namespace RealmRaiders.Tests
                 GameplayInput.SetTerminalState(false);
                 Object.Destroy(hudObject); Object.Destroy(raidObject); Object.Destroy(coreObject); Object.Destroy(heroObject); Object.Destroy(cameraObject); Object.Destroy(definition);
             }
+        }
+
+        [UnityTest]
+        public IEnumerator RaidResult_PlanNextDefenseClosesLoopWithoutPresentationArtifacts()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener)); cameraObject.tag = "MainCamera";
+            var eventSystemObject = new GameObject("Event System", typeof(EventSystem));
+            var heroObject = new GameObject("Raid Hero", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var coreObject = new GameObject("Heart Tree", typeof(RealmCore));
+            var raidObject = new GameObject("Raid Manager", typeof(RaidManager));
+            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD));
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var initialCanvasCount = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
+            var initialEventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
+            var initialListenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+            try
+            {
+                definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
+                var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition);
+                var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
+                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, System.Array.Empty<RealmNodeView>(), System.Array.Empty<CombatEntity>());
+                var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(raid, hero, core, cameraObject.GetComponent<Camera>());
+                hud.SendMessage("ShowResult", new RaidResult(true, 115, 2, 4, 3, 46.8f, true), SendMessageOptions.RequireReceiver);
+                yield return null;
+
+                Assert.That(hud.ResultPanelVisible, Is.True);
+                Assert.That(hud.ResultText, Does.Contain("The Heart Tree fell").And.Contain("115").And.Contain("2").And.Contain("4").And.Contain("3").And.Contain("47s").And.Contain("yes"));
+                var actions = new[] { GameObject.Find(RaidHUD.PlanNextDefenseAction).GetComponent<UnityEngine.UI.Button>(), GameObject.Find("RAID AGAIN").GetComponent<UnityEngine.UI.Button>(), GameObject.Find("MY REALM").GetComponent<UnityEngine.UI.Button>() };
+                foreach (var action in actions) Assert.That(action.GetComponent<UiPointerOwnership>(), Is.Not.Null);
+                Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(initialCanvasCount + 1));
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(initialEventSystemCount));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(initialListenerCount));
+
+                var root = hud.GetComponent<ResponsiveHudRoot>();
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertResultActionsClear((RectTransform)GameObject.Find("Raid Result").transform, actions);
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertResultActionsClear((RectTransform)GameObject.Find("Raid Result").transform, actions);
+
+                actions[0].onClick.Invoke();
+                yield return null; yield return null;
+                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo(RaidHUD.PlanNextDefenseScene));
+                Assert.That(Object.FindFirstObjectByType<BuildHUD>(), Is.Not.Null);
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                Object.Destroy(hudObject); Object.Destroy(raidObject); Object.Destroy(coreObject); Object.Destroy(heroObject); Object.Destroy(eventSystemObject); Object.Destroy(cameraObject); Object.Destroy(definition);
+            }
+        }
+
+        static void AssertResultActionsClear(RectTransform panel, UnityEngine.UI.Button[] actions)
+        {
+            var rectangles = new Rect[actions.Length];
+            for (var i = 0; i < actions.Length; i++)
+            {
+                var corners = new Vector3[4]; ((RectTransform)actions[i].transform).GetWorldCorners(corners);
+                var min = panel.InverseTransformPoint(corners[0]); var max = panel.InverseTransformPoint(corners[2]); rectangles[i] = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+                Assert.That(panel.rect.Contains(rectangles[i].min) && panel.rect.Contains(rectangles[i].max), Is.True, $"Result action outside panel: {actions[i].name}");
+            }
+            for (var i = 0; i < rectangles.Length; i++) for (var j = i + 1; j < rectangles.Length; j++) Assert.That(rectangles[i].Overlaps(rectangles[j]), Is.False, $"Result actions overlap: {actions[i].name}/{actions[j].name}");
         }
     }
 }
