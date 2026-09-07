@@ -15,7 +15,8 @@ Last reviewed: 2026-09-08
 - Diamond Pass 09.5 Visual-Tuning Package Wiring is present: the reviewed local visual-tuning package is resolved through the pinned Modules submodule, while remaining unused by runtime presentation.
 - Module Pass MCT 01 Starter Character Catalogue is staged in the pinned Modules submodule: it describes the five starter characters through the passive contracts boundary, but is intentionally not yet installed or consumed by runtime presentation.
 - Diamond Pass 09.6 Dodge: Player Escape is present: direct-controlled characters have a narrow, collision-aware escape with explicit 0.18-second damage immunity and lifecycle-safe cleanup; AI behavior remains unchanged.
-- Current Unity Test Runner baseline: EditMode 46/46 and PlayMode 28/28 passed on 2026-09-08.
+- Module Pass MVT 02 Starter Creature Visual Profiles is present in the installed tuning package: four mobile-budgeted design profiles are validated but deliberately unconsumed by runtime presentation.
+- Current Unity Test Runner baseline: EditMode 48/48 and PlayMode 28/28 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -32,7 +33,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 46/46 and PlayMode 28/28 on 2026-09-08.
+- Current verified baseline: EditMode 48/48 and PlayMode 28/28 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

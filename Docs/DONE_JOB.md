@@ -733,3 +733,25 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Dodge upgrades, stamina, input buffers, AI dodges, i-frame stacking, aim assist, lock-on, haptics, new attacks, new scenes/assets/packages, or changes to combat damage/AI balance.
+
+## Module Pass MVT 02 — Starter Creature Visual Profiles
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Extended the installed pure-data visual-tuning package with four explicit profiles matching the passive starter catalogue: Guardian Ent, Sylvan Wolf, Infernal Brute, and Hellhound.
+- Each profile has a stable key, no-op presentation transform, distinct material-direction roles, and intentionally lean Android ceilings: one material and texture per creature; `4,000` triangles for Ent/Brute and `1,800` for Wolf/Hellhound.
+- The profiles provide art direction only. They contain no textures, models, prefabs, material mapping, discovery, registration, scene lookup, or runtime mutation.
+- Added a separate Modules research brief that shortlists three direct-source CC0 environment candidates for later user choice. It explicitly records `NOT DOWNLOADED / NOT APPROVED`; no asset or licence record was added to the game.
+
+### Verification
+
+- QA accepted static package isolation and source provenance boundaries before integration.
+- Focused `StarterCreatureVisualProfilesTests`: `2/2` passed; the existing visual-tuning tests remained present in the package assembly.
+- Final EditMode: `48/48` passed, `0` failed. Final PlayMode: `28/28` passed, `0` failed.
+- Unity retained the local pinned package resolver and Console reported `0` warnings and `0` errors. `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Runtime profile lookup/application, material-role adapter work, model/texture intake, new art licences, visual changes, assets, scenes, gameplay, UI, save behavior, or automated module discovery.
