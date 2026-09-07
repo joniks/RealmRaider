@@ -16,7 +16,8 @@ Last reviewed: 2026-09-08
 - Module Pass MCT 01 Starter Character Catalogue is staged in the pinned Modules submodule: it describes the five starter characters through the passive contracts boundary, but is intentionally not yet installed or consumed by runtime presentation.
 - Diamond Pass 09.6 Dodge: Player Escape is present: direct-controlled characters have a narrow, collision-aware escape with explicit 0.18-second damage immunity and lifecycle-safe cleanup; AI behavior remains unchanged.
 - Module Pass MVT 02 Starter Creature Visual Profiles is present in the installed tuning package: four mobile-budgeted design profiles are validated but deliberately unconsumed by runtime presentation.
-- Current Unity Test Runner baseline: EditMode 48/48 and PlayMode 28/28 passed on 2026-09-08.
+- Diamond Pass 09.7 Infernal Flame Trap Identity is present: the Keeper manually ignites the invader for three separate eight-damage pulses without root or slow, while the HUD truthfully exposes the active burn and cooldown.
+- Current Unity Test Runner baseline: EditMode 48/48 and PlayMode 33/33 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -27,13 +28,13 @@ Last reviewed: 2026-09-08
 | 2. Possession | Functional greybox | Keeper selection, same-entity controller swap, camera transition, readable marker/feedback, release and death handling. |
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree, objective compass, ability readiness and result-to-Build loop closure. |
 | 4. Keeper Defense | Functional greybox | Brief opening hold, readable live invader route state, manual Root Trap, possessable Guardian Ent with persistent three-rank vitality and a visual growth signal, plus 30-second energy pool. |
-| 5. Infernal Realm | Functional greybox | Brute, Hellhounds, Flame Trap, Lava Gate and Infernal Heart defense. |
+| 5. Infernal Realm | Functional greybox | Brute, Hellhounds, a manual three-pulse Flame Trap without control effects, Lava Gate and Infernal Heart defense. |
 | Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route and current read-only Realm Stores while retaining prototype-scene access. |
 | Build Plan | Functional greybox | Fixed five-slot defense configuration with live lane/role/cost copy, one capped Ent-vitality investment using earned local stores, and a non-interactive invader-to-Heart-Tree plan. |
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 48/48 and PlayMode 28/28 on 2026-09-08.
+- Current verified baseline: EditMode 48/48 and PlayMode 33/33 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

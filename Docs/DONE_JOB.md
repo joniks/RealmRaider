@@ -755,3 +755,26 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Runtime profile lookup/application, material-role adapter work, model/texture intake, new art licences, visual changes, assets, scenes, gameplay, UI, save behavior, or automated module discovery.
+
+## Diamond Pass 09.7 — Infernal Flame Trap Identity
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Replaced the Infernal Flame Trap's former one-hit root with a manual, non-controlling burn: `8` damage immediately, then `8` after `0.35s` and `8` after `0.70s`, for `24` total before armor or immunity.
+- The existing six-second cooldown prevents overlapping burns. Target death, trap disable, reinitialization, and teardown cancel remaining pulses cleanly.
+- Dodge immunity applies independently to each pulse, so only a pulse inside the existing `0.18s` dodge window is ignored. The Sylvan Root Trap remains unchanged.
+- Defender HUD copy truthfully reports `IGNITED` and the remaining burn pulses before returning to the normal Flame Trap cooldown. Its informational status text does not capture pointers.
+
+### Verification
+
+- Focused `FlameTrapFlowTests`: `5/5` passed.
+- Final EditMode: `48/48` passed, `0` failed.
+- Final PlayMode: `33/33` passed, `0` failed.
+- QA verified the real Infernal scene's manual trap setting, damage timing, no-root behavior, dodge interaction, lifecycle cleanup, cooldown, HUD state, pointer ownership, and portrait/landscape containment. Console reported `0` warnings and `0` errors; `git diff --check` passes.
+- No manual smoke was run; direct-control and possession terminal behavior on a physical device remains user-owned validation.
+
+### Scope intentionally deferred
+
+- Generic status-effect framework, stacking burns, new VFX/audio/haptics, balance progression, AI activation, trap upgrades, new assets, or changes to the Sylvan Root Trap.

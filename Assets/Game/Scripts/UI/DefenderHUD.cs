@@ -94,6 +94,10 @@ namespace RealmRaiders.UI
         public bool DodgeButtonInteractable => dodge && dodge.interactable;
         public bool DodgeButtonVisible => dodge && dodge.gameObject.activeSelf;
         public RectTransform DodgeButtonRect => dodge ? (RectTransform)dodge.transform : null;
+        public string TrapStatusText => trapText ? trapText.text : string.Empty;
+        public bool TrapStatusRaycastTarget => trapText && trapText.raycastTarget;
+        public bool TrapButtonInteractable => activateTrap && activateTrap.interactable;
+        public RectTransform TrapButtonRect => activateTrap ? (RectTransform)activateTrap.transform : null;
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
@@ -121,7 +125,7 @@ namespace RealmRaiders.UI
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
             invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); ConstrainDefenderHealthLabel(); guardianEntVitality = GuardianEntVitalityLabel(); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
-            coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); routeStatus = Label("", new Vector2(0, -445), 24, TextAnchor.UpperCenter); routeStatus.name = "Invader Route Status"; routeStatus.raycastTarget = false; routeStatus.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true);
+            coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); routeStatus = Label("", new Vector2(0, -445), 24, TextAnchor.UpperCenter); routeStatus.name = "Invader Route Status"; routeStatus.raycastTarget = false; routeStatus.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true); trapText.raycastTarget = false;
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.raycastTarget = false; releaseNotice.gameObject.SetActive(false);
             possess = Button($"POSSESS {config.DefenderName.ToUpperInvariant()}", new Vector2(0, 410), PossessSelected);
@@ -248,7 +252,12 @@ namespace RealmRaiders.UI
             else
             {
                 activateTrap.interactable = false;
-                trapText.text = trap is RootTrap root && root.RecentlyActivated ? "ROOTED!  12 DAMAGE — INVADER HELD" : $"{config.TrapName.ToUpperInvariant()} COOLDOWN — {trap.CooldownRemaining:0.0}s";
+                if (trap is FlameTrap flame && flame.BurnPulsesRemaining > 0)
+                {
+                    var suffix = flame.BurnPulsesRemaining == 1 ? "PULSE REMAINS" : "PULSES REMAIN";
+                    trapText.text = $"IGNITED — {flame.BurnPulsesRemaining} BURN {suffix}";
+                }
+                else trapText.text = trap is RootTrap root && root.RecentlyActivated ? "ROOTED!  12 DAMAGE — INVADER HELD" : $"{config.TrapName.ToUpperInvariant()} COOLDOWN — {trap.CooldownRemaining:0.0}s";
                 activateTrap.GetComponent<Image>().color = new Color(.28f, .14f, .08f, .75f);
             }
         }
