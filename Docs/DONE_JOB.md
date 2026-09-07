@@ -801,3 +801,24 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Lock-on, target cycling, aim assist, auto-facing/combat, minimap/radar, stronger camera bias, new art/audio/haptics, settings, generic objective navigation, or physical-device noticeability acceptance.
+
+## Module Pass MCR 01 — Modular Character Recipe Contracts
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added an isolated `com.realmraiders.modular-character-recipes` package with an immutable, closed recipe schema for the three shared body families and the fixed `base_body`, `head`, `back`, `arms`, and `accent` slot taxonomy.
+- Added deterministic validation for IDs, family/slot metadata, exactly one base body, optional-slot uniqueness, and globally unique ordinal-sorted provenance source IDs.
+- Added fixed-order BOM-less UTF-8 canonical serialization and a lowercase SHA-256 content hash. Invalid recipes cannot be serialized or hashed, and mutable display names, paths, timestamps, random values, and unknown root fields are excluded by the input-field policy.
+- The package remains passive and uninstalled. It includes no starter recipes, Unity objects, assets, discovery, runtime adapter, gameplay authority, save identity, or scene access.
+
+### Verification
+
+- Reviewer / QA accepted the frozen package through read-only static review: closed schema, defensive immutable copies, non-adjacent duplicate handling, deterministic canonicalization, factual documentation, and dependency boundaries.
+- Package and assembly-definition JSON parsed successfully. The runtime assembly references only `RealmRaiders.ModuleContracts`, declares `noEngineReferences`, and contains no `UnityEngine` or `RealmRaiders.Runtime` reference.
+- Focused Editor NUnit coverage is authored inside the uninstalled package but was intentionally not run. `git diff --check` passes.
+
+### Scope intentionally deferred
+
+- Installing the package, runtime discovery/adapter work, an approved module library, concrete starter recipes, models/textures/rigs/animations, Blender tooling, scene integration, or any gameplay/UI/save behavior.
