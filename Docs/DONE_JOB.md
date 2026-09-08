@@ -1057,3 +1057,28 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 - Froze the modular `base_body`/`head`/`back` recipe intent, shared `LargeCreature` rig/bind/anchor compatibility, Infernal palette, six-motion rhythm, LOD/material/texture budgets and portrait/landscape readability gates.
 - Preserved same-entity possession, root collider, gameplay timing and `Presentation Pivot` authority; no source, licence, asset, rig, animation, recipe instance, Unity import or gameplay change was made.
 - Architect reviewed the complete isolated brief and static `git diff --check` passes. Unity was intentionally not run.
+
+## Diamond Pass 10.4 — Deterministic Invader Stuck Recovery
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added a deterministic measured-progress watchdog for the defense invader while it is intentionally advancing toward an existing route waypoint.
+- Recovery uses a bounded right-first sidestep, a measured opposite-side retry and a narrow route-segment corridor, then exits immediately after truthful forward progress resumes.
+- Defender acquisition, waypoint order, route authority, attack behavior and the existing root `CharacterController` remain authoritative; recovery never teleports, disables collision, skips waypoints or changes combat facts.
+- Opening hold, waypoint pause, root, active actions, defender engagement, controller changes, death, terminal state, disable and teardown suppress or reset recovery without stale side intent.
+- Focused PlayMode isolation now removes unrelated pre-existing scene colliders only for the fixture and restores them, preventing the Prototype Hub `Realm Pillar` from becoming an undeclared waypoint obstacle in full-suite order.
+
+### Verification
+
+- Focused EditMode recovery logic: `4/4` passed.
+- Focused PlayMode route recovery: `2/2` passed on 2026-09-08 at 06:26:22Z–06:26:28Z.
+- Final EditMode: `75/75` passed, `0` failed. Final PlayMode: `47/47` passed, `0` failed on 2026-09-08 at 06:27:35Z–06:28:09Z.
+- DefenderTest manual smoke reached the normal Keeper opening with the invader and Ent healthy and the factual `INVADER HOLDING — ROOT GATE AHEAD` route state visible. Direct trap activation was not performed and is not claimed.
+- No source changed after the final suites. Console reported `0` warnings and `0` errors, `git diff --check` passes, and no temporary `InitTestScene` assets remain in Git status.
+
+### Scope intentionally deferred
+
+- General pathfinding/NavMesh, crowd avoidance, new routes, layout changes, teleport/ghost recovery, camera/UI/combat/trap changes and physical-device verification.
+- Continuous arena boundaries remain the separate Diamond Pass 10.5.

@@ -29,10 +29,11 @@ Last reviewed: 2026-09-08
 - Research Passes ART 06A-R and ART 06B-R are staged in the pinned Modules submodule: they shortlist a conditional CC0 Guardian Ent source, KayKit Humanoid motions and a Beast motion accelerator without downloading or approving any archive.
 - Design Pass DLEGAL 01 Third-Party Notices v1 is staged in the pinned Modules submodule: it specifies exact release-cleared 3DRT and Kenney notice presentation while keeping Quaternius behind a human licence decision.
 - Diamond Pass 10.3 Third-Party Notices is present: the Hub now exposes an offline responsive notice panel with exact mandatory 3DRT attribution, voluntary Kenney provenance, safe fallback and no unresolved Quaternius claim.
+- Diamond Pass 10.4 Deterministic Invader Stuck Recovery is present: a measured, bounded sidestep lets the defense invader recover from a real route obstruction without teleporting, skipping waypoints or changing defender/combat authority.
 - Design Pass DART 02 Guardian Ent Visual Identity v1 is staged in the pinned Modules submodule: `Ancient Canopy Sentinel` defines the first LargeCreature silhouette, cultivation continuity and mobile production gate.
 - Design Pass DART 03 Infernal Brute Visual Identity v1 is staged in the pinned Modules submodule: `Obsidian Gatebreaker` defines a low-wide Infernal counterpart that shares the exact LargeCreature family contract without collapsing into the Ent silhouette.
 - Design Pass DENV 01 Sylvan Environment Production v1 is staged in the pinned Modules submodule: `Open Grove Arches` defines the eight-type Sylvan kit, continuity rules and Android budgets without approving an asset source.
-- Current Unity Test Runner baseline: EditMode 71/71 and PlayMode 45/45 passed on 2026-09-08.
+- Current Unity Test Runner baseline: EditMode 75/75 and PlayMode 47/47 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -49,7 +50,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 71/71 and PlayMode 45/45 on 2026-09-08.
+- Current verified baseline: EditMode 75/75 and PlayMode 47/47 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -58,7 +59,7 @@ Last reviewed: 2026-09-08
 - The BUILD step is a compact five-slot runtime greybox with a live defense-plan summary; full device usability and performance remain unvalidated.
 - Combat presentation uses bounded visual motion, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge; it still has no final animation rig or production VFX.
 - Fog of war is a basic graph-driven show/hide implementation.
-- AI uses direct steering instead of navigation/pathfinding.
+- AI uses direct steering instead of navigation/pathfinding; the defense invader now has only a narrow deterministic route-obstruction recovery, not general navigation.
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
 - Device controls, audio balance and performance have not yet been validated on a representative Android phone.
 - Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
