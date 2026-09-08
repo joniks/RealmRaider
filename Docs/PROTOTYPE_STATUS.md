@@ -50,7 +50,8 @@ Last reviewed: 2026-09-09
 - Reliability Follow-up is present: camera-awareness ownership now cleans up on controller loss/destroy and `PossessionFlowTests` clean only fixture/build scenes, not Test Runner's own scene.
 - Diamond Pass 11.0 In-Run Control Style Switcher is present: gameplay HUDs now offer a factual persistent `AUTO`/`TAP`/`STICK` cycle with immediate transient-input reset and responsive joystick visibility, while Hub and BUILD controls remain unchanged.
 - Module Pass MMP 03 Motion Profile Compatibility Gate is staged in the pinned Modules submodule: explicitly supplied motion targets can be fail-closed checked for family, rig, six clips and fallback policy without Unity, asset or gameplay authority.
-- Current Unity Test Runner baseline: EditMode 113/113 and PlayMode 60/60 passed on 2026-09-09; PlayMode exited normally with 0 failures.
+- Diamond Pass 11.1 Keeper Touch Selection Reliability is present: registered creatures now use a deterministic mobile press/release selection path with safe near-miss tolerance and strict UI/swipe/state rejection before the existing possession flow.
+- Current Unity Test Runner baseline: EditMode 118/118 and PlayMode 62/62 passed on 2026-09-09; PlayMode exited normally with 0 failures.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -67,7 +68,7 @@ Last reviewed: 2026-09-09
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 113/113 and PlayMode 60/60 on 2026-09-09.
+- Current verified baseline: EditMode 118/118 and PlayMode 62/62 on 2026-09-09.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

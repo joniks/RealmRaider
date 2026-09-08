@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using RealmRaiders.Combat;
@@ -10,11 +9,12 @@ namespace RealmRaiders.Characters
     [RequireComponent(typeof(CharacterController), typeof(Health))]
     public sealed class CombatEntity : MonoBehaviour
     {
+        static long nextSelectionIdentity;
         public const float DodgeDistance = 2.6f;
         public const float DodgeDuration = .18f;
         public const float DodgeImmunityDuration = .18f;
         public const float DodgeCooldown = 1.5f;
-        public event Action<CombatEntity> Selected;
+        long selectionIdentity;
         public CharacterDefinition Definition { get; private set; }
         public Health Health { get; private set; }
         public CombatStats Stats => Definition.Stats;
@@ -37,6 +37,16 @@ namespace RealmRaiders.Characters
         public bool IsDodging => isDodging;
         public float DodgeCooldownRemaining => Mathf.Max(0, dodgeReadyAt - Time.time);
         public bool CanDodge => Health != null && Motor && Motor.enabled && !Health.IsDead && !IsRooted && !isDodging && !action.IsResolving && DodgeCooldownRemaining <= 0 && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive;
+        public long SelectionIdentity
+        {
+            get
+            {
+                if (selectionIdentity == 0) selectionIdentity = ++nextSelectionIdentity;
+                return selectionIdentity;
+            }
+        }
+
+        void Awake() => _ = SelectionIdentity;
 
         public void Initialize(CharacterDefinition definition)
         {
@@ -169,7 +179,6 @@ namespace RealmRaiders.Characters
         }
         public void BreakRoot() => rootedUntil = 0;
 
-        void OnMouseDown() => Selected?.Invoke(this);
         void OnDeath()
         {
             rootedUntil = 0; CancelActionPresentation(); CancelDodge();

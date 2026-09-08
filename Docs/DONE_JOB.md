@@ -1416,3 +1416,24 @@ Completed on 2026-09-09 and accepted in the Modules submodule.
 ### Scope intentionally deferred
 
 - Concrete motion providers, rigs, clips/controllers, profile selection, package installation, Core presentation integration, Unity import/retargeting and gameplay authority.
+
+## Diamond Pass 11.1 — Keeper Touch Selection Reliability
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Replaced legacy `CombatEntity.OnMouseDown()` selection with one `PossessionManager`-owned Keeper press→release path that considers only explicitly registered creatures.
+- Added deterministic exact-hit precedence, short-edge-normalized near-miss tolerance and stable entity-identity tie-breaking through a small pure resolver.
+- UI-owned, cancelled, swiped, terminal, transition, active-possession, dead, unregistered, occluded and out-of-radius inputs now select nothing.
+- Existing selection presentation, possession, entity identity, health, cooldowns, possession energy, controllers, camera, colliders, combat and journey state remain authoritative and unchanged by selection.
+
+### Verification
+
+- The all-assembly Unity GUI runs included the new Keeper resolver and flow coverage; their result rows were green.
+- Final EditMode: `118/118` passed, `0` failed. Final PlayMode: `62/62` passed, `0` failed and exited Play Mode normally.
+- No manual smoke was run; QA changed no code after the final suites, and `git diff --check` passed before acceptance.
+
+### Scope intentionally deferred
+
+- Aim assist/lock-on, camera/framing, movement/targeting, HUD/layout/copy, AI/balance, collider geometry, persistence, scenes, packages, art, VFX/audio/haptics, desktop controls and physical-device claims.
