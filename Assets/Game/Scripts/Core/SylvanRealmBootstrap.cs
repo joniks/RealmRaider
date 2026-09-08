@@ -62,7 +62,27 @@ namespace RealmRaiders.Core
 
             var coreObject = CreateHeartTree(new Vector3(0, 2.5f, 50));
             nodeViews.Add(Node(root, graph.Nodes["Heart Tree"], hero, new Vector3(0, 0, 50), "HEART TREE", coreObject));
-            CreatePath(new Vector3(0, 0, -40), new Vector2(7, 20)); CreatePath(new Vector3(-7, 0, -20), new Vector2(6, 28), -35); CreatePath(new Vector3(7, 0, -13), new Vector2(6, 38), 25); CreatePath(new Vector3(0, 0, -12), new Vector2(7, 36)); CreatePath(new Vector3(5, 0, 16), new Vector2(7, 26), -22); CreatePath(new Vector3(5, 0, 39), new Vector2(7, 25), 24);
+            var boundaryNodes = new[]
+            {
+                new ArenaCircleFootprint(new Vector2(0, -50), 3.25f),
+                new ArenaCircleFootprint(new Vector2(0, -30), 3.25f),
+                new ArenaCircleFootprint(new Vector2(-14, -10), 3.25f),
+                new ArenaCircleFootprint(new Vector2(14, 4), 3.25f),
+                new ArenaCircleFootprint(new Vector2(0, 5), 3.25f),
+                new ArenaCircleFootprint(new Vector2(10, 27), 3.25f),
+                new ArenaCircleFootprint(new Vector2(0, 50), 3.25f)
+            };
+            var boundaryPaths = new[]
+            {
+                new ArenaPathFootprint(new Vector2(0, -40), new Vector2(7, 20)),
+                new ArenaPathFootprint(new Vector2(-7, -20), new Vector2(6, 28), -35),
+                new ArenaPathFootprint(new Vector2(7, -13), new Vector2(6, 38), 25),
+                new ArenaPathFootprint(new Vector2(0, -12), new Vector2(7, 36)),
+                new ArenaPathFootprint(new Vector2(5, 16), new Vector2(7, 26), 22),
+                new ArenaPathFootprint(new Vector2(5, 39), new Vector2(7, 25), -24)
+            };
+            foreach (var path in boundaryPaths) CreatePath(new Vector3(path.Center.x, 0, path.Center.y), path.Size, path.Yaw);
+            PrototypeArenaBoundaryBuilder.BuildSylvan(root.transform, boundaryNodes, boundaryPaths);
 
             var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), new[] { wolfOne, wolfTwo, ent });
             var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero); core.InteractionStarted += manager.BeginObjective; core.Completed += manager.CompleteObjective;

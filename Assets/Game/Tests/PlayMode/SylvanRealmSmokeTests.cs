@@ -411,7 +411,7 @@ namespace RealmRaiders.Tests
 
             var positions = new[] { new Vector3(0, -.06f, -40), new Vector3(-7, -.06f, -20), new Vector3(7, -.06f, -13), new Vector3(0, -.06f, -12), new Vector3(5, -.06f, 16), new Vector3(5, -.06f, 39) };
             var scales = new[] { new Vector3(7, .12f, 20), new Vector3(6, .12f, 28), new Vector3(6, .12f, 38), new Vector3(7, .12f, 36), new Vector3(7, .12f, 26), new Vector3(7, .12f, 25) };
-            var yaws = new[] { 0f, -35f, 25f, 0f, -22f, 24f };
+            var yaws = new[] { 0f, -35f, 25f, 0f, 22f, -24f };
             for (var index = 0; index < positions.Length; index++)
             {
                 Transform path = null;

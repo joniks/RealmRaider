@@ -26,6 +26,8 @@ namespace RealmRaiders.Core
             var rig = PrototypeRuntimeFactory.Camera(new Color(.08f, .012f, .008f), 48, new Vector3(0, 46, -33), Quaternion.Euler(57, 0, 0));
             PrototypeRuntimeFactory.DirectionalLight("Lava Glow", new Color(1, .25f, .08f), 1.4f, new Vector3(50, -30, 0)); RenderSettings.ambientLight = new Color(.22f, .06f, .03f);
             var ground = GameObject.CreatePrimitive(PrimitiveType.Cube); ground.name = "Volcanic Floor"; ground.transform.position = new Vector3(0, -.25f, 0); ground.transform.localScale = new Vector3(14, .5f, 68); RealmRoutePresentation.BuildDefenseLane(ground.transform, RealmRouteStyle.InfernalFractured);
+            PrototypeArenaBoundaryBuilder.BuildRectangle(root.transform, Vector3.zero, new Vector2(14, 68), 0,
+                PrototypeArenaBoundaryStyle.InfernalBasalt, 1.35f, 1, 5, .4f);
             for (int i = 0; i < 18; i++) { var rock = GameObject.CreatePrimitive(PrimitiveType.Cube); rock.name = "Volcanic Rock"; rock.transform.position = new Vector3(i % 2 == 0 ? -8 : 8, 1.5f, -30 + i * 3.5f); rock.transform.localScale = new Vector3(1.1f, 2 + i % 3, 1.4f); rock.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.09f, .025f, .02f)); }
 
             var invaderStats = CombatStats.BloodKnight; invaderStats.MaxHealth = 240; invaderStats.MoveSpeed = 3.8f;

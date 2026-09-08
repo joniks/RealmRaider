@@ -1106,3 +1106,27 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 - Selected `Ironbound Rift Causeway`: straight basalt strata, hard notches, restrained iron and a framed destination that remains distinct from Sylvan without relying on red color or glow.
 - Defined an eight-type modular kit, placement/reuse rules, atlas/material/LOD/mobile budgets, Flame Trap/Gate/Heart signal separation and compatibility with the accepted Infernal boundary contract.
 - Source selection, licence approval, production assets and Core integration remain gated. Architect reviewed the isolated brief; static `git diff --check` passes and Unity was intentionally not run.
+
+## Diamond Pass 10.5 — Prototype Arena Boundaries
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one explicit, build-once boundary builder for the four 3D prototype zones while leaving `PrototypeHub` and `RealmBuild` without world borders.
+- Replaced the Sandbox's disconnected stones with a continuous neutral rectangle and added continuous Sylvan-root and Infernal-basalt rectangles to the two defense lanes.
+- Corrected only the two authorized final Sylvan path visual yaws, proved the factual floor union changes from three disconnected components to one, and built the border from the exposed contour of the inset seven-node/six-path union without bridging empty space.
+- Kept one combined renderer and one shared material per style, static non-trigger `BoxCollider` runs, explicit mobile budgets and scene-local idempotent ownership without scanning, per-frame work, triggers, rigidbodies, NavMesh or gameplay authority.
+- Added focused coverage for extents, corner overlap, Sylvan connectivity/inset/openings, budgets, idempotence, scene integration, ordinary and fast movement, existing dash completion and real `CreatureBrain` collision behavior.
+
+### Verification
+
+- Focused boundary builder EditMode: `3/3` passed.
+- Focused boundary flow PlayMode: `5/5` passed on 2026-09-08 at 07:27:11Z–07:27:14Z.
+- Final EditMode: `78/78` passed, `0` failed. Final PlayMode: `52/52` passed, `0` failed on 2026-09-08 at 07:28:39Z–07:29:16Z.
+- The earlier `DodgeFlow` 0.00000006-second boundary miss did not reproduce on the unchanged final candidate. Console reported `0` info, `0` warnings and `0` errors; `git diff --check` passes and no temporary `InitTestScene` assets remain.
+- QA launched all four gameplay scenes and observed continuous boundaries with their factual opening HUD/state. Collision actions, full encounter completion and portrait-to-landscape manual flow were not completed and remain user-owned alongside physical Android validation.
+
+### Scope intentionally deferred
+
+- Kill planes, teleport/fall recovery, new terrain, navigation/pathfinding, route or balance changes, jumping/climbing, hazards/damage, breakable walls, production art/textures, VFX/audio and physical-device performance claims.

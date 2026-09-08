@@ -39,11 +39,8 @@ namespace RealmRaiders.Core
             RenderSettings.ambientLight = new Color(.23f, .27f, .32f);
 
             var ground = GameObject.CreatePrimitive(PrimitiveType.Plane); ground.name = "Arena Ground"; ground.transform.localScale = new Vector3(2.2f, 1, 2.8f); ground.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.12f, .18f, .16f));
-            for (int i = 0; i < 10; i++)
-            {
-                float angle = i * Mathf.PI * 2 / 10; var stone = GameObject.CreatePrimitive(PrimitiveType.Cube); stone.name = "Boundary Stone";
-                stone.transform.position = new Vector3(Mathf.Sin(angle) * 10, .6f, Mathf.Cos(angle) * 13); stone.transform.localScale = new Vector3(1.2f, 1.2f + i % 3, 1.2f); stone.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.16f, .2f, .19f));
-            }
+            PrototypeArenaBoundaryBuilder.BuildRectangle(root.transform, Vector3.zero, new Vector2(22, 28), 0,
+                PrototypeArenaBoundaryStyle.NeutralStone, 1.1f, .9f, 6, .5f);
 
             var hero = CreateEntity("Blood Knight", new Vector3(-4, 1, 0), CombatStats.BloodKnight, false, new Color(.62f, .06f, .08f), false, PrototypeRuntimeFactory.BloodKnightRecipe);
             var ent = CreateEntity("Ent", new Vector3(4, 1.5f, 0), CombatStats.Ent, true, new Color(.2f, .42f, .16f), true, PrototypeRuntimeFactory.GuardianEntRecipe);

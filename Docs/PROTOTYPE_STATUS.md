@@ -36,7 +36,8 @@ Last reviewed: 2026-09-08
 - Design Pass DART 04 Beast Family Visual Identity v1 is staged in the pinned Modules submodule: `Mossback Courser` and `Cinderjaw Stalker` define distinct Wolf/Hellhound silhouettes on one shared Beast rig/atlas/motion contract without approving an asset source.
 - Design Pass DBND 01 Prototype Arena Boundary Visual Language v1 is staged in the pinned Modules submodule: all four 3D prototype zones now have factual boundary dimensions, shape language and acceptance rules ready for Diamond Pass 10.5 implementation.
 - Design Pass DENV 02 Infernal Environment Production v1 is staged in the pinned Modules submodule: `Ironbound Rift Causeway` defines an eight-type basalt/iron kit and Android budgets while preserving the current lane, trap, gate, heart and gameplay truth.
-- Current Unity Test Runner baseline: EditMode 75/75 and PlayMode 47/47 passed on 2026-09-08.
+- Diamond Pass 10.5 Prototype Arena Boundaries is present: the Sandbox, both defense lanes and the factual branched Sylvan floor union now have continuous, style-specific static borders that stop ordinary movement, dash and existing AI controllers without changing combat, route or possession authority.
+- Current Unity Test Runner baseline: EditMode 78/78 and PlayMode 52/52 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -53,7 +54,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 75/75 and PlayMode 47/47 on 2026-09-08.
+- Current verified baseline: EditMode 78/78 and PlayMode 52/52 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -75,11 +76,11 @@ Last reviewed: 2026-09-08
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.
 - Beast production is design-only: the Wolf/Hellhound family still needs a human-approved source/provenance route and one frozen Beast rig/bind/anchor proof before assets or shared clips are produced.
-- Prototype arena boundaries have an accepted design contract but are not yet implemented; Diamond Pass 10.5 owns their shared builder and the four explicit 3D bootstrap integrations.
+- Prototype arena boundaries are implemented and automated collision/AI coverage is green; full physical-device edge/action, encounter-completion and portrait-to-landscape feel remain user-owned.
 - Infernal environment production is design-only: the Ironbound Rift Causeway kit still needs a human-approved source/provenance route and neutral-gray production proof before Unity integration.
 - The Hub notice panel presents the release-cleared 3DRT and Kenney records; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
 - The first-playable-minute Hub, BUILD and Sylvan defense proof are implemented through the real result; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.
-- Realm landmarks and central routes now have distinct organic versus angular primitive blockouts, but boundaries, terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
+- Realm landmarks, central routes and continuous arena boundaries now have distinct organic versus angular primitive blockouts, but terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 
 ## Directory guide
 

@@ -31,6 +31,8 @@ namespace RealmRaiders.Core
             var cameraRig = PrototypeRuntimeFactory.Camera(new Color(.018f, .055f, .035f), 48, new Vector3(0, 46, -33), Quaternion.Euler(57, 0, 0));
             PrototypeRuntimeFactory.DirectionalLight("Forest Moon", new Color(.7f, .9f, .78f), 1.3f, new Vector3(50, -32, 0)); RenderSettings.ambientLight = new Color(.14f, .22f, .16f);
             var ground = GameObject.CreatePrimitive(PrimitiveType.Cube); ground.name = "Sylvan Path"; ground.transform.position = new Vector3(0, -.25f, 0); ground.transform.localScale = new Vector3(14, .5f, 68); RealmRoutePresentation.BuildDefenseLane(ground.transform, RealmRouteStyle.SylvanOrganic);
+            PrototypeArenaBoundaryBuilder.BuildRectangle(root.transform, Vector3.zero, new Vector2(14, 68), 0,
+                PrototypeArenaBoundaryStyle.SylvanRoots, 1.2f, 1, 5, .4f);
             for (int i = 0; i < 16; i++) CreateTree(new Vector3(i % 2 == 0 ? -8 : 8, 2, -30 + i * 4));
 
             var invaderStats = CombatStats.BloodKnight; invaderStats.MaxHealth = 220; invaderStats.MoveSpeed = 3.8f;
