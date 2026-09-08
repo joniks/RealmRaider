@@ -1026,3 +1026,25 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 - Selected the `Open Grove Arches` direction and defined an exact eight-type modular environment kit for continuous BUILD → DEFEND → RAID visual language.
 - Froze clearance, collision separation, camera composition, LOD/culling/batching, material/texture and Android production ceilings with a primitive fallback path.
 - No art source or licence was approved and no Unity content was changed. Unity was intentionally not run; static `git diff --check` passes.
+
+## Diamond Pass 10.3 — Third-Party Notices
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one always-available `THIRD-PARTY NOTICES` entry to the existing Prototype Hub and one scene-local, closable, scrollable panel under its existing Canvas and responsive safe-area root.
+- Added an explicit immutable offline catalogue containing the mandatory 3DRT CC BY 4.0 credit and the two voluntary Kenney CC0 provenance credits in accepted order. Quaternius is deliberately absent until its acquisition-licence conflict receives a human decision.
+- Catalogue validation provides an exact mandatory 3DRT fallback, omits isolated malformed optional entries, rejects catalogue-wide faults, and emits at most one construction diagnostic without filesystem, Markdown, asset discovery or network access.
+- The modal blocks underlying Hub interaction, owns pointer/scroll/close/Back gestures, restores prior interactability and focus, reopens at the mandatory credit, and preserves safe portrait/landscape layout and normalized reading position.
+- Opening, closing, fallback and rotation leave realm, stores, control/orientation preferences, first-minute status and route destinations unchanged; no Canvas, EventSystem, AudioListener, scene, asset, package or persistence was added.
+
+### Verification
+
+- Focused notices: EditMode `5/5` and PlayMode `3/3` passed. Focused Hub navigation regression: `1/1` passed.
+- Final EditMode: `71/71` passed, `0` failed. Final PlayMode: `45/45` passed, `0` failed.
+- `git diff --check` passes. A separate manual Editor or physical Android smoke was not run; the focused PlayMode flow covered modal open/close, scroll, rotation, Back, fallback and route neutrality.
+
+### Scope intentionally deferred
+
+- Resolving or displaying the Quaternius licence, editing the authoring registry, full licence text, legal advice, browser/network links, privacy/terms UI, new assets, gameplay changes and physical-device readability acceptance.

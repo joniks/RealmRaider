@@ -28,9 +28,10 @@ Last reviewed: 2026-09-08
 - Design Pass DART 01 Character Production Pipeline v1 is staged in the pinned Modules submodule: it defines a deterministic three-family Blender-to-Unity production system and a Guardian Ent first-production gate without claiming unavailable art, rigs or clips.
 - Research Passes ART 06A-R and ART 06B-R are staged in the pinned Modules submodule: they shortlist a conditional CC0 Guardian Ent source, KayKit Humanoid motions and a Beast motion accelerator without downloading or approving any archive.
 - Design Pass DLEGAL 01 Third-Party Notices v1 is staged in the pinned Modules submodule: it specifies exact release-cleared 3DRT and Kenney notice presentation while keeping Quaternius behind a human licence decision.
+- Diamond Pass 10.3 Third-Party Notices is present: the Hub now exposes an offline responsive notice panel with exact mandatory 3DRT attribution, voluntary Kenney provenance, safe fallback and no unresolved Quaternius claim.
 - Design Pass DART 02 Guardian Ent Visual Identity v1 is staged in the pinned Modules submodule: `Ancient Canopy Sentinel` defines the first LargeCreature silhouette, cultivation continuity and mobile production gate.
 - Design Pass DENV 01 Sylvan Environment Production v1 is staged in the pinned Modules submodule: `Open Grove Arches` defines the eight-type Sylvan kit, continuity rules and Android budgets without approving an asset source.
-- Current Unity Test Runner baseline: EditMode 66/66 and PlayMode 42/42 passed on 2026-09-08.
+- Current Unity Test Runner baseline: EditMode 71/71 and PlayMode 45/45 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -47,7 +48,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 66/66 and PlayMode 42/42 on 2026-09-08.
+- Current verified baseline: EditMode 71/71 and PlayMode 45/45 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -67,7 +68,7 @@ Last reviewed: 2026-09-08
 - The character-motion-profiles package is staged but uninstalled; no approved shared rigs, clips, concrete motion profiles or Core presentation adapter exist yet.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
-- A release-ready Third-Party Notices design exists; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
+- The Hub notice panel presents the release-cleared 3DRT and Kenney records; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
 - The first-playable-minute Hub, BUILD and Sylvan defense proof are implemented through the real result; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.
 - Realm landmarks and central routes now have distinct organic versus angular primitive blockouts, but boundaries, terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 
