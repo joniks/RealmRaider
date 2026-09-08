@@ -942,3 +942,24 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Defender selection/possession/movement/attack/dodge/release/result guidance, guide completion, Infernal or raid onboarding, modal tutorial content, auto-actions, rewards/progression/telemetry, new assets/audio/scenes/packages, and gameplay/camera/balance changes.
+
+## Design Pass DART 01 — Character Production Pipeline v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Defined an offline deterministic character factory around three shared family kits (`Humanoid`, `LargeCreature`, `Beast`), canonical recipes, identity modules and palettes rather than bespoke rigs/controllers per character.
+- Specified versioned Generic rig, scale/origin, attachment-anchor, atlas/material, LOD, bone/weight, six-clip motion and Blender-to-Unity import contracts while preserving the gameplay-root `CharacterController` and presentation-pivot boundary.
+- Added mobile production ceilings and a single-writer animation rule: no root motion, animation-event gameplay, runtime retargeting, private per-character Animator graph, physics bones or collider-fitting art changes.
+- Defined deterministic automation gates, human licence/art/device gates, role ownership and realistic planning ranges: shared family foundations are the expensive setup, while accepted-family identity variants become the repeatable unit.
+- Added a precise Guardian Ent first-production card with LargeCreature identifiers, slot/LOD/material/rig budgets, cultivation continuity and the next source/ownership plus neutral-gray rig gate.
+
+### Verification
+
+- Architect reviewed the full brief against the current 3DRT `Take 001` provenance, `CharacterVisualAssembler`, `CharacterVisualMotion`, root `CharacterController`, Guardian Ent cultivation hierarchy, modular-recipe and motion-profile contracts.
+- Existing facts and authority boundaries match the project. Static `git diff --check` passes; no Unity project, asset, runtime source or package was changed, so Unity suites were intentionally not rerun.
+
+### Scope intentionally deferred
+
+- Selecting/downloading art, asserting a licence, Blender source creation, rigging, LOD or clip production, concrete recipe/profile instances, Unity import/integration, runtime animation, device performance acceptance and Blood Knight source modification.
