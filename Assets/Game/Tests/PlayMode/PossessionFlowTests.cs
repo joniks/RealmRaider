@@ -540,12 +540,12 @@ namespace RealmRaiders.Tests
             GameplayInput.SetTerminalState(false);
             try
             {
-                first.DisplayName = "Slash"; first.Kind = AbilityKind.Melee; first.Windup = .05f; first.Cooldown = .08f;
-                second.DisplayName = "Blood Rush"; second.Kind = AbilityKind.Dash; second.Windup = .05f; second.Cooldown = .08f; second.DashDistance = 1;
-                third.DisplayName = "Cleave"; third.Kind = AbilityKind.Area; third.Windup = .05f; third.Cooldown = .08f;
+                first.DisplayName = "Slash"; first.Kind = AbilityKind.Melee; first.Windup = .05f; first.Cooldown = .3f;
+                second.DisplayName = "Blood Rush"; second.Kind = AbilityKind.Dash; second.Windup = .08f; second.Cooldown = .3f; second.DashDistance = 2;
+                third.DisplayName = "Cleave"; third.Kind = AbilityKind.Area; third.Windup = .05f; third.Cooldown = .3f;
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
                 definition.Abilities = new[] { first, second, third };
-                var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition); hero.SetController(hero.Controller<PlayerController>());
+                var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition); var player = hero.Controller<PlayerController>(); hero.SetController(player);
                 var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
                 var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, System.Array.Empty<RealmNodeView>(), System.Array.Empty<CombatEntity>());
                 var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(raid, hero, core, cameraObject.GetComponent<Camera>());
@@ -559,15 +559,94 @@ namespace RealmRaiders.Tests
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(initialEventSystemCount));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(initialListenerCount));
 
-                Assert.That(hero.TryUse(0, Vector3.forward), Is.True);
-                yield return null;
+                Assert.That(player.UseAbility(0), Is.True);
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
                 Assert.That(hud.AbilityButtonText(0), Does.Contain("ACTING"));
                 Assert.That(hud.AbilityButtonText(1), Does.Contain("ACTING"));
                 Assert.That(hud.AbilityButtonInteractable(0), Is.False);
-                yield return new WaitForSecondsRealtime(.25f);
-                yield return null;
-                Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SLASH"));
-                Assert.That(hud.AbilityButtonInteractable(0), Is.True);
+                Assert.That(player.UseAbility(1), Is.False, "Windup must reject rather than queue.");
+                Assert.That(player.HasBufferedAbility, Is.False);
+
+                yield return WaitForActionPhase(hero, CombatActionPhase.Recovery);
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                Assert.That(hud.AbilityButtonText(0), Does.StartWith("SLASH  "));
+                Assert.That(hud.AbilityButtonText(1), Is.EqualTo("BLOOD RUSH — NEXT"));
+                Assert.That(hud.AbilityButtonInteractable(1), Is.True);
+                Assert.That(player.UseAbility(0), Is.False, "The current ability cooldown must not enter the buffer.");
+                Assert.That(player.HasBufferedAbility, Is.False);
+                var bloodRushReadyAt = hero.Abilities[1].ReadyAt;
+                hudObject.transform.Find("BLOOD RUSH").GetComponent<Button>().onClick.Invoke();
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                Assert.That(player.IsAbilityBuffered(1), Is.True);
+                Assert.That(hero.Abilities[1].ReadyAt, Is.EqualTo(bloodRushReadyAt), "Queueing cannot consume cooldown early.");
+                Assert.That(hud.AbilityButtonText(1), Is.EqualTo("BLOOD RUSH — QUEUED"));
+                Assert.That(hud.AbilityButtonInteractable(1), Is.False);
+                Assert.That(hud.AbilityButtonText(2), Is.EqualTo("CLEAVE — NEXT"));
+                var cleaveReadyAt = hero.Abilities[2].ReadyAt;
+                hudObject.transform.Find("CLEAVE").GetComponent<Button>().onClick.Invoke();
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                Assert.That(player.IsAbilityBuffered(2), Is.True, "The newest eligible request replaces the previous one.");
+                Assert.That(hud.AbilityButtonText(2), Is.EqualTo("CLEAVE — QUEUED"));
+                Assert.That(hud.AbilityButtonText(1), Is.EqualTo("BLOOD RUSH — NEXT"));
+                hudObject.transform.Find("BLOOD RUSH").GetComponent<Button>().onClick.Invoke();
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                Assert.That(player.IsAbilityBuffered(1), Is.True);
+
+                yield return WaitForAbilityConsumption(hero.Abilities[1], bloodRushReadyAt);
+                var consumedBloodRushReadyAt = hero.Abilities[1].ReadyAt;
+                Assert.That(player.HasBufferedAbility, Is.False);
+                Assert.That(hero.Abilities[2].ReadyAt, Is.EqualTo(cleaveReadyAt), "The replaced request must never execute.");
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                Assert.That(hud.AbilityButtonText(0), Does.Contain("ACTING"));
+                yield return WaitForActionPhase(hero, CombatActionPhase.Impact);
+                Assert.That(player.RequestAbility(2, Vector3.left), Is.False, "Impact must reject rather than queue.");
+                Assert.That(player.HasBufferedAbility, Is.False);
+                yield return WaitForActionPhase(hero, CombatActionPhase.Idle);
+                yield return new WaitForSecondsRealtime(.05f);
+                Assert.That(hero.Abilities[1].ReadyAt, Is.EqualTo(consumedBloodRushReadyAt), "A consumed request must not execute twice.");
+
+                Assert.That(player.UseAbility(2), Is.True);
+                yield return WaitForActionPhase(hero, CombatActionPhase.Recovery);
+                var slashReadyAt = hero.Abilities[0].ReadyAt;
+                Assert.That(player.RequestAbility(0, Vector3.right), Is.True);
+                Assert.That(player.IsAbilityBuffered(0), Is.True);
+                GameplayInput.SetTerminalState(true);
+                player.Tick();
+                Assert.That(player.HasBufferedAbility, Is.False);
+                GameplayInput.SetTerminalState(false);
+                yield return WaitForActionPhase(hero, CombatActionPhase.Idle);
+                Assert.That(hero.Abilities[0].ReadyAt, Is.EqualTo(slashReadyAt), "Terminal cleanup must prevent stale execution.");
+
+                Assert.That(player.UseAbility(0), Is.True);
+                yield return WaitForActionPhase(hero, CombatActionPhase.Recovery);
+                var secondReadyAtBeforeReset = hero.Abilities[1].ReadyAt;
+                Assert.That(player.RequestAbility(1, Vector3.left), Is.True);
+                hud.GetComponent<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Portrait);
+                player.Tick();
+                Assert.That(player.HasBufferedAbility, Is.False);
+                yield return WaitForActionPhase(hero, CombatActionPhase.Idle);
+                Assert.That(hero.Abilities[1].ReadyAt, Is.EqualTo(secondReadyAtBeforeReset), "Interaction reset must prevent stale execution.");
+
+                Assert.That(player.UseAbility(2), Is.True);
+                yield return WaitForActionPhase(hero, CombatActionPhase.Recovery);
+                var expiringReadyAt = hero.Abilities[1].ReadyAt;
+                Assert.That(player.RequestAbility(1, Vector3.back), Is.True);
+                hero.enabled = false;
+                yield return new WaitForSecondsRealtime(CombatInputBuffer.WindowSeconds + .03f);
+                player.Tick();
+                Assert.That(player.HasBufferedAbility, Is.False);
+                Assert.That(hero.Abilities[1].ReadyAt, Is.EqualTo(expiringReadyAt), "An expired request must not execute.");
+                hero.enabled = true;
+
+                yield return WaitForActionPhase(hero, CombatActionPhase.Idle);
+                Assert.That(player.UseAbility(0), Is.True);
+                yield return WaitForActionPhase(hero, CombatActionPhase.Recovery);
+                var deathReadyAt = hero.Abilities[1].ReadyAt;
+                Assert.That(player.RequestAbility(1, Vector3.forward), Is.True);
+                hero.Health.TakeDamage(new DamageInfo(1000, null, hero.transform.position), 0);
+                Assert.That(hero.Health.IsDead, Is.True);
+                Assert.That(player.HasBufferedAbility, Is.False);
+                Assert.That(hero.Abilities[1].ReadyAt, Is.EqualTo(deathReadyAt), "Death cleanup must prevent stale execution.");
 
                 hero.SetController(null);
                 yield return null;
@@ -598,7 +677,9 @@ namespace RealmRaiders.Tests
             {
                 heroDefinition.DisplayName = "Blood Knight"; heroDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 4 };
                 entDefinition.DisplayName = "Guardian Ent"; entDefinition.Possessable = true; entDefinition.Stats = new CombatStats { MaxHealth = 120, MoveSpeed = 3 };
-                smash.DisplayName = "Smash"; charge.DisplayName = "Charge"; slam.DisplayName = "Ground Slam";
+                smash.DisplayName = "Smash"; smash.Windup = .05f; smash.Cooldown = .3f;
+                charge.DisplayName = "Charge"; charge.Windup = .05f; charge.Cooldown = .3f;
+                slam.DisplayName = "Ground Slam"; slam.Windup = .08f; slam.Cooldown = .3f;
                 entDefinition.Abilities = new[] { smash, charge, slam };
                 var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(heroDefinition);
                 var ent = entObject.GetComponent<CombatEntity>(); ent.Initialize(entDefinition);
@@ -612,13 +693,37 @@ namespace RealmRaiders.Tests
                 Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SMASH"));
                 Assert.That(hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM"));
                 Assert.That(hud.AbilityButtonInteractable(0), Is.True);
-                Assert.That(ent.Controller<PlayerController>().IsActive, Is.True);
+                var player = ent.Controller<PlayerController>();
+                Assert.That(player.IsActive, Is.True);
+
+                Assert.That(player.UseAbility(0), Is.True);
+                yield return WaitForActionPhase(ent, CombatActionPhase.Recovery);
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                Assert.That(hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM — NEXT"));
+                var slamReadyAt = ent.Abilities[2].ReadyAt;
+                hudObject.transform.Find("GROUND SLAM").GetComponent<Button>().onClick.Invoke();
+                hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                Assert.That(player.IsAbilityBuffered(2), Is.True);
+                Assert.That(hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM — QUEUED"));
+                yield return WaitForAbilityConsumption(ent.Abilities[2], slamReadyAt);
+                var consumedSlamReadyAt = ent.Abilities[2].ReadyAt;
+                yield return WaitForActionPhase(ent, CombatActionPhase.Idle);
+                Assert.That(ent.Abilities[2].ReadyAt, Is.EqualTo(consumedSlamReadyAt));
+
+                Assert.That(player.UseAbility(0), Is.True);
+                yield return WaitForActionPhase(ent, CombatActionPhase.Recovery);
+                var chargeReadyAt = ent.Abilities[1].ReadyAt;
+                Assert.That(player.RequestAbility(1, Vector3.right), Is.True);
+                Assert.That(player.IsAbilityBuffered(1), Is.True);
 
                 possession.Release();
                 yield return null;
                 Assert.That(hud.AbilityButtonText(0), Is.EqualTo("SMASH"));
                 Assert.That(hud.AbilityButtonInteractable(0), Is.False);
-                Assert.That(ent.Controller<PlayerController>().IsActive, Is.False);
+                Assert.That(player.IsActive, Is.False);
+                Assert.That(player.HasBufferedAbility, Is.False);
+                yield return new WaitForSecondsRealtime(.2f);
+                Assert.That(ent.Abilities[1].ReadyAt, Is.EqualTo(chargeReadyAt), "Possession release must not execute a stale swipe request.");
             }
             finally
             {
@@ -744,6 +849,20 @@ namespace RealmRaiders.Tests
                 Assert.That(panel.rect.Contains(rectangles[i].min) && panel.rect.Contains(rectangles[i].max), Is.True, $"Result action outside panel: {actions[i].name}");
             }
             for (var i = 0; i < rectangles.Length; i++) for (var j = i + 1; j < rectangles.Length; j++) Assert.That(rectangles[i].Overlaps(rectangles[j]), Is.False, $"Result actions overlap: {actions[i].name}/{actions[j].name}");
+        }
+
+        static IEnumerator WaitForActionPhase(CombatEntity entity, CombatActionPhase phase)
+        {
+            var deadline = Time.realtimeSinceStartup + 2f;
+            while (entity && entity.ActionPhase != phase && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.That(entity.ActionPhase, Is.EqualTo(phase), $"Timed out waiting for {phase}.");
+        }
+
+        static IEnumerator WaitForAbilityConsumption(AbilityRuntime ability, float previousReadyAt)
+        {
+            var deadline = Time.realtimeSinceStartup + 2f;
+            while (ability.ReadyAt <= previousReadyAt && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.That(ability.ReadyAt, Is.GreaterThan(previousReadyAt), "Timed out waiting for the buffered ability to execute.");
         }
 
         static int CountNamed(Transform root, string objectName)

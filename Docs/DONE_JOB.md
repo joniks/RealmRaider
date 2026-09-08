@@ -1173,3 +1173,50 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Energy balance or replenishment, a second terminal state, new controls/settings, haptics/audio/VFX, new UI roots/assets, race-specific timing and physical-device claims.
+
+## Diamond Pass 10.7 — Mobile Combat Input Buffer
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one deterministic, controller-owned `0.20s` input buffer for a direct player's next eligible ability during Recovery.
+- The newest ready alternate request replaces the prior request and executes at most once, only after the authoritative action returns to Idle and only through the existing `CombatEntity.TryUse` gate.
+- HUD buttons, short-range enemy taps and swipe abilities now share the same player request path; AI continues using its unchanged authoritative combat path.
+- Windup, Impact, invalid/cooling abilities, dodge, inactive/dead/terminal play and expired requests never queue or execute.
+- The existing ability buttons truthfully show `NEXT` and `QUEUED` without adding a Canvas, button or raycast surface.
+- Controller loss, possession release, death, disable/destroy, terminal state, expiry and input interaction-revision changes clear the pending request immediately.
+- Movement, joystick/fingertap ownership, combat timing and values, possession, camera awareness, first-minute flow and AI behavior remain unchanged.
+
+### Verification
+
+- Focused EditMode coverage proves exact-boundary expiry, replacement, deterministic direction capture and consume-once behavior.
+- Focused PlayMode coverage proves hero and possessed-defender execution plus rejection and lifecycle cleanup paths.
+- Final EditMode: `90/90` passed, `0` failed. Final PlayMode: `53/53` passed, `0` failed on 2026-09-08.
+- No gameplay source, import or test changed after the final suites, and `git diff --check` passes.
+- A separate Editor or physical Android manual smoke was not run; device feel validation remains user-owned.
+
+### Scope intentionally deferred
+
+- Combo trees, animation canceling, attack-speed or recovery changes, queued movement/dodge/trap/possession actions, multi-command queues, auto-targeting, AI buffering, new effects/assets and balance changes.
+
+## Module Pass MMP 02 — Deterministic Motion Profile Catalogue
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Added an explicit motion-profile provider boundary and one deterministic immutable catalogue for the existing character-motion contracts.
+- Caller-owned provider and profile collections are snapshotted, successful profiles are ordered with ordinal semantics, and exact profile-ID lookup is fail-closed.
+- Missing, unreadable, invalid and duplicate inputs produce stable structured issues without reflection, discovery, filesystem access, Unity or gameplay authority.
+- Added isolated package tests for deterministic ordering, exact lookup, invalid/duplicate rejection and collection immutability; package documentation and version are updated to `0.2.0`.
+
+### Verification
+
+- Independent static review found no code-level blocker and confirmed that all five changes remain inside `Packages/com.realmraiders.character-motion-profiles/`.
+- Runtime keeps `noEngineReferences` and depends only on the passive module-contract assembly; manifests parse and package `git diff --check` passes.
+- The package remains uninstalled, so its authored Unity package tests have not yet run and no Test Runner result is claimed.
+
+### Scope intentionally deferred
+
+- Concrete motion providers, animation clips/controllers, package installation, Core presentation integration, provider discovery, runtime retargeting and gameplay changes.

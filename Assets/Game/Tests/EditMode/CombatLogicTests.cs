@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using RealmRaiders.Combat;
 using RealmRaiders.Characters;
+using RealmRaiders.Controllers;
 using RealmRaiders.Core;
 using RealmRaiders.UI;
 using UnityEngine;
@@ -53,6 +54,61 @@ namespace RealmRaiders.Tests
             state.Impact(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Impact));
             state.Recover(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Recovery));
             state.Complete(); Assert.That(state.Phase, Is.EqualTo(CombatActionPhase.Idle));
+        }
+
+        [Test]
+        public void CombatInputBuffer_RejectsEmptyConsumesOnceAndExpiresAtExactBoundary()
+        {
+            var buffer = new CombatInputBuffer();
+            Assert.That(buffer.TryConsume(0, out _), Is.False);
+            Assert.That(buffer.TryQueue(-1, 1, 0, 0, 0), Is.False);
+            Assert.That(buffer.HasPending, Is.False);
+
+            Assert.That(buffer.TryQueue(2, 3, 0, 4, 10), Is.True);
+            Assert.That(buffer.TryConsume(10 + CombatInputBuffer.WindowSeconds - .0001f, out var request), Is.True);
+            Assert.That(request.AbilityIndex, Is.EqualTo(2));
+            Assert.That(request.DirectionX, Is.EqualTo(.6f).Within(.0001f));
+            Assert.That(request.DirectionY, Is.Zero);
+            Assert.That(request.DirectionZ, Is.EqualTo(.8f).Within(.0001f));
+            Assert.That(buffer.TryConsume(10 + CombatInputBuffer.WindowSeconds - .0001f, out _), Is.False);
+            Assert.That(buffer.TryQueue(2, 1, 0, 0, 20), Is.True);
+            Assert.That(buffer.TryConsume(20 + CombatInputBuffer.WindowSeconds, out _), Is.False, "The request expires at exactly 0.20 seconds.");
+        }
+
+        [Test]
+        public void CombatInputBuffer_NewestRequestReplacesAndExpiryClears()
+        {
+            var buffer = new CombatInputBuffer();
+            Assert.That(buffer.TryQueue(0, 1, 0, 0, 1), Is.True);
+            Assert.That(buffer.TryQueue(-1, 0, 0, 1, 1.05f), Is.False);
+            Assert.That(buffer.PendingAbilityIndex, Is.EqualTo(0), "A rejected request cannot replace a valid one.");
+            Assert.That(buffer.TryQueue(1, 0, 0, -5, 1.1f), Is.True);
+            Assert.That(buffer.PendingAbilityIndex, Is.EqualTo(1));
+            Assert.That(buffer.TryConsume(1.1f + CombatInputBuffer.WindowSeconds - .0001f, out var replacement), Is.True);
+            Assert.That(replacement.AbilityIndex, Is.EqualTo(1));
+            Assert.That(replacement.DirectionZ, Is.EqualTo(-1));
+
+            Assert.That(buffer.TryQueue(0, 1, 0, 0, 2), Is.True);
+            Assert.That(buffer.Expire(2 + CombatInputBuffer.WindowSeconds - .0001f), Is.False);
+            Assert.That(buffer.HasPending, Is.True);
+            Assert.That(buffer.Expire(2 + CombatInputBuffer.WindowSeconds), Is.True);
+            Assert.That(buffer.HasPending, Is.False);
+            Assert.That(buffer.TryConsume(2, out _), Is.False);
+        }
+
+        [Test]
+        public void CombatInputBuffer_SanitizesDirectionAndOwnsNoUnityAuthority()
+        {
+            var buffer = new CombatInputBuffer();
+            Assert.That(buffer.TryQueue(0, float.NaN, 2, 3, 0), Is.True);
+            Assert.That(buffer.TryConsume(0, out var request), Is.True);
+            Assert.That(request.DirectionX, Is.Zero);
+            Assert.That(request.DirectionY, Is.Zero);
+            Assert.That(request.DirectionZ, Is.EqualTo(1));
+            Assert.That(CombatInputBuffer.WindowSeconds, Is.EqualTo(.20f));
+            Assert.That(typeof(UnityEngine.Object).IsAssignableFrom(typeof(CombatInputBuffer)), Is.False);
+            foreach (var field in typeof(CombatInputBuffer).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+                Assert.That(field.FieldType.Namespace, Is.Not.EqualTo("UnityEngine"));
         }
 
         [Test]

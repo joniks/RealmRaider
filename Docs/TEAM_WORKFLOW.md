@@ -74,6 +74,7 @@ One owner at a time may write a reserved path. A task is released only after Arc
 ## Verification discipline
 
 - Core developer does not launch, close, restart, or control Unity, and does not run tests. It communicates test impact and expected outcomes to QA with each frozen handoff.
+- QA uses the Unity Editor Test Runner GUI as the default and established verification path. UnityCLI, batchmode, custom runner scripts or test-infrastructure experiments require a separate explicit Architect task; they are never introduced while verifying a frozen feature candidate.
 - QA runs a focused check after a new frozen candidate or concrete fix.
 - QA runs full EditMode once and full PlayMode once only after the final code/test change. It reruns a green suite only if the candidate changes afterwards or it found a concrete reason.
 - Manual device checks belong to the user; reports must say exactly what was observed and never invent a smoke result.

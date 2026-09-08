@@ -1,4 +1,6 @@
 using RealmRaiders.Characters;
+using RealmRaiders.Combat;
+using RealmRaiders.Controllers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +14,8 @@ namespace RealmRaiders.UI
         readonly Image image;
         readonly string readyText;
         readonly string actingText;
+        readonly string nextText;
+        readonly string queuedText;
         readonly int abilityIndex;
         readonly Color readyColor;
         readonly Color unavailableColor;
@@ -30,6 +34,8 @@ namespace RealmRaiders.UI
             image = source ? source.GetComponent<Image>() : null;
             readyText = semanticLabel;
             actingText = semanticLabel + " — ACTING";
+            nextText = semanticLabel + " — NEXT";
+            queuedText = semanticLabel + " — QUEUED";
             abilityIndex = index;
             readyColor = image ? image.color : Color.white;
             unavailableColor = Color.Lerp(readyColor, Color.black, .48f);
@@ -46,7 +52,7 @@ namespace RealmRaiders.UI
                 return;
             }
 
-            if (entity.IsActionResolving)
+            if (entity.ActionPhase is CombatActionPhase.Windup or CombatActionPhase.Impact)
             {
                 displayedCooldownTenths = -1;
                 Apply(actingText, false, unavailableColor);
@@ -54,6 +60,23 @@ namespace RealmRaiders.UI
             }
 
             var runtime = entity.Abilities[abilityIndex];
+            if (entity.ActionPhase == CombatActionPhase.Recovery)
+            {
+                var player = entity.Controller<PlayerController>();
+                if (player != null && player.IsAbilityBuffered(abilityIndex))
+                {
+                    displayedCooldownTenths = -1;
+                    Apply(queuedText, false, readyColor);
+                    return;
+                }
+                if (player != null && player.CanBufferAbility(abilityIndex))
+                {
+                    displayedCooldownTenths = -1;
+                    Apply(nextText, true, readyColor);
+                    return;
+                }
+            }
+
             var remaining = runtime.CooldownRemaining;
             if (remaining > .001f)
             {

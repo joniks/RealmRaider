@@ -39,7 +39,9 @@ Last reviewed: 2026-09-08
 - Diamond Pass 10.5 Prototype Arena Boundaries is present: the Sandbox, both defense lanes and the factual branched Sylvan floor union now have continuous, style-specific static borders that stop ordinary movement, dash and existing AI controllers without changing combat, route or possession authority.
 - Module Pass MCR 02 Deterministic Recipe Catalogue is staged in the pinned Modules submodule: explicitly supplied providers now build one immutable, ordinal, fail-closed recipe/character lookup catalogue without discovery, Unity or gameplay authority.
 - Diamond Pass 10.6 Possession Energy Return Readability is present: the shared Defender HUD now gives calm five-second and urgent two-second text-first warnings before the existing forced Keeper return, without changing possession energy or controller authority.
-- Current Unity Test Runner baseline: EditMode 87/87 and PlayMode 53/53 passed on 2026-09-08.
+- Diamond Pass 10.7 Mobile Combat Input Buffer is present: one ready alternate ability can be visibly queued during the final 0.20 seconds of Recovery and executes once through the existing authoritative combat gate.
+- Module Pass MMP 02 Deterministic Motion Profile Catalogue is staged in the pinned Modules submodule: explicitly supplied motion-profile providers build one immutable, ordinal, fail-closed lookup catalogue without discovery, Unity or gameplay authority.
+- Current Unity Test Runner baseline: EditMode 90/90 and PlayMode 53/53 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -56,7 +58,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 87/87 and PlayMode 53/53 on 2026-09-08.
+- Current verified baseline: EditMode 90/90 and PlayMode 53/53 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -73,7 +75,7 @@ Last reviewed: 2026-09-08
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 - The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
-- The character-motion-profiles package is staged but uninstalled; no approved shared rigs, clips, concrete motion profiles or Core presentation adapter exist yet.
+- The character-motion-profiles package now includes deterministic explicit-provider catalogue construction but remains uninstalled; its isolated package tests are authored but not yet run, and no approved shared rigs, clips, concrete motion providers or Core presentation adapter exist yet.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.

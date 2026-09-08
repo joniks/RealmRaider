@@ -74,7 +74,9 @@ Main areas:
 - `Assets/Game/Scripts/Camera` — Keeper/Hero/possessed camera modes and 0.65 s blends
 - `Assets/Game/Tests/EditMode` — reusable combat logic tests
 
-Run automated tests from **Window → General → Test Runner → EditMode**.
+Run automated tests from **Window → General → Test Runner**. QA-specific safe
+procedure (including the rule never to use UnityCLI or restart Unity) is in
+[Docs/UNITY_TEST_RUNNER_GUIDE.md](Docs/UNITY_TEST_RUNNER_GUIDE.md).
 
 ## Known limitations
 
