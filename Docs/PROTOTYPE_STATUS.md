@@ -38,7 +38,8 @@ Last reviewed: 2026-09-08
 - Design Pass DENV 02 Infernal Environment Production v1 is staged in the pinned Modules submodule: `Ironbound Rift Causeway` defines an eight-type basalt/iron kit and Android budgets while preserving the current lane, trap, gate, heart and gameplay truth.
 - Diamond Pass 10.5 Prototype Arena Boundaries is present: the Sandbox, both defense lanes and the factual branched Sylvan floor union now have continuous, style-specific static borders that stop ordinary movement, dash and existing AI controllers without changing combat, route or possession authority.
 - Module Pass MCR 02 Deterministic Recipe Catalogue is staged in the pinned Modules submodule: explicitly supplied providers now build one immutable, ordinal, fail-closed recipe/character lookup catalogue without discovery, Unity or gameplay authority.
-- Current Unity Test Runner baseline: EditMode 78/78 and PlayMode 52/52 passed on 2026-09-08.
+- Diamond Pass 10.6 Possession Energy Return Readability is present: the shared Defender HUD now gives calm five-second and urgent two-second text-first warnings before the existing forced Keeper return, without changing possession energy or controller authority.
+- Current Unity Test Runner baseline: EditMode 87/87 and PlayMode 53/53 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -55,7 +56,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 78/78 and PlayMode 52/52 on 2026-09-08.
+- Current verified baseline: EditMode 87/87 and PlayMode 53/53 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

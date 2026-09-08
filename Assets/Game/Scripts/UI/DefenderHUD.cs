@@ -82,6 +82,8 @@ namespace RealmRaiders.UI
         bool displayedRouteOpening;
         bool routeStatusVisible;
         int displayedDodgeCooldownTenths = -1;
+        PossessionEnergyReadabilityState displayedEnergy;
+        bool hasDisplayedEnergy;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
@@ -103,6 +105,9 @@ namespace RealmRaiders.UI
         public RectTransform TrapButtonRect => activateTrap ? (RectTransform)activateTrap.transform : null;
         public FirstPlayableMinuteDefenseGuide FirstMinuteGuide => firstMinuteGuide;
         public string ResultText => result ? result.text : string.Empty;
+        public string PossessionEnergyText => energyText ? energyText.text : string.Empty;
+        public PossessionEnergyReadabilityLevel PossessionEnergyLevel => hasDisplayedEnergy ? displayedEnergy.Level : PossessionEnergyReadabilityLevel.Normal;
+        public float PossessionEnergyFill => energyFill ? energyFill.rectTransform.anchorMax.x : 0;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
@@ -197,8 +202,9 @@ namespace RealmRaiders.UI
             if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); }
             if (!active) possess.gameObject.SetActive(false);
             selection.text = active ? $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}" : $"Tap the {config.DefenderName} to select it";
+            RefreshPossessionEnergy();
         }
-        void OnReleased(bool forced) { }
+        void OnReleased(bool forced) => RefreshPossessionEnergy();
 
         void InitializeFirstMinuteGuide()
         {
@@ -228,6 +234,7 @@ namespace RealmRaiders.UI
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
             { HideReleaseNotice(); resultPanel.SetActive(true); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured."; }
+            RefreshPossessionEnergy();
         }
 
         void RefreshOpeningCue()
@@ -284,7 +291,7 @@ namespace RealmRaiders.UI
             if (!initialized) return;
             if (!invader || !ent) return;
             invaderHealth.text = $"Invader  {invader.Health.Current:0}/{invader.Health.Maximum:0} HP"; entHealth.text = $"{config.DefenderName}  {ent.Health.Current:0}/{ent.Health.Maximum:0} HP";
-            energyText.text = $"Possession energy  {energy.Remaining:0.0}/{energy.Maximum:0}s"; var ratio = energy.Maximum <= 0 ? 0 : energy.Remaining / energy.Maximum; energyFill.rectTransform.anchorMax = new Vector2(ratio, 1); energyFill.color = ratio <= .25f ? new Color(1f, .28f, .12f) : new Color(.55f, .95f, .2f);
+            RefreshPossessionEnergy();
             if (trap.State == TrapState.Ready)
             {
                 var inRange = trap.TargetInRange; activateTrap.interactable = inRange;
@@ -302,6 +309,29 @@ namespace RealmRaiders.UI
                 else trapText.text = trap is RootTrap root && root.RecentlyActivated ? "ROOTED!  12 DAMAGE — INVADER HELD" : $"{config.TrapName.ToUpperInvariant()} COOLDOWN — {trap.CooldownRemaining:0.0}s";
                 activateTrap.GetComponent<Image>().color = new Color(.28f, .14f, .08f, .75f);
             }
+        }
+
+        void RefreshPossessionEnergy()
+        {
+            if (!energyText || !energyFill || energy == null) return;
+            var controlled = possessionManager ? possessionManager.Possessed : null;
+            var player = controlled ? controlled.Controller<PlayerController>() : null;
+            var direct = possessionManager && possessionManager.IsPossessing && player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var next = PossessionEnergyReadability.Map(direct, energy.Remaining, energy.Maximum);
+
+            var fillRect = energyFill.rectTransform;
+            if (!Mathf.Approximately(fillRect.anchorMax.x, next.NormalizedRemaining)) fillRect.anchorMax = new Vector2(next.NormalizedRemaining, 1);
+            if (hasDisplayedEnergy && displayedEnergy.HasSameSemanticValue(next)) return;
+
+            energyText.text = next.Copy;
+            energyFill.color = next.Level switch
+            {
+                PossessionEnergyReadabilityLevel.Warning => new Color(.95f, .68f, .18f),
+                PossessionEnergyReadabilityLevel.Critical => new Color(.95f, .34f, .16f),
+                _ => next.UsesLowNormalMeter ? new Color(1f, .28f, .12f) : new Color(.55f, .95f, .2f)
+            };
+            displayedEnergy = next;
+            hasDisplayedEnergy = true;
         }
 
         void RefreshAbilityButtons()

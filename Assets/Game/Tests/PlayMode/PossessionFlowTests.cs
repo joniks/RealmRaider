@@ -9,6 +9,7 @@ using RealmRaiders.Possession;
 using RealmRaiders.Raid;
 using RealmRaiders.Realm;
 using RealmRaiders.Core;
+using RealmRaiders.Traps;
 using RealmRaiders.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -37,6 +38,98 @@ namespace RealmRaiders.Tests
                 Assert.That(presentation.ResultCuePlayed, Is.True);
             }
             finally { Object.Destroy(listener); Object.Destroy(hud); }
+        }
+
+        [UnityTest]
+        public IEnumerator PossessionEnergyReadability_SharedDefenseHudClearsAcrossReturnPaths()
+        {
+            var hadGuide = PlayerPrefs.HasKey(FirstPlayableMinute.KeyForTests);
+            var previousGuide = PlayerPrefs.GetString(FirstPlayableMinute.KeyForTests, string.Empty);
+            FirstPlayableMinute.ResetForTests();
+            GameplayInput.ResetForTests();
+            try
+            {
+                var configs = new[] { DefenseHudConfig.Sylvan, DefenseHudConfig.Infernal };
+                foreach (var config in configs)
+                {
+                    var fixture = EnergyHudFixture.Create(config);
+                    try
+                    {
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  30.0/30s"));
+                        Assert.That(CountNamed(fixture.Hud.transform, "Possession Energy Meter"), Is.EqualTo(1));
+
+                        fixture.Possession.Select(fixture.Defender);
+                        Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
+
+                        fixture.Energy.Consume(25);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Warning));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("POSSESSION ENDING  5.0s"));
+                        Assert.That(fixture.Hud.PossessionEnergyFill, Is.EqualTo(5f / 30f).Within(.001f));
+
+                        fixture.Energy.Consume(3);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Critical));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("RETURN TO KEEPER  2.0s"));
+
+                        fixture.Possession.Release();
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  2.0/30s"));
+
+                        fixture.Possession.Select(fixture.Defender);
+                        Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Critical));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("RETURN TO KEEPER  2.0s"));
+                        Assert.That(CountNamed(fixture.Hud.transform, "Possession Energy Meter"), Is.EqualTo(1), "Re-entry must reuse the existing meter.");
+
+                        var responsive = fixture.Hud.GetComponent<ResponsiveHudRoot>();
+                        responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
+                        responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                        Assert.That(fixture.Energy.Remaining, Is.EqualTo(2));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("RETURN TO KEEPER  2.0s"));
+
+                        fixture.Defender.SetController(fixture.Defender.Controller<CreatureBrain>());
+                        fixture.Hud.SendMessage("RefreshPossessionEnergy", SendMessageOptions.RequireReceiver);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal), "A controller swap must clear possession urgency.");
+                        fixture.Defender.SetController(fixture.Defender.Controller<PlayerController>());
+                        fixture.Hud.SendMessage("RefreshPossessionEnergy", SendMessageOptions.RequireReceiver);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Critical));
+
+                        string moment = null;
+                        fixture.Possession.MomentFeedback += value => moment = value;
+                        fixture.Energy.Consume(2);
+                        fixture.Possession.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        Assert.That(fixture.Possession.Possessed, Is.Null);
+                        Assert.That(moment, Is.EqualTo("POSSESSION ENERGY DEPLETED — RETURNING TO KEEPER"));
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  0.0/30s"));
+
+                        fixture.Energy.Refill();
+                        fixture.Possession.Select(fixture.Defender);
+                        Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                        fixture.Energy.Consume(25);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Warning));
+                        fixture.Invader.Health.TakeDamage(new DamageInfo(1000, null, fixture.Invader.transform.position), 0);
+                        Assert.That(fixture.Defense.State, Is.EqualTo(DefenseState.DefenderVictory));
+                        Assert.That(fixture.Possession.Possessed, Is.Null);
+                        Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
+                        Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  5.0/30s"));
+                    }
+                    finally
+                    {
+                        fixture.Destroy();
+                        GameplayInput.ResetForTests();
+                    }
+                    yield return null;
+                }
+            }
+            finally
+            {
+                FirstPlayableMinute.ResetForTests();
+                if (hadGuide) PlayerPrefs.SetString(FirstPlayableMinute.KeyForTests, previousGuide); else PlayerPrefs.DeleteKey(FirstPlayableMinute.KeyForTests);
+                PlayerPrefs.Save();
+                GameplayInput.ResetForTests();
+            }
         }
 
         [UnityTest]
@@ -651,6 +744,100 @@ namespace RealmRaiders.Tests
                 Assert.That(panel.rect.Contains(rectangles[i].min) && panel.rect.Contains(rectangles[i].max), Is.True, $"Result action outside panel: {actions[i].name}");
             }
             for (var i = 0; i < rectangles.Length; i++) for (var j = i + 1; j < rectangles.Length; j++) Assert.That(rectangles[i].Overlaps(rectangles[j]), Is.False, $"Result actions overlap: {actions[i].name}/{actions[j].name}");
+        }
+
+        static int CountNamed(Transform root, string objectName)
+        {
+            var count = root.name == objectName ? 1 : 0;
+            for (var index = 0; index < root.childCount; index++) count += CountNamed(root.GetChild(index), objectName);
+            return count;
+        }
+
+        sealed class EnergyHudFixture
+        {
+            public readonly GameObject CameraObject;
+            public readonly GameObject InvaderObject;
+            public readonly GameObject DefenderObject;
+            public readonly GameObject CoreObject;
+            public readonly GameObject PossessionObject;
+            public readonly GameObject DefenseObject;
+            public readonly GameObject TrapObject;
+            public readonly GameObject HudObject;
+            public readonly CharacterDefinition InvaderDefinition;
+            public readonly CharacterDefinition DefenderDefinition;
+            public readonly CombatEntity Invader;
+            public readonly CombatEntity Defender;
+            public readonly PossessionManager Possession;
+            public readonly PossessionEnergy Energy;
+            public readonly DefenseManager Defense;
+            public readonly DefenderHUD Hud;
+
+            EnergyHudFixture(DefenseHudConfig config)
+            {
+                CameraObject = new GameObject($"{config.RealmTitle} Energy Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig));
+                CameraObject.tag = "MainCamera";
+                InvaderObject = new GameObject($"{config.RealmTitle} Invader", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+                DefenderObject = new GameObject(config.DefenderName, typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
+                CoreObject = new GameObject(config.CoreName, typeof(RealmCore));
+                PossessionObject = new GameObject($"{config.RealmTitle} Possession", typeof(PossessionManager));
+                DefenseObject = new GameObject($"{config.RealmTitle} Defense", typeof(DefenseManager));
+                TrapObject = new GameObject(config.TrapName, typeof(RootTrap));
+                HudObject = new GameObject($"{config.RealmTitle} HUD", typeof(DefenderHUD));
+                InvaderDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+                DefenderDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+
+                InvaderDefinition.DisplayName = "Test Invader";
+                InvaderDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3, AttackSpeed = 1 };
+                InvaderDefinition.Abilities = System.Array.Empty<AbilityDefinition>();
+                DefenderDefinition.DisplayName = config.DefenderName;
+                DefenderDefinition.Possessable = true;
+                DefenderDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3, AttackSpeed = 1 };
+                DefenderDefinition.Abilities = System.Array.Empty<AbilityDefinition>();
+
+                Invader = InvaderObject.GetComponent<CombatEntity>();
+                Invader.Initialize(InvaderDefinition);
+                DefenderObject.transform.position = new Vector3(40, 0, 0);
+                Defender = DefenderObject.GetComponent<CombatEntity>();
+                Defender.Initialize(DefenderDefinition);
+                Defender.SetController(Defender.Controller<CreatureBrain>());
+
+                var rig = CameraObject.GetComponent<PrototypeCameraRig>();
+                rig.ConfigureOverview(new Vector3(0, 12, -12), Quaternion.Euler(45, 0, 0));
+                rig.SnapToOverview();
+                Possession = PossessionObject.GetComponent<PossessionManager>();
+                Possession.Initialize(rig);
+                Energy = new PossessionEnergy(30);
+                Possession.ConfigureEnergy(Energy);
+                Possession.Register(Defender);
+
+                CoreObject.transform.position = new Vector3(100, 0, 100);
+                var core = CoreObject.GetComponent<RealmCore>();
+                core.Initialize(Invader);
+                Defense = DefenseObject.GetComponent<DefenseManager>();
+                Defense.Initialize(Invader, core, Possession);
+                TrapObject.transform.position = new Vector3(100, 0, -100);
+                var trap = TrapObject.GetComponent<RootTrap>();
+                trap.Automatic = false;
+                trap.Initialize(Invader);
+                Hud = HudObject.GetComponent<DefenderHUD>();
+                Hud.Initialize(Defense, Possession, Energy, Invader, Defender, trap, core, config);
+            }
+
+            public static EnergyHudFixture Create(DefenseHudConfig config) => new(config);
+
+            public void Destroy()
+            {
+                Object.Destroy(HudObject);
+                Object.Destroy(TrapObject);
+                Object.Destroy(DefenseObject);
+                Object.Destroy(PossessionObject);
+                Object.Destroy(CoreObject);
+                Object.Destroy(DefenderObject);
+                Object.Destroy(InvaderObject);
+                Object.Destroy(CameraObject);
+                Object.Destroy(InvaderDefinition);
+                Object.Destroy(DefenderDefinition);
+            }
         }
     }
 }

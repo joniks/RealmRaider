@@ -64,6 +64,56 @@ namespace RealmRaiders.Tests
             Assert.That(CombatEntity.DodgeCooldown, Is.EqualTo(1.5f));
         }
 
+        [TestCase(false, 1f, PossessionEnergyReadabilityLevel.Normal, "Possession energy  1.0/30s")]
+        [TestCase(true, 5.1f, PossessionEnergyReadabilityLevel.Normal, "Possession energy  5.1/30s")]
+        [TestCase(true, 5f, PossessionEnergyReadabilityLevel.Warning, "POSSESSION ENDING  5.0s")]
+        [TestCase(true, 2.1f, PossessionEnergyReadabilityLevel.Warning, "POSSESSION ENDING  2.1s")]
+        [TestCase(true, 2f, PossessionEnergyReadabilityLevel.Critical, "RETURN TO KEEPER  2.0s")]
+        [TestCase(true, .1f, PossessionEnergyReadabilityLevel.Critical, "RETURN TO KEEPER  0.1s")]
+        [TestCase(true, 0f, PossessionEnergyReadabilityLevel.Normal, "Possession energy  0.0/30s")]
+        public void PossessionEnergyReadability_MapsPossessionBoundaries(bool possessing, float remaining, PossessionEnergyReadabilityLevel level, string copy)
+        {
+            var state = PossessionEnergyReadability.Map(possessing, remaining, 30);
+            Assert.That(state.Level, Is.EqualTo(level));
+            Assert.That(state.Copy, Is.EqualTo(copy));
+        }
+
+        [Test]
+        public void PossessionEnergyReadability_ClampsMalformedValues()
+        {
+            var negative = PossessionEnergyReadability.Map(true, -4, 30);
+            Assert.That(negative.DisplayedTenths, Is.Zero);
+            Assert.That(negative.NormalizedRemaining, Is.Zero);
+            Assert.That(negative.Level, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
+
+            var overMaximum = PossessionEnergyReadability.Map(true, 90, 30);
+            Assert.That(overMaximum.DisplayedTenths, Is.EqualTo(300));
+            Assert.That(overMaximum.NormalizedRemaining, Is.EqualTo(1));
+            Assert.That(overMaximum.Copy, Is.EqualTo("Possession energy  30.0/30s"));
+
+            var invalidMaximum = PossessionEnergyReadability.Map(true, 5, -30);
+            Assert.That(invalidMaximum.DisplayedTenths, Is.Zero);
+            Assert.That(invalidMaximum.Maximum, Is.Zero);
+            Assert.That(invalidMaximum.NormalizedRemaining, Is.Zero);
+        }
+
+        [Test]
+        public void PossessionEnergyReadability_IsCultureStableAndOwnsNoRuntimeAuthority()
+        {
+            var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+            try
+            {
+                System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("lv-LV");
+                Assert.That(PossessionEnergyReadability.Map(true, 1.5f, 30).Copy, Is.EqualTo("RETURN TO KEEPER  1.5s"));
+            }
+            finally { System.Globalization.CultureInfo.CurrentCulture = previousCulture; }
+
+            Assert.That(typeof(UnityEngine.Object).IsAssignableFrom(typeof(PossessionEnergyReadability)), Is.False);
+            Assert.That(typeof(PossessionEnergyReadability).GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic), Is.Empty);
+            foreach (var field in typeof(PossessionEnergyReadabilityState).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+                Assert.That(field.IsInitOnly, Is.True, $"{field.Name} must remain immutable.");
+        }
+
         [Test]
         public void VisualRecipe_AssemblerIsDeterministicAndFallbackKeepsBaseVisual()
         {

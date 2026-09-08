@@ -49,7 +49,7 @@ namespace RealmRaiders.Tests
                 Assert.That(fixture.Player.Dodge(), Is.True);
                 Assert.That(fixture.Entity.IsDodging, Is.True);
                 Assert.That(fixture.Entity.Health.IsDamageImmune, Is.True);
-                Assert.That(fixture.Entity.Health.DamageImmunityRemaining, Is.LessThanOrEqualTo(CombatEntity.DodgeImmunityDuration));
+                Assert.That(fixture.Entity.Health.DamageImmunityRemaining, Is.LessThanOrEqualTo(CombatEntity.DodgeImmunityDuration + .0001f));
                 fixture.Entity.Health.TakeDamage(new DamageInfo(25, null, fixture.Entity.transform.position), 0);
                 Assert.That(fixture.Entity.Health.Current, Is.EqualTo(100));
 

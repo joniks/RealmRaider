@@ -1150,3 +1150,26 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 ### Scope intentionally deferred
 
 - Concrete character recipes, approved asset sources, provider discovery, package installation, Core host integration, runtime visual consumption, Unity assets and gameplay changes.
+
+## Diamond Pass 10.6 — Possession Energy Return Readability
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added a deterministic, immutable presentation mapper that derives possession-energy copy, urgency and normalized meter state without owning Unity objects, timers, saves or gameplay authority.
+- The shared Sylvan and Infernal Defender HUD keeps its normal factual meter above five seconds, shows `POSSESSION ENDING` from five seconds, and changes to `RETURN TO KEEPER` for the final two seconds.
+- The meter continues to follow authoritative energy while text and color work is cached by semantic tenth/state, avoiding repeated identical label rebuilding.
+- Manual release, forced release, controller loss, death and terminal result immediately return the meter to factual normal presentation through existing possession state.
+- Possession energy amount, drain, forced-return timing, controllers, camera, health, combat, dodge and result behavior remain unchanged.
+- Stabilized the pre-existing dodge-immunity upper-bound assertion with a test-only floating-point tolerance; production dodge timing remains exactly `0.18s`.
+
+### Verification
+
+- Focused mapper EditMode coverage passed `24/24`; focused shared-HUD PlayMode coverage passed `14/14` before the final test-only tolerance adjustment.
+- Final EditMode: `87/87` passed, `0` failed. Final PlayMode: `53/53` passed, `0` failed.
+- `git diff --check` passes. QA did not perform a separate manual smoke; physical Android validation remains user-owned.
+
+### Scope intentionally deferred
+
+- Energy balance or replenishment, a second terminal state, new controls/settings, haptics/audio/VFX, new UI roots/assets, race-specific timing and physical-device claims.
