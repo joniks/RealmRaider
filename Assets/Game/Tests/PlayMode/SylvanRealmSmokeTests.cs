@@ -34,8 +34,11 @@ namespace RealmRaiders.Tests
         public IEnumerator RealmBuild_ExplainsLiveFixedPlanWithoutInputOrLayoutArtifacts()
         {
             var previous = PlayerPrefs.GetString(DefenseLayoutSave.KeyForTests, null);
+            var hadGuide = PlayerPrefs.HasKey(FirstPlayableMinute.KeyForTests);
+            var previousGuide = PlayerPrefs.GetString(FirstPlayableMinute.KeyForTests, string.Empty);
             try
             {
+                FirstPlayableMinute.ResetForTests();
                 DefenseLayoutSave.Save(DefenseLayout.Default());
                 SceneManager.LoadScene("RealmBuild"); yield return null; yield return null;
                 var hud = Object.FindFirstObjectByType<BuildHUD>(); var root = Object.FindFirstObjectByType<ResponsiveHudRoot>();
@@ -68,7 +71,12 @@ namespace RealmRaiders.Tests
                 Assert.That(Object.FindFirstObjectByType<DefenseManager>(), Is.Not.Null);
                 AssertSingleViewAndListener();
             }
-            finally { if (previous == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previous); PlayerPrefs.Save(); }
+            finally
+            {
+                if (previous == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previous);
+                if (hadGuide) PlayerPrefs.SetString(FirstPlayableMinute.KeyForTests, previousGuide); else PlayerPrefs.DeleteKey(FirstPlayableMinute.KeyForTests);
+                PlayerPrefs.Save(); FirstPlayableMinute.ResetBuildHandoff();
+            }
         }
 
         [UnityTest]
@@ -100,8 +108,11 @@ namespace RealmRaiders.Tests
             var previousLayout = PlayerPrefs.GetString(DefenseLayoutSave.KeyForTests, null);
             var hadProgress = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
             var previousProgress = PlayerPrefs.GetString(RealmProgress.KeyForTests, string.Empty);
+            var hadGuide = PlayerPrefs.HasKey(FirstPlayableMinute.KeyForTests);
+            var previousGuide = PlayerPrefs.GetString(FirstPlayableMinute.KeyForTests, string.Empty);
             try
             {
+                FirstPlayableMinute.ResetForTests();
                 RealmProgress.ResetForTests();
                 RealmProgress.Credit(new RaidResult(true, 100, 1, 0, 0, 1, true));
                 DefenseLayoutSave.Save(DefenseLayout.Default());
@@ -155,7 +166,8 @@ namespace RealmRaiders.Tests
             {
                 if (previousLayout == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previousLayout);
                 if (hadProgress) PlayerPrefs.SetString(RealmProgress.KeyForTests, previousProgress); else PlayerPrefs.DeleteKey(RealmProgress.KeyForTests);
-                PlayerPrefs.Save();
+                if (hadGuide) PlayerPrefs.SetString(FirstPlayableMinute.KeyForTests, previousGuide); else PlayerPrefs.DeleteKey(FirstPlayableMinute.KeyForTests);
+                PlayerPrefs.Save(); FirstPlayableMinute.ResetBuildHandoff();
             }
         }
 

@@ -24,6 +24,7 @@ namespace RealmRaiders.UI
         public event Action<PrototypeOrientation> LayoutChanged;
         public PrototypeOrientation Orientation { get; private set; }
         public Rect SafeAreaPixels => ResponsiveLayout.SafeAreaPixels;
+        public RectTransform JoystickRect => joystick ? (RectTransform)joystick.transform : null;
         CanvasScaler scaler; RectTransform rect; VirtualJoystick joystick; Vector2 lastSize; Rect lastSafe; PrototypeOrientation? testOverride; readonly Dictionary<RectTransform, (Vector2 min, Vector2 max, Vector2 pivot, Vector2 position)> original = new();
         public void SetOrientationForTests(PrototypeOrientation orientation) { testOverride = orientation; Apply(true); }
         public void ClearOrientationOverrideForTests() { testOverride = null; Apply(true); }
@@ -57,8 +58,11 @@ namespace RealmRaiders.UI
             foreach (var button in buttons)
             {
                 var buttonRect = (RectTransform)button.transform; if (!original.ContainsKey(buttonRect)) continue;
+                if (button.GetComponentInParent<FirstPlayableMinuteDefenseGuide>()) continue;
                 // RaidHUD owns the deliberate result-panel action lane; only its live combat actions use the shared reflow.
                 if (GetComponent<RaidHUD>() && button.transform.parent != transform) continue;
+                // Defender result actions are authored inside their panel and are not combat-column actions.
+                if (GetComponent<DefenderHUD>() && button.transform.parent != transform) continue;
                 if (orientation == PrototypeOrientation.Landscape)
                 {
                     buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(1, 0); buttonRect.pivot = new Vector2(1, 0);

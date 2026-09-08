@@ -11,6 +11,7 @@ namespace RealmRaiders.Controllers
     [RequireComponent(typeof(CombatEntity))]
     public sealed class PlayerController : MonoBehaviour, IEntityController
     {
+        public event System.Action<PlayerController, Vector3> LocomotionAccepted;
         public bool IsActive { get; private set; }
         CombatEntity entity;
         Vector3 destination;
@@ -48,8 +49,8 @@ namespace RealmRaiders.Controllers
             if (!entity.IsRooted && Time.time >= rootBreakUntil) RootEscapeProgress = 0;
             var directMove = GameplayInput.Movement.sqrMagnitude > .001f ? GameplayInput.Movement : Vector2.ClampMagnitude(keyboardMove, 1);
             if (entity.IsDodging) hasDestination = false;
-            else if (directMove.sqrMagnitude > .001f) { hasDestination = false; lastMovementDirection = new Vector3(directMove.x, 0, directMove.y).normalized; entity.Move(lastMovementDirection * directMove.magnitude * entity.Stats.MoveSpeed); }
-            else if (hasDestination) { var delta = destination - transform.position; delta.y = 0; if (delta.magnitude < .25f) hasDestination = false; else { lastMovementDirection = delta.normalized; entity.Move(lastMovementDirection * entity.Stats.MoveSpeed); } }
+            else if (directMove.sqrMagnitude > .001f) { hasDestination = false; lastMovementDirection = new Vector3(directMove.x, 0, directMove.y).normalized; var before = transform.position; entity.Move(lastMovementDirection * directMove.magnitude * entity.Stats.MoveSpeed); ReportLocomotionAccepted(transform.position - before); }
+            else if (hasDestination) { var delta = destination - transform.position; delta.y = 0; if (delta.magnitude < .25f) hasDestination = false; else { lastMovementDirection = delta.normalized; var before = transform.position; entity.Move(lastMovementDirection * entity.Stats.MoveSpeed); ReportLocomotionAccepted(transform.position - before); } }
             else entity.Move(Vector3.zero);
             if (Pointer.current == null) return;
             var pointer = Pointer.current;
@@ -79,11 +80,11 @@ namespace RealmRaiders.Controllers
             if (pointer.press.wasReleasedThisFrame) pointerStartedOnUi = false;
         }
 
-        public void UseAbility(int index)
+        public bool UseAbility(int index)
         {
-            if (!IsActive) return;
+            if (!IsActive) return false;
             var direction = view ? view.transform.forward : transform.forward; direction.y = 0;
-            entity.TryUse(index, direction);
+            return entity.TryUse(index, direction);
         }
 
         public bool Dodge()
@@ -99,6 +100,12 @@ namespace RealmRaiders.Controllers
             hasDestination = true;
             var direction = destination - transform.position; direction.y = 0;
             if (direction.sqrMagnitude > .001f) lastMovementDirection = direction.normalized;
+        }
+
+        void ReportLocomotionAccepted(Vector3 displacement)
+        {
+            if (IsActive && entity && !entity.IsRooted && !entity.IsDodging && !entity.IsActionResolving)
+                LocomotionAccepted?.Invoke(this, displacement);
         }
     }
 }

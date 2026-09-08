@@ -149,7 +149,10 @@ namespace RealmRaiders.Tests
                 GameObject.Find("SAVE & DEFEND").GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;
                 Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("DefenderTest"));
-                Assert.That(FirstPlayableMinute.ChangedBuildAcceptedForSession, Is.True);
+                Assert.That(FirstPlayableMinute.ChangedBuildAcceptedForSession, Is.False, "Defender initialization consumes the one-shot BUILD handoff.");
+                Assert.That(FirstPlayableMinute.DefenseSessionEligibleForTests, Is.True);
+                Assert.That(FirstPlayableMinute.DefenseSceneActiveForTests, Is.True);
+                Assert.That(Object.FindFirstObjectByType<FirstPlayableMinuteDefenseGuide>(), Is.Not.Null);
                 var savedLayout = DefenseLayoutSave.Load();
                 Assert.That(savedLayout.Slots[1].Piece, Is.EqualTo(DefensePieceType.Ent));
                 Assert.That(savedLayout.Slots[2].Piece, Is.EqualTo(DefensePieceType.Empty));

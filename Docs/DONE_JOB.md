@@ -963,3 +963,26 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 ### Scope intentionally deferred
 
 - Selecting/downloading art, asserting a licence, Blender source creation, rigging, LOD or clip production, concrete recipe/profile instances, Unity import/integration, runtime animation, device performance acceptance and Blood Knight source modification.
+
+## Diamond Pass 10.2 — First Playable Minute: Possession Proof
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Continued the journey-only guide from the accepted BUILD handoff into Sylvan defense without changing legacy Hub or defense routes.
+- Added one monotonic, factual `SELECT → POSSESS → MOVE → ATTACK → DODGE → RELEASE → KEEPER RETURN → RESULT` proof driven only by accepted gameplay actions and the existing same-entity possession flow.
+- The guide observes authoritative displacement, accepted ability and dodge calls, explicit release, Keeper camera return, and the real defense terminal result; it never performs movement, combat, targeting, possession, release, camera control, or result progression for the player.
+- Added session-local defense eligibility, scene revision tokens and explicit retry authorization so stale teardown, reloads and unrelated defense entry cannot duplicate or incorrectly resume the guide.
+- Reused the existing Defender HUD and responsive layout in portrait and landscape, with non-raycast presentation, existing pointer ownership, and cleanup on skip, controller/lifecycle interruption, terminal state and scene teardown.
+- Successful ordered completion persists the existing first-minute record exactly once. Early terminal outcomes offer a truthful retry path without claiming completion.
+
+### Verification
+
+- QA-focused first-minute and regression suites passed after correcting scene-token teardown, deterministic movement proof, legacy handoff expectations and PlayerPrefs isolation in Sylvan smoke coverage.
+- Final EditMode: `66/66` passed, `0` failed. Final PlayMode: `42/42` passed, `0` failed.
+- No source changed after the final suites and `git diff --check` passes. A separate physical Android manual pass was not run; PlayMode exercised the Defender flow and UI proof.
+
+### Scope intentionally deferred
+
+- Infernal or raid onboarding, modal tutorial content, auto-actions, rewards/progression/telemetry, new assets/audio/scenes/packages, wider tutorial replay/settings, and physical-device readability/performance acceptance.

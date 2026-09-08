@@ -16,6 +16,7 @@ namespace RealmRaiders.Possession
         public CombatEntity Selected { get; private set; }
         public CombatEntity Possessed { get; private set; }
         public bool IsPossessing => Possessed;
+        public PrototypeCameraRig CameraRig => cameraRig;
         PrototypeCameraRig cameraRig;
         PossessionEnergy energy;
         GameObject selectionVisual;

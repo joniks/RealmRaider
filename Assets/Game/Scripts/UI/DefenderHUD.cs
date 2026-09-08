@@ -6,6 +6,7 @@ using RealmRaiders.Traps;
 using RealmRaiders.Controllers;
 using RealmRaiders.CameraSystem;
 using RealmRaiders.AI;
+using RealmRaiders.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -60,7 +61,7 @@ namespace RealmRaiders.UI
     {
         Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel;
         Image energyFill;
-        Button possess, release, smash, slam, activateTrap, dodge;
+        Button possess, release, smash, slam, activateTrap, dodge, retry, nextAction;
         GameObject resultPanel;
         PossessionManager possessionManager;
         PossessionEnergy energy;
@@ -71,6 +72,8 @@ namespace RealmRaiders.UI
         DefenseHudConfig config;
         bool initialized;
         HudPresentation presentation;
+        ResponsiveHudRoot responsive;
+        FirstPlayableMinuteDefenseGuide firstMinuteGuide;
         AbilityButtonReadiness[] abilityButtons;
         int displayedOpeningSeconds = -1;
         bool openingCueDismissed;
@@ -98,6 +101,9 @@ namespace RealmRaiders.UI
         public bool TrapStatusRaycastTarget => trapText && trapText.raycastTarget;
         public bool TrapButtonInteractable => activateTrap && activateTrap.interactable;
         public RectTransform TrapButtonRect => activateTrap ? (RectTransform)activateTrap.transform : null;
+        public FirstPlayableMinuteDefenseGuide FirstMinuteGuide => firstMinuteGuide;
+        public string ResultText => result ? result.text : string.Empty;
+        public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
@@ -107,6 +113,7 @@ namespace RealmRaiders.UI
             defenseManager.StateChanged += OnDefenseState; possessionEnergy.Changed += (_, _) => Refresh(); core.ProgressChanged += value => coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
             initialized = true;
             OnSelection(null); OnPossession(null); OnDefenseState(defenseManager.State); Refresh(); RefreshRouteStatus();
+            InitializeFirstMinuteGuide();
         }
 
         void Update()
@@ -121,7 +128,7 @@ namespace RealmRaiders.UI
         void Build()
         {
             presentation = gameObject.AddComponent<HudPresentation>();
-            var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(true);
+            var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.Initialize(true);
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
             invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); ConstrainDefenderHealthLabel(); guardianEntVitality = GuardianEntVitalityLabel(); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
@@ -129,7 +136,7 @@ namespace RealmRaiders.UI
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.raycastTarget = false; releaseNotice.gameObject.SetActive(false);
             possess = Button($"POSSESS {config.DefenderName.ToUpperInvariant()}", new Vector2(0, 410), PossessSelected);
-            release = Button("RELEASE", new Vector2(0, 410), possessionManager.Release);
+            release = Button("RELEASE", new Vector2(0, 410), ReleasePossession);
             activateTrap = Button("ACTIVATE TRAP", new Vector2(0, 290), ActivateTrap);
             smash = Button("SMASH", new Vector2(-180, 165), () => Ability(0)); slam = Button("GROUND SLAM", new Vector2(180, 165), () => Ability(2));
             abilityButtons = new[]
@@ -140,7 +147,8 @@ namespace RealmRaiders.UI
             dodge = Button("DODGE", new Vector2(0, 530), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
             resultPanel = new GameObject("Defense Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false); var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .28f); rect.anchorMax = new Vector2(.92f, .72f); rect.offsetMin = rect.offsetMax = Vector2.zero; resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
             result = Label("", Vector2.zero, 42, TextAnchor.MiddleCenter); result.transform.SetParent(resultPanel.transform, false); var resultRect = (RectTransform)result.transform; resultRect.anchorMin = new Vector2(0, .35f); resultRect.anchorMax = Vector2.one; resultRect.offsetMin = resultRect.offsetMax = Vector2.zero;
-            var retry = Button("DEFEND AGAIN", new Vector2(0, 160), () => SceneManager.LoadScene(config.RetryScene)); retry.transform.SetParent(resultPanel.transform, false); var raid = Button(config.NextActionLabel, new Vector2(0, 48), () => SceneManager.LoadScene(config.NextActionScene)); raid.transform.SetParent(resultPanel.transform, false); resultPanel.SetActive(false);
+            result.raycastTarget = false;
+            retry = Button("DEFEND AGAIN", new Vector2(0, 160), RetryDefense); retry.transform.SetParent(resultPanel.transform, false); nextAction = Button(config.NextActionLabel, new Vector2(0, 48), () => SceneManager.LoadScene(config.NextActionScene)); nextAction.transform.SetParent(resultPanel.transform, false); resultPanel.SetActive(false);
             var hub = Button("MY REALM", new Vector2(0, -64), () => SceneManager.LoadScene("PrototypeHub")); hub.transform.SetParent(resultPanel.transform, false);
         }
 
@@ -156,8 +164,31 @@ namespace RealmRaiders.UI
         {
             if (possessionManager.PossessSelected()) presentation?.PlayConfirm();
         }
-        void Ability(int index) => possessionManager.Possessed?.Controller<PlayerController>()?.UseAbility(index);
-        void Dodge() => possessionManager.Possessed?.Controller<PlayerController>()?.Dodge();
+        void Ability(int index)
+        {
+            var actor = possessionManager.Possessed;
+            var controller = actor ? actor.Controller<PlayerController>() : null;
+            var accepted = controller && controller.UseAbility(index);
+            if (index == 0) firstMinuteGuide?.ObserveSmash(actor, controller, accepted);
+        }
+        void Dodge()
+        {
+            var actor = possessionManager.Possessed;
+            var controller = actor ? actor.Controller<PlayerController>() : null;
+            var accepted = controller && controller.Dodge();
+            firstMinuteGuide?.ObserveDodge(actor, controller, accepted);
+        }
+        void ReleasePossession()
+        {
+            var actor = possessionManager.Possessed;
+            firstMinuteGuide?.BeginExplicitRelease(actor);
+            possessionManager.Release();
+        }
+        void RetryDefense()
+        {
+            firstMinuteGuide?.PrepareRetry();
+            SceneManager.LoadScene(config.RetryScene);
+        }
         void OnSelection(CombatEntity value)
         { selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it"; possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted); }
         void OnPossession(CombatEntity value)
@@ -168,6 +199,17 @@ namespace RealmRaiders.UI
             selection.text = active ? $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}" : $"Tap the {config.DefenderName} to select it";
         }
         void OnReleased(bool forced) { }
+
+        void InitializeFirstMinuteGuide()
+        {
+            if (config.RealmTitle != DefenseHudConfig.Sylvan.RealmTitle || !ent || !FirstPlayableMinute.TryBeginSylvanDefense(out var defenseSceneToken)) return;
+            var go = new GameObject("First Playable Minute Defense Guide", typeof(RectTransform), typeof(FirstPlayableMinuteDefenseGuide));
+            go.transform.SetParent(transform, false);
+            firstMinuteGuide = go.GetComponent<FirstPlayableMinuteDefenseGuide>();
+            firstMinuteGuide.Initialize(responsive, possessionManager, energy, defense, ent, selection, result, possess, smash, dodge, release, retry, nextAction, presentation, defenseSceneToken);
+        }
+
+        void OnDestroy() => firstMinuteGuide?.Shutdown();
         void ShowMomentFeedback(string message)
         {
             if (!releaseNotice || GameplayInput.TerminalState || (resultPanel && resultPanel.activeSelf)) return;
