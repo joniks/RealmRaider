@@ -1396,3 +1396,23 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - In-run orientation switching, new settings/modal/Canvas, rebinding, desktop/gamepad controls, pause behavior, aim assist, camera changes, haptics/audio/VFX, save migration and physical-device claims.
+
+## Module Pass MMP 03 — Motion Profile Compatibility Gate
+
+Completed on 2026-09-09 and accepted in the Modules submodule.
+
+### Delivered
+
+- Added an adapter-neutral, immutable compatibility gate for one explicitly supplied character-motion target and profile.
+- The gate validates exact body family, rig profile, the six required keyed clips and declared fallback policy, preserving existing profile-validation evidence with deterministic semantic issue paths.
+- Added eight isolated Editor tests, package documentation and version `0.3.0`; the package remains plain C#, `noEngineReferences`, uninstalled and without discovery, asset loading, Unity, animation or gameplay authority.
+
+### Verification
+
+- Independent static review confirmed scope inside `Packages/com.realmraiders.character-motion-profiles/`, explicit immutable contract behavior and no Core integration need.
+- New runtime and test sources, package JSON and `git diff --check` passed. A broad static test-folder check retains one pre-existing NUnit overload diagnostic outside the new files.
+- Accepted in Modules commit `180285f` (`feat: validate motion profile compatibility`). Unity was intentionally not run; no Test Runner result is claimed.
+
+### Scope intentionally deferred
+
+- Concrete motion providers, rigs, clips/controllers, profile selection, package installation, Core presentation integration, Unity import/retargeting and gameplay authority.
