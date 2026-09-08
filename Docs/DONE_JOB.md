@@ -1220,3 +1220,67 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 ### Scope intentionally deferred
 
 - Concrete motion providers, animation clips/controllers, package installation, Core presentation integration, provider discovery, runtime retargeting and gameplay changes.
+
+## Module Pass MART 01 — Character Art Intake Manifests
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Added one immutable, closed version-1 evidence record for a reviewed character-art source: stable character/source/rig identity, exact source and licence links, attribution and change note, archive SHA-256, safe repository-relative source file, six motion keys, ordered LOD budgets and explicit import flags.
+- Added deterministic fail-closed validation with structured issue paths, fixed-field BOM-less UTF-8 canonical JSON and a lowercase SHA-256 content hash.
+- Enforced the visual/gameplay boundary by rejecting source colliders, root motion and animation events while retaining renderer, material, texture and triangle ceilings for mobile review.
+- Added 11 isolated package tests covering valid canonical data, malformed paths/URLs/checksums, motion and LOD completeness/order, budget/import restrictions, immutability and dependency boundaries.
+
+### Verification
+
+- Architect and an independent static reviewer confirmed the eight-file package stays under `Packages/com.realmraiders.character-art-manifests/`, keeps `noEngineReferences` and references only the passive module-contract assembly.
+- Runtime and Editor-test compiler source checks, package JSON parsing and `git diff --check` passed. The package remains uninstalled, so no Unity Test Runner result is claimed.
+
+### Scope intentionally deferred
+
+- Concrete third-party or owned-source manifests, source approval/download, Unity importing, models, rigs, clips, materials, prefabs, package installation, discovery and Core runtime integration.
+
+## Module Pass MART 02 — Deterministic Art Manifest Catalogue
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Added an explicit `ICharacterArtIntakeManifestProvider` boundary and immutable catalogue construction for the accepted art-intake evidence record.
+- Snapshots caller-supplied providers and manifests, sorts successful records by source ID with ordinal semantics and provides exact source-ID and unique character-ID lookup.
+- Missing, unreadable, invalid, duplicate or ambiguous inputs return no partial catalogue and produce deterministic structured issues without reflection, discovery, filesystem, network, Unity or import authority.
+- Added five focused package tests for deterministic order, exact lookup, snapshot immutability, empty input and the complete fail-closed provider/manifest boundary; package version is `0.2.0`.
+
+### Verification
+
+- Architect reviewed the four-file change and confirmed the runtime contract remains plain C# with `noEngineReferences` and no concrete asset, licence claim, game-runtime or Unity dependency.
+- Runtime and Editor-test compiler source checks, package JSON assertions and `git diff --check` passed. The package remains uninstalled, so its authored package tests have not run in Unity.
+
+### Scope intentionally deferred
+
+- Concrete source providers, source approval or acquisition, package installation, provider discovery, Unity importer/editor tooling, model processing, asset creation and Core runtime consumption.
+
+## Diamond Pass 10.8 — Canonical Sylvan Journey Continuity
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one session-only, tokenized and fail-closed `PrototypeJourney` state helper for the explicit `Build → Raid → RaidResult → Defense` sequence without a scene object, save migration, gameplay authority or automatic progression.
+- The Hub's primary Sylvan journey now truthfully opens BUILD; a valid active BUILD shows `SAVE & RAID`, both factual Sylvan raid outcomes show `DEFEND YOUR REALM`, and the factual Sylvan defense result completes once through `RETURN TO BUILD`.
+- Preserved every direct Hub/BUILD/raid/defense/Infernal route, retry and Hub action. Direct routes never inherit or advance stale journey state, and teardown/controller-independent cancellation fails closed.
+- Preserved the changed-BUILD first-minute handoff across raid so it begins only in the real Sylvan defense, while existing exact-once raid reward crediting and guide completion remain unchanged.
+- Reworked the existing raid and defense result action lanes into explicit normalized portrait/landscape regions under their current HUD roots; the final portrait defense lane remains clear of the first-minute guide controls.
+- Stabilized the existing saved-layout regression by snapshotting authored DefenderTest slot positions from `sceneLoaded` after bootstrap and before live AI movement, preserving all expected coordinates and the original `.01` tolerance.
+
+### Verification
+
+- Focused journey logic EditMode coverage passed `4/4`; focused journey PlayMode coverage passed `4/4`.
+- Focused first-minute result-layout regression passed `1/1`; focused fixed-layout spawn snapshot regression passed `1/1`.
+- Final EditMode: `94/94` passed, `0` failed at 13:33:33 local time. Final PlayMode: `57/57` passed, `0` failed at 13:34:53 local time.
+- No source changed after the final suites and `git diff --check` passes. Manual Editor and physical Android journey smoke remain user-owned and were not run by QA.
+
+### Scope intentionally deferred
+
+- New scenes, automatic progression, skipped combat, combat/AI/balance/possession changes, new persistence or rewards, wider tutorial content, new assets/packages/UI roots, desktop support and physical-device claims.

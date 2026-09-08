@@ -8,12 +8,15 @@ namespace RealmRaiders.UI
 {
     public sealed class BuildHUD : MonoBehaviour
     {
+        public const string SaveAndDefendAction = "SAVE & DEFEND";
+        public const string SaveAndRaidAction = "SAVE & RAID";
         public int SlotCount => slots.Length;
         public string DefensePlanText => plan ? plan.text : string.Empty;
         public string RealmStoresText => realmStores ? realmStores.text : string.Empty;
         public string GuardianEntUpgradeText => cultivateEnt ? cultivateEnt.GetComponentInChildren<Text>().text : string.Empty;
         public string SlotCopy(int index) => index >= 0 && index < slots.Length ? slots[index].GetComponentInChildren<Text>().text : string.Empty;
         public bool SaveInteractable => saveButton && saveButton.interactable;
+        public string SaveActionText => saveButton ? saveButton.GetComponentInChildren<Text>().text : string.Empty;
         public bool GuardianEntUpgradeInteractable => cultivateEnt && cultivateEnt.interactable;
         public BuildGuideStep GuideStep => guideStep;
         public bool GuideLineVisible => guide && guide.DismissVisible;
@@ -26,7 +29,15 @@ namespace RealmRaiders.UI
         public RectTransform GuideSkipRect => guide ? guide.SkipRect : null;
         Button[] slots = Array.Empty<Button>(); Button saveButton, cultivateEnt; Text title; Text budget; Text reason; Text realmStores; Text plan; DefenseLayout layout; ResponsiveHudRoot responsive; HudPresentation presentation;
         BuildLayoutSnapshot entryLayout; BuildGuideStep guideStep, dismissedStep; FirstPlayableMinuteBuildGuide guide;
-        public void Initialize() { FirstPlayableMinute.ResetBuildHandoff(); layout = DefenseLayoutSave.Load(); entryLayout = FirstPlayableMinute.CaptureBuildEntry(layout); Build(); Refresh(); }
+        int journeyToken;
+        bool journeyHandoff;
+        public void Initialize()
+        {
+            FirstPlayableMinute.ResetBuildHandoff();
+            if (PrototypeJourney.Stage == PrototypeJourneyStage.Build) journeyToken = PrototypeJourney.ActiveToken;
+            else if (PrototypeJourney.IsActive) PrototypeJourney.Cancel();
+            layout = DefenseLayoutSave.Load(); entryLayout = FirstPlayableMinute.CaptureBuildEntry(layout); Build(); Refresh();
+        }
         void Build()
         {
             presentation = gameObject.AddComponent<HudPresentation>();
@@ -35,14 +46,25 @@ namespace RealmRaiders.UI
             plan = Label("", new Vector2(0, -400), 18); plan.name = "Defense Plan Summary"; plan.rectTransform.sizeDelta = new Vector2(950, 90); plan.raycastTarget = false;
             slots = new Button[5]; for (int i = 0; i < slots.Length; i++) { int index = i; slots[i] = Button("", new Vector2(0, 280 - i * 140), () => Cycle(index)); }
             cultivateEnt = Button("CULTIVATE GUARDIAN ENT", Vector2.zero, OnPurchaseGuardianEntVitality); cultivateEnt.name = "CULTIVATE GUARDIAN ENT"; cultivateEnt.GetComponentInChildren<Text>().fontSize = 17;
-            saveButton = Button("SAVE & DEFEND", new Vector2(0, -650), SaveAndDefend);
+            saveButton = Button(journeyToken != 0 ? SaveAndRaidAction : SaveAndDefendAction, new Vector2(0, -650), SaveAndContinue);
             responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyOrientation; responsive.Initialize(false);
             if (FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active) { guide = gameObject.AddComponent<FirstPlayableMinuteBuildGuide>(); guide.Initialize(responsive, slots, saveButton, presentation, DismissGuide, SkipGuide); }
         }
         public void CycleSlotForTests(int index) => Cycle(index);
         public bool PurchaseGuardianEntVitalityForTests() => PurchaseGuardianEntVitality();
         void Cycle(int index) { var slot = layout.Slots[index]; var next = slot.Piece; for (int i = 0; i < 4; i++) { next = (DefensePieceType)(((int)next + 1) % 4); var candidate = new DefenseSlotLayout(slot.SlotType, next); if (DefenseLayoutRules.IsAllowed(candidate)) { layout.Slots[index] = candidate; break; } } Refresh(); }
-        void SaveAndDefend() { if (!DefenseLayoutRules.IsValid(layout, out _)) return; DefenseLayoutSave.Save(layout); FirstPlayableMinute.TryAcceptChangedBuild(entryLayout, layout); SceneManager.LoadScene("DefenderTest"); }
+        void SaveAndContinue()
+        {
+            if (!DefenseLayoutRules.IsValid(layout, out _)) return;
+            if (journeyToken != 0 && (PrototypeJourney.ActiveToken != journeyToken || PrototypeJourney.Stage != PrototypeJourneyStage.Build)) return;
+            if (journeyToken == 0 && PrototypeJourney.IsActive) return;
+            DefenseLayoutSave.Save(layout);
+            FirstPlayableMinute.TryAcceptChangedBuild(entryLayout, layout);
+            if (journeyToken == 0) { SceneManager.LoadScene("DefenderTest"); return; }
+            if (!PrototypeJourney.TryBeginRaid(journeyToken)) return;
+            journeyHandoff = true;
+            SceneManager.LoadScene("SylvanRealm");
+        }
         bool PurchaseGuardianEntVitality()
         {
             if (!RealmProgress.TryPurchaseGuardianEntVitality(out _)) return false;
@@ -60,13 +82,13 @@ namespace RealmRaiders.UI
                 var nextStep = FirstPlayableMinute.EvaluateBuild(entryLayout, layout, out var guideReason);
                 if (nextStep != guideStep) { guideStep = nextStep; dismissedStep = BuildGuideStep.Hidden; }
                 var lineVisible = dismissedStep != guideStep;
-                reason.text = lineVisible ? FirstPlayableMinute.BuildCopy(guideStep, guideReason) : valid ? "Ready to defend" : message;
+                reason.text = lineVisible ? BuildGuideCopy(guideStep, guideReason) : valid ? ReadyCopy() : message;
                 guide.Show(guideStep, lineVisible);
             }
             else
             {
                 guideStep = BuildGuideStep.Hidden;
-                reason.text = valid ? "Ready to defend" : message;
+                reason.text = valid ? ReadyCopy() : message;
                 guide?.Shutdown();
             }
             if (cultivateEnt)
@@ -79,7 +101,14 @@ namespace RealmRaiders.UI
         }
         void DismissGuide() { if (guideStep == BuildGuideStep.Hidden) return; dismissedStep = guideStep; Refresh(); }
         void SkipGuide() { if (!FirstPlayableMinute.Skip()) return; dismissedStep = guideStep = BuildGuideStep.Hidden; guide?.Shutdown(); Refresh(); }
-        void OnDestroy() { if (responsive) responsive.LayoutChanged -= ApplyOrientation; guide?.Shutdown(); }
+        string BuildGuideCopy(BuildGuideStep step, string validationReason) => journeyToken != 0 && step == BuildGuideStep.Save ? "PLAN READY — SAVE & RAID" : FirstPlayableMinute.BuildCopy(step, validationReason);
+        string ReadyCopy() => journeyToken != 0 ? "Ready to raid" : "Ready to defend";
+        void OnDestroy()
+        {
+            if (responsive) responsive.LayoutChanged -= ApplyOrientation;
+            guide?.Shutdown();
+            if (journeyToken != 0 && !journeyHandoff) PrototypeJourney.Cancel(journeyToken);
+        }
         void ApplyOrientation(PrototypeOrientation orientation)
         {
             if (!saveButton) return;
@@ -103,7 +132,7 @@ namespace RealmRaiders.UI
             }
             else
             {
-                // This is the clear gap between the fixed five-slot stack and SAVE & DEFEND.
+                // This is the clear gap between the fixed five-slot stack and the primary save action.
                 realmStores.rectTransform.anchorMin = realmStores.rectTransform.anchorMax = new Vector2(.5f, 0);
                 realmStores.rectTransform.pivot = new Vector2(.5f, 0);
                 realmStores.rectTransform.anchoredPosition = new Vector2(0, 372);

@@ -83,6 +83,15 @@ namespace RealmRaiders.Tests
         public IEnumerator DefenderTest_UsesSavedCustomLayoutAndFixedPositions()
         {
             var previous = PlayerPrefs.GetString(DefenseLayoutSave.KeyForTests, null);
+            var wolfAPosition = default(Vector3); var entPosition = default(Vector3); var wolfBPosition = default(Vector3); var trapPosition = default(Vector3); var captured = false;
+            UnityEngine.Events.UnityAction<Scene, LoadSceneMode> captureSpawnPositions = (scene, _) =>
+            {
+                if (scene.name != "DefenderTest") return;
+                var wolfA = GameObject.Find("Realm Wolf A"); var ent = GameObject.Find("Guardian Ent"); var wolfB = GameObject.Find("Realm Wolf B"); var trap = GameObject.Find("Manual Root Trap");
+                if (!wolfA || !ent || !wolfB || !trap || wolfA.scene != scene || ent.scene != scene || wolfB.scene != scene || trap.scene != scene) return;
+                wolfAPosition = wolfA.transform.position; entPosition = ent.transform.position; wolfBPosition = wolfB.transform.position; trapPosition = trap.transform.position; captured = true;
+            };
+            SceneManager.sceneLoaded += captureSpawnPositions;
             try
             {
                 var layout = new DefenseLayout(new[] {
@@ -91,15 +100,21 @@ namespace RealmRaiders.Tests
                     new DefenseSlotLayout(DefenseSlotType.Creature, DefensePieceType.Wolf),
                     new DefenseSlotLayout(DefenseSlotType.Trap, DefensePieceType.Empty),
                     new DefenseSlotLayout(DefenseSlotType.Trap, DefensePieceType.RootTrap) });
-                DefenseLayoutSave.Save(layout); SceneManager.LoadScene("DefenderTest"); yield return null; yield return null;
+                DefenseLayoutSave.Save(layout); SceneManager.LoadScene("DefenderTest");
+                yield return null; yield return null;
+                Assert.That(captured, Is.True, "DefenderTest sceneLoaded snapshot did not find the four authored slot roots after bootstrap.");
+                AssertSlotPosition(wolfAPosition, new Vector3(-3.2f, 0, -4));
+                AssertSlotPosition(entPosition, new Vector3(3.2f, 0, 2));
+                AssertSlotPosition(wolfBPosition, new Vector3(0, 0, 11));
+                AssertSlotPosition(trapPosition, new Vector3(6, 0, 8));
                 Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
-                AssertSlotPosition(GameObject.Find("Realm Wolf A").transform.position, new Vector3(-3.2f, 0, -4));
-                AssertSlotPosition(GameObject.Find("Guardian Ent").transform.position, new Vector3(3.2f, 0, 2));
-                AssertSlotPosition(GameObject.Find("Realm Wolf B").transform.position, new Vector3(0, 0, 11));
-                AssertSlotPosition(GameObject.Find("Manual Root Trap").transform.position, new Vector3(6, 0, 8));
                 AssertSingleViewAndListener();
             }
-            finally { if (previous == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previous); PlayerPrefs.Save(); }
+            finally
+            {
+                SceneManager.sceneLoaded -= captureSpawnPositions;
+                if (previous == null) PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests); else PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, previous); PlayerPrefs.Save();
+            }
         }
 
         [UnityTest]

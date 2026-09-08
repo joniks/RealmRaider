@@ -20,7 +20,7 @@ namespace RealmRaiders.UI
         public bool GuideSkipVisible => skipGuide && skipGuide.gameObject.activeSelf;
         public Button NoticesButton => noticesButton;
         public ThirdPartyNoticesPanel NoticesPanel => noticesPanel;
-        public void Initialize() { FirstPlayableMinute.ResetBuildHandoff(); Build(); Refresh(); }
+        public void Initialize() { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); Build(); Refresh(); }
 
         void Build()
         {
@@ -33,7 +33,7 @@ namespace RealmRaiders.UI
             Button("AUTO", new Vector2(-230, 1300), () => ChooseOrientation("Auto")); Button("PORTRAIT", new Vector2(0, 1300), () => ChooseOrientation("Portrait")); Button("LANDSCAPE", new Vector2(230, 1300), () => ChooseOrientation("Landscape"));
             Button("CONTEXTUAL", new Vector2(-230, 1030), () => ChooseControl("Contextual")); Button("FINGERTAP", new Vector2(0, 1030), () => ChooseControl("Fingertap")); Button("JOYSTICK", new Vector2(230, 1030), () => ChooseControl("Joystick"));
             Button("START SYLVAN JOURNEY", new Vector2(0, 820), StartJourney);
-            Button("BUILD SYLVAN", new Vector2(0, 630), () => SelectAndLoad("Sylvan", "RealmBuild")); Button("DEFEND SYLVAN", new Vector2(0, 505), () => SelectAndLoad("Sylvan", "DefenderTest")); Button("RAID SYLVAN", new Vector2(0, 380), () => SelectAndLoad("Sylvan", "SylvanRealm")); Button("DEFEND INFERNAL", new Vector2(0, 255), () => SelectAndLoad("Infernal", "InfernalRealm")); Button("CHARACTER SANDBOX", new Vector2(0, 130), () => SceneManager.LoadScene("CharacterSandbox"));
+            Button("BUILD SYLVAN", new Vector2(0, 630), () => SelectAndLoad("Sylvan", "RealmBuild")); Button("DEFEND SYLVAN", new Vector2(0, 505), () => SelectAndLoad("Sylvan", "DefenderTest")); Button("RAID SYLVAN", new Vector2(0, 380), () => SelectAndLoad("Sylvan", "SylvanRealm")); Button("DEFEND INFERNAL", new Vector2(0, 255), () => SelectAndLoad("Infernal", "InfernalRealm")); Button("CHARACTER SANDBOX", new Vector2(0, 130), () => CancelAndLoad("CharacterSandbox"));
             if (FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active) skipGuide = Button("SKIP GUIDE", Vector2.zero, SkipGuide);
             noticesButton = Button("THIRD-PARTY NOTICES", Vector2.zero, OpenNotices);
             responsive.Initialize(false); ApplyHubLayout(responsive.Orientation);
@@ -42,7 +42,7 @@ namespace RealmRaiders.UI
         }
 
         public const string JourneyScene = "RealmBuild";
-        public const string JourneyExplanation = "1. BUILD DEFENCES  →  2. DEFEND YOUR REALM  →  3. RAID THE ENEMY";
+        public const string JourneyExplanation = "1. BUILD DEFENCES  →  2. RAID THE ENEMY  →  3. DEFEND YOUR REALM";
         public static string DestinationForButton(string buttonName) => buttonName switch
         {
             "START SYLVAN JOURNEY" => JourneyScene, "BUILD SYLVAN" => "RealmBuild", "DEFEND SYLVAN" => "DefenderTest",
@@ -115,8 +115,15 @@ namespace RealmRaiders.UI
             var rect = button.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = anchor ?? new Vector2(1, 0); rect.pivot = pivot ?? new Vector2(1, 0); rect.anchoredPosition = position; rect.sizeDelta = size;
         }
 
-        void SelectAndLoad(string realm, string scene) { PrototypeSave.SelectRealm(realm); SceneManager.LoadScene(scene); }
-        void StartJourney() { FirstPlayableMinute.TryStart(); SelectAndLoad("Sylvan", JourneyScene); }
+        void SelectAndLoad(string realm, string scene) { PrototypeJourney.Cancel(); PrototypeSave.SelectRealm(realm); SceneManager.LoadScene(scene); }
+        void CancelAndLoad(string scene) { PrototypeJourney.Cancel(); SceneManager.LoadScene(scene); }
+        void StartJourney()
+        {
+            if (!PrototypeJourney.TryStart(out _)) return;
+            FirstPlayableMinute.TryStart();
+            PrototypeSave.SelectRealm("Sylvan");
+            SceneManager.LoadScene(JourneyScene);
+        }
         void OpenNotices() => noticesPanel?.Open();
         void SkipGuide()
         {

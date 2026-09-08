@@ -41,7 +41,10 @@ Last reviewed: 2026-09-08
 - Diamond Pass 10.6 Possession Energy Return Readability is present: the shared Defender HUD now gives calm five-second and urgent two-second text-first warnings before the existing forced Keeper return, without changing possession energy or controller authority.
 - Diamond Pass 10.7 Mobile Combat Input Buffer is present: one ready alternate ability can be visibly queued during the final 0.20 seconds of Recovery and executes once through the existing authoritative combat gate.
 - Module Pass MMP 02 Deterministic Motion Profile Catalogue is staged in the pinned Modules submodule: explicitly supplied motion-profile providers build one immutable, ordinal, fail-closed lookup catalogue without discovery, Unity or gameplay authority.
-- Current Unity Test Runner baseline: EditMode 90/90 and PlayMode 53/53 passed on 2026-09-08.
+- Module Pass MART 01 Character Art Intake Manifests is staged in the pinned Modules submodule: one immutable record now freezes reviewed character-art provenance, licence, checksum, motion, LOD and safe-import evidence without approving or importing an asset.
+- Module Pass MART 02 Deterministic Art Manifest Catalogue is staged in the pinned Modules submodule: explicitly supplied providers now build one immutable, ordinal, fail-closed source/character lookup catalogue without discovery, Unity or import authority.
+- Diamond Pass 10.8 Canonical Sylvan Journey Continuity is present: the primary Hub journey now follows the truthful `BUILD → RAID → DEFEND → BUILD` route while every legacy direct prototype route remains available and session-neutral.
+- Current Unity Test Runner baseline: EditMode 94/94 and PlayMode 57/57 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -53,12 +56,12 @@ Last reviewed: 2026-09-08
 | 3. Sylvan Raid | Functional greybox | Seven-node Realm graph, fog states, Wolves, Ent, Root Trap, Heart Tree, objective compass, ability readiness and result-to-Build loop closure. |
 | 4. Keeper Defense | Functional greybox | Brief opening hold, readable live invader route state, manual Root Trap, possessable Guardian Ent with persistent three-rank vitality and a visual growth signal, plus 30-second energy pool. |
 | 5. Infernal Realm | Functional greybox | Brute, Hellhounds, a manual three-pulse Flame Trap without control effects, Lava Gate and Infernal Heart defense. |
-| Prototype Hub | Functional | Stores realm, orientation and control choices; presents the Sylvan build → defend → raid route and current read-only Realm Stores while retaining prototype-scene access. |
+| Prototype Hub | Functional | Stores realm, orientation and control choices; starts the canonical Sylvan build → raid → defend journey and shows current read-only Realm Stores while retaining direct prototype-scene access. |
 | Build Plan | Functional greybox | Fixed five-slot defense configuration with live lane/role/cost copy, one capped Ent-vitality investment using earned local stores, and a non-interactive invader-to-Heart-Tree plan. |
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 90/90 and PlayMode 53/53 on 2026-09-08.
+- Current verified baseline: EditMode 94/94 and PlayMode 57/57 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -76,6 +79,7 @@ Last reviewed: 2026-09-08
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 - The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package now includes deterministic explicit-provider catalogue construction but remains uninstalled; its isolated package tests are authored but not yet run, and no approved shared rigs, clips, concrete motion providers or Core presentation adapter exist yet.
+- The character-art-manifests package now includes deterministic evidence validation, hashing and explicit-provider catalogue construction but remains uninstalled; its isolated package tests are authored but not yet run, and no concrete source manifest or Unity importer is approved.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.
@@ -83,7 +87,7 @@ Last reviewed: 2026-09-08
 - Prototype arena boundaries are implemented and automated collision/AI coverage is green; full physical-device edge/action, encounter-completion and portrait-to-landscape feel remain user-owned.
 - Infernal environment production is design-only: the Ironbound Rift Causeway kit still needs a human-approved source/provenance route and neutral-gray production proof before Unity integration.
 - The Hub notice panel presents the release-cleared 3DRT and Kenney records; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
-- The first-playable-minute Hub, BUILD and Sylvan defense proof are implemented through the real result; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.
+- The first-playable-minute proof and canonical Sylvan `BUILD → RAID → DEFEND → BUILD` journey are implemented through real results; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.
 - Realm landmarks, central routes and continuous arena boundaries now have distinct organic versus angular primitive blockouts, but terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 
 ## Directory guide

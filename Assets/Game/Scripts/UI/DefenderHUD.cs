@@ -61,8 +61,9 @@ namespace RealmRaiders.UI
     {
         Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel;
         Image energyFill;
-        Button possess, release, smash, slam, activateTrap, dodge, retry, nextAction;
+        Button possess, release, smash, slam, activateTrap, dodge, retry, nextAction, realmHub;
         GameObject resultPanel;
+        RectTransform resultRect;
         PossessionManager possessionManager;
         PossessionEnergy energy;
         DefenseManager defense;
@@ -84,6 +85,9 @@ namespace RealmRaiders.UI
         int displayedDodgeCooldownTenths = -1;
         PossessionEnergyReadabilityState displayedEnergy;
         bool hasDisplayedEnergy;
+        int journeyToken;
+        bool journeyHandoff;
+        bool journeyCompletedForResult;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
@@ -108,10 +112,14 @@ namespace RealmRaiders.UI
         public string PossessionEnergyText => energyText ? energyText.text : string.Empty;
         public PossessionEnergyReadabilityLevel PossessionEnergyLevel => hasDisplayedEnergy ? displayedEnergy.Level : PossessionEnergyReadabilityLevel.Normal;
         public float PossessionEnergyFill => energyFill ? energyFill.rectTransform.anchorMax.x : 0;
+        public string ResultPrimaryActionText => nextAction ? nextAction.GetComponentInChildren<Text>().text : string.Empty;
+        public bool JourneyCompletedForResult => journeyCompletedForResult;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
         {
+            if (hudConfig.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && PrototypeJourney.Stage == PrototypeJourneyStage.Defense) journeyToken = PrototypeJourney.ActiveToken;
+            else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             defense = defenseManager; possessionManager = manager; energy = possessionEnergy; invader = raidInvader; ent = defender; trap = rootTrap; config = hudConfig; guardianEntGrowth = defender ? defender.GetComponent<GuardianEntGrowthPresentation>() : null;
             Build();
             manager.SelectionChanged += OnSelection; manager.PossessionChanged += OnPossession; manager.Released += OnReleased; manager.MomentFeedback += ShowMomentFeedback;
@@ -151,10 +159,36 @@ namespace RealmRaiders.UI
             };
             dodge = Button("DODGE", new Vector2(0, 530), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
             resultPanel = new GameObject("Defense Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false); var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .28f); rect.anchorMax = new Vector2(.92f, .72f); rect.offsetMin = rect.offsetMax = Vector2.zero; resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
-            result = Label("", Vector2.zero, 42, TextAnchor.MiddleCenter); result.transform.SetParent(resultPanel.transform, false); var resultRect = (RectTransform)result.transform; resultRect.anchorMin = new Vector2(0, .35f); resultRect.anchorMax = Vector2.one; resultRect.offsetMin = resultRect.offsetMax = Vector2.zero;
+            result = Label("", Vector2.zero, 42, TextAnchor.MiddleCenter); result.transform.SetParent(resultPanel.transform, false); resultRect = (RectTransform)result.transform;
             result.raycastTarget = false;
-            retry = Button("DEFEND AGAIN", new Vector2(0, 160), RetryDefense); retry.transform.SetParent(resultPanel.transform, false); nextAction = Button(config.NextActionLabel, new Vector2(0, 48), () => SceneManager.LoadScene(config.NextActionScene)); nextAction.transform.SetParent(resultPanel.transform, false); resultPanel.SetActive(false);
-            var hub = Button("MY REALM", new Vector2(0, -64), () => SceneManager.LoadScene("PrototypeHub")); hub.transform.SetParent(resultPanel.transform, false);
+            retry = Button("DEFEND AGAIN", Vector2.zero, RetryDefense); retry.transform.SetParent(resultPanel.transform, false); nextAction = Button(config.NextActionLabel, Vector2.zero, ContinueAfterDefense); nextAction.transform.SetParent(resultPanel.transform, false);
+            realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
+            responsive.LayoutChanged += ApplyResultLayout; ApplyResultLayout(responsive.Orientation);
+            resultPanel.SetActive(false);
+        }
+
+        void ApplyResultLayout(PrototypeOrientation orientation)
+        {
+            if (!resultRect || !retry || !nextAction || !realmHub) return;
+            if (orientation == PrototypeOrientation.Landscape)
+            {
+                PlaceResultRegion(resultRect, new Vector2(.05f, .08f), new Vector2(.62f, .92f)); result.alignment = TextAnchor.MiddleLeft;
+                PlaceResultRegion((RectTransform)retry.transform, new Vector2(.68f, .68f), new Vector2(.95f, .88f));
+                PlaceResultRegion((RectTransform)nextAction.transform, new Vector2(.68f, .4f), new Vector2(.95f, .6f));
+                PlaceResultRegion((RectTransform)realmHub.transform, new Vector2(.68f, .12f), new Vector2(.95f, .32f));
+            }
+            else
+            {
+                PlaceResultRegion(resultRect, new Vector2(.06f, .54f), new Vector2(.94f, .95f)); result.alignment = TextAnchor.MiddleCenter;
+                PlaceResultRegion((RectTransform)retry.transform, new Vector2(.27f, .38f), new Vector2(.73f, .5f));
+                PlaceResultRegion((RectTransform)nextAction.transform, new Vector2(.27f, .21f), new Vector2(.73f, .33f));
+                PlaceResultRegion((RectTransform)realmHub.transform, new Vector2(.27f, .04f), new Vector2(.73f, .16f));
+            }
+        }
+
+        static void PlaceResultRegion(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax)
+        {
+            rect.anchorMin = anchorMin; rect.anchorMax = anchorMax; rect.pivot = new Vector2(.5f, .5f); rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
 
         void ActivateTrap()
@@ -192,7 +226,22 @@ namespace RealmRaiders.UI
         void RetryDefense()
         {
             firstMinuteGuide?.PrepareRetry();
+            if (journeyToken != 0) PrototypeJourney.Cancel(journeyToken);
+            journeyHandoff = true;
             SceneManager.LoadScene(config.RetryScene);
+        }
+        void ContinueAfterDefense()
+        {
+            if (journeyToken != 0) PrototypeJourney.Cancel(journeyToken);
+            journeyHandoff = true;
+            SceneManager.LoadScene(config.NextActionScene);
+        }
+        void ReturnToHub()
+        {
+            PrototypeJourney.Cancel();
+            FirstPlayableMinute.ResetBuildHandoff();
+            journeyHandoff = true;
+            SceneManager.LoadScene("PrototypeHub");
         }
         void OnSelection(CombatEntity value)
         { selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it"; possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted); }
@@ -215,7 +264,12 @@ namespace RealmRaiders.UI
             firstMinuteGuide.Initialize(responsive, possessionManager, energy, defense, ent, selection, result, possess, smash, dodge, release, retry, nextAction, presentation, defenseSceneToken);
         }
 
-        void OnDestroy() => firstMinuteGuide?.Shutdown();
+        void OnDestroy()
+        {
+            firstMinuteGuide?.Shutdown();
+            if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
+            if (journeyToken != 0 && !journeyHandoff && !journeyCompletedForResult) PrototypeJourney.Cancel(journeyToken);
+        }
         void ShowMomentFeedback(string message)
         {
             if (!releaseNotice || GameplayInput.TerminalState || (resultPanel && resultPanel.activeSelf)) return;
@@ -233,7 +287,10 @@ namespace RealmRaiders.UI
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); ClearRouteStatus(); }
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
-            { HideReleaseNotice(); resultPanel.SetActive(true); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured."; }
+            {
+                if (journeyToken != 0 && !journeyCompletedForResult) journeyCompletedForResult = PrototypeJourney.TryCompleteDefense(journeyToken);
+                HideReleaseNotice(); resultPanel.SetActive(true); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured.";
+            }
             RefreshPossessionEnergy();
         }
 

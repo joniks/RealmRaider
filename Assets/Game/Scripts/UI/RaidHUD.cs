@@ -13,6 +13,8 @@ namespace RealmRaiders.UI
     {
         public const string PlanNextDefenseAction = "PLAN NEXT DEFENSE";
         public const string PlanNextDefenseScene = "RealmBuild";
+        public const string DefendYourRealmAction = "DEFEND YOUR REALM";
+        public const string JourneyDefenseScene = "DefenderTest";
         Text state, health, stats, objective, result, rootPrompt, objectiveCompass, dodgeLabel;
         GameObject resultPanel;
         RectTransform resultRect;
@@ -28,6 +30,10 @@ namespace RealmRaiders.UI
         int compassDirection;
         int displayedDodgeCooldownTenths = -1;
         bool resultRewardCredited;
+        int journeyToken;
+        int journeyResultToken;
+        bool journeyHandoff;
+        bool journeyResultReached;
 
         public bool ObjectiveCompassVisible => objectiveCompass && objectiveCompass.gameObject.activeSelf;
         public int ObjectiveCompassDirection => compassDirection;
@@ -41,9 +47,12 @@ namespace RealmRaiders.UI
         public bool DodgeButtonVisible => dodge && dodge.gameObject.activeSelf;
         public RectTransform DodgeButtonRect => dodge ? (RectTransform)dodge.transform : null;
         public RectTransform ObjectiveCompassRect => objectiveCompass ? objectiveCompass.rectTransform : null;
+        public string ResultPrimaryActionText => planNextDefense ? planNextDefense.GetComponentInChildren<Text>().text : string.Empty;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
+            if (PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
+            else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; Build();
             manager.StateChanged += OnState; manager.Finished += ShowResult;
             hero.Health.Changed += (_, _) => Refresh();
@@ -53,6 +62,7 @@ namespace RealmRaiders.UI
         public static string ResultActionDestination(string action) => action switch
         {
             PlanNextDefenseAction => PlanNextDefenseScene,
+            DefendYourRealmAction => JourneyDefenseScene,
             "RAID AGAIN" => "SylvanRealm",
             "MY REALM" => "PrototypeHub",
             _ => string.Empty
@@ -105,9 +115,9 @@ namespace RealmRaiders.UI
             var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .24f); rect.anchorMax = new Vector2(.92f, .76f); rect.offsetMin = rect.offsetMax = Vector2.zero;
             resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
             result = Label("", new Vector2(0, -560), 32, TextAnchor.UpperCenter); result.transform.SetParent(resultPanel.transform, false); resultRect = (RectTransform)result.transform;
-            planNextDefense = Button(PlanNextDefenseAction, Vector2.zero, () => SceneManager.LoadScene(PlanNextDefenseScene)); planNextDefense.transform.SetParent(resultPanel.transform, false); planNextDefense.GetComponent<Image>().color = new Color(.24f, .58f, .25f, .98f); ((RectTransform)planNextDefense.transform).sizeDelta = new Vector2(280, 100);
-            raidAgain = Button("RAID AGAIN", Vector2.zero, () => SceneManager.LoadScene("SylvanRealm")); raidAgain.transform.SetParent(resultPanel.transform, false);
-            realmHub = Button("MY REALM", Vector2.zero, () => SceneManager.LoadScene("PrototypeHub")); realmHub.transform.SetParent(resultPanel.transform, false);
+            planNextDefense = Button(PlanNextDefenseAction, Vector2.zero, ContinueAfterRaid); planNextDefense.transform.SetParent(resultPanel.transform, false); planNextDefense.GetComponent<Image>().color = new Color(.24f, .58f, .25f, .98f); ((RectTransform)planNextDefense.transform).sizeDelta = new Vector2(280, 100);
+            raidAgain = Button("RAID AGAIN", Vector2.zero, RetryRaid); raidAgain.transform.SetParent(resultPanel.transform, false);
+            realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
             ApplyResultLayout(responsive.Orientation);
             resultPanel.SetActive(false);
         }
@@ -121,6 +131,9 @@ namespace RealmRaiders.UI
             if (orientation == PrototypeOrientation.Landscape)
             {
                 resultRect.anchorMin = new Vector2(0, 1); resultRect.anchorMax = new Vector2(.62f, 1); resultRect.pivot = new Vector2(.5f, 1); resultRect.anchoredPosition = new Vector2(0, -48); resultRect.sizeDelta = new Vector2(0, 500); result.alignment = TextAnchor.UpperLeft;
+                ((RectTransform)planNextDefense.transform).sizeDelta = new Vector2(280, 100);
+                ((RectTransform)raidAgain.transform).sizeDelta = new Vector2(240, 92);
+                ((RectTransform)realmHub.transform).sizeDelta = new Vector2(240, 92);
                 PlaceResultAction(planNextDefense, new Vector2(.82f, .5f), new Vector2(0, 135));
                 PlaceResultAction(raidAgain, new Vector2(.82f, .5f), Vector2.zero);
                 PlaceResultAction(realmHub, new Vector2(.82f, .5f), new Vector2(0, -135));
@@ -128,15 +141,46 @@ namespace RealmRaiders.UI
             else
             {
                 resultRect.anchorMin = new Vector2(0, 1); resultRect.anchorMax = new Vector2(1, 1); resultRect.pivot = new Vector2(.5f, 1); resultRect.anchoredPosition = new Vector2(0, -55); resultRect.sizeDelta = new Vector2(0, 470); result.alignment = TextAnchor.UpperCenter;
-                PlaceResultAction(planNextDefense, new Vector2(.5f, 0), new Vector2(0, 265));
-                PlaceResultAction(raidAgain, new Vector2(.5f, 0), new Vector2(0, 155));
-                PlaceResultAction(realmHub, new Vector2(.5f, 0), new Vector2(0, 50));
+                StretchResultAction(planNextDefense, new Vector2(.1f, .54f), new Vector2(.9f, .78f));
+                StretchResultAction(raidAgain, new Vector2(.1f, .3f), new Vector2(.9f, .5f));
+                StretchResultAction(realmHub, new Vector2(.1f, .06f), new Vector2(.9f, .26f));
             }
         }
 
         static void PlaceResultAction(Button button, Vector2 anchor, Vector2 position)
         {
             var rect = (RectTransform)button.transform; rect.anchorMin = rect.anchorMax = anchor; rect.pivot = new Vector2(.5f, .5f); rect.anchoredPosition = position;
+        }
+
+        static void StretchResultAction(Button button, Vector2 anchorMin, Vector2 anchorMax)
+        {
+            var rect = (RectTransform)button.transform; rect.anchorMin = anchorMin; rect.anchorMax = anchorMax; rect.pivot = new Vector2(.5f, .5f); rect.offsetMin = rect.offsetMax = Vector2.zero;
+        }
+
+        void ContinueAfterRaid()
+        {
+            if (journeyToken == 0) { SceneManager.LoadScene(PlanNextDefenseScene); return; }
+            if (!journeyResultReached || !PrototypeJourney.TryBeginDefense(journeyResultToken)) return;
+            journeyHandoff = true;
+            SceneManager.LoadScene(JourneyDefenseScene);
+        }
+
+        void RetryRaid()
+        {
+            if (journeyToken != 0)
+            {
+                if (!journeyResultReached || !PrototypeJourney.TryRetryRaid(journeyResultToken)) return;
+                journeyHandoff = true;
+            }
+            else if (PrototypeJourney.IsActive) return;
+            SceneManager.LoadScene("SylvanRealm");
+        }
+
+        void ReturnToHub()
+        {
+            PrototypeJourney.Cancel();
+            FirstPlayableMinute.ResetBuildHandoff();
+            SceneManager.LoadScene("PrototypeHub");
         }
 
         void Ability(int index) => hero.Controller<PlayerController>()?.UseAbility(index);
@@ -180,12 +224,26 @@ namespace RealmRaiders.UI
         void ShowResult(RaidResult value)
         {
             CreditResultOnce(value);
+            if (journeyToken != 0 && !journeyResultReached && PrototypeJourney.TryReachRaidResult(journeyToken))
+            {
+                journeyResultReached = true;
+                journeyResultToken = PrototypeJourney.ActiveToken;
+            }
+            var journeyResult = journeyResultReached && PrototypeJourney.ActiveToken == journeyResultToken && PrototypeJourney.Stage == PrototypeJourneyStage.RaidResult;
+            SetPrimaryActionCopy(journeyResult ? DefendYourRealmAction : PlanNextDefenseAction);
             GameplayInput.SetTerminalState(true);
             RefreshDodgeButton();
             SetCompassVisible(false);
             resultPanel.SetActive(true);
             presentation?.PlayResult();
             result.text = ResultCopy(value);
+        }
+
+        void SetPrimaryActionCopy(string copy)
+        {
+            if (!planNextDefense) return;
+            planNextDefense.name = copy;
+            planNextDefense.GetComponentInChildren<Text>().text = copy;
         }
 
         void CreditResultOnce(RaidResult value)
@@ -227,6 +285,8 @@ namespace RealmRaiders.UI
         {
             if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; }
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
+            if (journeyToken != 0 && !journeyHandoff && PrototypeJourney.Cancel(journeyResultReached ? journeyResultToken : journeyToken))
+                FirstPlayableMinute.ResetBuildHandoff();
         }
 
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, bool bottom = false)
