@@ -21,6 +21,46 @@ namespace RealmRaiders.Tests
 {
     public sealed class PossessionFlowTests
     {
+        private static int cleanupSceneIndex;
+
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            GameplayInput.SetTerminalState(false);
+            var previous = SceneManager.GetActiveScene();
+            if (!ShouldUnload(previous))
+            {
+                yield return null;
+                yield break;
+            }
+
+            var cleanup = SceneManager.CreateScene($"PossessionFlowTests Setup {++cleanupSceneIndex}");
+            SceneManager.SetActiveScene(cleanup);
+            yield return SceneManager.UnloadSceneAsync(previous);
+        }
+
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            GameplayInput.SetTerminalState(false);
+            var testScene = SceneManager.GetActiveScene();
+            if (!ShouldUnload(testScene))
+            {
+                yield return null;
+                yield break;
+            }
+
+            var cleanup = SceneManager.CreateScene($"PossessionFlowTests Teardown {++cleanupSceneIndex}");
+            SceneManager.SetActiveScene(cleanup);
+            yield return SceneManager.UnloadSceneAsync(testScene);
+        }
+
+        private static bool ShouldUnload(Scene scene)
+        {
+            return scene.IsValid() && scene.isLoaded &&
+                   (scene.buildIndex >= 0 || scene.name.StartsWith("PossessionFlowTests "));
+        }
+
         [UnityTest]
         public IEnumerator HudPresentation_UsesOneSceneLocalSourceAndGuardsResultCue()
         {

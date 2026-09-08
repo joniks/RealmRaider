@@ -34,15 +34,27 @@ namespace RealmRaiders.Controllers
         void Awake() => entity = GetComponent<CombatEntity>();
         int ControllerKey => GetEntityId().GetHashCode();
         void OnDisable() => abilityBuffer.Clear();
-        void OnDestroy() { abilityBuffer.Clear(); GameplayInput.SetDirectControl(ControllerKey, false); }
+        void OnDestroy() { abilityBuffer.Clear(); ClearCameraAwareness(); GameplayInput.SetDirectControl(ControllerKey, false); }
         public void SetControl(bool active)
         {
-            IsActive = active; hasDestination = false; lastMovementDirection = Vector3.zero; abilityBuffer.Clear(); interactionRevision = GameplayInput.InteractionRevision; if (!active) ResetEscapeState(); view = Camera.main;
+            IsActive = active; hasDestination = false; lastMovementDirection = Vector3.zero; abilityBuffer.Clear(); interactionRevision = GameplayInput.InteractionRevision; if (!active) ResetEscapeState();
+            if (!active) { ClearCameraAwareness(); GameplayInput.SetDirectControl(ControllerKey, false); return; }
+            var nextView = Camera.main;
+            if (view && view != nextView) ClearCameraAwareness();
+            view = nextView;
             var rig = view ? view.GetComponent<PrototypeCameraRig>() : null;
             var awareness = rig ? rig.GetComponent<CombatCameraAwareness>() : null;
-            if (active && rig && !awareness) awareness = rig.gameObject.AddComponent<CombatCameraAwareness>();
-            if (awareness) awareness.SetControlled(active ? entity : null);
-            GameplayInput.SetDirectControl(ControllerKey, active);
+            if (rig && !awareness) awareness = rig.gameObject.AddComponent<CombatCameraAwareness>();
+            if (awareness) awareness.SetControlled(entity);
+            GameplayInput.SetDirectControl(ControllerKey, true);
+        }
+
+        void ClearCameraAwareness()
+        {
+            var rig = view ? view.GetComponent<PrototypeCameraRig>() : null;
+            var awareness = rig ? rig.GetComponent<CombatCameraAwareness>() : null;
+            if (awareness) awareness.SetControlled(null);
+            view = null;
         }
 
         public void Tick()

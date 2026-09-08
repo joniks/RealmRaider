@@ -25,6 +25,7 @@ namespace RealmRaiders.UI
         RealmCore core;
         Camera view;
         HudPresentation presentation;
+        InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
         int compassDirection;
@@ -48,6 +49,7 @@ namespace RealmRaiders.UI
         public RectTransform DodgeButtonRect => dodge ? (RectTransform)dodge.transform : null;
         public RectTransform ObjectiveCompassRect => objectiveCompass ? objectiveCompass.rectTransform : null;
         public string ResultPrimaryActionText => planNextDefense ? planNextDefense.GetComponentInChildren<Text>().text : string.Empty;
+        public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
@@ -120,6 +122,7 @@ namespace RealmRaiders.UI
             realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
             ApplyResultLayout(responsive.Orientation);
             resultPanel.SetActive(false);
+            controlStyleSelector = InRunControlStyleSelector.Attach(responsive, presentation);
         }
 
         void ApplyResultLayout(PrototypeOrientation orientation)
@@ -232,6 +235,7 @@ namespace RealmRaiders.UI
             var journeyResult = journeyResultReached && PrototypeJourney.ActiveToken == journeyResultToken && PrototypeJourney.Stage == PrototypeJourneyStage.RaidResult;
             SetPrimaryActionCopy(journeyResult ? DefendYourRealmAction : PlanNextDefenseAction);
             GameplayInput.SetTerminalState(true);
+            controlStyleSelector?.RefreshNow();
             RefreshDodgeButton();
             SetCompassVisible(false);
             resultPanel.SetActive(true);

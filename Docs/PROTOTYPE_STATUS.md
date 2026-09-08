@@ -1,6 +1,6 @@
 # Realm Raiders — Prototype Status
 
-Last reviewed: 2026-09-08
+Last reviewed: 2026-09-09
 
 ## Latest verification
 
@@ -47,7 +47,9 @@ Last reviewed: 2026-09-08
 - Module Pass MART 04 Deterministic Character Art Batch Report is staged in the pinned Modules submodule: explicit manifest–measurement sets now produce immutable source-sorted compliance totals and item issues without discovery or import authority.
 - Diamond Pass 10.8 Canonical Sylvan Journey Continuity is present: the primary Hub journey now follows the truthful `BUILD → RAID → DEFEND → BUILD` route while every legacy direct prototype route remains available and session-neutral.
 - Diamond Pass 10.9 Stable Starter Roster Host is present: the five starter catalogue archetypes now give every runtime character a stable identity independent of its scene alias while preserving visuals and gameplay values.
-- Current Unity Test Runner baseline: EditMode 102/102 and PlayMode 57/57 passed on 2026-09-08.
+- Reliability Follow-up is present: camera-awareness ownership now cleans up on controller loss/destroy and `PossessionFlowTests` clean only fixture/build scenes, not Test Runner's own scene.
+- Diamond Pass 11.0 In-Run Control Style Switcher is present: gameplay HUDs now offer a factual persistent `AUTO`/`TAP`/`STICK` cycle with immediate transient-input reset and responsive joystick visibility, while Hub and BUILD controls remain unchanged.
+- Current Unity Test Runner baseline: EditMode 113/113 and PlayMode 60/60 passed on 2026-09-09; PlayMode exited normally with 0 failures.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -64,7 +66,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 102/102 and PlayMode 57/57 on 2026-09-08.
+- Current verified baseline: EditMode 113/113 and PlayMode 60/60 on 2026-09-09.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

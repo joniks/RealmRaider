@@ -25,6 +25,7 @@ namespace RealmRaiders.UI
         public PrototypeOrientation Orientation { get; private set; }
         public Rect SafeAreaPixels => ResponsiveLayout.SafeAreaPixels;
         public RectTransform JoystickRect => joystick ? (RectTransform)joystick.transform : null;
+        public bool JoystickVisible => joystick && joystick.gameObject.activeSelf;
         CanvasScaler scaler; RectTransform rect; VirtualJoystick joystick; Vector2 lastSize; Rect lastSafe; PrototypeOrientation? testOverride; readonly Dictionary<RectTransform, (Vector2 min, Vector2 max, Vector2 pivot, Vector2 position)> original = new();
         public void SetOrientationForTests(PrototypeOrientation orientation) { testOverride = orientation; Apply(true); }
         public void ClearOrientationOverrideForTests() { testOverride = null; Apply(true); }
@@ -37,7 +38,11 @@ namespace RealmRaiders.UI
             CaptureButtons();
             Apply(true);
         }
-        void Update() { CaptureButtons(); Apply(false); ReflowActions(Orientation); if (joystick) joystick.SetVisible(PrototypeSave.EffectiveControlStyle(Orientation == PrototypeOrientation.Landscape) == "Joystick"); }
+        void Update() { CaptureButtons(); Apply(false); ReflowActions(Orientation); RefreshControlPresentation(); }
+        public void RefreshControlPresentation()
+        {
+            if (joystick) joystick.SetVisible(PrototypeSave.EffectiveControlStyle(Orientation == PrototypeOrientation.Landscape) == "Joystick");
+        }
         void CaptureButtons() { foreach (var button in GetComponentsInChildren<Button>(true)) { var buttonRect = (RectTransform)button.transform; if (!original.ContainsKey(buttonRect)) original[buttonRect] = (buttonRect.anchorMin, buttonRect.anchorMax, buttonRect.pivot, buttonRect.anchoredPosition); } }
         void Apply(bool force)
         {
@@ -45,7 +50,7 @@ namespace RealmRaiders.UI
             if (!force && orientation == Orientation && size == lastSize && safe == lastSafe) return;
             lastSize = size; lastSafe = safe; Orientation = orientation; GameplayInput.ResetTransientInput(); scaler.referenceResolution = orientation == PrototypeOrientation.Portrait ? new Vector2(1080, 1920) : new Vector2(1920, 1080);
             var normalized = ResponsiveLayout.NormalizedSafeArea; rect.anchorMin = normalized.min; rect.anchorMax = normalized.max; rect.offsetMin = rect.offsetMax = Vector2.zero;
-            if (joystick) joystick.SetVisible(PrototypeSave.EffectiveControlStyle(orientation == PrototypeOrientation.Landscape) == "Joystick");
+            RefreshControlPresentation();
             ReflowActions(orientation);
             LayoutChanged?.Invoke(Orientation);
         }
@@ -59,6 +64,7 @@ namespace RealmRaiders.UI
             {
                 var buttonRect = (RectTransform)button.transform; if (!original.ContainsKey(buttonRect)) continue;
                 if (button.GetComponentInParent<FirstPlayableMinuteDefenseGuide>()) continue;
+                if (button.GetComponentInParent<InRunControlStyleSelector>()) continue;
                 // RaidHUD owns the deliberate result-panel action lane; only its live combat actions use the shared reflow.
                 if (GetComponent<RaidHUD>() && button.transform.parent != transform) continue;
                 // Defender result actions are authored inside their panel and are not combat-column actions.

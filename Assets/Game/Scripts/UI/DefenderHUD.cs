@@ -74,6 +74,7 @@ namespace RealmRaiders.UI
         bool initialized;
         HudPresentation presentation;
         ResponsiveHudRoot responsive;
+        InRunControlStyleSelector controlStyleSelector;
         FirstPlayableMinuteDefenseGuide firstMinuteGuide;
         AbilityButtonReadiness[] abilityButtons;
         int displayedOpeningSeconds = -1;
@@ -114,6 +115,8 @@ namespace RealmRaiders.UI
         public float PossessionEnergyFill => energyFill ? energyFill.rectTransform.anchorMax.x : 0;
         public string ResultPrimaryActionText => nextAction ? nextAction.GetComponentInChildren<Text>().text : string.Empty;
         public bool JourneyCompletedForResult => journeyCompletedForResult;
+        public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
+        public float PossessionEnergyRemaining => energy?.Remaining ?? 0;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
@@ -165,6 +168,7 @@ namespace RealmRaiders.UI
             realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
             responsive.LayoutChanged += ApplyResultLayout; ApplyResultLayout(responsive.Orientation);
             resultPanel.SetActive(false);
+            controlStyleSelector = InRunControlStyleSelector.Attach(responsive, presentation);
         }
 
         void ApplyResultLayout(PrototypeOrientation orientation)
@@ -281,6 +285,7 @@ namespace RealmRaiders.UI
         {
             var terminal = value is DefenseState.DefenderVictory or DefenseState.RealmLost;
             GameplayInput.SetTerminalState(terminal);
+            controlStyleSelector?.RefreshNow();
             RefreshDodgeButton();
             guardianEntGrowth?.SetVisible(!terminal);
             if (guardianEntVitality) guardianEntVitality.gameObject.SetActive(guardianEntGrowth && !terminal);

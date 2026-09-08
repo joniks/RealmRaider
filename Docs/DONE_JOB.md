@@ -1353,3 +1353,46 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Recipe/motion/art-manifest package installation, dynamic module discovery, stats or ability migration, new characters/models/animations, visual changes, save migration, gameplay/balance/UI changes and physical-device claims.
+
+## Reliability Follow-up — Camera Awareness Lifecycle and PlayMode Isolation
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Direct-controller deactivation and destruction now explicitly clear the existing camera-awareness ownership before releasing direct input, including a change of `Main Camera`.
+- `PossessionFlowTests` now creates and removes only build-scene or fixture-owned cleanup scenes. The Unity Test Runner's own `Untitled` scene is never unloaded, preventing the prior teardown hang and cross-test camera leakage.
+- No camera targeting, movement, combat, possession, scene, save or visual behavior was broadened.
+
+### Verification
+
+- Focused `PossessionFlowTests`: `14/14` passed in `10.063s`.
+- Shared final verification: EditMode `113/113` passed and PlayMode `60/60` passed, both with `0` failures; PlayMode exited normally.
+- Console after EditMode contained `3` logs, `0` warnings and `0` errors. No manual smoke was run.
+
+### Scope intentionally deferred
+
+- Camera tuning, new focus rules, test-runner tooling/CLI and any gameplay change.
+
+## Diamond Pass 11.0 — In-Run Control Style Switcher
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Added one scene-local, pointer-owning selector under each existing gameplay `ResponsiveHudRoot` for Character Sandbox, Sylvan Raid and both Defender flows; Hub and BUILD remain unchanged.
+- The live control cycle is exactly `Contextual → Fingertap → Joystick → Contextual`, persists through the existing preference and states factual concise copy: `CONTROL: AUTO`, `CONTROL: TAP` or `CONTROL: STICK`.
+- A live switch clears transient movement, destination and UI-gesture ownership without reloading a scene or changing entity identity, health, cooldown, possession energy, controller ownership, combat or journey state.
+- Joystick visibility now refreshes immediately: it remains hidden in Keeper view, appears after possession when appropriate and disappears immediately for Fingertap; terminal results hide the selector and release its transient input.
+- Portrait and landscape use a dedicated safe-area selector position outside the shared combat action column, and focused coverage asserts one selector/Canvas/EventSystem plus continuity and containment.
+
+### Verification
+
+- Focused selector coverage: EditMode `3/3` passed and PlayMode `5/5` passed.
+- Final shared verification after the frozen candidate: EditMode `113/113` passed and PlayMode `60/60` passed, `0` failures; PlayMode exited normally.
+- Console after EditMode: `3` logs, `0` warnings and `0` errors. No manual smoke or physical-device validation is claimed.
+- `git diff --check` passed before acceptance.
+
+### Scope intentionally deferred
+
+- In-run orientation switching, new settings/modal/Canvas, rebinding, desktop/gamepad controls, pause behavior, aim assist, camera changes, haptics/audio/VFX, save migration and physical-device claims.

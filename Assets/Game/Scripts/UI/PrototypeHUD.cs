@@ -17,9 +17,12 @@ namespace RealmRaiders.UI
         Button resetButton;
         CombatEntity hero, ent;
         HudPresentation presentation;
+        ResponsiveHudRoot responsive;
+        InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
         public string AbilityButtonText(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length ? abilityButtons[index].Text : string.Empty;
         public bool AbilityButtonInteractable(int index) => abilityButtons != null && index >= 0 && index < abilityButtons.Length && abilityButtons[index].IsInteractable;
+        public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
 
         public void Initialize(PossessionManager manager, SandboxDirector director, CombatEntity heroEntity, CombatEntity entEntity)
         {
@@ -39,7 +42,7 @@ namespace RealmRaiders.UI
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             gameObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             gameObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1080, 1920);
-            gameObject.AddComponent<GraphicRaycaster>(); gameObject.AddComponent<ResponsiveHudRoot>().Initialize(true);
+            gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.Initialize(true);
             title = Label("REALM RAIDERS — CHARACTER SANDBOX", new Vector2(0, -45), 35, TextAnchor.UpperCenter);
             heroHp = Label("", new Vector2(40, -115), 28, TextAnchor.UpperLeft);
             entHp = Label("", new Vector2(40, -155), 28, TextAnchor.UpperLeft);
@@ -58,6 +61,7 @@ namespace RealmRaiders.UI
             keeperButton = Button("KEEPER", new Vector2(190, 370), director.EnterKeeper);
             resetButton = Button("RESET", new Vector2(0, 490), () => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex));
             Button("MY REALM", new Vector2(0, 610), () => SceneManager.LoadScene("PrototypeHub"));
+            controlStyleSelector = InRunControlStyleSelector.Attach(responsive, presentation);
         }
 
         void Ability(int index)
