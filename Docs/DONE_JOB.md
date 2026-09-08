@@ -1082,3 +1082,27 @@ Completed on 2026-09-08.
 
 - General pathfinding/NavMesh, crowd avoidance, new routes, layout changes, teleport/ghost recovery, camera/UI/combat/trap changes and physical-device verification.
 - Continuous arena boundaries remain the separate Diamond Pass 10.5.
+
+## Design Pass DART 04 — Beast Family Visual Identity v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Selected `Mossback Courser` for the Sylvan Wolf and `Cinderjaw Stalker` for the Hellhound, with distinct shape-first silhouettes that share one exact Beast family rig, bind, anchors, atlas layout, LOD policy and six-key motion contract.
+- Froze five-slot recipe intent, palette separation, mobile mesh/renderer/material/texture budgets, faction rhythm and same-entity/root-collider authority boundaries.
+- Source selection, licence approval, asset production, animation and Unity integration remain gated. Architect reviewed the isolated brief; static `git diff --check` passes and Unity was intentionally not run.
+
+## Design Pass DBND 01 — Prototype Arena Boundary Visual Language v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Defined one build-once boundary language for `CharacterSandbox`, `DefenderTest`, `InfernalRealm` and `SylvanRealm`, while explicitly excluding the two UI-only scenes.
+- Froze factual footprints, starting visual/collider dimensions, neutral/Sylvan/Infernal shape language, rectangle seam rules, Sylvan node/path-union openings, mobile budgets and gameplay-authority boundaries.
+- No code, Unity asset, model, texture or gameplay behavior was added. Architect reviewed the isolated brief; static `git diff --check` passes and Unity was intentionally not run.
+
+## Design Pass DENV 02 — Infernal Environment Production v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Selected `Ironbound Rift Causeway`: straight basalt strata, hard notches, restrained iron and a framed destination that remains distinct from Sylvan without relying on red color or glow.
+- Defined an eight-type modular kit, placement/reuse rules, atlas/material/LOD/mobile budgets, Flame Trap/Gate/Heart signal separation and compatibility with the accepted Infernal boundary contract.
+- Source selection, licence approval, production assets and Core integration remain gated. Architect reviewed the isolated brief; static `git diff --check` passes and Unity was intentionally not run.
