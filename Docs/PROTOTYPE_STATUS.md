@@ -37,6 +37,7 @@ Last reviewed: 2026-09-08
 - Design Pass DBND 01 Prototype Arena Boundary Visual Language v1 is staged in the pinned Modules submodule: all four 3D prototype zones now have factual boundary dimensions, shape language and acceptance rules ready for Diamond Pass 10.5 implementation.
 - Design Pass DENV 02 Infernal Environment Production v1 is staged in the pinned Modules submodule: `Ironbound Rift Causeway` defines an eight-type basalt/iron kit and Android budgets while preserving the current lane, trap, gate, heart and gameplay truth.
 - Diamond Pass 10.5 Prototype Arena Boundaries is present: the Sandbox, both defense lanes and the factual branched Sylvan floor union now have continuous, style-specific static borders that stop ordinary movement, dash and existing AI controllers without changing combat, route or possession authority.
+- Module Pass MCR 02 Deterministic Recipe Catalogue is staged in the pinned Modules submodule: explicitly supplied providers now build one immutable, ordinal, fail-closed recipe/character lookup catalogue without discovery, Unity or gameplay authority.
 - Current Unity Test Runner baseline: EditMode 78/78 and PlayMode 52/52 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
@@ -70,7 +71,7 @@ Last reviewed: 2026-09-08
 - Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests, but physical-device noticeability and rotation continuity remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
-- The modular-character-recipes package is staged in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
+- The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package is staged but uninstalled; no approved shared rigs, clips, concrete motion profiles or Core presentation adapter exist yet.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.

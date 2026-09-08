@@ -1130,3 +1130,23 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Kill planes, teleport/fall recovery, new terrain, navigation/pathfinding, route or balance changes, jumping/climbing, hazards/damage, breakable walls, production art/textures, VFX/audio and physical-device performance claims.
+
+## Module Pass MCR 02 — Deterministic Recipe Catalogue
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Added an explicit `IModularCharacterRecipeProvider` boundary and immutable catalogue construction for the existing modular-character recipe contract.
+- Snapshots caller-supplied providers and recipes, sorts successful recipes with ordinal semantics and prepares exact recipe-ID and character-ID dictionaries without discovery, reflection, filesystem access, singleton ownership or Unity dependency.
+- Fails closed with deterministic structured issues for missing/unreadable providers, invalid module IDs, null/invalid recipes and duplicate provider, recipe or character identities.
+- Added package tests for input-order determinism, exact lookup behavior, duplicate/invalid rejection, collection immutability and the passive dependency boundary; package documentation and version are updated to `0.2.0`.
+
+### Verification
+
+- Architect reviewed all five changed package files and confirmed that the runtime assembly remains plain C# with no Unity/game-runtime, filesystem, discovery or concrete-character dependency.
+- Package manifest JSON and `git diff --check` pass. The package remains uninstalled, so no Unity Test Runner result is claimed for this isolated pass.
+
+### Scope intentionally deferred
+
+- Concrete character recipes, approved asset sources, provider discovery, package installation, Core host integration, runtime visual consumption, Unity assets and gameplay changes.
