@@ -23,7 +23,8 @@ Last reviewed: 2026-09-08
 - Module Pass MMP 01 Character Motion Profile Contracts is staged in the pinned Modules submodule: it defines deterministic six-clip family motion metadata while remaining uninstalled and free of animation assets or runtime authority.
 - Diamond Pass 10.0 Realm Route Readability Blockout is present: Sylvan raid and defense routes now use low organic bands/masses while Infernal defense uses low angular causeway plates, without changing authoritative transforms, colliders, navigation or gameplay.
 - Design Pass DUX 01 First Playable Minute v1 is staged in the pinned Modules submodule: it specifies a truthful, non-modal BUILD-to-possession onboarding thread for the existing loop, but no tutorial runtime or persistence has been implemented yet.
-- Current Unity Test Runner baseline: EditMode 58/58 and PlayMode 34/34 passed on 2026-09-08.
+- Diamond Pass 10.1 First Playable Minute Hub + BUILD Foundation is present: only the primary Sylvan journey activates a versioned local guide, and BUILD truthfully guides one changed valid plan with dismiss/skip and a transient defense handoff.
+- Current Unity Test Runner baseline: EditMode 63/63 and PlayMode 38/38 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -40,7 +41,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 58/58 and PlayMode 34/34 on 2026-09-08.
+- Current verified baseline: EditMode 63/63 and PlayMode 38/38 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -58,7 +59,7 @@ Last reviewed: 2026-09-08
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 - The modular-character-recipes package is staged in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package is staged but uninstalled; no approved shared rigs, clips, concrete motion profiles or Core presentation adapter exist yet.
-- The first-playable-minute design is accepted, but its contextual presenter, minimal local guide record and ordered success observations are not implemented.
+- The first-playable-minute Hub activation, local guide record and BUILD guidance are implemented; the defense selection→possession→movement→attack→dodge→release→result proof remains unimplemented.
 - Realm landmarks and central routes now have distinct organic versus angular primitive blockouts, but boundaries, terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 
 ## Directory guide

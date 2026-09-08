@@ -11,11 +11,13 @@ namespace RealmRaiders.UI
         Text title, subtitle, selected, realmStores, orientationTitle, controlTitle;
         Text journey, prototypeRoutes, orientationHelp, controlHelp;
         RawImage guardianEntHero;
+        Button skipGuide;
         ResponsiveHudRoot responsive;
         HudPresentation presentation;
         readonly Dictionary<string, Button> buttons = new();
         public string RealmStoresText => realmStores ? realmStores.text : string.Empty;
-        public void Initialize() { Build(); Refresh(); }
+        public bool GuideSkipVisible => skipGuide && skipGuide.gameObject.activeSelf;
+        public void Initialize() { FirstPlayableMinute.ResetBuildHandoff(); Build(); Refresh(); }
 
         void Build()
         {
@@ -27,8 +29,9 @@ namespace RealmRaiders.UI
             controlHelp = Label("CONTEXTUAL: fingertap in portrait • joystick in landscape", new Vector2(0, -790), 20, TextAnchor.UpperCenter, 36); journey = Label(JourneyExplanation, new Vector2(0, -970), 22, TextAnchor.UpperCenter, 50); prototypeRoutes = Label("PROTOTYPE ROUTES", new Vector2(0, -1180), 24, TextAnchor.UpperCenter, 44);
             Button("AUTO", new Vector2(-230, 1300), () => ChooseOrientation("Auto")); Button("PORTRAIT", new Vector2(0, 1300), () => ChooseOrientation("Portrait")); Button("LANDSCAPE", new Vector2(230, 1300), () => ChooseOrientation("Landscape"));
             Button("CONTEXTUAL", new Vector2(-230, 1030), () => ChooseControl("Contextual")); Button("FINGERTAP", new Vector2(0, 1030), () => ChooseControl("Fingertap")); Button("JOYSTICK", new Vector2(230, 1030), () => ChooseControl("Joystick"));
-            Button("START SYLVAN JOURNEY", new Vector2(0, 820), () => SelectAndLoad("Sylvan", JourneyScene));
+            Button("START SYLVAN JOURNEY", new Vector2(0, 820), StartJourney);
             Button("BUILD SYLVAN", new Vector2(0, 630), () => SelectAndLoad("Sylvan", "RealmBuild")); Button("DEFEND SYLVAN", new Vector2(0, 505), () => SelectAndLoad("Sylvan", "DefenderTest")); Button("RAID SYLVAN", new Vector2(0, 380), () => SelectAndLoad("Sylvan", "SylvanRealm")); Button("DEFEND INFERNAL", new Vector2(0, 255), () => SelectAndLoad("Infernal", "InfernalRealm")); Button("CHARACTER SANDBOX", new Vector2(0, 130), () => SceneManager.LoadScene("CharacterSandbox"));
+            if (FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active) skipGuide = Button("SKIP GUIDE", Vector2.zero, SkipGuide);
             responsive.Initialize(false); ApplyHubLayout(responsive.Orientation);
         }
 
@@ -39,6 +42,7 @@ namespace RealmRaiders.UI
             "START SYLVAN JOURNEY" => JourneyScene, "BUILD SYLVAN" => "RealmBuild", "DEFEND SYLVAN" => "DefenderTest",
             "RAID SYLVAN" => "SylvanRealm", "DEFEND INFERNAL" => "InfernalRealm", "CHARACTER SANDBOX" => "CharacterSandbox", _ => null
         };
+        public static bool ActivatesGuideForButton(string buttonName) => buttonName == "START SYLVAN JOURNEY";
 
         RawImage HeroArt()
         {
@@ -84,6 +88,7 @@ namespace RealmRaiders.UI
                 Place("CONTEXTUAL", new Vector2(-480, 540), new Vector2(150, 80)); Place("FINGERTAP", new Vector2(-280, 540), new Vector2(150, 80)); Place("JOYSTICK", new Vector2(-80, 540), new Vector2(150, 80));
                 Place("START SYLVAN JOURNEY", new Vector2(-20, 430), new Vector2(430, 85)); Place("BUILD SYLVAN", new Vector2(-20, 330), new Vector2(430, 75)); Place("DEFEND SYLVAN", new Vector2(-20, 245), new Vector2(430, 75));
                 Place("RAID SYLVAN", new Vector2(-20, 160), new Vector2(430, 75)); Place("DEFEND INFERNAL", new Vector2(-20, 75), new Vector2(430, 75)); Place("CHARACTER SANDBOX", new Vector2(-20, 0), new Vector2(430, 65));
+                Place("SKIP GUIDE", new Vector2(-480, 0), new Vector2(300, 96));
                 return;
             }
 
@@ -93,6 +98,7 @@ namespace RealmRaiders.UI
             Place("START SYLVAN JOURNEY", new Vector2(0, 770), new Vector2(360, 120), portraitColumn, Vector2.zero); Place("BUILD SYLVAN", new Vector2(0, 580), new Vector2(360, 105), portraitColumn, Vector2.zero);
             Place("DEFEND SYLVAN", new Vector2(0, 440), new Vector2(360, 105), portraitColumn, Vector2.zero); Place("RAID SYLVAN", new Vector2(0, 300), new Vector2(360, 105), portraitColumn, Vector2.zero);
             Place("DEFEND INFERNAL", new Vector2(0, 160), new Vector2(360, 105), portraitColumn, Vector2.zero); Place("CHARACTER SANDBOX", new Vector2(0, 20), new Vector2(360, 105), portraitColumn, Vector2.zero);
+            Place("SKIP GUIDE", new Vector2(-320, 20), new Vector2(280, 96), portraitColumn, Vector2.zero);
         }
 
         void Place(string name, Vector2 position, Vector2 size, Vector2? anchor = null, Vector2? pivot = null)
@@ -102,6 +108,13 @@ namespace RealmRaiders.UI
         }
 
         void SelectAndLoad(string realm, string scene) { PrototypeSave.SelectRealm(realm); SceneManager.LoadScene(scene); }
+        void StartJourney() { FirstPlayableMinute.TryStart(); SelectAndLoad("Sylvan", JourneyScene); }
+        void SkipGuide()
+        {
+            if (!FirstPlayableMinute.Skip()) return;
+            skipGuide.onClick.RemoveAllListeners();
+            skipGuide.gameObject.SetActive(false);
+        }
         void ChooseOrientation(string value) { PrototypeSave.SetOrientation(value); Refresh(); }
         void ChooseControl(string value) { PrototypeSave.SetControlStyle(value); Refresh(); }
         void Refresh()

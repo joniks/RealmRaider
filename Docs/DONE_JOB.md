@@ -913,3 +913,32 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 ### Scope intentionally deferred
 
 - Guide persistence and presentation code, HUD binding, gameplay observation hooks, focused automated coverage, Game View/device acceptance, localization and any wider tutorial or progression system.
+
+## Diamond Pass 10.1 — First Playable Minute: Hub + BUILD Foundation
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Added one versioned local first-minute guide record with idempotent `NotStarted`, `Active`, `Completed` and `Skipped` transitions plus safe missing/malformed/unsupported-data fallback.
+- Only `START SYLVAN JOURNEY` activates a fresh guide. Legacy Hub routes retain their existing navigation and never activate or advance it.
+- BUILD captures its real entry layout and shows truthful `Choose`, `Fix` or `Save` guidance from the actual five-slot layout and existing validation reason. Cycling back to the entry layout, invalid plans and unchanged valid saves do not claim success.
+- Dismiss is transient per factual BUILD step and survives rotation; Skip persists once and removes guide presentation and callbacks. Both actions use the existing pointer-ownership contract.
+- A changed valid plan accepted through the existing `SAVE & DEFEND` path sets only a consumable process-local handoff fact. `DefenseLayoutSave` remains the sole layout authority, and no defense guide or completion behavior was added.
+- The BUILD guide reuses the existing Canvas, responsive HUD and reason lane. Its emphasis is steady and non-raycast, preserves the target button presentation, and cleans up on skip, disable and teardown.
+
+### Verification
+
+- Focused `FirstPlayableMinuteTests`: `5/5` passed.
+- Focused `FirstPlayableMinuteFlowTests`: `4/4` passed.
+- Final EditMode: `63/63` passed, `0` failed. Final PlayMode: `38/38` passed, `0` failed.
+- Focused flows exercised journey-only activation, exact BUILD states, rotation, Dismiss/Skip, valid-save authority and cleanup. Console reported `0` errors and `0` warnings apart from two Test Runner information logs.
+- No source changed after the final suites and `git diff --check` passes.
+
+### Remaining manual validation
+
+- A separate interactive Game View smoke and physical Android usability/readability pass were not run and remain user-owned.
+
+### Scope intentionally deferred
+
+- Defender selection/possession/movement/attack/dodge/release/result guidance, guide completion, Infernal or raid onboarding, modal tutorial content, auto-actions, rewards/progression/telemetry, new assets/audio/scenes/packages, and gameplay/camera/balance changes.

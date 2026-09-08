@@ -15,23 +15,34 @@ namespace RealmRaiders.UI
         public string SlotCopy(int index) => index >= 0 && index < slots.Length ? slots[index].GetComponentInChildren<Text>().text : string.Empty;
         public bool SaveInteractable => saveButton && saveButton.interactable;
         public bool GuardianEntUpgradeInteractable => cultivateEnt && cultivateEnt.interactable;
+        public BuildGuideStep GuideStep => guideStep;
+        public bool GuideLineVisible => guide && guide.DismissVisible;
+        public string GuideText => reason ? reason.text : string.Empty;
+        public bool GuideLineRaycastTarget => reason && reason.raycastTarget;
+        public bool GuideSkipVisible => guide && guide.SkipVisible;
+        public bool GuideEmphasisVisible => guide && guide.EmphasisVisible;
+        public RectTransform GuideEmphasisRect => guide ? guide.EmphasisRect : null;
+        public RectTransform GuideDismissRect => guide ? guide.DismissRect : null;
+        public RectTransform GuideSkipRect => guide ? guide.SkipRect : null;
         Button[] slots = Array.Empty<Button>(); Button saveButton, cultivateEnt; Text title; Text budget; Text reason; Text realmStores; Text plan; DefenseLayout layout; ResponsiveHudRoot responsive; HudPresentation presentation;
-        public void Initialize() { layout = DefenseLayoutSave.Load(); Build(); Refresh(); }
+        BuildLayoutSnapshot entryLayout; BuildGuideStep guideStep, dismissedStep; FirstPlayableMinuteBuildGuide guide;
+        public void Initialize() { FirstPlayableMinute.ResetBuildHandoff(); layout = DefenseLayoutSave.Load(); entryLayout = FirstPlayableMinute.CaptureBuildEntry(layout); Build(); Refresh(); }
         void Build()
         {
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>();
-            title = Label("SYLVAN BUILD", new Vector2(0, -120), 52); budget = Label("", new Vector2(0, -215), 30); reason = Label("", new Vector2(0, -310), 24); realmStores = Label("", new Vector2(0, -385), 21); realmStores.name = "Realm Stores"; realmStores.rectTransform.sizeDelta = new Vector2(950, 48); realmStores.raycastTarget = false;
+            title = Label("SYLVAN BUILD", new Vector2(0, -120), 52); budget = Label("", new Vector2(0, -215), 30); reason = Label("", new Vector2(0, -310), 24); reason.name = "Build Guidance"; reason.raycastTarget = false; realmStores = Label("", new Vector2(0, -385), 21); realmStores.name = "Realm Stores"; realmStores.rectTransform.sizeDelta = new Vector2(950, 48); realmStores.raycastTarget = false;
             plan = Label("", new Vector2(0, -400), 18); plan.name = "Defense Plan Summary"; plan.rectTransform.sizeDelta = new Vector2(950, 90); plan.raycastTarget = false;
             slots = new Button[5]; for (int i = 0; i < slots.Length; i++) { int index = i; slots[i] = Button("", new Vector2(0, 280 - i * 140), () => Cycle(index)); }
             cultivateEnt = Button("CULTIVATE GUARDIAN ENT", Vector2.zero, OnPurchaseGuardianEntVitality); cultivateEnt.name = "CULTIVATE GUARDIAN ENT"; cultivateEnt.GetComponentInChildren<Text>().fontSize = 17;
             saveButton = Button("SAVE & DEFEND", new Vector2(0, -650), SaveAndDefend);
             responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyOrientation; responsive.Initialize(false);
+            if (FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active) { guide = gameObject.AddComponent<FirstPlayableMinuteBuildGuide>(); guide.Initialize(responsive, slots, saveButton, presentation, DismissGuide, SkipGuide); }
         }
         public void CycleSlotForTests(int index) => Cycle(index);
         public bool PurchaseGuardianEntVitalityForTests() => PurchaseGuardianEntVitality();
         void Cycle(int index) { var slot = layout.Slots[index]; var next = slot.Piece; for (int i = 0; i < 4; i++) { next = (DefensePieceType)(((int)next + 1) % 4); var candidate = new DefenseSlotLayout(slot.SlotType, next); if (DefenseLayoutRules.IsAllowed(candidate)) { layout.Slots[index] = candidate; break; } } Refresh(); }
-        void SaveAndDefend() { if (!DefenseLayoutRules.IsValid(layout, out _)) return; DefenseLayoutSave.Save(layout); SceneManager.LoadScene("DefenderTest"); }
+        void SaveAndDefend() { if (!DefenseLayoutRules.IsValid(layout, out _)) return; DefenseLayoutSave.Save(layout); FirstPlayableMinute.TryAcceptChangedBuild(entryLayout, layout); SceneManager.LoadScene("DefenderTest"); }
         bool PurchaseGuardianEntVitality()
         {
             if (!RealmProgress.TryPurchaseGuardianEntVitality(out _)) return false;
@@ -42,7 +53,22 @@ namespace RealmRaiders.UI
         void OnPurchaseGuardianEntVitality() => PurchaseGuardianEntVitality();
         void Refresh()
         {
-            var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = $"Threat: {DefenseLayoutRules.Used(layout)}/{DefenseLayoutRules.Budget}"; reason.text = valid ? "Ready to defend" : message; realmStores.text = RealmProgress.StoreCopy(); plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid;
+            var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = $"Threat: {DefenseLayoutRules.Used(layout)}/{DefenseLayoutRules.Budget}"; realmStores.text = RealmProgress.StoreCopy(); plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid;
+            var guideActive = FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active && guide != null;
+            if (guideActive)
+            {
+                var nextStep = FirstPlayableMinute.EvaluateBuild(entryLayout, layout, out var guideReason);
+                if (nextStep != guideStep) { guideStep = nextStep; dismissedStep = BuildGuideStep.Hidden; }
+                var lineVisible = dismissedStep != guideStep;
+                reason.text = lineVisible ? FirstPlayableMinute.BuildCopy(guideStep, guideReason) : valid ? "Ready to defend" : message;
+                guide.Show(guideStep, lineVisible);
+            }
+            else
+            {
+                guideStep = BuildGuideStep.Hidden;
+                reason.text = valid ? "Ready to defend" : message;
+                guide?.Shutdown();
+            }
             if (cultivateEnt)
             {
                 var progress = RealmProgress.Load();
@@ -51,6 +77,9 @@ namespace RealmRaiders.UI
             }
             for (int i = 0; i < slots.Length; i++) slots[i].GetComponentInChildren<Text>().text = FormatSlotCopy(i, layout.Slots[i]);
         }
+        void DismissGuide() { if (guideStep == BuildGuideStep.Hidden) return; dismissedStep = guideStep; Refresh(); }
+        void SkipGuide() { if (!FirstPlayableMinute.Skip()) return; dismissedStep = guideStep = BuildGuideStep.Hidden; guide?.Shutdown(); Refresh(); }
+        void OnDestroy() { if (responsive) responsive.LayoutChanged -= ApplyOrientation; guide?.Shutdown(); }
         void ApplyOrientation(PrototypeOrientation orientation)
         {
             if (!saveButton) return;
