@@ -1048,3 +1048,12 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Resolving or displaying the Quaternius licence, editing the authoring registry, full licence text, legal advice, browser/network links, privacy/terms UI, new assets, gameplay changes and physical-device readability acceptance.
+
+## Design Pass DART 03 — Infernal Brute Visual Identity v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Selected `Obsidian Gatebreaker`: a low, wide siege-creature silhouette with recessed head, separated massive fists, short legs and a broken back ridge that remains distinct from the tall Guardian Ent without relying on color.
+- Froze the modular `base_body`/`head`/`back` recipe intent, shared `LargeCreature` rig/bind/anchor compatibility, Infernal palette, six-motion rhythm, LOD/material/texture budgets and portrait/landscape readability gates.
+- Preserved same-entity possession, root collider, gameplay timing and `Presentation Pivot` authority; no source, licence, asset, rig, animation, recipe instance, Unity import or gameplay change was made.
+- Architect reviewed the complete isolated brief and static `git diff --check` passes. Unity was intentionally not run.
