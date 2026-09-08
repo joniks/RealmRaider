@@ -6,6 +6,7 @@ namespace RealmRaiders.Characters
     [CreateAssetMenu(menuName = "Realm Raiders/Character")]
     public sealed class CharacterDefinition : ScriptableObject
     {
+        public string ArchetypeId = string.Empty;
         public string DisplayName = "Character";
         public CombatStats Stats;
         public AbilityDefinition[] Abilities;

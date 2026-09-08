@@ -43,8 +43,11 @@ Last reviewed: 2026-09-08
 - Module Pass MMP 02 Deterministic Motion Profile Catalogue is staged in the pinned Modules submodule: explicitly supplied motion-profile providers build one immutable, ordinal, fail-closed lookup catalogue without discovery, Unity or gameplay authority.
 - Module Pass MART 01 Character Art Intake Manifests is staged in the pinned Modules submodule: one immutable record now freezes reviewed character-art provenance, licence, checksum, motion, LOD and safe-import evidence without approving or importing an asset.
 - Module Pass MART 02 Deterministic Art Manifest Catalogue is staged in the pinned Modules submodule: explicitly supplied providers now build one immutable, ordinal, fail-closed source/character lookup catalogue without discovery, Unity or import authority.
+- Module Pass MART 03 Character Art Measurement Gate is staged in the pinned Modules submodule: explicit post-import measurements can now be checked deterministically against an intake manifest without Unity inspection, filesystem access or import authority.
+- Module Pass MART 04 Deterministic Character Art Batch Report is staged in the pinned Modules submodule: explicit manifest–measurement sets now produce immutable source-sorted compliance totals and item issues without discovery or import authority.
 - Diamond Pass 10.8 Canonical Sylvan Journey Continuity is present: the primary Hub journey now follows the truthful `BUILD → RAID → DEFEND → BUILD` route while every legacy direct prototype route remains available and session-neutral.
-- Current Unity Test Runner baseline: EditMode 94/94 and PlayMode 57/57 passed on 2026-09-08.
+- Diamond Pass 10.9 Stable Starter Roster Host is present: the five starter catalogue archetypes now give every runtime character a stable identity independent of its scene alias while preserving visuals and gameplay values.
+- Current Unity Test Runner baseline: EditMode 102/102 and PlayMode 57/57 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -61,7 +64,7 @@ Last reviewed: 2026-09-08
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 94/94 and PlayMode 57/57 on 2026-09-08.
+- Current verified baseline: EditMode 102/102 and PlayMode 57/57 on 2026-09-08.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -77,9 +80,10 @@ Last reviewed: 2026-09-08
 - Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests, but physical-device noticeability and rotation continuity remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
+- The starter-character-catalogue package is installed and explicitly hosted as the five-entry prototype identity roster; authoritative stats, abilities, roles and scene construction intentionally remain in Core bootstraps.
 - The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package now includes deterministic explicit-provider catalogue construction but remains uninstalled; its isolated package tests are authored but not yet run, and no approved shared rigs, clips, concrete motion providers or Core presentation adapter exist yet.
-- The character-art-manifests package now includes deterministic evidence validation, hashing and explicit-provider catalogue construction but remains uninstalled; its isolated package tests are authored but not yet run, and no concrete source manifest or Unity importer is approved.
+- The character-art-manifests package now includes deterministic evidence validation, hashing, explicit-provider catalogue construction, an adapter-neutral measurement gate and immutable batch reporting but remains uninstalled; its isolated package tests are authored but not yet run, and no concrete source manifest, measurement adapter or Unity importer is approved.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.

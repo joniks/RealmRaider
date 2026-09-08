@@ -1261,6 +1261,50 @@ Completed on 2026-09-08 and staged in the Modules submodule.
 
 - Concrete source providers, source approval or acquisition, package installation, provider discovery, Unity importer/editor tooling, model processing, asset creation and Core runtime consumption.
 
+## Module Pass MART 03 — Character Art Measurement Gate
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Added an immutable adapter-neutral measurement snapshot for one imported character-art source: exact character/source identity, one triangle count per LOD, renderer/material/texture ceilings, maximum texture edge, prohibited collider/root-motion/animation-event observations and imported motion-clip IDs.
+- Added a deterministic fail-closed compliance evaluator that compares those explicit measurements with an already valid intake manifest and preserves structured manifest-validation evidence.
+- Exact manifest limits pass; malformed identity, null or unreadable collections, missing/duplicate/unknown LODs, invalid or over-budget counts, prohibited import state and inconsistent animation/clip coverage fail with ordinal-sorted semantic issue paths.
+- Caller-owned collections are snapshotted and exposed read-only. The package still performs no Unity inspection, filesystem or network access, discovery, import, source acquisition or gameplay work.
+- Added eight focused source tests for boundary values, budget failures, exact identity, prohibited import state, animation coverage, unreadable input, immutability, deterministic issue order and dependency isolation; package version is `0.3.0`.
+
+### Verification
+
+- Architect reviewed all five changed files and confirmed the implementation remains inside `Packages/com.realmraiders.character-art-manifests/`, keeps the existing plain-C# `noEngineReferences` boundary and adds no game-runtime or import authority.
+- Runtime and Editor-test compiler source checks, package JSON parsing and `git diff --check` passed. The package remains uninstalled, so its authored package tests have not run in Unity and no Test Runner result is claimed.
+- Accepted in the Modules submodule as commit `ec873f3` (`feat: validate character art measurements`); push remains user-owned.
+
+### Scope intentionally deferred
+
+- A Unity or Blender measurement adapter, concrete source manifests/measurements, source approval or acquisition, package installation, automated importing/model processing, assets and Core runtime consumption.
+
+## Module Pass MART 04 — Deterministic Character Art Batch Report
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+### Delivered
+
+- Added an explicit batch-provider and manifest–measurement pair boundary for evaluating large character-art intake sets without automatic discovery.
+- The builder snapshots caller-supplied providers/items, rejects null or unreadable structure and duplicate module/source/character IDs, then evaluates every uniquely identified item through the existing compliance gate.
+- A successful immutable report is sorted by source ID with ordinal semantics, exposes exact source/character lookup and truthful compliant/noncompliant totals, and retains every item-level compliance issue under a stable semantic path.
+- Structural failures return no partial report, while an identifiable but noncompliant item remains visible in the report so failed intake cannot disappear from aggregate counts.
+- Added eight focused source tests for order invariance, structural failure, unreadable inputs, duplicate identity, issue preservation, immutability, exact lookup/totals and dependency isolation; package version is `0.4.0`.
+
+### Verification
+
+- Architect reviewed all four changed files and confirmed that the package remains explicit, deterministic and independent of Unity, game runtime, filesystem, network, discovery and import authority.
+- Runtime and Editor-test compiler source checks, package JSON parsing and `git diff --check` passed. The package remains uninstalled, so no Unity Test Runner result is claimed for its authored tests.
+- Accepted in the Modules submodule as commit `d716abb` (`feat: report character art intake batches`); push remains user-owned.
+
+### Scope intentionally deferred
+
+- Concrete providers, source approval/acquisition, a Unity or Blender measurement adapter, package installation, automatic imports, asset processing and Core runtime consumption.
+
 ## Diamond Pass 10.8 — Canonical Sylvan Journey Continuity
 
 Completed on 2026-09-08.
@@ -1284,3 +1328,28 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - New scenes, automatic progression, skipped combat, combat/AI/balance/possession changes, new persistence or rewards, wider tutorial content, new assets/packages/UI roots, desktop support and physical-device claims.
+
+## Diamond Pass 10.9 — Stable Starter Roster Host
+
+Completed on 2026-09-08.
+
+### Delivered
+
+- Installed only the pinned local `com.realmraiders.starter-character-catalog` package, exposed its three Editor tests through `testables`, and added the minimum explicit runtime assembly references.
+- Added one lazy immutable host snapshot of the exact five starter archetypes using an explicitly constructed provider; ordinal stable-ID lookup, family conversion and visual-profile mapping fail closed without reflection or discovery.
+- Runtime-created character definitions now carry a stable archetype ID separately from their scene-instance and display aliases. Blood Knight, Guardian Ent, Sylvan Wolf, Infernal Brute and Hellhound aliases retain their existing names.
+- Replaced the two Wolf display-name branches with explicit stable-archetype decisions while preserving every existing stat, ability, cooldown, role, possessability, controller, prefab/fallback, palette and scene count.
+- Preserved current visual recipes through an exhaustive profile-to-recipe mapping and retained the same-entity possession contract.
+- Stabilized the alias regression helper so fog-hidden entities are included while requiring exactly one matching object name, exactly one matching definition display name, the same entity and the exact expected archetype ID.
+- Tracked the eight Unity-generated starter-package `.meta` files in the Modules submodule so package GUIDs remain stable across checkouts.
+
+### Verification
+
+- Focused package Editor tests: `3/3` passed. Focused roster host EditMode tests: `5/5` passed.
+- Focused Sylvan, Defender, Infernal and Character Sandbox alias checks each passed `1/1`, including the inactive fog-hidden `Wolf Alpha` and all requested scene aliases.
+- Final EditMode: `102/102` passed, `0` failed at 14:04:42 local time. Final PlayMode: `57/57` passed, `0` failed at 14:05:56 local time.
+- Console ended with `0` warnings and `0` errors; `git diff --check` passes. QA did not run a separate manual smoke; physical Android validation remains user-owned.
+
+### Scope intentionally deferred
+
+- Recipe/motion/art-manifest package installation, dynamic module discovery, stats or ability migration, new characters/models/animations, visual changes, save migration, gameplay/balance/UI changes and physical-device claims.

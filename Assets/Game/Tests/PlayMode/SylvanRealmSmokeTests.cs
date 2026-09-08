@@ -108,6 +108,10 @@ namespace RealmRaiders.Tests
                 AssertSlotPosition(wolfBPosition, new Vector3(0, 0, 11));
                 AssertSlotPosition(trapPosition, new Vector3(6, 0, 8));
                 Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+                AssertArchetype("Invading Blood Knight", PrototypeCharacterRoster.BloodKnightId);
+                AssertArchetype("Realm Wolf A", PrototypeCharacterRoster.SylvanWolfId);
+                AssertArchetype("Guardian Ent", PrototypeCharacterRoster.GuardianEntId);
+                AssertArchetype("Realm Wolf B", PrototypeCharacterRoster.SylvanWolfId);
                 AssertSingleViewAndListener();
             }
             finally
@@ -204,6 +208,10 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<RootTrap>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<RealmCore>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertArchetype("Blood Knight", PrototypeCharacterRoster.BloodKnightId);
+            AssertArchetype("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId);
+            AssertArchetype("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId);
+            AssertArchetype("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId);
             AssertSylvanRaidRoutes();
             AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
             AssertLandmarkPresentation("Root Trap", 6, "Inward Root 1", "Inward Root 4");
@@ -241,6 +249,10 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindFirstObjectByType<FlameTrap>(), Is.Not.Null);
             Assert.That(Object.FindFirstObjectByType<LavaGate>(), Is.Not.Null);
             Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(4));
+            AssertArchetype("Invading Blood Knight", PrototypeCharacterRoster.BloodKnightId);
+            AssertArchetype("Infernal Brute", PrototypeCharacterRoster.InfernalBruteId);
+            AssertArchetype("Hellhound A", PrototypeCharacterRoster.HellhoundId);
+            AssertArchetype("Hellhound B", PrototypeCharacterRoster.HellhoundId);
             AssertDefenseRoute("Volcanic Floor", RealmRoutePresentation.DefenseRendererCeiling, "Basalt Causeway Plate 1", "Basalt Causeway Plate 4");
             AssertLandmarkPresentation("Infernal Heart", 6, "Heavy Core", "Claw Left");
             AssertLandmarkPresentation("Flame Trap", 6, "Chevron 1 Left", "Chevron 3 Right");
@@ -357,6 +369,8 @@ namespace RealmRaiders.Tests
         {
             var width = Screen.width; var height = Screen.height; var previousStyle = PrototypeSave.ControlStylePreference; GameplayInput.ResetForTests(); PrototypeSave.SetControlStyle("Joystick");
             SceneManager.LoadScene("CharacterSandbox"); yield return null; yield return null;
+            AssertArchetype("Blood Knight", PrototypeCharacterRoster.BloodKnightId);
+            AssertArchetype("Ent", PrototypeCharacterRoster.GuardianEntId);
             var root = Object.FindFirstObjectByType<ResponsiveHudRoot>(); Assert.That(root, Is.Not.Null); root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
             var joystick = Object.FindFirstObjectByType<VirtualJoystick>(FindObjectsInactive.Include); Assert.That(joystick, Is.Not.Null); Assert.That(joystick.gameObject.activeSelf, Is.False);
             GameplayInput.SetDirectControl(4242, true); yield return null;
@@ -382,6 +396,22 @@ namespace RealmRaiders.Tests
             Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+        }
+
+        static void AssertArchetype(string instanceName, string stableId)
+        {
+            var namedEntities = new List<CombatEntity>();
+            var displayedEntities = new List<CombatEntity>();
+            foreach (var entity in Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (entity.gameObject.name == instanceName) namedEntities.Add(entity);
+                if (entity.Definition != null && entity.Definition.DisplayName == instanceName) displayedEntities.Add(entity);
+            }
+
+            Assert.That(namedEntities, Has.Count.EqualTo(1), $"Expected exactly one CombatEntity object named {instanceName}, including inactive entities.");
+            Assert.That(displayedEntities, Has.Count.EqualTo(1), $"Expected exactly one CombatEntity definition displayed as {instanceName}.");
+            Assert.That(displayedEntities[0], Is.SameAs(namedEntities[0]), $"{instanceName} object and display aliases resolve to different entities.");
+            Assert.That(namedEntities[0].Definition.ArchetypeId, Is.EqualTo(stableId), instanceName);
         }
 
         static void AssertLandmarkPresentation(string authoritativeName, int rendererCount, string firstSilhouettePart, string secondSilhouettePart)

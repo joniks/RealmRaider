@@ -34,18 +34,38 @@ namespace RealmRaiders.Core
         public static CharacterVisualRecipe InfernalBruteRecipe => infernalBruteRecipe ? infernalBruteRecipe : infernalBruteRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.Spikes, new Color(.28f, .055f, .03f), new Color(.12f, .025f, .02f), new Color(1f, .28f, .05f));
         public static CharacterVisualRecipe SylvanBeastRecipe => sylvanBeastRecipe ? sylvanBeastRecipe : sylvanBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Mane, VisualModuleStyle.None, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.34f, .4f, .32f), new Color(.15f, .2f, .14f), new Color(.75f, .9f, .5f));
         public static CharacterVisualRecipe InfernalBeastRecipe => infernalBeastRecipe ? infernalBeastRecipe : infernalBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.35f, .06f, .025f), new Color(.12f, .02f, .01f), new Color(1f, .25f, .04f));
+        public static CharacterVisualRecipe VisualRecipeFor(PrototypeCharacterRosterEntry archetype)
+        {
+            if (archetype == null) throw new System.ArgumentNullException(nameof(archetype));
+            var rosterEntry = PrototypeCharacterRoster.Current.GetRequired(archetype.StableId);
+            if (archetype.DisplayName != rosterEntry.DisplayName || archetype.VisualFamily != rosterEntry.VisualFamily || archetype.VisualProfileKey != rosterEntry.VisualProfileKey)
+                throw new System.InvalidOperationException($"Character archetype '{archetype.StableId}' does not match the stable starter roster snapshot.");
+            var recipe = archetype.VisualProfileKey switch
+            {
+                "realmraiders.blood-knight.3drt-baseline" => BloodKnightRecipe,
+                "realmraiders.guardian-ent.prototype" => GuardianEntRecipe,
+                "realmraiders.sylvan-wolf.prototype" => SylvanBeastRecipe,
+                "realmraiders.infernal-brute.prototype" => InfernalBruteRecipe,
+                "realmraiders.hellhound.prototype" => InfernalBeastRecipe,
+                _ => throw new System.InvalidOperationException($"No visual recipe is mapped for profile '{archetype.VisualProfileKey}'.")
+            };
+            if (recipe.Family != archetype.VisualFamily)
+                throw new System.InvalidOperationException($"Visual recipe family '{recipe.Family}' does not match roster family '{archetype.VisualFamily}' for '{archetype.StableId}'.");
+            return recipe;
+        }
         public static Material Material(Color color)
         { var material = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard")); material.color = color; return material; }
 
         public static AbilityDefinition Ability(string name, AbilityKind kind, float damage, float range, float radius, float windup, float cooldown = -1, float dash = 0)
         { var ability = ScriptableObject.CreateInstance<AbilityDefinition>(); ability.DisplayName = name; ability.Kind = kind; ability.Damage = damage; ability.Range = range; ability.Radius = radius; ability.Windup = windup; ability.Cooldown = cooldown >= 0 ? cooldown : kind == AbilityKind.Area ? 4 : 1; ability.DashDistance = dash; return ability; }
 
-        public static CombatEntity CreateEntity(string name, Vector3 position, CombatStats stats, Color color, bool possessable, Vector3 visualScale, AbilityDefinition[] abilities, bool cube, CharacterVisualRecipe visualRecipe = null)
+        public static CombatEntity CreateEntity(string archetypeId, string name, Vector3 position, CombatStats stats, Color color, bool possessable, Vector3 visualScale, AbilityDefinition[] abilities, bool cube)
         {
+            var archetype = PrototypeCharacterRoster.Current.GetRequired(archetypeId);
             var go = GameObject.CreatePrimitive(cube ? PrimitiveType.Cube : PrimitiveType.Capsule); go.name = name; go.transform.position = position; Object.Destroy(go.GetComponent<Collider>());
             var motor = go.AddComponent<CharacterController>(); motor.height = cube ? 3 : 2; motor.radius = cube ? .8f : .5f;
             go.AddComponent<Health>(); var entity = go.AddComponent<CombatEntity>(); go.AddComponent<PlayerController>(); var ai = go.AddComponent<CreatureBrain>(); go.GetComponent<Renderer>().material = Material(color); go.transform.localScale = visualScale;
-            var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); definition.DisplayName = name; definition.Stats = stats; definition.Possessable = possessable; definition.PlaceholderColor = color; definition.Abilities = abilities; definition.VisualRecipe = visualRecipe;
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); definition.ArchetypeId = archetype.StableId; definition.DisplayName = name; definition.Stats = stats; definition.Possessable = possessable; definition.PlaceholderColor = color; definition.Abilities = abilities; definition.VisualRecipe = VisualRecipeFor(archetype);
             entity.Initialize(definition); entity.SetController(ai); return entity;
         }
 
