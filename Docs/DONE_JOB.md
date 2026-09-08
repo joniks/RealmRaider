@@ -986,3 +986,43 @@ Completed on 2026-09-08.
 ### Scope intentionally deferred
 
 - Infernal or raid onboarding, modal tutorial content, auto-actions, rewards/progression/telemetry, new assets/audio/scenes/packages, wider tutorial replay/settings, and physical-device readability/performance acceptance.
+
+## Research Pass ART 06A-R — Guardian Ent Source Shortlist
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Compared three creator-published, source-redistributable candidates against the accepted `LargeCreature` family, mobile budgets and repository licence needs.
+- Recommended CDmir / TinyWorlds `Forest Monster` under CC0 only after archive-level dependency and texture-provenance inspection; retained Benji Smith `Evil Tree Creature` under CC BY 3.0 as fallback.
+- No asset was downloaded, approved, imported or entered into the licence registry. Unity was intentionally not run; static `git diff --check` passes.
+
+## Research Pass ART 06B-R — Shared Animation Library Shortlist
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Established that Realm Raiders needs one offline-baked six-key set per frozen body-family rig rather than one runtime-retargeted universal library.
+- Recommended KayKit Character Animations 1.1 under CC0 for Humanoid intake and a CC0 wolf source as a Beast accelerator; the LargeCreature comparison remains conditional and needs human licence approval.
+- No archive was downloaded or approved. Unity was intentionally not run; static `git diff --check` passes.
+
+## Design Pass DLEGAL 01 — Third-Party Notices v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Defined one offline, closable Hub notice panel using the existing responsive UI, with exact mandatory 3DRT CC BY 4.0 credit and voluntary Kenney CC0 provenance entries.
+- Explicitly excluded the retained Quaternius asset from runtime notice copy until a human resolves the conflict between the acquisition record and the publisher's later licence page.
+- No runtime, asset or licence-registry file was changed. Unity was intentionally not run; static `git diff --check` passes.
+
+## Design Pass DART 02 — Guardian Ent Visual Identity v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Selected the `Ancient Canopy Sentinel` direction: tall trunk mass, irregular wide crown, rooted arms and cumulative cultivation ranks 0–3 on the shared `LargeCreature` family.
+- Froze slot, palette, rig/motion, LOD, renderer/material and portrait/landscape readability constraints while preserving the gameplay-root and `Presentation Pivot` boundary.
+- Source selection and asset production remain gated. Unity was intentionally not run; static `git diff --check` passes.
+
+## Design Pass DENV 01 — Sylvan Environment Production v1
+
+Completed on 2026-09-08 and staged in the Modules submodule.
+
+- Selected the `Open Grove Arches` direction and defined an exact eight-type modular environment kit for continuous BUILD → DEFEND → RAID visual language.
+- Froze clearance, collision separation, camera composition, LOD/culling/batching, material/texture and Android production ceilings with a primitive fallback path.
+- No art source or licence was approved and no Unity content was changed. Unity was intentionally not run; static `git diff --check` passes.

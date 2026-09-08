@@ -26,6 +26,10 @@ Last reviewed: 2026-09-08
 - Diamond Pass 10.1 First Playable Minute Hub + BUILD Foundation is present: only the primary Sylvan journey activates a versioned local guide, and BUILD truthfully guides one changed valid plan with dismiss/skip and a transient defense handoff.
 - Diamond Pass 10.2 First Playable Minute Possession Proof is present: the accepted BUILD handoff continues through factual Sylvan selection, same-entity possession, movement, attack, dodge, explicit release, Keeper return and the real defense result, with lifecycle-safe retry and completion.
 - Design Pass DART 01 Character Production Pipeline v1 is staged in the pinned Modules submodule: it defines a deterministic three-family Blender-to-Unity production system and a Guardian Ent first-production gate without claiming unavailable art, rigs or clips.
+- Research Passes ART 06A-R and ART 06B-R are staged in the pinned Modules submodule: they shortlist a conditional CC0 Guardian Ent source, KayKit Humanoid motions and a Beast motion accelerator without downloading or approving any archive.
+- Design Pass DLEGAL 01 Third-Party Notices v1 is staged in the pinned Modules submodule: it specifies exact release-cleared 3DRT and Kenney notice presentation while keeping Quaternius behind a human licence decision.
+- Design Pass DART 02 Guardian Ent Visual Identity v1 is staged in the pinned Modules submodule: `Ancient Canopy Sentinel` defines the first LargeCreature silhouette, cultivation continuity and mobile production gate.
+- Design Pass DENV 01 Sylvan Environment Production v1 is staged in the pinned Modules submodule: `Open Grove Arches` defines the eight-type Sylvan kit, continuity rules and Android budgets without approving an asset source.
 - Current Unity Test Runner baseline: EditMode 66/66 and PlayMode 42/42 passed on 2026-09-08.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
@@ -62,6 +66,8 @@ Last reviewed: 2026-09-08
 - The modular-character-recipes package is staged in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package is staged but uninstalled; no approved shared rigs, clips, concrete motion profiles or Core presentation adapter exist yet.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
+- Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
+- A release-ready Third-Party Notices design exists; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
 - The first-playable-minute Hub, BUILD and Sylvan defense proof are implemented through the real result; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.
 - Realm landmarks and central routes now have distinct organic versus angular primitive blockouts, but boundaries, terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 

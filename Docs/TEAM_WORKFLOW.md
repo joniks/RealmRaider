@@ -109,4 +109,12 @@ Changed after final suite: yes | no
 Commit/push: not performed
 ```
 
+## Completion delivery
+
+- Ending a task or leaving files in a worktree is not a handoff. The owner sends the relevant six-line report immediately after its last check.
+- Core sends every frozen candidate to both QA and Architect. QA sends every acceptance or rejection to both Core and Architect. Game Designer / Modules sends every brief or isolated-module handoff to Architect.
+- A task is not accepted from a silent, empty, queued or interrupted completion. Architect checks its status, reads the owned artifact when necessary, and asks the owner to resend the complete report before integration.
+- Architect acknowledges each valid handoff by accepting it, returning one concrete correction, or naming the next owner. This acknowledgement releases the task lease.
+- Reports contain evidence already produced; agents do not rerun green full suites or repeat work merely to generate another message.
+
 The Architect is the single source of truth for task priority, acceptance, shared-contract changes, and when a worktree may be integrated.
