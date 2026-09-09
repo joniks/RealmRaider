@@ -101,6 +101,48 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void SylvanFactualNodePathJoinsStayClearWhilePortalShoulderRemainsClosed()
+        {
+            var owner = new GameObject("Sylvan Join Geometry Owner");
+            try
+            {
+                var nodes = Nodes();
+                var paths = Paths(true);
+                var boundary = PrototypeArenaBoundaryBuilder.BuildSylvan(owner.transform, nodes, paths);
+                var colliders = boundary.GetComponentsInChildren<BoxCollider>(true);
+                var joins = new[]
+                {
+                    (Node: 0, Path: 0), (Node: 1, Path: 0),
+                    (Node: 1, Path: 1), (Node: 2, Path: 1),
+                    (Node: 1, Path: 2), (Node: 3, Path: 2),
+                    (Node: 1, Path: 3), (Node: 4, Path: 3),
+                    (Node: 4, Path: 4), (Node: 5, Path: 4),
+                    (Node: 5, Path: 5), (Node: 6, Path: 5)
+                };
+
+                foreach (var join in joins)
+                {
+                    var nodeCenter = nodes[join.Node].Center;
+                    var path = paths[join.Path];
+                    var rotation = Quaternion.Euler(0, path.Yaw, 0);
+                    var forward3 = rotation * Vector3.forward;
+                    var forward = new Vector2(forward3.x, forward3.z);
+                    var firstEnd = path.Center - forward * (path.Size.y * .5f);
+                    var secondEnd = path.Center + forward * (path.Size.y * .5f);
+                    var joinedEnd = Vector2.SqrMagnitude(firstEnd - nodeCenter) < Vector2.SqrMagnitude(secondEnd - nodeCenter)
+                        ? firstEnd : secondEnd;
+                    var insidePath = joinedEnd + (path.Center - joinedEnd).normalized * 4f;
+                    AssertClearForController(nodeCenter, insidePath, colliders,
+                        $"Node {join.Node} to path {join.Path} must not contain an exposed boundary run.");
+                }
+
+                Assert.That(MinimumHorizontalDistance(new Vector2(0, -53), colliders), Is.LessThan(.01f),
+                    "The exposed south Portal shoulder must retain a closed boundary inner face.");
+            }
+            finally { Object.DestroyImmediate(owner); }
+        }
+
+        [Test]
         public void SylvanStyleMaterialIsLazilySharedAcrossSceneOwners()
         {
             var firstOwner = new GameObject("First Sylvan Owner");
@@ -126,6 +168,33 @@ namespace RealmRaiders.Tests
             Assert.That(boundary.GetComponentsInChildren<Light>(true), Is.Empty);
             Assert.That(boundary.GetComponentsInChildren<AudioSource>(true), Is.Empty);
             Assert.That(boundary.GetComponentsInChildren<AudioListener>(true), Is.Empty);
+        }
+
+        static void AssertClearForController(Vector2 start, Vector2 end, BoxCollider[] colliders, string message)
+        {
+            const float controllerRadius = .5f;
+            var distance = Vector2.Distance(start, end);
+            var samples = Mathf.CeilToInt(distance / .1f);
+            for (var sample = 0; sample <= samples; sample++)
+            {
+                var point = Vector2.Lerp(start, end, sample / (float)samples);
+                Assert.That(MinimumHorizontalDistance(point, colliders), Is.GreaterThan(controllerRadius),
+                    $"{message} Blocked near ({point.x:0.00}, {point.y:0.00}).");
+            }
+        }
+
+        static float MinimumHorizontalDistance(Vector2 point, BoxCollider[] colliders)
+        {
+            var minimum = float.MaxValue;
+            foreach (var collider in colliders)
+            {
+                var world = new Vector3(point.x, collider.transform.position.y, point.y);
+                var local = collider.transform.InverseTransformPoint(world) - collider.center;
+                var x = Mathf.Max(Mathf.Abs(local.x) - collider.size.x * .5f, 0);
+                var z = Mathf.Max(Mathf.Abs(local.z) - collider.size.z * .5f, 0);
+                minimum = Mathf.Min(minimum, Mathf.Sqrt(x * x + z * z));
+            }
+            return minimum;
         }
 
         internal static ArenaCircleFootprint[] Nodes(float offset = 0)

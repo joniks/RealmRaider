@@ -3,6 +3,7 @@ using NUnit.Framework;
 using RealmRaiders.AI;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
+using RealmRaiders.Controllers;
 using RealmRaiders.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -126,6 +127,82 @@ namespace RealmRaiders.Tests
                 Assert.That(health.Current, Is.EqualTo(100));
             }
             finally { Object.Destroy(probe); Object.Destroy(owner); }
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator SylvanPortalToCrossroadsSupportsNormalMovementAndDashWithoutStateDamage()
+        {
+            var previousTimeScale = Time.timeScale;
+            try
+            {
+                Time.timeScale = 1;
+                GameplayInput.SetTerminalState(false);
+                GameplayInput.ClearMovement();
+                SceneManager.LoadScene("SylvanRealm");
+                yield return null;
+                yield return null;
+
+                var heroObject = GameObject.Find("Blood Knight");
+                Assert.That(heroObject, Is.Not.Null);
+                var hero = heroObject.GetComponent<CombatEntity>();
+                var player = hero.Controller<PlayerController>();
+                var portal = GameObject.Find("PORTAL");
+                var crossroadsGround = GameObject.Find("CROSSROADS Ground");
+                Assert.That(player, Is.Not.Null);
+                Assert.That(player.IsActive, Is.True);
+                Assert.That(portal, Is.Not.Null);
+                Assert.That(crossroadsGround, Is.Not.Null);
+                Assert.That(crossroadsGround.GetComponent<CapsuleCollider>(), Is.Null,
+                    "A flattened Cylinder CapsuleCollider must not wall off the node rim.");
+                var crossroadsSurface = crossroadsGround.GetComponentInChildren<MeshCollider>();
+                Assert.That(crossroadsSurface, Is.Not.Null);
+                Assert.That(crossroadsSurface.sharedMesh, Is.SameAs(crossroadsGround.GetComponent<MeshFilter>().sharedMesh));
+                Assert.That(crossroadsSurface.bounds.max.y, Is.EqualTo(0).Within(.01f),
+                    "The physical node surface must meet the path surface without a raised seam.");
+                Transform routeTree = null;
+                foreach (Transform child in portal.transform)
+                    if (child.name == "Tree" && child.localPosition.z > 5.3f && Mathf.Abs(child.localPosition.x) < .01f)
+                        routeTree = child;
+                Assert.That(routeTree, Is.Not.Null, "The Portal route tree must remain visually present.");
+                Assert.That(routeTree.gameObject.activeInHierarchy, Is.True);
+                Assert.That(routeTree.GetComponent<Renderer>().enabled, Is.True);
+                Assert.That(routeTree.GetComponent<Collider>(), Is.Null, "Portal decoration must not own movement collision.");
+
+                var health = hero.Health.Current;
+                var movementTimeout = Time.realtimeSinceStartup + 6;
+                while (hero.transform.position.z < -31 && Time.realtimeSinceStartup < movementTimeout)
+                {
+                    GameplayInput.SetMovement(Vector2.up);
+                    player.Tick();
+                    GameplayInput.ClearMovement();
+                    yield return null;
+                }
+                GameplayInput.ClearMovement();
+                Assert.That(hero.transform.position.z, Is.GreaterThanOrEqualTo(-31),
+                    "Normal player movement must cross the factual Portal to Crossroads route.");
+                Assert.That(hero.Health.Current, Is.EqualTo(health));
+                Assert.That(hero.IsActionResolving, Is.False);
+
+                hero.transform.SetPositionAndRotation(new Vector3(0, 1, -50), Quaternion.identity);
+                Physics.SyncTransforms();
+                Assert.That(hero.TryUse(1, Vector3.forward), Is.True, "The existing Blood Rush must start from the Portal.");
+                var actionTimeout = Time.realtimeSinceStartup + 2;
+                while (hero.IsActionResolving && Time.realtimeSinceStartup < actionTimeout) yield return null;
+                Assert.That(hero.IsActionResolving, Is.False);
+                Assert.That(hero.transform.position.z, Is.GreaterThan(-44.25f),
+                    "The existing dash must cross the Portal node edge into the first corridor.");
+                Assert.That(hero.Health.Current, Is.EqualTo(health));
+            }
+            finally
+            {
+                GameplayInput.ClearMovement();
+                GameplayInput.SetTerminalState(false);
+                Time.timeScale = previousTimeScale;
+            }
+
+            SceneManager.LoadScene("RealmBuild");
+            yield return null;
             yield return null;
         }
 

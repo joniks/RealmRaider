@@ -95,10 +95,19 @@ namespace RealmRaiders.Core
         {
             var area = new GameObject(label); area.transform.SetParent(root.transform); area.transform.position = position;
             var floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder); floor.name = label + " Ground"; floor.transform.SetParent(area.transform); floor.transform.localPosition = Vector3.zero; floor.transform.localScale = new Vector3(6.5f, .08f, 6.5f); floor.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(Moss);
+            var primitiveCollider = floor.GetComponent<Collider>(); primitiveCollider.enabled = false; Object.Destroy(primitiveCollider);
+            var groundColliderObject = new GameObject("Node Ground Collider", typeof(MeshCollider)); groundColliderObject.transform.SetParent(floor.transform, false); groundColliderObject.transform.localPosition = Vector3.down; groundColliderObject.isStatic = true;
+            var groundCollider = groundColliderObject.GetComponent<MeshCollider>(); groundCollider.sharedMesh = floor.GetComponent<MeshFilter>().sharedMesh; groundCollider.convex = false; groundCollider.isTrigger = false;
             var revealables = new List<GameObject>(contents);
             for (int i = 0; i < 7; i++)
             {
                 float angle = i * Mathf.PI * 2 / 7; var tree = GameObject.CreatePrimitive(PrimitiveType.Cylinder); tree.name = "Tree"; tree.transform.SetParent(area.transform); tree.transform.localPosition = new Vector3(Mathf.Sin(angle) * 5.4f, 1.5f, Mathf.Cos(angle) * 5.4f); tree.transform.localScale = new Vector3(.45f, 2.2f + i % 2, .45f); tree.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.19f, .28f, .1f));
+                if (node.Id == "Portal" && i == 0)
+                {
+                    var collider = tree.GetComponent<Collider>();
+                    collider.enabled = false;
+                    Object.Destroy(collider);
+                }
                 revealables.Add(tree);
             }
             var view = area.AddComponent<RealmNodeView>(); view.Initialize(node, hero, floor.GetComponent<Renderer>(), revealables.ToArray()); return view;

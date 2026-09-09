@@ -51,7 +51,8 @@ Last reviewed: 2026-09-09
 - Diamond Pass 11.0 In-Run Control Style Switcher is present: gameplay HUDs now offer a factual persistent `AUTO`/`TAP`/`STICK` cycle with immediate transient-input reset and responsive joystick visibility, while Hub and BUILD controls remain unchanged.
 - Module Pass MMP 03 Motion Profile Compatibility Gate is staged in the pinned Modules submodule: explicitly supplied motion targets can be fail-closed checked for family, rig, six clips and fallback policy without Unity, asset or gameplay authority.
 - Diamond Pass 11.1 Keeper Touch Selection Reliability is present: registered creatures now use a deterministic mobile press/release selection path with safe near-miss tolerance and strict UI/swipe/state rejection before the existing possession flow.
-- Current Unity Test Runner baseline: EditMode 118/118 and PlayMode 62/62 passed on 2026-09-09; PlayMode exited normally with 0 failures.
+- P0 Sylvan Raid Boundary Path Recovery is present: the factual Portal → Crossroads route has a non-blocking visible route tree and seam-aligned node support collider, while its intended outer boundary closure remains intact.
+- Current Unity Test Runner baseline: EditMode 119/119 and PlayMode 63/63 passed on 2026-09-09; PlayMode exited normally with 0 failures.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -68,7 +69,7 @@ Last reviewed: 2026-09-09
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 118/118 and PlayMode 62/62 on 2026-09-09.
+- Current verified baseline: EditMode 119/119 and PlayMode 63/63 on 2026-09-09.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -92,7 +93,7 @@ Last reviewed: 2026-09-09
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.
 - Beast production is design-only: the Wolf/Hellhound family still needs a human-approved source/provenance route and one frozen Beast rig/bind/anchor proof before assets or shared clips are produced.
-- Prototype arena boundaries are implemented and automated collision/AI coverage is green; full physical-device edge/action, encounter-completion and portrait-to-landscape feel remain user-owned.
+- Prototype arena boundaries are implemented and automated collision/AI coverage is green; the P0 factual Portal → Crossroads movement/dash regression is also green. Full physical-device edge/action, encounter-completion and portrait-to-landscape feel remain user-owned.
 - Infernal environment production is design-only: the Ironbound Rift Causeway kit still needs a human-approved source/provenance route and neutral-gray production proof before Unity integration.
 - The Hub notice panel presents the release-cleared 3DRT and Kenney records; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
 - The first-playable-minute proof and canonical Sylvan `BUILD → RAID → DEFEND → BUILD` journey are implemented through real results; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.

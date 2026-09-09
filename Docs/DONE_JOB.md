@@ -1437,3 +1437,25 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - Aim assist/lock-on, camera/framing, movement/targeting, HUD/layout/copy, AI/balance, collider geometry, persistence, scenes, packages, art, VFX/audio/haptics, desktop controls and physical-device claims.
+
+## P0 — Sylvan Raid Boundary Path Recovery
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Repaired only the factual Portal → Crossroads route obstruction introduced by arena-boundary work: the visible Portal route tree remains as presentation but no longer owns a blocking collider.
+- Replaced the flattened node-floor primitive's raised `CapsuleCollider` with a static, non-trigger support-surface `MeshCollider`, aligned with the connecting path top surface so the Crossroads rim no longer forms a movement lip.
+- Preserved the intended closed south Portal shoulder, the full outer boundary, factual route footprint, possession, combat, dash, navigation authority and all scene content.
+- Added a factual all-node-to-path join geometry regression plus Portal-to-Crossroads normal movement and existing Blood Rush flow coverage.
+
+### Verification
+
+- Focused boundary coverage: EditMode `4/4` passed and PlayMode `6/6` passed.
+- Final shared verification: EditMode `119/119` passed and PlayMode `63/63` passed, with `0` failures.
+- Unity Console ended with `0` errors and `0` exceptions; `git diff --check` passed before acceptance.
+- Manual Android/portrait/landscape Portal-route smoke remains user-owned and pending; it is not claimed by this acceptance.
+
+### Scope intentionally deferred
+
+- Boundary visual redesign, terrain, navigation/pathfinding, movement/dash tuning, combat/possession changes, new map content, art, UI changes, device-performance claims and any unrelated route work.
