@@ -15,7 +15,7 @@ namespace RealmRaiders.UI
         public const string PlanNextDefenseScene = "RealmBuild";
         public const string DefendYourRealmAction = "DEFEND YOUR REALM";
         public const string JourneyDefenseScene = "DefenderTest";
-        Text state, health, stats, objective, result, rootPrompt, objectiveCompass, dodgeLabel, jumpLabel;
+        Text state, health, stats, objective, result, rootPrompt, objectiveCompass, dodgeLabel, jumpLabel, controlHint;
         GameObject resultPanel;
         RectTransform resultRect;
         Button planNextDefense, raidAgain, realmHub, dodge, jump;
@@ -54,6 +54,7 @@ namespace RealmRaiders.UI
         public RectTransform ObjectiveCompassRect => objectiveCompass ? objectiveCompass.rectTransform : null;
         public string ResultPrimaryActionText => planNextDefense ? planNextDefense.GetComponentInChildren<Text>().text : string.Empty;
         public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
+        public string ControlHintText => controlHint ? controlHint.text : string.Empty;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
@@ -88,6 +89,7 @@ namespace RealmRaiders.UI
             RefreshAbilityButtons();
             RefreshDodgeButton();
             RefreshJumpButton();
+            RefreshControlHint();
             var controller = hero ? hero.Controller<PlayerController>() : null;
             if (rootPrompt)
             {
@@ -110,7 +112,7 @@ namespace RealmRaiders.UI
             objective = Label("Reach the Heart Tree", new Vector2(0, -205), 28, TextAnchor.UpperCenter);
             objectiveCompass = Label("", Vector2.zero, 24, TextAnchor.MiddleCenter); objectiveCompass.name = "Heart Tree Compass"; objectiveCompass.raycastTarget = false; objectiveCompass.gameObject.SetActive(false);
             rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
-            Label("Tap ground: move • Tap enemy: attack • Swipe: Blood Rush", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true);
+            controlHint = Label("", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true); controlHint.raycastTarget = false;
             abilityButtons = new[]
             {
                 new AbilityButtonReadiness(Button("SLASH", new Vector2(-260, 110), () => Ability(0)), "SLASH", 0),
@@ -236,7 +238,7 @@ namespace RealmRaiders.UI
         {
             if (!jump) return;
             var player = hero ? hero.Controller<PlayerController>() : null;
-            var direct = player && player.IsActive && hero.Health != null && !hero.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var direct = player && player.IsActive && UsesJoystickControls() && hero.Health != null && !hero.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
             if (jump.gameObject.activeSelf != direct) jump.gameObject.SetActive(direct);
             if (!direct) { jump.interactable = false; return; }
             var label = hero.IsRooted ? "JUMP — ROOTED"
@@ -246,6 +248,15 @@ namespace RealmRaiders.UI
             if (jumpLabel && jumpLabel.text != label) jumpLabel.text = label;
             jump.interactable = hero.CanJump;
         }
+        void RefreshControlHint()
+        {
+            if (!controlHint) return;
+            var copy = UsesJoystickControls()
+                ? "STICK: MOVE • DRAG WORLD: LOOK • JUMP: LEAP"
+                : "TAP: MOVE/ATTACK • DOUBLE-TAP GROUND: JUMP • SWIPE: BLOOD RUSH";
+            if (controlHint.text != copy) controlHint.text = copy;
+        }
+        bool UsesJoystickControls() => responsive && PrototypeSave.EffectiveControlStyle(responsive.Orientation == PrototypeOrientation.Landscape) == "Joystick";
         void ShowResult(RaidResult value)
         {
             CreditResultOnce(value);

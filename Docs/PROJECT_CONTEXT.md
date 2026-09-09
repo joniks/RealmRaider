@@ -42,12 +42,14 @@ Realm Raiders must support both portrait and landscape as first-class play style
 - The player also chooses a saved control style: `Contextual`, `Fingertap`, or `Joystick`. These are three preferences built from two actual movement methods.
 - `Contextual` is the default: Fingertap in portrait and Joystick in landscape.
 - `Fingertap` enables tap-to-move and swipe combat in both orientations.
-- `Joystick` enables analog joystick movement in both orientations; world taps may still select/target enemies but must not also set a movement destination.
+- `Joystick` enables analog joystick movement in both orientations. During direct control, a non-UI world drag is reserved for bounded manual camera yaw; direct-world taps, target taps and swipe abilities do not issue gameplay commands in this style.
+- Fingertap retains single-tap ground movement and target behavior. A quick nearby double tap on a valid empty-ground intent uses the existing grounded jump while preserving the first movement destination, so the normal airborne movement remains forward and readable.
 - Changing control style at runtime clears the previous destination, joystick vector, and in-progress gesture without changing gameplay state.
 - Hub and BUILD adapt to both orientations without a joystick.
 - Keeper view has no joystick until the player possesses and directly controls a creature, even when `Joystick` is selected.
 - Rotation never reloads a scene or resets combat, health, cooldowns, possession energy, defense state, or unsaved BUILD choices.
 - UI touches remain owned by UI for the full gesture, and landscape must support holding the joystick while pressing an action with another finger.
+- During factual Fingertap locomotion only, the camera may softly recenter its orbital yaw toward the latest movement displacement. This is presentation-only: it must not use combat facing, steer the character, acquire a target or become a lock-on system.
 - Camera framing must preserve gameplay fairness: landscape may show a wider composition, but must not reveal threats materially earlier or provide a competitive advantage.
 - Both modes must be independently laid out, safe-area aware, readable, and tested. A technically rotatable but broken secondary layout is not acceptable.
 

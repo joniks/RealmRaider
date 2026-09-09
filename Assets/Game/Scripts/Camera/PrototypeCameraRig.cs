@@ -1,5 +1,6 @@
 using System.Collections;
 using RealmRaiders.Characters;
+using RealmRaiders.Controllers;
 using RealmRaiders.UI;
 using UnityEngine;
 
@@ -16,18 +17,25 @@ namespace RealmRaiders.CameraSystem
         Transform combatThreat;
         float requestedFocus;
         float focusWeight;
+        float requestedControlYaw;
+        float controlYaw;
+        bool hasControlYaw;
+        Vector3 lastLocomotionDirection;
         Vector3 overviewPosition = new(0, 22, -11);
         Quaternion overviewRotation = Quaternion.Euler(60, 0, 0);
+        public const float ManualYawDegreesPerPixel = .16f;
+        public const float MaximumManualYawStep = 18f;
+        public const float ControlYawDegreesPerSecond = 180f;
 
         public void ConfigureOverview(Vector3 position, Quaternion rotation)
         { overviewPosition = position; overviewRotation = rotation; }
 
         public void SnapToOverview()
-        { ClearCombatFocus(); target = null; Mode = CameraMode.KeeperOverview; transform.SetPositionAndRotation(overviewPosition, overviewRotation); }
+        { ClearCombatFocus(); ClearControlYaw(); target = null; Mode = CameraMode.KeeperOverview; transform.SetPositionAndRotation(overviewPosition, overviewRotation); }
 
         public void SnapTo(CombatEntity entity, CameraMode mode)
         {
-            ClearCombatFocus();
+            ClearCombatFocus(); ClearControlYaw();
             target = entity ? entity.transform : null;
             Mode = mode;
             IsTransitioning = false;
@@ -36,12 +44,12 @@ namespace RealmRaiders.CameraSystem
         }
 
         public void TransitionTo(CombatEntity entity, CameraMode mode, float duration = .65f)
-        { ClearCombatFocus(); StopAllCoroutines(); IsTransitioning = false; StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
+        { ClearCombatFocus(); ClearControlYaw(); StopAllCoroutines(); IsTransitioning = false; StartCoroutine(Blend(entity ? entity.transform : null, mode, duration)); }
 
         public bool FocusTrap(Transform trap, CombatEntity trapped, float easeIn = .25f, float hold = 1f, float easeOut = .4f)
         {
             if (!trap || !trapped || Mode != CameraMode.KeeperOverview || IsTransitioning || target) return false;
-            ClearCombatFocus();
+            ClearCombatFocus(); ClearControlYaw();
             StartCoroutine(TrapFocus(trap, trapped.transform, easeIn, hold, easeOut));
             return true;
         }
@@ -49,6 +57,10 @@ namespace RealmRaiders.CameraSystem
         public bool HasCombatFocus => combatThreat && focusWeight > .001f;
         public bool HasRequestedCombatFocus => combatThreat && requestedFocus > .001f;
         public float CombatFocusWeight => focusWeight;
+        public bool HasControlYaw => hasControlYaw;
+        public float ControlYaw => controlYaw;
+        public float RequestedControlYaw => requestedControlYaw;
+        public Vector3 LastLocomotionDirection => lastLocomotionDirection;
         public CombatCameraAwareness BindCombatHud(ResponsiveHudRoot hud, RectTransform competingEdgeCue = null)
         {
             var awareness = GetComponent<CombatCameraAwareness>() ?? gameObject.AddComponent<CombatCameraAwareness>();
@@ -61,6 +73,40 @@ namespace RealmRaiders.CameraSystem
             combatThreat = threat; requestedFocus = Mathf.Clamp01(weight);
         }
         public void ClearCombatFocus() { combatThreat = null; requestedFocus = 0; }
+        public bool RequestManualYaw(float screenDeltaX)
+        {
+            if (!CanAcceptControlYaw()) return false;
+            var step = Mathf.Clamp(screenDeltaX * ManualYawDegreesPerPixel, -MaximumManualYawStep, MaximumManualYawStep);
+            if (Mathf.Abs(step) < .01f) return false;
+            requestedControlYaw = Mathf.DeltaAngle(0, requestedControlYaw + step);
+            hasControlYaw = true;
+            return true;
+        }
+
+        public bool RequestLocomotionYaw(Vector3 factualDisplacement)
+        {
+            factualDisplacement.y = 0;
+            if (!CanAcceptControlYaw() || factualDisplacement.sqrMagnitude <= .000001f) return false;
+            lastLocomotionDirection = factualDisplacement.normalized;
+            requestedControlYaw = Mathf.Atan2(lastLocomotionDirection.x, lastLocomotionDirection.z) * Mathf.Rad2Deg;
+            hasControlYaw = true;
+            return true;
+        }
+
+        public void ClearControlYaw()
+        {
+            requestedControlYaw = 0;
+            controlYaw = 0;
+            hasControlYaw = false;
+            lastLocomotionDirection = Vector3.zero;
+        }
+
+        bool CanAcceptControlYaw()
+        {
+            if (GameplayInput.TerminalState || IsTransitioning || Mode == CameraMode.KeeperOverview || !target) return false;
+            var entity = target.GetComponent<CombatEntity>();
+            return entity && entity.Health != null && !entity.Health.IsDead && entity.ActiveController is PlayerController player && player.IsActive;
+        }
 
         IEnumerator Blend(Transform next, CameraMode mode, float duration)
         {
@@ -105,7 +151,10 @@ namespace RealmRaiders.CameraSystem
         void LateUpdate()
         {
             focusWeight = Mathf.MoveTowards(focusWeight, combatThreat ? requestedFocus : 0, 2.8f * Time.deltaTime);
+            var followedEntity = target ? target.GetComponent<CombatEntity>() : null;
+            if (GameplayInput.TerminalState || followedEntity && followedEntity.Health != null && followedEntity.Health.IsDead) ClearControlYaw();
             if (IsTransitioning || !target) return;
+            controlYaw = Mathf.MoveTowardsAngle(controlYaw, hasControlYaw ? requestedControlYaw : 0, ControlYawDegreesPerSecond * Time.deltaTime);
             var pose = DesiredPose(target, Mode, combatThreat, focusWeight);
             transform.position = Vector3.Lerp(transform.position, pose.position, 8 * Time.deltaTime);
             transform.rotation = Quaternion.Slerp(transform.rotation, pose.rotation, 8 * Time.deltaTime);
@@ -115,7 +164,7 @@ namespace RealmRaiders.CameraSystem
         {
             if (!follow || mode == CameraMode.KeeperOverview) return new Pose(overviewPosition, overviewRotation);
             float scale = mode == CameraMode.PossessedCreature ? 1.25f : 1;
-            var offset = new Vector3(0, 7 * scale, -7 * scale);
+            var offset = Quaternion.Euler(0, controlYaw, 0) * new Vector3(0, 7 * scale, -7 * scale);
             var position = follow.position + offset;
             var lookAt = follow.position + Vector3.up * 1.3f;
             if (threat && threatWeight > 0)
@@ -130,5 +179,7 @@ namespace RealmRaiders.CameraSystem
             }
             return new Pose(position, Quaternion.LookRotation(lookAt - position));
         }
+
+        void OnDisable() => ClearControlYaw();
     }
 }

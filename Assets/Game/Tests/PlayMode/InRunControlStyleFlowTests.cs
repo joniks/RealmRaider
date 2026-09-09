@@ -82,10 +82,18 @@ namespace RealmRaiders.Tests
                 var hero = FindEntity("Blood Knight");
                 var controller = hero.Controller<PlayerController>();
                 root.SetOrientationForTests(PrototypeOrientation.Portrait);
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Contextual));
                 Assert.That(selector.EffectiveStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(selector.SelectorLabel.text, Is.EqualTo(InRunControlStyleSelector.AutoCopy));
                 Assert.That(root.JoystickVisible, Is.False);
+                Assert.That(hud.JumpButtonVisible, Is.False);
+                Assert.That(hud.ControlHintText, Does.Contain("DOUBLE-TAP GROUND: JUMP"));
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); RefreshControlPresentation(hud);
+                Assert.That(hud.JumpButtonVisible, Is.True, "Contextual landscape must expose the joystick JUMP button.");
+                Assert.That(hud.ControlHintText, Does.Contain("DRAG WORLD: LOOK"));
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); RefreshControlPresentation(hud);
+                Assert.That(hud.JumpButtonVisible, Is.False);
 
                 var sceneHandle = SceneManager.GetActiveScene().handle.GetRawData();
                 var entityId = hero.GetEntityId();
@@ -98,25 +106,33 @@ namespace RealmRaiders.Tests
                 var revision = GameplayInput.InteractionRevision;
 
                 selector.Cycle();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(selector.SelectorLabel.text, Is.EqualTo(InRunControlStyleSelector.TapCopy));
                 Assert.That(GameplayInput.Movement, Is.EqualTo(Vector2.zero));
                 Assert.That(GameplayInput.HasUiOwnership, Is.False);
                 Assert.That(GameplayInput.InteractionRevision, Is.GreaterThan(revision));
                 Assert.That(root.JoystickVisible, Is.False);
+                Assert.That(hud.JumpButtonVisible, Is.False);
                 AssertEntityContinuity(hero, controller, activeController, entityId, position, health, cooldownReadyAt, sceneHandle);
 
                 selector.Cycle();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Joystick));
                 Assert.That(selector.SelectorLabel.text, Is.EqualTo(InRunControlStyleSelector.StickCopy));
                 Assert.That(root.JoystickVisible, Is.True);
+                Assert.That(hud.JumpButtonVisible, Is.True);
+                Assert.That(hud.ControlHintText, Does.Contain("DRAG WORLD: LOOK").And.Contain("JUMP: LEAP"));
                 AssertEntityContinuity(hero, controller, activeController, entityId, position, health, cooldownReadyAt, sceneHandle);
 
                 selector.Cycle();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Contextual));
                 Assert.That(selector.EffectiveStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(root.JoystickVisible, Is.False);
+                Assert.That(hud.JumpButtonVisible, Is.False);
                 selector.Cycle();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(root.JoystickVisible, Is.False);
                 AssertEntityContinuity(hero, controller, activeController, entityId, position, health, cooldownReadyAt, sceneHandle);
@@ -153,11 +169,14 @@ namespace RealmRaiders.Tests
                 Assert.That(selector.Visible, Is.True);
                 Assert.That(selector.EffectiveStyle, Is.EqualTo(InRunControlStyleSelector.Joystick));
                 Assert.That(root.JoystickVisible, Is.False, "Keeper view must not show the selected joystick.");
+                Assert.That(hud.JumpButtonVisible, Is.False, "Keeper view must not show JUMP.");
 
                 possession.Select(defender);
                 Assert.That(possession.PossessSelected(), Is.True);
                 yield return null;
                 Assert.That(root.JoystickVisible, Is.True);
+                Assert.That(hud.JumpButtonVisible, Is.True);
+                Assert.That(hud.ControlHintText, Does.Contain("DRAG WORLD: LOOK").And.Contain("JUMP: LEAP"));
 
                 var player = defender.Controller<PlayerController>();
                 var sceneHandle = SceneManager.GetActiveScene().handle.GetRawData();
@@ -168,24 +187,36 @@ namespace RealmRaiders.Tests
                 var remainingEnergy = hud.PossessionEnergyRemaining;
 
                 selector.Cycle();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Contextual));
                 Assert.That(selector.EffectiveStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(root.JoystickVisible, Is.False);
+                Assert.That(hud.JumpButtonVisible, Is.False);
+                Assert.That(hud.ControlHintText, Does.Contain("DOUBLE-TAP GROUND: JUMP"));
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); RefreshControlPresentation(hud);
+                Assert.That(hud.JumpButtonVisible, Is.True, "Contextual possessed landscape must expose JUMP.");
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); RefreshControlPresentation(hud);
+                Assert.That(hud.JumpButtonVisible, Is.False);
                 selector.Cycle();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(root.JoystickVisible, Is.False);
                 AssertPossessionContinuity(hud, possession, defender, player, entityId, position, health, cooldownReadyAt, remainingEnergy, sceneHandle);
 
                 selector.Cycle();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Joystick));
                 Assert.That(root.JoystickVisible, Is.True);
+                Assert.That(hud.JumpButtonVisible, Is.True);
                 AssertPossessionContinuity(hud, possession, defender, player, entityId, position, health, cooldownReadyAt, remainingEnergy, sceneHandle);
 
                 GameplayInput.ClaimUiPointer(1102);
                 GameplayInput.SetTerminalState(true);
                 selector.RefreshNow();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.Visible, Is.False);
                 Assert.That(root.JoystickVisible, Is.False);
+                Assert.That(hud.JumpButtonVisible, Is.False);
                 Assert.That(GameplayInput.HasUiOwnership, Is.False);
                 selector.Cycle();
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Joystick), "A terminal selector cannot change the preference.");
@@ -195,8 +226,10 @@ namespace RealmRaiders.Tests
                 Assert.That(GameplayInput.InteractionRevision, Is.EqualTo(terminalRevision), "A stable terminal state should not repeat its cleanup.");
                 GameplayInput.SetTerminalState(false);
                 selector.RefreshNow();
+                RefreshControlPresentation(hud);
                 Assert.That(selector.Visible, Is.True);
                 Assert.That(root.JoystickVisible, Is.True);
+                Assert.That(hud.JumpButtonVisible, Is.True);
                 AssertPossessionContinuity(hud, possession, defender, player, entityId, position, health, cooldownReadyAt, remainingEnergy, sceneHandle);
             }
             finally
@@ -222,6 +255,18 @@ namespace RealmRaiders.Tests
             }
             Assert.That(count, Is.EqualTo(1), displayName);
             return match;
+        }
+
+        static void RefreshControlPresentation(RaidHUD hud)
+        {
+            hud.SendMessage("RefreshJumpButton", SendMessageOptions.RequireReceiver);
+            hud.SendMessage("RefreshControlHint", SendMessageOptions.RequireReceiver);
+        }
+
+        static void RefreshControlPresentation(DefenderHUD hud)
+        {
+            hud.SendMessage("RefreshJumpButton", SendMessageOptions.RequireReceiver);
+            hud.SendMessage("RefreshControlHint", SendMessageOptions.RequireReceiver);
         }
 
         static void AssertEntityContinuity(CombatEntity entity, PlayerController controller, IEntityController activeController, EntityId entityId, Vector3 position, float health, float readyAt, ulong sceneHandle)

@@ -1522,3 +1522,26 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - Terrain, waypoint/map redesign, navigation/pathfinding, jump tuning, camera/HUD changes, combat/AI/balance, art/materials/textures, physical-device validation and any additional traversal mechanic.
+
+## Diamond Pass 12.2 — Intentional Touch Controls and Camera
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Direct-controlled Joystick mode now intentionally uses analog stick movement, the existing `JUMP` button and a non-UI world drag for bounded manual orbital camera yaw. World tap-to-move, enemy target taps and swipe ability gestures no longer leak through in this style.
+- Fingertap retains its single-tap ground and enemy behavior, while two quick nearby releases on the same valid empty-ground intent trigger the existing grounded jump exactly once. The first tap's destination is preserved, so existing airborne horizontal movement creates the expected forward leap.
+- Fingertap rejects a double-tap jump from UI-owned gestures, swipes, enemy/possessable/interactive hits, invalid states and control-style or orientation changes. Existing controller, terminal, death, transition and teardown paths clear partial pointer, jump and camera intent safely.
+- The existing camera rig now accepts only bounded presentation yaw: Joystick drag updates manual yaw, while Fingertap recenters softly only from factual accepted locomotion displacement. Neither path changes movement, targeting, combat direction, ability authority, threat focus or camera pitch/vertical framing.
+- Existing Raid and Defender HUD roots now state the effective control contract truthfully and show `JUMP` only for effective Joystick control, including both possession states and responsive orientations.
+
+### Verification
+
+- Focused PlayMode coverage passed: `CombatCameraReadabilityTests` `3/3`, `JumpFlowTests` `6/6`, and `InRunControlStyleFlowTests` `3/3`, including valid/rejected Fingertap double taps, Joystick camera-only drag, factual movement yaw and lifecycle cleanup.
+- Final Unity GUI Test Runner: EditMode `120/120` passed and PlayMode `71/71` passed, both with `0` failures on 2026-09-09. QA used no CLI and no source changed after the final suites; `git diff --check` passed.
+- Game View smoke observed Sylvan Realm at `1280×720` landscape with the stick/look/JUMP contract and portrait with the tap/double-tap contract. DefenderTest Keeper start, selected Ent availability and a clean Console (`0` logs, warnings and errors) were observed.
+- QA could not safely complete the possessed DefenderTest Game View interaction after its coordinate frame became unstable. This manual limitation is explicit; possession/control behavior remains covered by the final PlayMode suite and physical-device validation remains user-owned.
+
+### Scope intentionally deferred
+
+- New jump physics, double/wall/charged jumps, aim assist, target lock, automatic combat, targeting redesign, camera collision/zoom/pitch, new control roots, desktop controls, animation/VFX/audio/haptics, save changes and physical-device claims.

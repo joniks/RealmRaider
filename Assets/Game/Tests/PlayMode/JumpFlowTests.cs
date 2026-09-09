@@ -206,7 +206,11 @@ namespace RealmRaiders.Tests
         [UnityTest]
         public IEnumerator RaidAndPossessedDefenderJumpButtons_OwnInputGateAndFitBothOrientations()
         {
+            var previousStyle = PrototypeSave.ControlStylePreference;
+            try
+            {
             GameplayInput.ResetForTests();
+            PrototypeSave.SetControlStyle(InRunControlStyleSelector.Joystick);
             SceneManager.LoadScene("SylvanRealm");
             yield return null;
             yield return null;
@@ -262,7 +266,137 @@ namespace RealmRaiders.Tests
             yield return null;
             Assert.That(ent.IsJumping, Is.False);
             Assert.That(defenderHud.JumpButtonVisible, Is.False);
+            }
+            finally { PrototypeSave.SetControlStyle(previousStyle); }
         }
+
+        [UnityTest]
+        public IEnumerator FingertapDoubleTap_UsesExistingJumpAndRetainsGroundDestination()
+        {
+            var previousStyle = PrototypeSave.ControlStylePreference;
+            var cameraObject = MainCamera();
+            var ground = CreateGround("Fingertap Jump Ground", Vector3.zero, new Vector3(30, .5f, 30));
+            var fixture = new EntityFixture(new Vector3(0, 1, 0), false);
+            try
+            {
+                GameplayInput.ResetForTests();
+                PrototypeSave.SetControlStyle(InRunControlStyleSelector.Fingertap);
+                ConfigureInputCamera(cameraObject.GetComponent<Camera>(), new Vector3(0, 9, -8), new Vector3(0, 0, 5));
+                fixture.Entity.SetController(fixture.Player);
+                fixture.Player.SetOrientationForTests(PrototypeOrientation.Portrait);
+                yield return Settle(fixture);
+                var screenPoint = cameraObject.GetComponent<Camera>().WorldToScreenPoint(new Vector3(0, 0, 5));
+
+                Tap(fixture.Player, 3101, screenPoint);
+                Assert.That(fixture.Player.HasDestination, Is.True);
+                Assert.That(fixture.Entity.IsJumping, Is.False);
+                var firstDestination = fixture.Player.Destination;
+                Tap(fixture.Player, 3102, screenPoint + Vector3.right * 2);
+
+                Assert.That(fixture.Entity.IsJumping, Is.True, "The second matching empty-ground tap must use the existing jump authority.");
+                Assert.That(fixture.Player.HasDestination, Is.True, "Jump must retain the first tap's forward movement intent.");
+                Assert.That(HorizontalDistance(fixture.Player.Destination, firstDestination), Is.LessThan(.01f), "The second release must not replace the first tap's destination.");
+                Assert.That(fixture.Player.Destination.z, Is.GreaterThan(fixture.Entity.transform.position.z + 2));
+            }
+            finally
+            {
+                PrototypeSave.SetControlStyle(previousStyle);
+                fixture.Dispose();
+                Object.Destroy(ground);
+                Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FingertapDoubleTap_RejectsUiSwipeEntityRootAndControlStyleChange()
+        {
+            var previousStyle = PrototypeSave.ControlStylePreference;
+            var cameraObject = MainCamera();
+            var ground = CreateGround("Rejected Fingertap Ground", Vector3.zero, new Vector3(40, .5f, 40));
+            var fixture = new EntityFixture(new Vector3(0, 1, 0), false);
+            var enemy = new EntityFixture(new Vector3(0, 1, 5), false);
+            var interactive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                GameplayInput.ResetForTests();
+                PrototypeSave.SetControlStyle(InRunControlStyleSelector.Fingertap);
+                var view = cameraObject.GetComponent<Camera>();
+                ConfigureInputCamera(view, new Vector3(0, 9, -8), new Vector3(0, 0, 5));
+                fixture.Entity.SetController(fixture.Player);
+                enemy.Entity.SetController(enemy.Ai);
+                fixture.Player.SetOrientationForTests(PrototypeOrientation.Portrait);
+                interactive.name = "Interactive Realm Core";
+                interactive.transform.position = new Vector3(-4, .5f, 5);
+                interactive.AddComponent<RealmRaiders.Realm.RealmCore>();
+                yield return Settle(fixture);
+                var groundPoint = view.WorldToScreenPoint(new Vector3(4, 0, 5));
+                var enemyPoint = view.WorldToScreenPoint(enemy.Entity.transform.position);
+                var interactivePoint = view.WorldToScreenPoint(interactive.transform.position);
+
+                fixture.Player.BeginWorldPointer(3201, groundPoint, true);
+                fixture.Player.EndWorldPointer(3201, groundPoint, true);
+                fixture.Player.BeginWorldPointer(3202, groundPoint, true);
+                fixture.Player.EndWorldPointer(3202, groundPoint, true);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "UI releases cannot participate in a world double tap.");
+
+                fixture.Player.BeginWorldPointer(3203, groundPoint, false);
+                fixture.Player.EndWorldPointer(3203, groundPoint + Vector3.right * (PlayerController.SwipePixels + 10), false);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "A swipe is never a jump tap.");
+
+                Tap(fixture.Player, 3204, enemyPoint);
+                Tap(fixture.Player, 3205, enemyPoint + Vector3.right);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Entity taps cannot become a ground double tap.");
+
+                Tap(fixture.Player, 3210, interactivePoint);
+                Tap(fixture.Player, 3211, interactivePoint + Vector3.right);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Interactive targets cannot become a ground double tap.");
+
+                Tap(fixture.Player, 3206, groundPoint);
+                fixture.Entity.ApplyRoot(1);
+                Tap(fixture.Player, 3207, groundPoint);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Rooted combat state must reject a double-tap jump.");
+                fixture.Entity.BreakRoot();
+
+                Tap(fixture.Player, 3208, groundPoint);
+                PrototypeSave.SetControlStyle(InRunControlStyleSelector.Joystick);
+                fixture.Player.Tick();
+                Tap(fixture.Player, 3209, groundPoint);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "A control-style change must clear the pending ground tap.");
+                Assert.That(fixture.Player.HasDestination, Is.False, "The style change must clear tap-navigation state.");
+
+                PrototypeSave.SetControlStyle(InRunControlStyleSelector.Contextual);
+                fixture.Player.SetOrientationForTests(PrototypeOrientation.Portrait);
+                Tap(fixture.Player, 3212, groundPoint);
+                fixture.Player.SetOrientationForTests(PrototypeOrientation.Landscape);
+                Tap(fixture.Player, 3213, groundPoint);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "An effective-style change caused by orientation must clear the pending ground tap.");
+                Assert.That(fixture.Player.HasDestination, Is.False, "Contextual landscape must not retain portrait tap navigation.");
+            }
+            finally
+            {
+                PrototypeSave.SetControlStyle(previousStyle);
+                fixture.Dispose(); enemy.Dispose();
+                Object.Destroy(interactive);
+                Object.Destroy(ground);
+                Object.Destroy(cameraObject);
+            }
+        }
+
+        static void Tap(PlayerController player, int pointerId, Vector2 screenPosition)
+        {
+            player.BeginWorldPointer(pointerId, screenPosition, false);
+            player.EndWorldPointer(pointerId, screenPosition, false);
+        }
+
+        static void ConfigureInputCamera(Camera view, Vector3 position, Vector3 lookAt)
+        {
+            view.transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position));
+            view.fieldOfView = 60;
+            view.aspect = 1;
+        }
+
+        static float HorizontalDistance(Vector3 first, Vector3 second) =>
+            Vector2.Distance(new Vector2(first.x, first.z), new Vector2(second.x, second.z));
 
         static IEnumerator Settle(EntityFixture fixture)
         {

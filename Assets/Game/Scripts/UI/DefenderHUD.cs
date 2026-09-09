@@ -120,6 +120,7 @@ namespace RealmRaiders.UI
         public string ResultPrimaryActionText => nextAction ? nextAction.GetComponentInChildren<Text>().text : string.Empty;
         public bool JourneyCompletedForResult => journeyCompletedForResult;
         public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
+        public string ControlHintText => possessionManager && possessionManager.IsPossessing && selection ? selection.text : string.Empty;
         public float PossessionEnergyRemaining => energy?.Remaining ?? 0;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
@@ -141,6 +142,7 @@ namespace RealmRaiders.UI
             if (!initialized) return;
             Refresh(); RefreshOpeningCue(); RefreshRouteStatus();
             RefreshAbilityButtons();
+            RefreshControlHint();
             var controller = possessionManager?.Possessed?.Controller<PlayerController>(); var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState;
             if (rootPrompt) { rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; }
         }
@@ -267,7 +269,8 @@ namespace RealmRaiders.UI
             bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active); jump.gameObject.SetActive(active);
             if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); }
             if (!active) possess.gameObject.SetActive(false);
-            selection.text = active ? $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}" : $"Tap the {config.DefenderName} to select it";
+            selection.text = active ? ControlledSelectionCopy() : $"Tap the {config.DefenderName} to select it";
+            RefreshJumpButton();
             RefreshPossessionEnergy();
         }
         void OnReleased(bool forced) { RefreshPossessionEnergy(); RefreshJumpButton(); }
@@ -452,7 +455,7 @@ namespace RealmRaiders.UI
             if (!jump) return;
             var controlled = possessionManager ? possessionManager.Possessed : null;
             var player = controlled ? controlled.Controller<PlayerController>() : null;
-            var direct = player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var direct = player && player.IsActive && UsesJoystickControls() && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
             if (jump.gameObject.activeSelf != direct) jump.gameObject.SetActive(direct);
             if (!direct) { jump.interactable = false; return; }
             var label = controlled.IsRooted ? "JUMP — ROOTED"
@@ -462,6 +465,19 @@ namespace RealmRaiders.UI
             if (jumpLabel && jumpLabel.text != label) jumpLabel.text = label;
             jump.interactable = controlled.CanJump;
         }
+
+        void RefreshControlHint()
+        {
+            if (!selection || !possessionManager || !possessionManager.IsPossessing) return;
+            var copy = ControlledSelectionCopy();
+            if (selection.text != copy) selection.text = copy;
+        }
+
+        string ControlledSelectionCopy() => $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}\n" + (UsesJoystickControls()
+            ? "STICK: MOVE • DRAG WORLD: LOOK • JUMP: LEAP"
+            : "TAP GROUND: MOVE • DOUBLE-TAP GROUND: JUMP");
+
+        bool UsesJoystickControls() => responsive && PrototypeSave.EffectiveControlStyle(responsive.Orientation == PrototypeOrientation.Landscape) == "Joystick";
 
         public static string GuardianEntVitalityCopy(int rank)
         {
