@@ -84,7 +84,7 @@ Last reviewed: 2026-09-09
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
 - Device controls, audio balance and performance have not yet been validated on a representative Android phone.
 - Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
-- Direct-controlled characters now have one grounded jump, but it intentionally has no coyote time, input buffer, double/wall/charged jump, air dodge/attack, animation, VFX/audio or physical-device validation. The final Unity Game-view smoke could not run because that editor surface showed `No cameras rendering` before Play Mode.
+- Direct-controlled characters now have one grounded jump, but it intentionally has no coyote time, input buffer, double/wall/charged jump, air dodge/attack, animation, VFX/audio or physical-device validation. A Unity Game-view smoke confirmed Sylvan portrait and landscape jump/landing behavior, while possessed-Defender and arena-edge observations remain outstanding.
 - Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests, but physical-device noticeability and rotation continuity remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.

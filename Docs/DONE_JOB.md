@@ -1495,8 +1495,8 @@ Completed on 2026-09-09.
 
 - Focused stale-assembly recovery check: `OrderedSylvanProofCompletesOnFactualVictory` passed `1/1` in `4.443s` after Unity reopened cleanly.
 - Final Unity GUI Test Runner: EditMode `120/120` passed and PlayMode `67/67` passed, `0` failures, completed 2026-09-09 19:47:08 EEST. No source changed after the final suites and `git diff --check` passed.
-- The required Unity Game-view jump smoke was not run: before Play Mode that surface reported `No cameras rendering`, and QA could not activate Play. Therefore no landing, double-jump, boundary, possession, orientation or Console observation is claimed from manual testing.
-- `Assets/UniversalRenderPipelineGlobalSettings.asset` was already separately modified by the Unity reopen; it is unrelated to this pass and excluded from the accepted commit.
+- Follow-up Unity Game-view smoke: before Play Mode SylvanRealm showed `No cameras rendering`, but Play Mode rendered through `Main Camera` in both portrait Free Aspect and `1280×720` landscape. `JUMP` visibly entered `AIRBORNE`; an immediate second press left it airborne, and it returned to normal `JUMP` after landing. Console visibly showed `0` errors and `0` warnings after ordinary compilation.
+- Possessed Defender and arena-edge containment were not observed in that limited UI pass because its controls/target were not exposed; no broader manual claim is made. `Assets/UniversalRenderPipelineGlobalSettings.asset` remains a separate unrelated editor change, is unproven as a render blocker, and is excluded from this pass.
 
 ### Scope intentionally deferred
 
