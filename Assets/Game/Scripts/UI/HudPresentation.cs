@@ -8,12 +8,17 @@ namespace RealmRaiders.UI
     public sealed class HudPresentation : MonoBehaviour
     {
         const string ResourceRoot = "ThirdParty/Kenney/InterfacePolish/";
+        public const string JumpIconResource = "Art/UI/JumpAbility/jump-ability-icon-rgba-candidate";
+        public const string JumpIconName = "Jump Action Icon Preview";
         Sprite buttonSprite;
+        Sprite jumpIconSprite;
         AudioClip click, confirm, result;
         AudioSource source;
         bool resultPlayed;
         bool ownsButtonSprite;
+        bool jumpIconResolved;
         bool initialized;
+        System.Func<string, Sprite> jumpIconLoader = LoadJumpIcon;
 
         public bool ResultCuePlayed => resultPlayed;
 
@@ -57,6 +62,56 @@ namespace RealmRaiders.UI
             if (!image || !buttonSprite) return;
             image.sprite = buttonSprite;
             image.type = Image.Type.Sliced;
+        }
+
+        public Image DecorateJumpButton(Button button)
+        {
+            if (!button) return null;
+            var existing = button.transform.Find(JumpIconName);
+            if (existing) return existing.GetComponent<Image>();
+            var sprite = ResolveJumpIcon();
+            if (!sprite) return null;
+
+            var iconObject = new GameObject(JumpIconName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.transform.SetParent(button.transform, false);
+            var iconRect = (RectTransform)iconObject.transform;
+            iconRect.anchorMin = iconRect.anchorMax = new Vector2(0, .5f);
+            iconRect.pivot = new Vector2(0, .5f);
+            iconRect.anchoredPosition = new Vector2(10, 0);
+            iconRect.sizeDelta = new Vector2(44, 44);
+            var icon = iconObject.GetComponent<Image>();
+            icon.sprite = sprite;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+
+            var label = button.GetComponentInChildren<Text>(true);
+            if (label)
+            {
+                var labelRect = label.rectTransform;
+                labelRect.offsetMin = new Vector2(Mathf.Max(58, labelRect.offsetMin.x), labelRect.offsetMin.y);
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = Mathf.Min(18, label.fontSize);
+                label.resizeTextMaxSize = Mathf.Max(label.fontSize, label.resizeTextMinSize);
+            }
+            return icon;
+        }
+
+        Sprite ResolveJumpIcon()
+        {
+            if (jumpIconResolved) return jumpIconSprite;
+            jumpIconResolved = true;
+            try { jumpIconSprite = jumpIconLoader?.Invoke(JumpIconResource); }
+            catch (System.Exception) { jumpIconSprite = null; }
+            return jumpIconSprite;
+        }
+
+        static Sprite LoadJumpIcon(string resourcePath) => Resources.Load<Sprite>(resourcePath);
+
+        public void ConfigureJumpIconLoaderForTests(System.Func<string, Sprite> loader)
+        {
+            jumpIconLoader = loader ?? (_ => null);
+            jumpIconSprite = null;
+            jumpIconResolved = false;
         }
 
         public void PlayClick() { EnsureInitialized(); Play(click); }

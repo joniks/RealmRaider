@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.jump-ability-icon.mui01.v1",
+  "creation": "original-generated",
+  "status": "preview-import-candidate-not-approved-for-runtime",
+  "generationTool": "OpenAI built-in image generation",
+  "thirdPartySources": false,
+  "asset": {
+    "file": "jump-ability-icon-rgba-candidate.png",
+    "role": "jump-ability-icon",
+    "dimensions": [512, 512],
+    "colorFormat": "RGBA",
+    "alphaStatus": "genuine-transparent-background",
+    "promptSummary": "Clean gold-and-teal armored boot in an upward leap silhouette with one restrained motion arc, designed for mobile action-button readability.",
+    "intendedUnityImport": {
+      "textureType": "sprite-ui",
+      "alphaIsTransparency": true,
+      "mobileCompression": "pending-review"
+    },
+    "targetReadability": "readable at 64 px"
+  },
+  "reviewRequired": [
+    "Unity sprite UI import validation",
+    "64 px in-context readability review",
+    "mobile compression and texture-memory budget"
+  ],
+  "nonGoals": [
+    "runtime installation",
+    "third-party source intake",
+    "runtime approval",
+    "gameplay authority"
+  ]
+}

@@ -44,8 +44,9 @@ namespace RealmRaiders.Tests
                 Assert.That(scene.Hud.ResultText, Does.Contain("DEFENDER VICTORY").And.Contain("The invader was destroyed.").And.Contain("FIRST DEFENSE COMPLETE — RETURN TO BUILD"));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
                 Assert.That(scene.Guide.SkipVisible, Is.False);
-                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
-                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+                AssertTerminalGameplayActionsHidden(scene.Hud);
+                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
                 AssertSceneSingletons();
             }
             finally { saved.Restore(); }
@@ -71,7 +72,8 @@ namespace RealmRaiders.Tests
                 Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("DEFEND AGAIN"));
                 Assert.That(scene.Hud.ResultText, Does.Contain("REALM LOST").And.Contain("Heart Tree was captured.").And.Contain("THE CONTROL LOOP IS COMPLETE"));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
-                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+                AssertTerminalGameplayActionsHidden(scene.Hud);
+                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
             }
             finally { saved.Restore(); }
         }
@@ -89,13 +91,16 @@ namespace RealmRaiders.Tests
                 Assert.That(first.Guide.Step, Is.EqualTo(DefenseGuideStep.Retry));
                 Assert.That(first.Guide.GuideText, Is.EqualTo("TRY THE CONTROL LOOP — DEFEND AGAIN"));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Active));
-                first.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertGuideLayoutClear(first.Guide);
-                first.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertGuideLayoutClear(first.Guide);
+                AssertTerminalGameplayActionsHidden(first.Hud);
+                yield return ExerciseTerminalCallbacksWithoutReactivation(first);
+                first.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertTerminalGameplayActionsHidden(first.Hud); AssertGuideLayoutClear(first.Guide);
+                first.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertTerminalGameplayActionsHidden(first.Hud); AssertGuideLayoutClear(first.Guide);
 
                 GameObject.Find("DEFEND AGAIN").GetComponent<Button>().onClick.Invoke(); yield return null; yield return null;
                 var retry = GuidedScene.Capture(); retry.StopInvader();
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Select));
-                retry.Possession.Select(retry.Defender); GameObject.Find("POSSESS ENT").GetComponent<Button>().onClick.Invoke(); yield return null;
+                AssertGameplayActionsRestoredForRetry(retry.Hud, false);
+                retry.Possession.Select(retry.Defender); AssertGameplayActionsRestoredForRetry(retry.Hud, true); GameObject.Find("POSSESS ENT").GetComponent<Button>().onClick.Invoke(); yield return null;
                 Assert.That(retry.Possession.Possessed, Is.SameAs(retry.Defender));
                 retry.Possession.Release(true); yield return null;
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Select), "Forced release restarts selection and never satisfies explicit Release.");
@@ -343,6 +348,49 @@ namespace RealmRaiders.Tests
                 for (var other = index + 1; other < actions.Length; other++)
                     Assert.That(bounds.Overlaps(WorldRect(actions[other])), Is.False, $"Result actions overlap: {actions[index].name}/{actions[other].name}");
             }
+        }
+
+        static void AssertTerminalGameplayActionsHidden(DefenderHUD hud)
+        {
+            foreach (var name in new[] { "POSSESS ENT", "RELEASE", "ACTIVATE TRAP", "SMASH", "GROUND SLAM", "DODGE", "JUMP" })
+            {
+                var action = FindHudButton(hud, name);
+                Assert.That(action.gameObject.activeSelf, Is.False, $"{name} remains visible after the terminal result.");
+                Assert.That(action.interactable, Is.False, $"{name} remains enabled after the terminal result.");
+            }
+        }
+
+        static void AssertGameplayActionsRestoredForRetry(DefenderHUD hud, bool selectionMade)
+        {
+            var trapAction = FindHudButton(hud, "ACTIVATE TRAP");
+            Assert.That(trapAction.gameObject.activeSelf, Is.True, "A fresh retry must restore the trap action.");
+            var possessAction = FindHudButton(hud, "POSSESS ENT");
+            Assert.That(possessAction.gameObject.activeSelf, Is.EqualTo(selectionMade), "A fresh retry must restore selection-driven possession visibility.");
+            if (selectionMade) Assert.That(possessAction.interactable, Is.True, "The restored possession action must accept the selected defender.");
+        }
+
+        static IEnumerator ExerciseTerminalCallbacksWithoutReactivation(GuidedScene scene)
+        {
+            GameplayInput.SetTerminalState(false);
+            try
+            {
+                scene.Possession.Select(scene.Defender);
+                Assert.That(scene.Possession.PossessSelected(), Is.True, "The fixture must raise a late possession callback.");
+                yield return null;
+                AssertTerminalGameplayActionsHidden(scene.Hud);
+                scene.Possession.Release(true);
+                yield return null;
+                AssertTerminalGameplayActionsHidden(scene.Hud);
+            }
+            finally { GameplayInput.SetTerminalState(true); }
+        }
+
+        static Button FindHudButton(DefenderHUD hud, string name)
+        {
+            foreach (var button in hud.GetComponentsInChildren<Button>(true))
+                if (button.name == name) return button;
+            Assert.Fail($"Missing Defender HUD action: {name}");
+            return null;
         }
 
         static Rect DesignRect(RectTransform rect, Vector2 parentSize)

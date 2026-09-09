@@ -120,7 +120,7 @@ namespace RealmRaiders.UI
                 new AbilityButtonReadiness(Button("CLEAVE", new Vector2(260, 110), () => Ability(2)), "CLEAVE", 2)
             };
             dodge = Button("DODGE", new Vector2(0, 220), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
-            jump = Button("JUMP", new Vector2(260, 220), Jump); jumpLabel = jump.GetComponentInChildren<Text>();
+            jump = Button("JUMP", new Vector2(260, 220), Jump); jumpLabel = jump.GetComponentInChildren<Text>(); presentation.DecorateJumpButton(jump);
             resultPanel = new GameObject("Raid Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false);
             var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .24f); rect.anchorMax = new Vector2(.92f, .76f); rect.offsetMin = rect.offsetMax = Vector2.zero;
             resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);

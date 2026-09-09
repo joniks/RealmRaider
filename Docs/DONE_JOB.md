@@ -1567,3 +1567,29 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - These source records explicitly label both images as preview candidates, not approved final runtime art. Tileability/seam proof, normal-map orientation, shader work, terrain, lighting/post-processing, memory/performance measurement and physical-device validation remain unclaimed.
+
+## Diamond Pass 12.4–12.5 — Jump Preview and Defender Terminal Cleanup
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Added the project-owned, original-generated transparent Jump icon as a clearly labelled preview resource with its provenance record and a one-asset mobile Sprite import rule.
+- The icon is one cached, non-raycast visual child of the existing Raid or Defender `JUMP` button. It preserves the original button action and leaves a functional text-only fallback if the resource is absent.
+- The existing Jump labels retain bounded best-fit space for `JUMP`, `JUMP — ROOTED`, `JUMP — AIRBORNE` and `JUMP — BUSY`. Fingertap retains its existing hidden-Jump contract.
+- Repaired the reproducible Defender terminal HUD defect: factual victory/loss now immediately hides and disables every live gameplay action — possess, release, trap, abilities, dodge and Jump — while result actions remain available.
+- Terminal guards prevent late selection, possession, release and refresh callbacks from restoring live actions over the result; a new retry scene restores the normal trap and selection-driven controls.
+
+### Verification
+
+- Focused `JumpActionIconPreviewTests` and `JumpActionIconScenePreviewTests` each passed `1/1`; the reproduced `EarlyTerminalRetriesWhileForcedAndControllerLossNeverProveRelease` regression passed `1/1` after a normal Unity restart rebuilt the stale PlayMode assembly.
+- Final EditMode passed `122/122` with `0` failures. The project owner manually cleared the Test Runner filter, ran PlayMode Run All and confirmed it was green; QA could not reliably retain the transient Test Runner summary panel to capture its numeric total.
+- `git diff --check` passed for the accepted candidate. Unity reserialized only non-semantic whitespace in the already committed 12.3 texture metas; it was normalized outside this feature.
+
+### Remaining manual validation
+
+- QA deliberately did not make blind scene selections while the project owner was active in Unity, so the planned Defender terminal/retry and Sylvan Jump-icon Game View smoke remains unclaimed. Confirm those two views and physical-device readability before treating the preview icon as final UI art.
+
+### Scope intentionally deferred
+
+- Final UI-art approval, other ability icons, layout redesign, new HUD roots, control/jump/physics/camera changes, VFX/audio/haptics, device-performance measurements and any general onboarding redesign.

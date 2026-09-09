@@ -170,7 +170,7 @@ namespace RealmRaiders.UI
                 new AbilityButtonReadiness(slam, "GROUND SLAM", 2)
             };
             dodge = Button("DODGE", new Vector2(0, 530), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
-            jump = Button("JUMP", new Vector2(-355, 530), Jump); ((RectTransform)jump.transform).sizeDelta = new Vector2(300, 96); jumpLabel = jump.GetComponentInChildren<Text>();
+            jump = Button("JUMP", new Vector2(-355, 530), Jump); ((RectTransform)jump.transform).sizeDelta = new Vector2(300, 96); jumpLabel = jump.GetComponentInChildren<Text>(); presentation.DecorateJumpButton(jump);
             resultPanel = new GameObject("Defense Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false); var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .28f); rect.anchorMax = new Vector2(.92f, .72f); rect.offsetMin = rect.offsetMax = Vector2.zero; resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
             result = Label("", Vector2.zero, 42, TextAnchor.MiddleCenter); result.transform.SetParent(resultPanel.transform, false); resultRect = (RectTransform)result.transform;
             result.raycastTarget = false;
@@ -207,6 +207,7 @@ namespace RealmRaiders.UI
 
         void ActivateTrap()
         {
+            if (IsTerminalResultActive) return;
             if (!trap.TryActivate()) { Refresh(); return; }
             presentation?.PlayConfirm();
             if (!possessionManager.IsPossessing && !GameplayInput.TerminalState && !resultPanel.activeSelf)
@@ -215,10 +216,12 @@ namespace RealmRaiders.UI
         }
         void PossessSelected()
         {
+            if (IsTerminalResultActive) return;
             if (possessionManager.PossessSelected()) presentation?.PlayConfirm();
         }
         void Ability(int index)
         {
+            if (IsTerminalResultActive) return;
             var actor = possessionManager.Possessed;
             var controller = actor ? actor.Controller<PlayerController>() : null;
             var accepted = controller && controller.UseAbility(index);
@@ -226,6 +229,7 @@ namespace RealmRaiders.UI
         }
         void Dodge()
         {
+            if (IsTerminalResultActive) return;
             var actor = possessionManager.Possessed;
             var controller = actor ? actor.Controller<PlayerController>() : null;
             var accepted = controller && controller.Dodge();
@@ -233,11 +237,13 @@ namespace RealmRaiders.UI
         }
         void Jump()
         {
+            if (IsTerminalResultActive) return;
             var actor = possessionManager.Possessed;
             actor?.Controller<PlayerController>()?.Jump();
         }
         void ReleasePossession()
         {
+            if (IsTerminalResultActive) return;
             var actor = possessionManager.Possessed;
             firstMinuteGuide?.BeginExplicitRelease(actor);
             possessionManager.Release();
@@ -263,9 +269,14 @@ namespace RealmRaiders.UI
             SceneManager.LoadScene("PrototypeHub");
         }
         void OnSelection(CombatEntity value)
-        { selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it"; possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted); }
+        {
+            if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
+            selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it";
+            possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted);
+        }
         void OnPossession(CombatEntity value)
         {
+            if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
             bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active); jump.gameObject.SetActive(active);
             if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); }
             if (!active) possess.gameObject.SetActive(false);
@@ -273,7 +284,11 @@ namespace RealmRaiders.UI
             RefreshJumpButton();
             RefreshPossessionEnergy();
         }
-        void OnReleased(bool forced) { RefreshPossessionEnergy(); RefreshJumpButton(); }
+        void OnReleased(bool forced)
+        {
+            if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
+            RefreshPossessionEnergy(); RefreshJumpButton();
+        }
 
         void InitializeFirstMinuteGuide()
         {
@@ -311,7 +326,7 @@ namespace RealmRaiders.UI
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
             {
                 if (journeyToken != 0 && !journeyCompletedForResult) journeyCompletedForResult = PrototypeJourney.TryCompleteDefense(journeyToken);
-                HideReleaseNotice(); resultPanel.SetActive(true); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured.";
+                HideReleaseNotice(); resultPanel.SetActive(true); HideAndDisableLiveActions(); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured.";
             }
             RefreshPossessionEnergy();
         }
@@ -372,6 +387,7 @@ namespace RealmRaiders.UI
             if (!invader || !ent) return;
             invaderHealth.text = $"Invader  {invader.Health.Current:0}/{invader.Health.Maximum:0} HP"; entHealth.text = $"{config.DefenderName}  {ent.Health.Current:0}/{ent.Health.Maximum:0} HP";
             RefreshPossessionEnergy();
+            if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
             if (trap.State == TrapState.Ready)
             {
                 var inRange = trap.TargetInRange; activateTrap.interactable = inRange;
@@ -396,7 +412,7 @@ namespace RealmRaiders.UI
             if (!energyText || !energyFill || energy == null) return;
             var controlled = possessionManager ? possessionManager.Possessed : null;
             var player = controlled ? controlled.Controller<PlayerController>() : null;
-            var direct = possessionManager && possessionManager.IsPossessing && player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var direct = possessionManager && possessionManager.IsPossessing && player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !IsTerminalResultActive;
             var next = PossessionEnergyReadability.Map(direct, energy.Remaining, energy.Maximum);
 
             var fillRect = energyFill.rectTransform;
@@ -417,9 +433,10 @@ namespace RealmRaiders.UI
         void RefreshAbilityButtons()
         {
             if (abilityButtons == null) return;
+            if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
             var controlled = possessionManager ? possessionManager.Possessed : null;
             var player = controlled ? controlled.Controller<PlayerController>() : null;
-            var direct = player && player.IsActive && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var direct = player && player.IsActive && !IsTerminalResultActive;
             foreach (var button in abilityButtons) button.Refresh(controlled, direct && !controlled.IsJumping);
             RefreshDodgeButton();
             RefreshJumpButton();
@@ -430,7 +447,7 @@ namespace RealmRaiders.UI
             if (!dodge) return;
             var controlled = possessionManager ? possessionManager.Possessed : null;
             var player = controlled ? controlled.Controller<PlayerController>() : null;
-            var direct = player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var direct = player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !IsTerminalResultActive;
             if (dodge.gameObject.activeSelf != direct) dodge.gameObject.SetActive(direct);
             if (!direct) { dodge.interactable = false; return; }
             var remaining = controlled.DodgeCooldownRemaining;
@@ -455,7 +472,7 @@ namespace RealmRaiders.UI
             if (!jump) return;
             var controlled = possessionManager ? possessionManager.Possessed : null;
             var player = controlled ? controlled.Controller<PlayerController>() : null;
-            var direct = player && player.IsActive && UsesJoystickControls() && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var direct = player && player.IsActive && UsesJoystickControls() && controlled.Health != null && !controlled.Health.IsDead && !IsTerminalResultActive;
             if (jump.gameObject.activeSelf != direct) jump.gameObject.SetActive(direct);
             if (!direct) { jump.interactable = false; return; }
             var label = controlled.IsRooted ? "JUMP — ROOTED"
@@ -478,6 +495,26 @@ namespace RealmRaiders.UI
             : "TAP GROUND: MOVE • DOUBLE-TAP GROUND: JUMP");
 
         bool UsesJoystickControls() => responsive && PrototypeSave.EffectiveControlStyle(responsive.Orientation == PrototypeOrientation.Landscape) == "Joystick";
+
+        bool IsTerminalResultActive => GameplayInput.TerminalState || defense != null && defense.IsFinished || resultPanel && resultPanel.activeSelf;
+
+        void HideAndDisableLiveActions()
+        {
+            HideAndDisable(possess);
+            HideAndDisable(release);
+            HideAndDisable(activateTrap);
+            HideAndDisable(smash);
+            HideAndDisable(slam);
+            HideAndDisable(dodge);
+            HideAndDisable(jump);
+        }
+
+        static void HideAndDisable(Button button)
+        {
+            if (!button) return;
+            button.interactable = false;
+            button.gameObject.SetActive(false);
+        }
 
         public static string GuardianEntVitalityCopy(int rank)
         {

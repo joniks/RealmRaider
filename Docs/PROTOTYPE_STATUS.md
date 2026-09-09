@@ -57,7 +57,8 @@ Last reviewed: 2026-09-09
 - Diamond Pass 12.1 Sylvan Route Is Never a Hidden Puzzle is present: all generated Sylvan node trees remain visible/revealable presentation, but cannot become movement walls; normal Portal → Crossroads walking now proves passage past the first node centre while the factual outer boundary remains closed.
 - Diamond Pass 12.2 Intentional Touch Controls and Camera is present: direct-control Joystick now uses stick movement, JUMP and non-UI world-drag camera yaw only; Fingertap retains ground/target taps and gains a guarded empty-ground double-tap jump with factual locomotion camera recentering.
 - Diamond Pass 12.3 First Realm Surface Preview is present: the existing Sylvan and Infernal route presentation safely uses two cached, provenance-recorded preview albedos with exact solid-colour fallback and no gameplay or collision changes.
-- Current Unity Test Runner baseline: EditMode 121/121 and PlayMode 72/72 passed on 2026-09-09; PlayMode exited normally with 0 failures.
+- Diamond Pass 12.4–12.5 Jump Preview and Defender Terminal Cleanup are present: Joystick Jump has a non-interactive, provenance-recorded preview icon while Defender terminal results hide live actions and resist late callback reactivation.
+- Current Unity Test Runner baseline: EditMode 122/122 passed on 2026-09-09. The project owner manually confirmed a green PlayMode Run All after clearing the Test Runner filter; its transient GUI summary could not be captured numerically by QA.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -74,7 +75,7 @@ Last reviewed: 2026-09-09
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 121/121 and PlayMode 72/72 on 2026-09-09.
+- Current verified baseline: EditMode 122/122 on 2026-09-09; PlayMode Run All was user-confirmed green after the same Unity recovery, but QA could not capture its transient numeric total.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -106,6 +107,7 @@ Last reviewed: 2026-09-09
 - The first-playable-minute proof and canonical Sylvan `BUILD → RAID → DEFEND → BUILD` journey are implemented through real results; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.
 - Realm landmarks, central routes and continuous arena boundaries now have distinct organic versus angular primitive blockouts, but terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 - The first imported realm surfaces are intentionally reversible preview art with local original-generated provenance. Their normal candidates, seam/tileability proof, final-art approval and device-performance measurements remain unfinished.
+- The Jump icon is an original-generated preview with local provenance, not final approved UI art. Its focused automated behavior is green, but its planned Defender/Sylvan Game View and physical-device readability checks remain pending.
 
 ## Directory guide
 
