@@ -41,6 +41,8 @@ Architect / Product Lead — product/design priority, task ownership, review dec
 - Work in progress is capped at two implementation lanes: one Core candidate in the main checkout and one Module/Technical-Art candidate in an isolated worktree.
 - QA is a shared gate, not a third implementation lane. While candidates are moving, QA may prepare acceptance checks from the frozen task contract, but it touches Unity only after a candidate is explicitly frozen and Architect clears its static preflight.
 - Architect keeps one bounded follow-up ready for each implementation lane before the current task finishes. A role may wait for a dependency, but it must not silently invent unrelated work.
+- `Docs/MODULE_READY_QUEUE.md` is the authoritative queue for the Module/Technical-Art lane. When a Modules candidate is accepted or rejected, Architect immediately advances exactly one eligible queue item or records its concrete dependency; an idle Module role is never left to invent work.
+- The recovery heartbeat checks that queue every run. It may dispatch its single `Now` item only when no other Modules lease is active, its exact package path is cleanly reserved, and the task can finish without main-checkout or Unity access.
 - Core-to-QA fixes keep the same lease and scope. A new feature never enters the main checkout until the previous candidate is accepted and committed.
 - Module work reaches the main game only through a later named Core integration task. Installing a package, changing a host adapter or consuming a recipe is integration, not part of the isolated module lease.
 
