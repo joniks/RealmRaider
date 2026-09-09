@@ -79,6 +79,13 @@ One owner at a time may write a reserved path. A task is released only after Arc
 - QA runs full EditMode once and full PlayMode once only after the final code/test change. It reruns a green suite only if the candidate changes afterwards or it found a concrete reason.
 - Manual device checks belong to the user; reports must say exactly what was observed and never invent a smoke result.
 
+## Continuous, compact operating rhythm
+
+- An authorized next step is taken without waiting for another chat message. An agent may stop only at a completed handoff or a concrete external blocker; it reports that boundary immediately.
+- Every role keeps a compact, thread-local checkpoint of no more than eight bullets: active lease/base, owned paths, current evidence, next safe step, exclusions and blocker. The repository documents remain the authoritative detail.
+- Before any final `Run All`, QA clears a stale Test Runner filter and verifies the visible test count. It never uses UnityCLI, batchmode or blind coordinate clicks to force a result.
+- If a Mac lock, UI automation limitation or missing approval blocks progress, preserve the frozen candidate, do not invent a workaround or broaden scope, and resume the already-authorized sequence as soon as the boundary clears.
+
 ## Unity and asset safety
 
 - Only Reviewer / QA + Build may launch, close, restart, or control Unity. Core and Module Developer / Technical Art never use Unity UI or Unity processes.

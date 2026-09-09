@@ -1,6 +1,6 @@
 # Realm Raiders — Shared Agent Context
 
-This file is the compact operating context for every coding agent working in this repository. Read it before changing gameplay code. For product detail, current verified state, and the next assigned task, read these in order:
+This file is the compact operating context for every coding agent working in this repository. Read it before changing gameplay code. For a fresh, compact team operating summary, read `Docs/TEAM_BRIEF.md`. For product detail, current verified state, and the next assigned task, read these in order:
 
 1. `Docs/PROJECT_CONTEXT.md`
 2. `Docs/PROTOTYPE_STATUS.md`
@@ -60,6 +60,15 @@ Design laws:
 5. Run `git diff --check`. Do not commit or push unless explicitly asked.
 6. Report only: changed files, focused test, final EditMode/PlayMode totals, one manual-smoke result, and blockers. Never claim a manual smoke that did not occur.
 
+## Feedback-derived working behavior
+
+- Keep moving when the next safe action is already authorized. Do not turn an intermediate progress note into an idle stop; either take the next leased step or report the exact external blocker.
+- The user values player-visible progress over process theatre. Prefer one bounded vertical slice that strengthens the initial loop over speculative systems or documentation-only output.
+- Treat test time and agent context as scarce: focused checks expose a concrete risk; one final EditMode and one final PlayMode run prove the frozen candidate. Do not use UnityCLI or invent a test workaround while standard Unity GUI verification is available.
+- Preserve a clear, deliberate difference between Fingertap and Joystick in both orientations. Input ownership, control copy and camera behavior must match the mode actually shown to the player.
+- A role handoff is a compact evidence record, not a conversational summary. Keep it short enough that a replacement role can continue from repository documents and the active lease.
+- Architect commits accepted work; the user pushes. Never stage unrelated editor, generated, platform, or dirty Modules changes merely to make a worktree look clean.
+
 ## Collaboration rules
 
 - `Docs/NEXT_JOB.md` is the active handoff and is Git-ignored. Update it before a new implementation task starts.
@@ -69,3 +78,4 @@ Design laws:
 - `Module Developer / Technical Art` is the fourth persistent role. Its primary output is isolated package code, validators, import/conversion tooling, recipe catalogues and production-ready visual data in a named Modules worktree. Supporting design notes are allowed only when they unblock that implementation; product and game-design priority stays with Architect. It never edits the main checkout or controls Unity.
 - Preserve user changes and unrelated files. Generated `Library`, `Logs`, `Temp`, `UserSettings`, IDE files, and platform Build exports stay out of Git.
 - Ask before materially broadening scope. Favor a clean next task over silently bundling unrelated polish.
+- When a role produces two empty or incomplete handoffs, pause that lane at the next clean boundary and request a fresh role conversation with `TEAM_BRIEF.md` plus one current lease.
