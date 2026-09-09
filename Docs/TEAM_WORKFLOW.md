@@ -79,11 +79,24 @@ One owner at a time may write a reserved path. A task is released only after Arc
 - QA runs full EditMode once and full PlayMode once only after the final code/test change. It reruns a green suite only if the candidate changes afterwards or it found a concrete reason.
 - Manual device checks belong to the user; reports must say exactly what was observed and never invent a smoke result.
 
+### Test Runner recovery ladder
+
+Use this order when the Unity Test Runner appears stale, filtered, or its result pane is incomplete:
+
+1. Clear the search/filter, select the intended mode, and confirm the visible test count before starting anything.
+2. Do a normal Unity Assets Refresh, then verify that the affected source and compiled assembly are fresh and that Console has no new compilation error.
+3. If the assembly is still stale without a compilation error, QA alone may perform one ordinary GUI Unity restart and repeat the required focused gate.
+4. Once freshness is restored, run only the gate required by the current candidate; do not restart a broad suite merely to recreate evidence.
+5. If the Test Runner UI cannot retain a numeric summary, report that exact limitation. A user-run green suite may be recorded as user evidence, but its total must remain unspecified unless QA actually saw it.
+
+Never use UnityCLI, batchmode, blind coordinate clicks, `Reimport All`, Library deletion, or a broad cache reset as a recovery shortcut. In this Unity version, a Project-window action labelled **Assets → Reimport** may trigger the broad reimport warning; treat it as `Reimport All` and cancel it.
+
 ## Continuous, compact operating rhythm
 
 - An authorized next step is taken without waiting for another chat message. An agent may stop only at a completed handoff or a concrete external blocker; it reports that boundary immediately.
 - Every role keeps a compact, thread-local checkpoint of no more than eight bullets: active lease/base, owned paths, current evidence, next safe step, exclusions and blocker. The repository documents remain the authoritative detail.
 - Before any final `Run All`, QA clears a stale Test Runner filter and verifies the visible test count. It never uses UnityCLI, batchmode or blind coordinate clicks to force a result.
+- When Test Runner evidence is unreliable, QA follows the recovery ladder above and reports the first concrete boundary; it does not repeat green suites or turn a UI problem into a source-code investigation.
 - If a Mac lock, UI automation limitation or missing approval blocks progress, preserve the frozen candidate, do not invent a workaround or broaden scope, and resume the already-authorized sequence as soon as the boundary clears.
 
 ## Unity and asset safety

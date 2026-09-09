@@ -36,6 +36,7 @@ The highest-value proof is the 30–60 second Keeper → same-creature possessio
 3. QA runs focused checks, then exactly one final EditMode and PlayMode run after the final change. A green suite is never rerun without a concrete cause.
 4. QA reports only observed manual smoke. A UI/lock/tool limitation is recorded precisely, not disguised as a gameplay failure or success.
 5. Architect records accepted facts, commits only accepted paths, and leaves push to the user. URP, generated files and unrelated Modules state are never swept into a feature commit.
+6. QA recovery order is: clear Test Runner filter → normal Assets Refresh → verify fresh assembly → one normal Unity restart only if still stale. Never use UnityCLI, `Reimport All`, Library deletion or blind UI clicks.
 
 ## Communication rules
 
