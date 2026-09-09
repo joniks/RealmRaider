@@ -49,18 +49,18 @@ The prototype has a modular character factory and already carries declared mobil
 
 - Further changes to this accepted pass.
 
-## Now — Module Pass MVT 04: Starter Visual Budget Batch Evidence
+## Accepted — Module Pass MVT 04: Starter Visual Budget Batch Evidence
 
 Owner: Module Developer / Technical Art
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
-Base commit: `a3df8ce`
+Accepted Modules commit: `4dc6f4d`
 Reserved paths only:
 
 - `Packages/com.realmraiders.character-visual-tuning/Runtime/CharacterVisualBudgetBatchReport.cs`
 - `Packages/com.realmraiders.character-visual-tuning/Tests/Editor/CharacterVisualBudgetBatchReportTests.cs`
 - `Packages/com.realmraiders.character-visual-tuning/package.json`
 
-Do not touch the existing untracked `.meta` files in this package, starter profile values, catalogue sources, character-motion paths or any main-project files. Handoff: frozen isolated diff, static checks and the six-line Module report. No commit or push.
+Do not touch the existing untracked `.meta` files in this package, starter profile values, catalogue sources, character-motion paths or any main-project files. Handoff: accepted on 2026-09-10 after static review; no Unity or main-checkout work occurred.
 
 ### Player/product value
 
@@ -68,14 +68,21 @@ The prototype's modular character factory needs a truthful, repeatable way to se
 
 ### Required implementation
 
-1. Add one pure-C# immutable batch-report contract that accepts only an explicitly supplied `CharacterVisualTuningCatalogue` and `MobileVisualBudgetPolicy`; it must not discover providers, enumerate assemblies, read files or inspect Unity/model data.
-2. Return an immutable, ProfileId-ordered row for every catalogue profile with that profile's exact compatibility result from the existing MVT 03 gate, plus immutable aggregate counts. A missing catalogue must return stable explicit report-level evidence; an absent/invalid policy must be represented consistently through each evaluated row rather than silently choosing defaults.
-3. Add focused NUnit coverage for deterministic ProfileId ordering independent of source insertion order, mixed accepted/rejected rows and totals, missing catalogue, missing policy, and immutability of report/row input snapshots.
-4. Bump this package version only as needed. Do not alter existing profile/catalogue behavior, policy/gate semantics, Core bindings, Unity assets or visual art.
+1. Delivered only in `com.realmraiders.character-visual-tuning`: immutable ProfileId-ordered rows, copied evidence snapshots and aggregate compatibility totals for an explicitly supplied catalogue and policy.
+2. The accepted report remains adapter-neutral and has no authority to choose a policy, inspect a model, import an asset or alter presentation.
 
 ### Non-goals
 
-- Selecting a policy, measuring or importing actual models, updating starter profile declarations, auto-rejecting gameplay content, Unity/Core integration, assets, animation, shaders/materials, scene/runtime code or package installation.
+- Further changes to this accepted pass.
+
+## Blocked — next Module visual work needs a real integration seam
+
+The reusable visual-budget tooling is complete through per-profile and roster evidence. The next worthwhile Module lease must be one of:
+
+1. a user-approved source/provenance and art-manifest task for a specific 3D character, or
+2. a named future Core integration seam that consumes these already accepted package contracts.
+
+Do not create another generic validator merely to keep the lane busy. Architect records the next clean lease as soon as the frozen Core candidate is accepted or the user selects the next art source.
 
 ## Later — Paused until a fresh brief
 

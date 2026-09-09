@@ -1675,3 +1675,23 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 ### Scope intentionally deferred
 
 - Selecting production limits, measuring/importing models, modifying starter profiles, Unity/Core integration, asset downloads, animation, materials/shaders and runtime use.
+
+## Module Pass MVT 04 — Starter Visual Budget Batch Evidence
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Extended the isolated character-visual-tuning package with one immutable ProfileId-ordered batch report over an explicitly supplied existing visual-tuning catalogue and caller policy.
+- Every row holds a copied declared budget and the exact MVT 03 compatibility evidence; aggregate compatible/incompatible totals are frozen with the report. Missing catalogue evidence is explicit, while absent or invalid policies are truthfully represented on each affected row.
+- The package still cannot choose a budget, discover providers, measure a 3D model, inspect assets/import settings or affect Unity gameplay.
+
+### Verification
+
+- Static review confirmed deterministic order regardless of caller insertion, mixed-result totals, missing catalogue, absent/invalid policy evidence and report/row snapshot immutability.
+- Scoped whitespace and forbidden-API checks passed. The isolated package remains uninstalled, so no Unity Test Runner result is claimed.
+- Accepted in Modules commit `4dc6f4d` (`feat: add visual budget batch report`).
+
+### Scope intentionally deferred
+
+- Model measurement, policy selection, starter-profile edits, asset/import work, Unity/Core integration, animation/material work and runtime use.
