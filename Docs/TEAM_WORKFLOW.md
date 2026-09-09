@@ -84,12 +84,12 @@ One owner at a time may write a reserved path. A task is released only after Arc
 Use this order when the Unity Test Runner appears stale, filtered, or its result pane is incomplete:
 
 1. Clear the search/filter, select the intended mode, and confirm the visible test count before starting anything.
-2. Do a normal Unity Assets Refresh, then verify that the affected source and compiled assembly are fresh and that Console has no new compilation error.
-3. If the assembly is still stale without a compilation error, QA alone may perform one ordinary GUI Unity restart and repeat the required focused gate.
-4. Once freshness is restored, run only the gate required by the current candidate; do not restart a broad suite merely to recreate evidence.
-5. If the Test Runner UI cannot retain a numeric summary, report that exact limitation. A user-run green suite may be recorded as user evidence, but its total must remain unspecified unless QA actually saw it.
+2. After every Test Runner click, wait for the run to settle, then take a fresh UI state/result snapshot. Do not issue another click while compilation, a suite, scene loading, layout refresh, or result saving may still be in progress.
+3. Before the next gate, confirm the preceding result, visible test count and Console state. A saved result or a quiet UI is not itself evidence that the next action is safe.
+4. If the UI evidence is incomplete, wait once more and refresh the visible state; then report the exact limitation. A user-run green suite may be recorded as user evidence, but its total must remain unspecified unless QA actually saw it.
+5. Run only the gate required by the current candidate; do not restart a broad suite merely to recreate evidence.
 
-Never use UnityCLI, batchmode, blind coordinate clicks, `Reimport All`, Library deletion, or a broad cache reset as a recovery shortcut. In this Unity version, a Project-window action labelled **Assets → Reimport** may trigger the broad reimport warning; treat it as `Reimport All` and cancel it.
+An ordinary Unity restart is **not** a Test Runner recovery step. QA may launch, close or restart Unity only when the user explicitly asks, or after an undeniable editor crash/hang and Architect has obtained the user's confirmation. Never use UnityCLI, batchmode, blind coordinate clicks, `Reimport All`, Library deletion, or a broad cache reset as a recovery shortcut. In this Unity version, a Project-window action labelled **Assets → Reimport** may trigger the broad reimport warning; treat it as `Reimport All` and cancel it.
 
 ## Continuous, compact operating rhythm
 
