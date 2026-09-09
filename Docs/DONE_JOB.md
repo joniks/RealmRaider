@@ -1656,3 +1656,22 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 ### Scope intentionally deferred
 
 - Texture decoding, importer inspection/action, Core integration, package installation, shader/material work, new art and gameplay/runtime use.
+
+## Module Pass MVT 03 — Mobile Visual Budget Compatibility Gate
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Extended the isolated character-visual-tuning package with an immutable, caller-supplied mobile visual-budget policy and deterministic compatibility result for the existing immutable visual-budget declaration.
+- It reports stable ordinal evidence for absent or invalid budget/policy inputs and for excess materials, textures, texture-edge size or triangle count. It has no defaults, model measurement, asset/import inspection, Unity or gameplay authority.
+
+### Verification
+
+- Static review confirmed accepted Blood Knight starter-budget coverage, every individual exceed condition, deterministic multi-issue order, invalid/null input and immutable input/result coverage.
+- Scoped whitespace and forbidden-API checks passed. The pure package remains uninstalled, so no Unity Test Runner result is claimed.
+- Accepted in Modules commit `a3df8ce` (`feat: add mobile visual budget gate`).
+
+### Scope intentionally deferred
+
+- Selecting production limits, measuring/importing models, modifying starter profiles, Unity/Core integration, asset downloads, animation, materials/shaders and runtime use.

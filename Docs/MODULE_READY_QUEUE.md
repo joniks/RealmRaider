@@ -23,18 +23,18 @@ The project has two intentionally provisional world-surface previews. Before a f
 
 - Further changes to this accepted pass.
 
-## Now — Module Pass MVT 03: Mobile Visual Budget Compatibility Gate
+## Accepted — Module Pass MVT 03: Mobile Visual Budget Compatibility Gate
 
 Owner: Module Developer / Technical Art
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
-Base commit: `f35927e`
+Accepted Modules commit: `a3df8ce`
 Reserved paths only:
 
 - `Packages/com.realmraiders.character-visual-tuning/Runtime/MobileVisualBudgetCompatibilityGate.cs`
 - `Packages/com.realmraiders.character-visual-tuning/Tests/Editor/MobileVisualBudgetCompatibilityGateTests.cs`
 - `Packages/com.realmraiders.character-visual-tuning/package.json`
 
-Do not touch the existing untracked `.meta` files in this package or any character-motion paths. Handoff: frozen isolated diff, static checks and the six-line Module report. No commit or push.
+Do not touch the existing untracked `.meta` files in this package or any character-motion paths. Handoff: accepted on 2026-09-10 after static review; no Unity or main-checkout work occurred.
 
 ### Player/product value
 
@@ -42,14 +42,40 @@ The prototype has a modular character factory and already carries declared mobil
 
 ### Required implementation
 
-1. Add a pure-C# immutable policy contract with explicitly supplied maximum material count, texture count, texture-edge pixels and triangle count, plus a deterministic compatibility result for the existing `MobileVisualBudget` data type.
-2. Return stable ordinal issue codes and messages for every exceeded or invalid declared limit. Preserve the input and make the result immutable; do not use default policy values, discovery, file access, Unity APIs or import inspection.
-3. Add focused NUnit tests proving: an accepted current starter budget against an explicit policy; each over-budget dimension; deterministic multi-issue ordering; invalid/null input; and that the existing budget object remains unchanged.
-4. Bump this package version only as needed. Do not modify starter profiles, catalogue code, runtime Core bindings or main-project assets.
+1. Delivered only in `com.realmraiders.character-visual-tuning`: immutable explicit policy, deterministic ordered evidence and focused package coverage for the existing visual-budget declarations.
+2. It remains adapter-neutral and cannot choose limits, inspect/import models or change character presentation.
 
 ### Non-goals
 
-- Importing or measuring a model, choosing production limits, changing current profile values, Unity integration, asset downloads, scene/runtime/gameplay work, animation, shaders/materials, package installation or art decisions.
+- Further changes to this accepted pass.
+
+## Now — Module Pass MVT 04: Starter Visual Budget Batch Evidence
+
+Owner: Module Developer / Technical Art
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+Base commit: `a3df8ce`
+Reserved paths only:
+
+- `Packages/com.realmraiders.character-visual-tuning/Runtime/CharacterVisualBudgetBatchReport.cs`
+- `Packages/com.realmraiders.character-visual-tuning/Tests/Editor/CharacterVisualBudgetBatchReportTests.cs`
+- `Packages/com.realmraiders.character-visual-tuning/package.json`
+
+Do not touch the existing untracked `.meta` files in this package, starter profile values, catalogue sources, character-motion paths or any main-project files. Handoff: frozen isolated diff, static checks and the six-line Module report. No commit or push.
+
+### Player/product value
+
+The prototype's modular character factory needs a truthful, repeatable way to see whether an explicit roster of declared visual profiles fits one chosen mobile budget policy. A batch result keeps hundreds of future variants reviewable before any model reaches Unity, without making this module an importer or runtime authority.
+
+### Required implementation
+
+1. Add one pure-C# immutable batch-report contract that accepts only an explicitly supplied `CharacterVisualTuningCatalogue` and `MobileVisualBudgetPolicy`; it must not discover providers, enumerate assemblies, read files or inspect Unity/model data.
+2. Return an immutable, ProfileId-ordered row for every catalogue profile with that profile's exact compatibility result from the existing MVT 03 gate, plus immutable aggregate counts. A missing catalogue must return stable explicit report-level evidence; an absent/invalid policy must be represented consistently through each evaluated row rather than silently choosing defaults.
+3. Add focused NUnit coverage for deterministic ProfileId ordering independent of source insertion order, mixed accepted/rejected rows and totals, missing catalogue, missing policy, and immutability of report/row input snapshots.
+4. Bump this package version only as needed. Do not alter existing profile/catalogue behavior, policy/gate semantics, Core bindings, Unity assets or visual art.
+
+### Non-goals
+
+- Selecting a policy, measuring or importing actual models, updating starter profile declarations, auto-rejecting gameplay content, Unity/Core integration, assets, animation, shaders/materials, scene/runtime code or package installation.
 
 ## Later — Paused until a fresh brief
 
