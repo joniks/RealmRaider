@@ -56,7 +56,7 @@ Design laws:
 1. Inspect `git status`, the task scope, and nearby code/tests before editing.
 2. Implement the smallest vertical slice that solves the assigned player problem. Preserve explicit non-goals.
 3. Add focused regression coverage for new behavior and lifecycle cleanup.
-4. Follow `Docs/TEAM_WORKFLOW.md` for verification ownership. On a Core developer lease, do not launch or control Unity; QA runs the focused and final suites. Do **not** repeat green full suites unless code, imports, or tests change afterwards.
+4. Follow `Docs/TEAM_WORKFLOW.md` for verification ownership. On a Core developer lease, do not launch or control Unity; the temporary QA gate runs the focused and final suites. Do **not** repeat green full suites unless code, imports, or tests change afterwards.
 5. Run `git diff --check`. Do not commit or push unless explicitly asked.
 6. Report only: changed files, focused test, final EditMode/PlayMode totals, one manual-smoke result, and blockers. Never claim a manual smoke that did not occur.
 

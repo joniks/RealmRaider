@@ -24,19 +24,20 @@ The highest-value proof is the 30–60 second Keeper → same-creature possessio
 
 | Role | Owns | Must not do |
 | --- | --- | --- |
-| Architect | Priority, leases, docs, static preflight, accepted commits | Implement beside Core, push, repeat suites |
+| Architect / temporary QA gate | Priority, leases, docs, static preflight, frozen-candidate Unity evidence, accepted commits | Implement beside Core, push, repeat suites or alter Test Runner layout |
 | Core | One named main-checkout vertical slice | Unity, tests, docs/process edits, commit/push |
-| QA | Frozen-candidate review, Unity GUI, evidence | Source edits, CLI test workarounds, commit/push |
 | Module / Technical Art | One isolated Modules package/tool/data slice | Main checkout, Unity, mixed bundles, integration/commit/push |
+
+The separate QA conversation is temporarily inactive. Architect supplies that gate until the user explicitly restores it; Core and Module restrictions remain unchanged.
 
 ## Fast, reliable rhythm
 
 1. Read `NEXT_JOB.md`, inspect status and edit only the named lease.
 2. Core freezes a narrow candidate and reports six facts. Architect checks scope and `git diff --check`.
-3. QA runs focused checks, then exactly one final EditMode and PlayMode run after the final change. A green suite is never rerun without a concrete cause.
-4. QA reports only observed manual smoke. A UI/lock/tool limitation is recorded precisely, not disguised as a gameplay failure or success.
+3. Architect runs focused checks, then exactly one final EditMode and PlayMode run after the final change. A green suite is never rerun without a concrete cause.
+4. Architect reports only observed manual smoke. A UI/lock/tool limitation is recorded precisely, not disguised as a gameplay failure or success.
 5. Architect records accepted facts, commits only accepted paths, and leaves push to the user. URP, generated files and unrelated Modules state are never swept into a feature commit.
-6. QA works deliberately: clear the Test Runner filter → click one gate → wait for the UI/result to settle → verify the result before the next click. Unity restart requires the user's explicit request (or confirmed crash/hang plus confirmation); never use UnityCLI, `Reimport All`, Library deletion or blind UI clicks.
+6. Architect works deliberately as the temporary QA gate: clear the Test Runner filter → click one gate → wait for the UI/result to settle → verify the result before the next click. Unity restart requires the user's explicit request (or confirmed crash/hang plus confirmation); never use UnityCLI, `Reimport All`, Library deletion or blind UI clicks.
 
 ## Communication rules
 
