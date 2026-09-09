@@ -1501,3 +1501,24 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - Coyote time, input buffering, double/wall/charged jumps, air attacks/dashes, AI jump, animation, VFX/audio/haptics, the preview Jump icon, terrain/puzzle changes, desktop controls and physical-device claims.
+
+## Diamond Pass 12.1 — Sylvan Route Is Never a Hidden Puzzle
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Changed generated Sylvan node trees from accidental physics obstacles into presentation-only revealables. Their renderer and graph-driven reveal behavior remain intact; their primitive colliders are removed. Node support floors, combat entities, route dimensions and the factual outer arena boundary remain authoritative and unchanged.
+- Extended the Portal → Crossroads regression from merely entering the node rim to ordinary forward walking past the Crossroads centre. The proof checks the hero remains inside the factual Portal/path/Crossroads union, receives no damage, leaves no action resolving, and cannot encounter a route-facing node-tree collider.
+- Repaired an unrelated test-fixture assumption found by the final suite: the shared first-minute control-proof helper now explicitly selects its already-established portrait test layout before asserting portrait contextual copy. Production UI, input, saved preferences and later explicit portrait/landscape coverage are unchanged.
+
+### Verification
+
+- Focused 12.1 coverage passed: `SylvanPortalToCrossroadsSupportsNormalMovementAndDashWithoutStateDamage` `1/1` in `4.368s`, and `SylvanCorrectedJunctionsStayOpenWhileOuterPathAndNodeShouldersBlockMotion` `1/1` in `0.058s`.
+- The fixture-specific rerun `OrderedSylvanProofCompletesOnFactualLoss` passed `1/1` in `4.427s` after the deterministic test-layout correction.
+- Final Unity GUI Test Runner: EditMode `120/120` passed; PlayMode `67/67` passed with `0` failures (2026-09-09 17:41:02–17:41:53 local run). `git diff --check` passed before acceptance.
+- QA recovered Unity through the normal Hub path and confirmed SylvanRealm renders at `1280×720` landscape with Main Camera, Portal and the first circle visible. Its Game-view automation did not expose a safe direct-walk or outer-boundary input path, so this acceptance does **not** claim those manual observations; no source changed after final suites.
+
+### Scope intentionally deferred
+
+- Terrain, waypoint/map redesign, navigation/pathfinding, jump tuning, camera/HUD changes, combat/AI/balance, art/materials/textures, physical-device validation and any additional traversal mechanic.

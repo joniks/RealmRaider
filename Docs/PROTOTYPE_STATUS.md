@@ -54,6 +54,7 @@ Last reviewed: 2026-09-09
 - Module Preview Passes MWS 02/MWS 03 and MUI 01 are staged in the pinned Modules submodule: original-generated Sylvan/Infernal ground-material and Jump-icon candidates have explicit provenance but remain preview-only until seam, import, readability and mobile-budget gates pass.
 - P0 Sylvan Raid Boundary Path Recovery is present: the factual Portal → Crossroads route has a non-blocking visible route tree and seam-aligned node support collider, while its intended outer boundary closure remains intact.
 - Diamond Pass 12.0 Grounded Mobile Jump is present: direct-controlled heroes and possessed defenders have one collision-constrained, non-double `JUMP` action with airborne horizontal movement, lifecycle-safe cancellation and intentional portrait/landscape HUD placement.
+- Diamond Pass 12.1 Sylvan Route Is Never a Hidden Puzzle is present: all generated Sylvan node trees remain visible/revealable presentation, but cannot become movement walls; normal Portal → Crossroads walking now proves passage past the first node centre while the factual outer boundary remains closed.
 - Current Unity Test Runner baseline: EditMode 120/120 and PlayMode 67/67 passed on 2026-09-09; PlayMode exited normally with 0 failures.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
@@ -97,6 +98,7 @@ Last reviewed: 2026-09-09
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.
 - Beast production is design-only: the Wolf/Hellhound family still needs a human-approved source/provenance route and one frozen Beast rig/bind/anchor proof before assets or shared clips are produced.
 - Prototype arena boundaries are implemented and automated collision/AI coverage is green; the P0 factual Portal → Crossroads movement/dash regression is also green. Full physical-device edge/action, encounter-completion and portrait-to-landscape feel remain user-owned.
+- The 12.1 automated proof now confirms ordinary Portal → Crossroads traversal through the first large node and preserved outer-boundary containment. QA confirmed the recovered Sylvan landscape Game View renders, but its automation surface could not safely inject the direct walk or outer-edge input; those manual/device observations remain user-owned.
 - Infernal environment production is design-only: the Ironbound Rift Causeway kit still needs a human-approved source/provenance route and neutral-gray production proof before Unity integration.
 - The Hub notice panel presents the release-cleared 3DRT and Kenney records; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
 - The first-playable-minute proof and canonical Sylvan `BUILD → RAID → DEFEND → BUILD` journey are implemented through real results; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.

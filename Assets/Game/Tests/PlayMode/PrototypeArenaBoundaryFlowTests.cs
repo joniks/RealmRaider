@@ -148,10 +148,12 @@ namespace RealmRaiders.Tests
                 var hero = heroObject.GetComponent<CombatEntity>();
                 var player = hero.Controller<PlayerController>();
                 var portal = GameObject.Find("PORTAL");
+                var crossroads = GameObject.Find("CROSSROADS");
                 var crossroadsGround = GameObject.Find("CROSSROADS Ground");
                 Assert.That(player, Is.Not.Null);
                 Assert.That(player.IsActive, Is.True);
                 Assert.That(portal, Is.Not.Null);
+                Assert.That(crossroads, Is.Not.Null);
                 Assert.That(crossroadsGround, Is.Not.Null);
                 Assert.That(crossroadsGround.GetComponent<CapsuleCollider>(), Is.Null,
                     "A flattened Cylinder CapsuleCollider must not wall off the node rim.");
@@ -168,19 +170,31 @@ namespace RealmRaiders.Tests
                 Assert.That(routeTree.gameObject.activeInHierarchy, Is.True);
                 Assert.That(routeTree.GetComponent<Renderer>().enabled, Is.True);
                 Assert.That(routeTree.GetComponent<Collider>(), Is.Null, "Portal decoration must not own movement collision.");
+                var crossroadsRouteTrees = 0;
+                foreach (Transform child in crossroads.transform)
+                {
+                    if (child.name != "Tree" || child.localPosition.z >= -4.7f || Mathf.Abs(child.localPosition.x) >= 2.5f) continue;
+                    crossroadsRouteTrees++;
+                    Assert.That(child.GetComponent<Renderer>(), Is.Not.Null, "Crossroads route trees must remain rendered decoration.");
+                    Assert.That(child.GetComponent<Collider>(), Is.Null, "Crossroads route decoration must not own movement collision.");
+                }
+                Assert.That(crossroadsRouteTrees, Is.EqualTo(2), "The two Crossroads trees facing the Portal route must remain authored and presentation-only.");
 
                 var health = hero.Health.Current;
                 var movementTimeout = Time.realtimeSinceStartup + 6;
-                while (hero.transform.position.z < -31 && Time.realtimeSinceStartup < movementTimeout)
+                while (hero.transform.position.z < -29.75f && Time.realtimeSinceStartup < movementTimeout)
                 {
                     GameplayInput.SetMovement(Vector2.up);
                     player.Tick();
                     GameplayInput.ClearMovement();
                     yield return null;
+                    Assert.That(IsInsidePortalCrossroadsFootprint(hero.transform.position), Is.True,
+                        $"Normal movement left the Portal/Crossroads footprint at {hero.transform.position}.");
                 }
                 GameplayInput.ClearMovement();
-                Assert.That(hero.transform.position.z, Is.GreaterThanOrEqualTo(-31),
+                Assert.That(hero.transform.position.z, Is.GreaterThanOrEqualTo(-29.75f),
                     "Normal player movement must cross the factual Portal to Crossroads route.");
+                Assert.That(IsInsidePortalCrossroadsFootprint(hero.transform.position), Is.True);
                 Assert.That(hero.Health.Current, Is.EqualTo(health));
                 Assert.That(hero.IsActionResolving, Is.False);
 
@@ -333,6 +347,16 @@ namespace RealmRaiders.Tests
         static float HorizontalDistance(Vector3 first, Vector3 second)
         {
             return Vector2.Distance(new Vector2(first.x, first.z), new Vector2(second.x, second.z));
+        }
+
+        static bool IsInsidePortalCrossroadsFootprint(Vector3 position)
+        {
+            var point = new Vector2(position.x, position.z);
+            const float tolerance = .05f;
+            var insidePortal = Vector2.Distance(point, new Vector2(0, -50)) <= 3.25f + tolerance;
+            var insideCrossroads = Vector2.Distance(point, new Vector2(0, -30)) <= 3.25f + tolerance;
+            var insidePath = Mathf.Abs(position.x) <= 3.5f + tolerance && position.z >= -50 - tolerance && position.z <= -30 + tolerance;
+            return insidePortal || insideCrossroads || insidePath;
         }
 
         static ArenaCircleFootprint[] Nodes(float offset)

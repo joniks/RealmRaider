@@ -158,6 +158,7 @@ namespace RealmRaiders.Tests
             Assert.That(scene.Guide.GuideText, Is.Empty, "Movement guidance waits for the real possession camera transition.");
             yield return new WaitForSecondsRealtime(1f); yield return null;
 
+            scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
             scene.Guide.RefreshForTests();
             Assert.That(scene.Guide.GuideText, Is.EqualTo("MOVE — TAP OPEN GROUND"));
             if (verifyResponsivePresentation)
