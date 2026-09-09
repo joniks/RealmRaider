@@ -363,7 +363,7 @@ namespace RealmRaiders.UI
         Text CreateLine()
         {
             var go = new GameObject("First Minute Guide Line", typeof(RectTransform), typeof(Text)); go.transform.SetParent(transform, false);
-            var rect = (RectTransform)go.transform; rect.anchorMin = new Vector2(0, 1); rect.anchorMax = new Vector2(1, 1); rect.pivot = new Vector2(.5f, 1); rect.anchoredPosition = new Vector2(0, -305); rect.sizeDelta = new Vector2(0, 50);
+            var rect = (RectTransform)go.transform; rect.anchorMin = new Vector2(0, 1); rect.anchorMax = new Vector2(1, 1); rect.pivot = new Vector2(.5f, 1); rect.anchoredPosition = new Vector2(0, -365); rect.sizeDelta = new Vector2(0, 50);
             var text = go.GetComponent<Text>(); text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); text.fontSize = 28; text.alignment = TextAnchor.UpperCenter; text.color = new Color(1f, .9f, .52f); text.raycastTarget = false; go.SetActive(false); return text;
         }
 
@@ -433,7 +433,7 @@ namespace RealmRaiders.UI
                 return;
             }
             rect.anchorMin = new Vector2(0, 1); rect.anchorMax = new Vector2(1, 1); rect.pivot = new Vector2(.5f, 1);
-            rect.anchoredPosition = new Vector2(0, -305); rect.sizeDelta = new Vector2(0, 50);
+            rect.anchoredPosition = new Vector2(0, -365); rect.sizeDelta = new Vector2(0, 50);
         }
 
         static void PlaceAction(Button button, Vector2 position, Vector2 size, Vector2 anchor, Vector2 pivot)

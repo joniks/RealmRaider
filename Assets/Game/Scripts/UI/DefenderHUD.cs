@@ -59,9 +59,9 @@ namespace RealmRaiders.UI
 
     public sealed class DefenderHUD : MonoBehaviour
     {
-        Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel;
+        Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel, jumpLabel;
         Image energyFill;
-        Button possess, release, smash, slam, activateTrap, dodge, retry, nextAction, realmHub;
+        Button possess, release, smash, slam, activateTrap, dodge, jump, retry, nextAction, realmHub;
         GameObject resultPanel;
         RectTransform resultRect;
         PossessionManager possessionManager;
@@ -104,6 +104,10 @@ namespace RealmRaiders.UI
         public bool DodgeButtonInteractable => dodge && dodge.interactable;
         public bool DodgeButtonVisible => dodge && dodge.gameObject.activeSelf;
         public RectTransform DodgeButtonRect => dodge ? (RectTransform)dodge.transform : null;
+        public string JumpButtonText => jump && jump.gameObject.activeSelf && jumpLabel ? jumpLabel.text : string.Empty;
+        public bool JumpButtonInteractable => jump && jump.interactable;
+        public bool JumpButtonVisible => jump && jump.gameObject.activeSelf;
+        public RectTransform JumpButtonRect => jump ? (RectTransform)jump.transform : null;
         public string TrapStatusText => trapText ? trapText.text : string.Empty;
         public bool TrapStatusRaycastTarget => trapText && trapText.raycastTarget;
         public bool TrapButtonInteractable => activateTrap && activateTrap.interactable;
@@ -146,11 +150,14 @@ namespace RealmRaiders.UI
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.Initialize(true);
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
-            invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); ConstrainDefenderHealthLabel(); guardianEntVitality = GuardianEntVitalityLabel(); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft);
+            state.name = "Defense State";
+            invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); invaderHealth.name = "Invader Health"; entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); ConstrainDefenderHealthLabel(); guardianEntVitality = GuardianEntVitalityLabel(); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft); energyText.name = "Possession Energy";
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
             coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); routeStatus = Label("", new Vector2(0, -445), 24, TextAnchor.UpperCenter); routeStatus.name = "Invader Route Status"; routeStatus.raycastTarget = false; routeStatus.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true); trapText.raycastTarget = false;
+            coreText.name = "Core Danger"; selection.name = "Defense Selection"; trapText.name = "Trap Status";
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
-            releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.raycastTarget = false; releaseNotice.gameObject.SetActive(false);
+            rootPrompt.name = "Root Escape Prompt";
+            releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.name = "Possession Release Notice"; releaseNotice.raycastTarget = false; releaseNotice.gameObject.SetActive(false);
             possess = Button($"POSSESS {config.DefenderName.ToUpperInvariant()}", new Vector2(0, 410), PossessSelected);
             release = Button("RELEASE", new Vector2(0, 410), ReleasePossession);
             activateTrap = Button("ACTIVATE TRAP", new Vector2(0, 290), ActivateTrap);
@@ -161,6 +168,7 @@ namespace RealmRaiders.UI
                 new AbilityButtonReadiness(slam, "GROUND SLAM", 2)
             };
             dodge = Button("DODGE", new Vector2(0, 530), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
+            jump = Button("JUMP", new Vector2(-355, 530), Jump); ((RectTransform)jump.transform).sizeDelta = new Vector2(300, 96); jumpLabel = jump.GetComponentInChildren<Text>();
             resultPanel = new GameObject("Defense Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false); var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .28f); rect.anchorMax = new Vector2(.92f, .72f); rect.offsetMin = rect.offsetMax = Vector2.zero; resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
             result = Label("", Vector2.zero, 42, TextAnchor.MiddleCenter); result.transform.SetParent(resultPanel.transform, false); resultRect = (RectTransform)result.transform;
             result.raycastTarget = false;
@@ -221,6 +229,11 @@ namespace RealmRaiders.UI
             var accepted = controller && controller.Dodge();
             firstMinuteGuide?.ObserveDodge(actor, controller, accepted);
         }
+        void Jump()
+        {
+            var actor = possessionManager.Possessed;
+            actor?.Controller<PlayerController>()?.Jump();
+        }
         void ReleasePossession()
         {
             var actor = possessionManager.Possessed;
@@ -251,13 +264,13 @@ namespace RealmRaiders.UI
         { selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it"; possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted); }
         void OnPossession(CombatEntity value)
         {
-            bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active);
+            bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active); jump.gameObject.SetActive(active);
             if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); }
             if (!active) possess.gameObject.SetActive(false);
             selection.text = active ? $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}" : $"Tap the {config.DefenderName} to select it";
             RefreshPossessionEnergy();
         }
-        void OnReleased(bool forced) => RefreshPossessionEnergy();
+        void OnReleased(bool forced) { RefreshPossessionEnergy(); RefreshJumpButton(); }
 
         void InitializeFirstMinuteGuide()
         {
@@ -287,6 +300,7 @@ namespace RealmRaiders.UI
             GameplayInput.SetTerminalState(terminal);
             controlStyleSelector?.RefreshNow();
             RefreshDodgeButton();
+            RefreshJumpButton();
             guardianEntGrowth?.SetVisible(!terminal);
             if (guardianEntVitality) guardianEntVitality.gameObject.SetActive(guardianEntGrowth && !terminal);
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); ClearRouteStatus(); }
@@ -302,7 +316,8 @@ namespace RealmRaiders.UI
         void RefreshOpeningCue()
         {
             var brain = invader ? invader.Controller<RaidInvaderBrain>() : null;
-            var show = brain && brain.IsOpeningHold && !openingCueDismissed && !possessionManager.IsPossessing && !defense.IsFinished && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            var guideOwnsOpeningLane = firstMinuteGuide && firstMinuteGuide.GuideLineVisible;
+            var show = brain && brain.IsOpeningHold && !openingCueDismissed && !guideOwnsOpeningLane && !possessionManager.IsPossessing && !defense.IsFinished && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
             if (!show) { SetOpeningCueVisible(false); return; }
             var seconds = Mathf.Max(1, Mathf.CeilToInt(brain.OpeningSecondsRemaining));
             if (seconds != displayedOpeningSeconds)
@@ -402,8 +417,9 @@ namespace RealmRaiders.UI
             var controlled = possessionManager ? possessionManager.Possessed : null;
             var player = controlled ? controlled.Controller<PlayerController>() : null;
             var direct = player && player.IsActive && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
-            foreach (var button in abilityButtons) button.Refresh(controlled, direct);
+            foreach (var button in abilityButtons) button.Refresh(controlled, direct && !controlled.IsJumping);
             RefreshDodgeButton();
+            RefreshJumpButton();
         }
 
         void RefreshDodgeButton()
@@ -418,6 +434,7 @@ namespace RealmRaiders.UI
             string label;
             if (controlled.IsDodging) { displayedDodgeCooldownTenths = -1; label = "DODGING"; }
             else if (controlled.IsRooted) { displayedDodgeCooldownTenths = -1; label = "DODGE — ROOTED"; }
+            else if (controlled.IsJumping) { displayedDodgeCooldownTenths = -1; label = "DODGE — AIRBORNE"; }
             else if (controlled.IsActionResolving) { displayedDodgeCooldownTenths = -1; label = "DODGE — BUSY"; }
             else if (remaining > .001f)
             {
@@ -428,6 +445,22 @@ namespace RealmRaiders.UI
             else { displayedDodgeCooldownTenths = -1; label = "DODGE"; }
             if (dodgeLabel && dodgeLabel.text != label) dodgeLabel.text = label;
             dodge.interactable = controlled.CanDodge;
+        }
+
+        void RefreshJumpButton()
+        {
+            if (!jump) return;
+            var controlled = possessionManager ? possessionManager.Possessed : null;
+            var player = controlled ? controlled.Controller<PlayerController>() : null;
+            var direct = player && player.IsActive && controlled.Health != null && !controlled.Health.IsDead && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            if (jump.gameObject.activeSelf != direct) jump.gameObject.SetActive(direct);
+            if (!direct) { jump.interactable = false; return; }
+            var label = controlled.IsRooted ? "JUMP — ROOTED"
+                : controlled.IsJumping || !controlled.IsGrounded ? "JUMP — AIRBORNE"
+                : controlled.IsDodging || controlled.IsActionResolving ? "JUMP — BUSY"
+                : "JUMP";
+            if (jumpLabel && jumpLabel.text != label) jumpLabel.text = label;
+            jump.interactable = controlled.CanJump;
         }
 
         public static string GuardianEntVitalityCopy(int rank)

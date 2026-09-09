@@ -53,7 +53,8 @@ Last reviewed: 2026-09-09
 - Diamond Pass 11.1 Keeper Touch Selection Reliability is present: registered creatures now use a deterministic mobile press/release selection path with safe near-miss tolerance and strict UI/swipe/state rejection before the existing possession flow.
 - Module Preview Passes MWS 02/MWS 03 and MUI 01 are staged in the pinned Modules submodule: original-generated Sylvan/Infernal ground-material and Jump-icon candidates have explicit provenance but remain preview-only until seam, import, readability and mobile-budget gates pass.
 - P0 Sylvan Raid Boundary Path Recovery is present: the factual Portal → Crossroads route has a non-blocking visible route tree and seam-aligned node support collider, while its intended outer boundary closure remains intact.
-- Current Unity Test Runner baseline: EditMode 119/119 and PlayMode 63/63 passed on 2026-09-09; PlayMode exited normally with 0 failures.
+- Diamond Pass 12.0 Grounded Mobile Jump is present: direct-controlled heroes and possessed defenders have one collision-constrained, non-double `JUMP` action with airborne horizontal movement, lifecycle-safe cancellation and intentional portrait/landscape HUD placement.
+- Current Unity Test Runner baseline: EditMode 120/120 and PlayMode 67/67 passed on 2026-09-09; PlayMode exited normally with 0 failures.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -70,7 +71,7 @@ Last reviewed: 2026-09-09
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 119/119 and PlayMode 63/63 on 2026-09-09.
+- Current verified baseline: EditMode 120/120 and PlayMode 67/67 on 2026-09-09.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -83,6 +84,7 @@ Last reviewed: 2026-09-09
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
 - Device controls, audio balance and performance have not yet been validated on a representative Android phone.
 - Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
+- Direct-controlled characters now have one grounded jump, but it intentionally has no coyote time, input buffer, double/wall/charged jump, air dodge/attack, animation, VFX/audio or physical-device validation. The final Unity Game-view smoke could not run because that editor surface showed `No cameras rendering` before Play Mode.
 - Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests, but physical-device noticeability and rotation continuity remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.

@@ -120,6 +120,32 @@ namespace RealmRaiders.Tests
             Assert.That(CombatEntity.DodgeCooldown, Is.EqualTo(1.5f));
         }
 
+        [Test]
+        public void JumpState_UsesBoundedDeterministicTuningAndRejectsOverlap()
+        {
+            Assert.That(CharacterJumpState.TakeoffSpeed, Is.EqualTo(6.4f));
+            Assert.That(CharacterJumpState.Gravity, Is.EqualTo(-18f));
+            Assert.That(CharacterJumpState.MaximumFallSpeed, Is.EqualTo(-20f));
+            Assert.That(CharacterJumpState.MaximumAirborneSeconds, Is.EqualTo(2f));
+            var jump = new CharacterJumpState();
+            Assert.That(jump.TryBegin(false), Is.False);
+            Assert.That(jump.TryBegin(true), Is.True);
+            Assert.That(jump.TryBegin(true), Is.False);
+            Assert.That(jump.VerticalVelocity, Is.EqualTo(CharacterJumpState.TakeoffSpeed));
+            Assert.That(jump.Step(.1f), Is.EqualTo(4.6f).Within(.0001f));
+            Assert.That(jump.ObserveGrounded(true), Is.False, "Positive takeoff velocity cannot immediately count as a landing.");
+            for (var step = 0; step < 14; step++) jump.Step(.1f);
+            Assert.That(jump.VerticalVelocity, Is.EqualTo(CharacterJumpState.MaximumFallSpeed));
+            Assert.That(jump.ObserveGrounded(true), Is.True);
+            Assert.That(jump.IsActive, Is.False);
+            Assert.That(jump.VerticalVelocity, Is.Zero);
+            var timedOut = new CharacterJumpState();
+            Assert.That(timedOut.TryBegin(true), Is.True);
+            Assert.That(timedOut.Step(CharacterJumpState.MaximumAirborneSeconds), Is.Zero);
+            Assert.That(timedOut.IsActive, Is.False, "An unresolved jump cannot retain vertical state indefinitely.");
+            Assert.That(typeof(UnityEngine.Object).IsAssignableFrom(typeof(CharacterJumpState)), Is.False);
+        }
+
         [TestCase(false, 1f, PossessionEnergyReadabilityLevel.Normal, "Possession energy  1.0/30s")]
         [TestCase(true, 5.1f, PossessionEnergyReadabilityLevel.Normal, "Possession energy  5.1/30s")]
         [TestCase(true, 5f, PossessionEnergyReadabilityLevel.Warning, "POSSESSION ENDING  5.0s")]

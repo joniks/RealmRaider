@@ -292,7 +292,11 @@ namespace RealmRaiders.Tests
                 Assert.That(line.xMax, Is.LessThanOrEqualTo(reference.x)); Assert.That(line.yMax, Is.LessThanOrEqualTo(reference.y));
                 foreach (var label in Object.FindObjectsByType<Text>(FindObjectsSortMode.None))
                     if (label.rectTransform != guide.GuideLineRect && !label.GetComponentInParent<Button>())
-                        Assert.That(worldLine.Overlaps(WorldRect(label.rectTransform)), Is.False, $"Guide line overlaps {label.name}");
+                    {
+                        var labelRect = WorldRect(label.rectTransform);
+                        Assert.That(worldLine.Overlaps(labelRect), Is.False,
+                            $"Guide line overlaps {label.name} text='{label.text}' line={worldLine} label={labelRect}");
+                    }
             }
             foreach (var control in new[] { guide.DismissRect, guide.SkipRect })
             {

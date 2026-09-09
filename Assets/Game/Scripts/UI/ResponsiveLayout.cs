@@ -84,6 +84,7 @@ namespace RealmRaiders.UI
             "ACTIVATE TRAP" => 110,
             "SMASH" => 218,
             "GROUND SLAM" => 326,
+            "JUMP" => 542,
             "DODGE" => 650,
             "RELEASE" => 758,
             _ when name.StartsWith("POSSESS ") => 866,

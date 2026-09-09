@@ -33,12 +33,12 @@ namespace RealmRaiders.Controllers
 
         void Awake() => entity = GetComponent<CombatEntity>();
         int ControllerKey => GetEntityId().GetHashCode();
-        void OnDisable() => abilityBuffer.Clear();
+        void OnDisable() { abilityBuffer.Clear(); if (entity) entity.CancelJump(); }
         void OnDestroy() { abilityBuffer.Clear(); ClearCameraAwareness(); GameplayInput.SetDirectControl(ControllerKey, false); }
         public void SetControl(bool active)
         {
             IsActive = active; hasDestination = false; lastMovementDirection = Vector3.zero; abilityBuffer.Clear(); interactionRevision = GameplayInput.InteractionRevision; if (!active) ResetEscapeState();
-            if (!active) { ClearCameraAwareness(); GameplayInput.SetDirectControl(ControllerKey, false); return; }
+            if (!active) { if (entity) entity.CancelJump(); ClearCameraAwareness(); GameplayInput.SetDirectControl(ControllerKey, false); return; }
             var nextView = Camera.main;
             if (view && view != nextView) ClearCameraAwareness();
             view = nextView;
@@ -107,13 +107,13 @@ namespace RealmRaiders.Controllers
         public bool CanBufferAbility(int index)
         {
             PruneAbilityBuffer();
-            return IsActive && isActiveAndEnabled && entity && entity.Health != null && !entity.Health.IsDead && !GameplayInput.TerminalState && entity.ActionPhase == CombatActionPhase.Recovery && index >= 0 && index < entity.Abilities.Count && entity.Abilities[index].IsReady;
+            return IsActive && isActiveAndEnabled && entity && entity.Health != null && !entity.Health.IsDead && !entity.IsJumping && !GameplayInput.TerminalState && entity.ActionPhase == CombatActionPhase.Recovery && index >= 0 && index < entity.Abilities.Count && entity.Abilities[index].IsReady;
         }
 
         public bool RequestAbility(int index, Vector3 direction)
         {
             PruneAbilityBuffer();
-            if (!IsActive || !isActiveAndEnabled || !entity || entity.Health == null || entity.Health.IsDead || GameplayInput.TerminalState || index < 0 || index >= entity.Abilities.Count) return false;
+            if (!IsActive || !isActiveAndEnabled || !entity || entity.Health == null || entity.Health.IsDead || entity.IsJumping || GameplayInput.TerminalState || index < 0 || index >= entity.Abilities.Count) return false;
             if (entity.ActionPhase == CombatActionPhase.Recovery)
             {
                 if (!entity.Abilities[index].IsReady) return false;
@@ -129,6 +129,13 @@ namespace RealmRaiders.Controllers
         {
             if (!IsActive || !entity.TryDodge(lastMovementDirection)) return false;
             hasDestination = false;
+            return true;
+        }
+
+        public bool Jump()
+        {
+            if (!IsActive || !isActiveAndEnabled || !entity || !entity.TryJump()) return false;
+            abilityBuffer.Clear();
             return true;
         }
 

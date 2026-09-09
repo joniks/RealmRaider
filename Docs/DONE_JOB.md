@@ -1478,3 +1478,26 @@ Accepted on 2026-09-09 in the Modules submodule.
 ### Scope intentionally deferred
 
 - Texture tileability/seam proof, Unity import, normal-map orientation, compression/memory budget, sprite readability in a real HUD, material/shader setup, runtime installation and all gameplay integration.
+
+## Diamond Pass 12.0 — Grounded Mobile Jump
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Added one deterministic `CharacterJumpState` owned by the existing `CombatEntity` and moved only through the existing root `CharacterController`. A live direct player can rise, retain normal horizontal movement and land while static arena boundaries still constrain the root.
+- Added strict real gates: no jump while airborne, rooted, dodging, resolving an ability, terminal, dead, controller-disabled or during controller replacement/release. A jump also rejects abilities and dodge until it clears; root, death, disable, terminal and controller swap cancel it immediately.
+- Added pointer-owning `JUMP` controls under the existing Raid and Defender HUD roots. They are hidden outside direct control and state truthfully as `JUMP`, `JUMP — ROOTED`, `JUMP — AIRBORNE` or `JUMP — BUSY`; the Defender responsive action layout explicitly reserves a non-overlapping landscape position.
+- Added focused pure jump-state coverage and PlayMode coverage for rise/land, no double jump, lifecycle gates, airborne boundary containment, UI ownership and both responsive HUD orientations.
+- The existing first-minute defense guide was shifted only after a QA-proven opening-lane overlap, and its assertion now reports exact label identity/text/rect data if that regression returns.
+
+### Verification
+
+- Focused stale-assembly recovery check: `OrderedSylvanProofCompletesOnFactualVictory` passed `1/1` in `4.443s` after Unity reopened cleanly.
+- Final Unity GUI Test Runner: EditMode `120/120` passed and PlayMode `67/67` passed, `0` failures, completed 2026-09-09 19:47:08 EEST. No source changed after the final suites and `git diff --check` passed.
+- The required Unity Game-view jump smoke was not run: before Play Mode that surface reported `No cameras rendering`, and QA could not activate Play. Therefore no landing, double-jump, boundary, possession, orientation or Console observation is claimed from manual testing.
+- `Assets/UniversalRenderPipelineGlobalSettings.asset` was already separately modified by the Unity reopen; it is unrelated to this pass and excluded from the accepted commit.
+
+### Scope intentionally deferred
+
+- Coyote time, input buffering, double/wall/charged jumps, air attacks/dashes, AI jump, animation, VFX/audio/haptics, the preview Jump icon, terrain/puzzle changes, desktop controls and physical-device claims.

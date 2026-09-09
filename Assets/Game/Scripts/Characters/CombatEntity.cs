@@ -24,6 +24,7 @@ namespace RealmRaiders.Characters
         public IReadOnlyList<AbilityRuntime> Abilities => abilities;
         readonly List<AbilityRuntime> abilities = new();
         readonly CombatActionState action = new();
+        readonly CharacterJumpState jump = new();
         IEntityController[] controllers;
         CombatFeedback feedback;
         Coroutine actionRoutine;
@@ -35,8 +36,11 @@ namespace RealmRaiders.Characters
         public CombatActionPhase ActionPhase => action.Phase;
         public bool IsActionResolving => action.IsResolving;
         public bool IsDodging => isDodging;
+        public bool IsJumping => jump.IsActive;
+        public bool IsGrounded => Motor && Motor.enabled && Motor.isGrounded;
         public float DodgeCooldownRemaining => Mathf.Max(0, dodgeReadyAt - Time.time);
-        public bool CanDodge => Health != null && Motor && Motor.enabled && !Health.IsDead && !IsRooted && !isDodging && !action.IsResolving && DodgeCooldownRemaining <= 0 && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive;
+        public bool CanJump => Health != null && !Health.IsDead && IsGrounded && !IsRooted && !isDodging && !jump.IsActive && !action.IsResolving && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled;
+        public bool CanDodge => Health != null && Motor && Motor.enabled && !Health.IsDead && !IsRooted && !isDodging && !jump.IsActive && !action.IsResolving && DodgeCooldownRemaining <= 0 && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive;
         public long SelectionIdentity
         {
             get
@@ -67,7 +71,7 @@ namespace RealmRaiders.Characters
         public void SetController(IEntityController next)
         {
             if (controllers == null) controllers = GetComponents<IEntityController>();
-            if (ActiveController != null && ActiveController != next) { CancelActionPresentation(); CancelDodge(); }
+            if (ActiveController != null && ActiveController != next) { CancelActionPresentation(); CancelDodge(); CancelJump(); }
             foreach (var controller in controllers) controller.SetControl(controller == next);
             ActiveController = next;
         }
@@ -84,12 +88,13 @@ namespace RealmRaiders.Characters
         void Update()
         {
             if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
+            if ((GameplayInput.TerminalState || !Motor || !Motor.enabled) && jump.IsActive) CancelJump();
             if (!Health.IsDead) ActiveController?.Tick();
         }
 
         public bool TryUse(int index, Vector3 direction)
         {
-            if (Health.IsDead || isDodging || index < 0 || index >= abilities.Count || !action.TryBegin()) return false;
+            if (Health.IsDead || jump.IsActive || isDodging || index < 0 || index >= abilities.Count || !action.TryBegin()) return false;
             if (!abilities[index].TryConsume()) { action.Complete(); return false; }
             actionRoutine = StartCoroutine(Execute(abilities[index].Definition, direction.sqrMagnitude > .01f ? direction.normalized : transform.forward));
             return true;
@@ -148,6 +153,12 @@ namespace RealmRaiders.Characters
             return true;
         }
 
+        public bool TryJump()
+        {
+            if (!CanJump) return false;
+            return jump.TryBegin(true);
+        }
+
         IEnumerator ExecuteDodge(Vector3 direction)
         {
             var elapsed = 0f;
@@ -166,22 +177,25 @@ namespace RealmRaiders.Characters
 
         public void Move(Vector3 velocity)
         {
-            if (isDodging) return;
+            if (isDodging || !Motor || !Motor.enabled) return;
             if (Time.time < rootedUntil) velocity = Vector3.zero;
+            velocity.y = 0;
             if (velocity.sqrMagnitude > .01f) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 15 * Time.deltaTime);
-            Motor.Move((velocity + Physics.gravity) * Time.deltaTime);
+            var gravity = jump.IsActive ? Vector3.up * jump.Step(Time.deltaTime) : Physics.gravity;
+            Motor.Move((velocity + gravity) * Time.deltaTime);
+            jump.ObserveGrounded(Motor.isGrounded);
         }
 
         public void ApplyRoot(float seconds)
         {
             rootedUntil = Mathf.Max(rootedUntil, Time.time + Mathf.Max(0, seconds));
-            if (IsRooted) CancelDodge(false);
+            if (IsRooted) { CancelDodge(false); CancelJump(); }
         }
         public void BreakRoot() => rootedUntil = 0;
 
         void OnDeath()
         {
-            rootedUntil = 0; CancelActionPresentation(); CancelDodge();
+            rootedUntil = 0; CancelActionPresentation(); CancelDodge(); CancelJump();
             Controller<PlayerController>()?.ResetEscapeState(); Motor.enabled = false; transform.localScale *= .75f;
         }
 
@@ -203,11 +217,14 @@ namespace RealmRaiders.Characters
             if (clearImmunity && Health) Health.ClearDamageImmunity();
         }
 
-        void OnDisable() => CancelDodge();
+        internal void CancelJump() => jump.Cancel();
+
+        void OnDisable() { CancelDodge(); CancelJump(); }
         void OnDestroy()
         {
             if (Health != null) Health.Died -= OnDeath;
             CancelDodge();
+            CancelJump();
         }
     }
 }
