@@ -53,6 +53,7 @@ Last reviewed: 2026-09-10
 - Diamond Pass 11.1 Keeper Touch Selection Reliability is present: registered creatures now use a deterministic mobile press/release selection path with safe near-miss tolerance and strict UI/swipe/state rejection before the existing possession flow.
 - Module Preview Passes MWS 02/MWS 03 and MUI 01 are staged in the pinned Modules submodule: original-generated Sylvan/Infernal ground-material and Jump-icon candidates have explicit provenance but remain preview-only until seam, import, readability and mobile-budget gates pass.
 - Module Pass MWS 04 World Surface Seam Validator is accepted in the pinned Modules submodule: pure C# callers can deterministically check raw RGBA edge compatibility without granting the package Unity, filesystem, import, shader or gameplay authority.
+- Module Pass MWS 05 Surface Preview Budget Gate is accepted in the pinned Modules submodule: caller-declared world-surface facts now receive stable Android-preview budget evidence without asset, Unity, filesystem or import authority.
 - P0 Sylvan Raid Boundary Path Recovery is present: the factual Portal → Crossroads route has a non-blocking visible route tree and seam-aligned node support collider, while its intended outer boundary closure remains intact.
 - Diamond Pass 12.0 Grounded Mobile Jump is present: direct-controlled heroes and possessed defenders have one collision-constrained, non-double `JUMP` action with airborne horizontal movement, lifecycle-safe cancellation and intentional portrait/landscape HUD placement.
 - Diamond Pass 12.1 Sylvan Route Is Never a Hidden Puzzle is present: all generated Sylvan node trees remain visible/revealable presentation, but cannot become movement walls; normal Portal → Crossroads walking now proves passage past the first node centre while the factual outer boundary remains closed.
@@ -77,7 +78,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode 122/122 on 2026-09-09; PlayMode Run All was user-confirmed green after the same Unity recovery, but QA could not capture its transient numeric total.
+- Current verified baseline: EditMode `123/123` and PlayMode `74/74` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

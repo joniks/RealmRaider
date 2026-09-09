@@ -1636,3 +1636,23 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 ### Scope intentionally deferred
 
 - A host pixel provider, texture decoding, Unity import validation, package installation, shader/material action and any runtime use.
+
+## Module Pass MWS 05 — Surface Preview Budget Gate
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Extended the isolated world-surface-validation package with immutable caller-declared preview metadata and a deterministic mobile-budget result.
+- The gate accepts only a non-empty semantic identifier, positive square power-of-two source dimensions, an Android maximum dimension no greater than `512`, Read/Write disabled, mipmaps enabled, and the explicit `ASTC_6x6` or `ETC2_RGBA8` labels.
+- Failures have fixed ordinal codes and messages, so a later adapter can show clear evidence without this package loading assets, reading files, inspecting Unity import settings, or making import decisions.
+
+### Verification
+
+- Static review confirmed the `1024 → 512` accepted profile, `512/513` boundary, invalid-dimension, stable multi-issue and null-input coverage.
+- Scoped whitespace and forbidden-API checks passed. The isolated package remains uninstalled, so no Unity Test Runner result is claimed.
+- Accepted in Modules commit `f35927e` (`feat: add world surface preview budget gate`).
+
+### Scope intentionally deferred
+
+- Texture decoding, importer inspection/action, Core integration, package installation, shader/material work, new art and gameplay/runtime use.
