@@ -1,6 +1,6 @@
 # Realm Raiders — Prototype Status
 
-Last reviewed: 2026-09-09
+Last reviewed: 2026-09-10
 
 ## Latest verification
 
