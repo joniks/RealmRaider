@@ -1616,3 +1616,23 @@ Completed on 2026-09-10.
 ### Scope intentionally deferred
 
 - Drag/drop placement, editable route geometry, new defense pieces/rules/costs, build animation, terrain/world art, audio/VFX/haptics, new persistence and physical-device validation.
+
+## Module Pass MWS 04 — World Surface Seam Validator
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Added an isolated, editor-independent RGBA seam validator for caller-supplied row-major pixels.
+- The immutable input snapshot and deterministic analyser report left-to-right and top-to-bottom mean/worst edge deltas; a surface passes only when each worst delta is at or below its supplied threshold.
+- The package has no Unity, file-system, image-decoding, shader, importer, discovery or gameplay authority.
+
+### Verification
+
+- Static package review confirmed the explicit RGBA `/1020` contract, one-channel `0.25`, full-RGBA `1.0` and threshold-boundary coverage.
+- Scoped whitespace and banned-API scans passed. The pure package is not installed, so no Unity Test Runner result is claimed.
+- Accepted in Modules commit `69f7779` (`feat: add world surface seam validator`).
+
+### Scope intentionally deferred
+
+- A host pixel provider, texture decoding, Unity import validation, package installation, shader/material action and any runtime use.
