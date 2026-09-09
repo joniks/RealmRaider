@@ -58,7 +58,8 @@ Last reviewed: 2026-09-09
 - Diamond Pass 12.2 Intentional Touch Controls and Camera is present: direct-control Joystick now uses stick movement, JUMP and non-UI world-drag camera yaw only; Fingertap retains ground/target taps and gains a guarded empty-ground double-tap jump with factual locomotion camera recentering.
 - Diamond Pass 12.3 First Realm Surface Preview is present: the existing Sylvan and Infernal route presentation safely uses two cached, provenance-recorded preview albedos with exact solid-colour fallback and no gameplay or collision changes.
 - Diamond Pass 12.4–12.5 Jump Preview and Defender Terminal Cleanup are present: Joystick Jump has a non-interactive, provenance-recorded preview icon while Defender terminal results hide live actions and resist late callback reactivation.
-- Current Unity Test Runner baseline: EditMode 122/122 passed on 2026-09-09. The project owner manually confirmed a green PlayMode Run All after clearing the Test Runner filter; its transient GUI summary could not be captured numerically by QA.
+- Diamond Pass 12.6 Spatial Defense Plan Preview is present: RealmBuild now shows the actual five-slot defense order from invader entry through its factual roles to Heart Tree, as a non-interactive visual explanation rather than a new build system.
+- Current Unity Test Runner baseline: EditMode `123/123` and PlayMode `74/74` passed with `0` failures on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -108,6 +109,7 @@ Last reviewed: 2026-09-09
 - Realm landmarks, central routes and continuous arena boundaries now have distinct organic versus angular primitive blockouts, but terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
 - The first imported realm surfaces are intentionally reversible preview art with local original-generated provenance. Their normal candidates, seam/tileability proof, final-art approval and device-performance measurements remain unfinished.
 - The Jump icon is an original-generated preview with local provenance, not final approved UI art. Its focused automated behavior is green, but its planned Defender/Sylvan Game View and physical-device readability checks remain pending.
+- The 12.6 Build Plan preview was manually readable in portrait. Its manual Game-view slot-cycle and `1280×720` landscape smoke were not observed because pointer input was unavailable during the check; the focused PlayMode flow test covers those behaviors.
 
 ## Directory guide
 

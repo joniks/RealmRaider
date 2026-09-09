@@ -1593,3 +1593,26 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - Final UI-art approval, other ability icons, layout redesign, new HUD roots, control/jump/physics/camera changes, VFX/audio/haptics, device-performance measurements and any general onboarding redesign.
+
+## Diamond Pass 12.6 — Spatial Defense Plan Preview
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- The existing RealmBuild HUD now has one non-interactive, scene-local visual plan from invader entry through the five factual defense slots to the Heart Tree.
+- The preview uses only the current `DefenseLayout`: Wolf is fast intercept, Ent is possessable guardian, Root Trap is manual hold trap, and Open is unassigned. It neither adds a defense rule nor gains gameplay, pointer, persistence, camera or scene authority.
+- The fixed five plan nodes, lane and endpoint are built once and refresh in place after initial load, slot cycling, valid saving and cultivation refresh.
+- Portrait and landscape use intentional HUD lanes; the preview remains non-raycast and adds no Button, Canvas, EventSystem, AudioListener or scene system.
+- The PlayMode fixture now unloads its RealmBuild scene after completion, so it does not leak its camera, HUD or cultivation button into later PlayMode tests.
+
+### Verification
+
+- Focused `BuildPlanPreviewTests` and `BuildPlanPreviewFlowTests` each passed `1/1`.
+- Final Unity Test Runner: EditMode `123/123` passed and PlayMode `74/74` passed, both with `0` failures.
+- RealmBuild portrait smoke confirmed the preview is readable and the Editor log showed no new runtime error. Game-view pointer input was unavailable during that smoke, so manual slot-cycle and `1280×720` landscape observations are not claimed; their lifecycle and layout behavior are covered by the PlayMode flow test.
+- The 12.6 runtime/test candidate remained unchanged after the final suites. `git diff --check` passed for the accepted paths.
+
+### Scope intentionally deferred
+
+- Drag/drop placement, editable route geometry, new defense pieces/rules/costs, build animation, terrain/world art, audio/VFX/haptics, new persistence and physical-device validation.
