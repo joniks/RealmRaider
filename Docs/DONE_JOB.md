@@ -1545,3 +1545,25 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - New jump physics, double/wall/charged jumps, aim assist, target lock, automatic combat, targeting redesign, camera collision/zoom/pitch, new control roots, desktop controls, animation/VFX/audio/haptics, save changes and physical-device claims.
+
+## Diamond Pass 12.3 — First Realm Surface Preview
+
+Completed on 2026-09-09.
+
+### Delivered
+
+- Installed only the approved preview albedos for Sylvan and Infernal world surfaces, together with their local original-generated provenance records. Normal-map candidates remain excluded.
+- Added a deterministic import rule limited to those two assets: sRGB, mipmaps, bilinear filtering, clamp wrap, Read/Write disabled and Android `512` / ASTC `6×6` preview settings.
+- The existing route presentation now caches four shared materials and safely binds the appropriate realm albedo to its floor and route presentation. A missing or failing resource returns to the exact prior solid-colour materials without throwing or allocating per renderer.
+- Routes, gameplay roots, colliders, boundaries, paths, entities, camera, input, combat, AI, traps, HUD and scene flow are unchanged; this is a material-only presentation layer.
+- Added focused material-cache/fallback and scene-collision regression coverage.
+
+### Verification
+
+- Focused EditMode preview provider test passed `1/1`; focused PlayMode scene binding/collision test passed `1/1`.
+- Final Unity GUI Test Runner: EditMode `121/121` passed and PlayMode `72/72` passed, both with `0` failures. No source changed after the final suites; `git diff --check` passed.
+- QA Game View smoke confirmed distinct imported Sylvan and Infernal surfaces in both `1280×720` portrait and landscape, with Console `0` logs, warnings and errors.
+
+### Scope intentionally deferred
+
+- These source records explicitly label both images as preview candidates, not approved final runtime art. Tileability/seam proof, normal-map orientation, shader work, terrain, lighting/post-processing, memory/performance measurement and physical-device validation remain unclaimed.

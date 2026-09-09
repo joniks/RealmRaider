@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.sylvan-ground-material.mws02.v1",
+  "creation": "original-generated",
+  "status": "preview-import-candidate-not-approved-for-runtime",
+  "generationTool": "OpenAI built-in image generation",
+  "thirdPartySources": false,
+  "tileabilityVerified": false,
+  "assets": [
+    {
+      "file": "sylvan-ground-albedo-rgb-candidate.png",
+      "role": "albedo",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "promptSummary": "Calm top-down stylized mossy root-and-stone Sylvan path with large readable forms and flat diffuse albedo color.",
+      "intendedUnityImport": {
+        "colorSpace": "sRGB",
+        "textureType": "default",
+        "mobileCompression": "pending-review"
+      }
+    },
+    {
+      "file": "sylvan-ground-normal-rgb-candidate.png",
+      "role": "tangent-space-normal-map-candidate",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "promptSummary": "Simplified low-frequency tangent-space normal map for broad stone slabs and smooth root ridges without microdetail.",
+      "intendedUnityImport": {
+        "colorSpace": "linear",
+        "textureType": "normal-map",
+        "mobileCompression": "pending-review"
+      }
+    }
+  ],
+  "reviewRequired": [
+    "tileability refinement and verification",
+    "Unity import validation",
+    "normal-map orientation validation",
+    "mobile compression and texture-memory budget"
+  ],
+  "nonGoals": [
+    "runtime installation",
+    "third-party source intake",
+    "runtime approval",
+    "gameplay authority"
+  ]
+}

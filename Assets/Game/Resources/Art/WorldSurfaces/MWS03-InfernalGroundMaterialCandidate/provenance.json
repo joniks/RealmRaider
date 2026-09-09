@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.infernal-ground-material.mws03.v1",
+  "creation": "original-generated",
+  "status": "preview-import-candidate-not-approved-for-runtime",
+  "generationTool": "OpenAI built-in image generation",
+  "thirdPartySources": false,
+  "tileabilityVerified": false,
+  "assets": [
+    {
+      "file": "infernal-ground-albedo-rgb-candidate.png",
+      "role": "albedo",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "promptSummary": "Broad stylized charcoal basalt plates with dark iron inlays and controlled ember-orange fissures for a readable Infernal path.",
+      "intendedUnityImport": {
+        "colorSpace": "sRGB",
+        "textureType": "default",
+        "mobileCompression": "pending-review"
+      }
+    },
+    {
+      "file": "infernal-ground-normal-rgb-candidate.png",
+      "role": "tangent-space-normal-map-candidate",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "promptSummary": "Low-frequency tangent-space normal map for broad basalt plates, shallow fissures, and a few iron inlay bands.",
+      "intendedUnityImport": {
+        "colorSpace": "linear",
+        "textureType": "normal-map",
+        "mobileCompression": "pending-review"
+      }
+    }
+  ],
+  "reviewRequired": [
+    "tileability refinement and verification",
+    "Unity import validation",
+    "normal-map orientation validation",
+    "mobile compression and texture-memory budget"
+  ],
+  "nonGoals": [
+    "runtime installation",
+    "third-party source intake",
+    "runtime approval",
+    "gameplay authority"
+  ]
+}

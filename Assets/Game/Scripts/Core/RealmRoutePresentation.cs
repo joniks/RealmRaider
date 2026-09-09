@@ -14,11 +14,18 @@ namespace RealmRaiders.Core
         public const string RootName = "Realm Route Presentation";
         public const int SegmentRendererCeiling = 1;
         public const int DefenseRendererCeiling = 4;
+        public const string SylvanAlbedoResource = "Art/WorldSurfaces/MWS02-SylvanGroundMaterialCandidate/sylvan-ground-albedo-rgb-candidate";
+        public const string InfernalAlbedoResource = "Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate";
 
         static Material sylvanFloor;
         static Material sylvanRoute;
         static Material infernalFloor;
         static Material infernalRoute;
+        static Texture2D sylvanAlbedo;
+        static Texture2D infernalAlbedo;
+        static bool sylvanAlbedoResolved;
+        static bool infernalAlbedoResolved;
+        static System.Func<string, Texture2D> textureLoader = LoadTexture;
 
         public static Transform BuildSegment(Transform authoritativeRoot, RealmRouteStyle style)
         {
@@ -55,15 +62,62 @@ namespace RealmRaiders.Core
             return presentation;
         }
 
-        static Material SylvanFloor => Shared(ref sylvanFloor, new Color(.08f, .24f, .1f));
-        static Material SylvanRoute => Shared(ref sylvanRoute, new Color(.25f, .36f, .22f));
-        static Material InfernalFloor => Shared(ref infernalFloor, new Color(.12f, .045f, .035f));
-        static Material InfernalRoute => Shared(ref infernalRoute, new Color(.27f, .23f, .2f));
+        static Material SylvanFloor => Shared(ref sylvanFloor, new Color(.08f, .24f, .1f), SylvanTexture);
+        static Material SylvanRoute => Shared(ref sylvanRoute, new Color(.25f, .36f, .22f), SylvanTexture);
+        static Material InfernalFloor => Shared(ref infernalFloor, new Color(.12f, .045f, .035f), InfernalTexture);
+        static Material InfernalRoute => Shared(ref infernalRoute, new Color(.27f, .23f, .2f), InfernalTexture);
+        static Texture2D SylvanTexture => ResolveTexture(ref sylvanAlbedo, ref sylvanAlbedoResolved, SylvanAlbedoResource);
+        static Texture2D InfernalTexture => ResolveTexture(ref infernalAlbedo, ref infernalAlbedoResolved, InfernalAlbedoResource);
 
-        static Material Shared(ref Material material, Color color)
+        static Material Shared(ref Material material, Color fallbackColor, Texture2D albedo)
         {
-            if (!material) material = PrototypeRuntimeFactory.Material(color);
+            if (material) return material;
+            material = PrototypeRuntimeFactory.Material(albedo ? Color.white : fallbackColor);
+            if (albedo) material.mainTexture = albedo;
             return material;
+        }
+
+        static Texture2D ResolveTexture(ref Texture2D texture, ref bool resolved, string resourcePath)
+        {
+            if (resolved) return texture;
+            resolved = true;
+            try { texture = textureLoader?.Invoke(resourcePath); }
+            catch (System.Exception) { texture = null; }
+            return texture;
+        }
+
+        static Texture2D LoadTexture(string resourcePath) => Resources.Load<Texture2D>(resourcePath);
+
+        public static void ConfigureTextureLoaderForTests(System.Func<string, Texture2D> loader)
+        {
+            ResetMaterialCache();
+            textureLoader = loader ?? (_ => null);
+        }
+
+        public static void ResetTextureLoaderForTests()
+        {
+            ResetMaterialCache();
+            textureLoader = LoadTexture;
+        }
+
+        static void ResetMaterialCache()
+        {
+            DestroyMaterial(ref sylvanFloor);
+            DestroyMaterial(ref sylvanRoute);
+            DestroyMaterial(ref infernalFloor);
+            DestroyMaterial(ref infernalRoute);
+            sylvanAlbedo = infernalAlbedo = null;
+            sylvanAlbedoResolved = infernalAlbedoResolved = false;
+        }
+
+        static void DestroyMaterial(ref Material material)
+        {
+            if (material)
+            {
+                if (Application.isPlaying) UnityEngine.Object.Destroy(material);
+                else UnityEngine.Object.DestroyImmediate(material);
+            }
+            material = null;
         }
 
         static void BuildCoveredSegment(Transform root, RealmRouteStyle style, Vector3 dimensions)
@@ -122,7 +176,7 @@ namespace RealmRaiders.Core
             if (collider)
             {
                 collider.enabled = false;
-                if (Application.isPlaying) Object.Destroy(collider); else Object.DestroyImmediate(collider);
+                if (Application.isPlaying) UnityEngine.Object.Destroy(collider); else UnityEngine.Object.DestroyImmediate(collider);
             }
             part.GetComponent<Renderer>().sharedMaterial = material;
             return part.transform;
