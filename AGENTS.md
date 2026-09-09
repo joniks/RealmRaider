@@ -5,7 +5,8 @@ This file is the compact operating context for every coding agent working in thi
 1. `Docs/PROJECT_CONTEXT.md`
 2. `Docs/PROTOTYPE_STATUS.md`
 3. `Docs/NEXT_JOB.md` — local handoff; intentionally Git-ignored
-4. `Docs/TEAM_WORKFLOW.md` — role ownership, worktree and handoff rules
+4. `Docs/CORE_READY_QUEUE.md` — current and immediately following Core gates
+5. `Docs/TEAM_WORKFLOW.md` — role ownership, worktree and handoff rules
 
 ## Product truth
 
@@ -63,6 +64,10 @@ Design laws:
 ## Feedback-derived working behavior
 
 - Keep moving when the next safe action is already authorized. Do not turn an intermediate progress note into an idle stop; either take the next leased step or report the exact external blocker.
+- An intermediate result is never a terminal state. After every handoff, the producing role immediately continues its current lease if unfinished or switches to read-only preparation of the next queued lease while Architect reviews the frozen candidate.
+- A user push is never a prerequisite for local continuation. Architect commits accepted work; Core and Module work from the named local committed base whether or not the user has pushed it yet.
+- Architect maintains one active and one ready Core gate. In the same coordination turn as a valid handoff, Architect accepts it, returns one concrete defect, or activates the next safe gate; it does not leave an agent idle behind a generic status message.
+- A small, explicitly user-requested follow-up may join the current verification batch only when Architect records its separate lease, it does not overlap another writer, and one final EditMode plus PlayMode run occurs after the last code change.
 - The user values player-visible progress over process theatre. Prefer one bounded vertical slice that strengthens the initial loop over speculative systems or documentation-only output.
 - Treat test time and agent context as scarce: focused checks expose a concrete risk; one final EditMode and one final PlayMode run prove the frozen candidate. Do not use UnityCLI or invent a test workaround while standard Unity GUI verification is available.
 - Preserve a clear, deliberate difference between Fingertap and Joystick in both orientations. Input ownership, control copy and camera behavior must match the mode actually shown to the player.
@@ -72,6 +77,7 @@ Design laws:
 ## Collaboration rules
 
 - `Docs/NEXT_JOB.md` is the active handoff and is Git-ignored. Update it before a new implementation task starts.
+- `Docs/CORE_READY_QUEUE.md` is the tracked Core pipeline. Keep one active gate and one explicit next action or concrete dependency; the ten-minute recovery heartbeat uses it to resume work.
 - Follow `Docs/TEAM_WORKFLOW.md`: only the named owner may write a reserved path, and only Core developer edits the main Unity checkout during an active feature.
 - When a task is accepted, record it in `Docs/DONE_JOB.md` and refresh `Docs/PROTOTYPE_STATUS.md`; these are committed with the implementation.
 - One agent owns a shared gameplay/UI file at a time. Parallel work should use separate file areas: implementation, research/assets, or review/tests.

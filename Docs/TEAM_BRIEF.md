@@ -38,10 +38,12 @@ The separate QA conversation is temporarily inactive. Architect supplies that ga
 4. Architect reports only observed manual smoke. A UI/lock/tool limitation is recorded precisely, not disguised as a gameplay failure or success.
 5. Architect records accepted facts, commits only accepted paths, and leaves push to the user. URP, generated files and unrelated Modules state are never swept into a feature commit.
 6. Architect works deliberately as the temporary QA gate: clear the Test Runner filter → click one gate → wait for the UI/result to settle → verify the result before the next click. Unity restart requires the user's explicit request (or confirmed crash/hang plus confirmation); never use UnityCLI, `Reimport All`, Library deletion or blind UI clicks.
+7. A frozen handoff is not idle permission: Core immediately prepares the next `CORE_READY_QUEUE.md` gate read-only, while Architect reviews or verifies. A user push never blocks local continuation.
 
 ## Communication rules
 
 - Continue autonomously when the next safe action is already authorized; do not stop after a partial status update.
+- After every handoff, transition in the same turn: continue the lease, prepare the next queued gate read-only, or receive one precise defect/dependency. Small user-authorized follow-ups may share one final verification batch only when Architect records the exception and keeps file ownership disjoint.
 - Report a real pass, failure or blocker immediately. A generic “done” is not a handoff.
 - Keep handoffs to six lines and role checkpoints to eight bullets. The repository, not a long transcript, is the source of truth.
 - Prefer focused regression coverage. New features need lifecycle cleanup tests; broad suites are release evidence, not exploratory debugging.
