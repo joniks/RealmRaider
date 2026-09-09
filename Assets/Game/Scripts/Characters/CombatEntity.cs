@@ -96,14 +96,17 @@ namespace RealmRaiders.Characters
         {
             if (Health.IsDead || jump.IsActive || isDodging || index < 0 || index >= abilities.Count || !action.TryBegin()) return false;
             if (!abilities[index].TryConsume()) { action.Complete(); return false; }
-            actionRoutine = StartCoroutine(Execute(abilities[index].Definition, direction.sqrMagnitude > .01f ? direction.normalized : transform.forward));
+            direction.y = 0;
+            if (direction.sqrMagnitude <= .01f) { direction = transform.forward; direction.y = 0; }
+            if (direction.sqrMagnitude <= .01f) direction = Vector3.forward;
+            actionRoutine = StartCoroutine(Execute(abilities[index].Definition, direction.normalized));
             return true;
         }
 
         IEnumerator Execute(AbilityDefinition ability, Vector3 direction)
         {
             transform.rotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-            feedback.ShowTelegraph(ability, transform.forward);
+            feedback.ShowTelegraph(ability, direction);
             yield return new WaitForSeconds(ability.Windup);
             feedback.ClearTelegraph();
             if (Health.IsDead) { action.Complete(); yield break; }
@@ -114,10 +117,10 @@ namespace RealmRaiders.Characters
                 while (moved < ability.DashDistance)
                 {
                     var step = Mathf.Min(ability.DashDistance - moved, 16 * Time.deltaTime);
-                    Motor.Move(transform.forward * step); moved += step; yield return null;
+                    Motor.Move(direction * step); moved += step; yield return null;
                 }
             }
-            var center = transform.position + transform.forward * Mathf.Max(1, ability.Range * .55f);
+            var center = transform.position + direction * Mathf.Max(1, ability.Range * .55f);
             bool connected = false;
             var damaged = new HashSet<CombatEntity>();
             foreach (var hit in Physics.OverlapSphere(center, ability.Radius, ~0, QueryTriggerInteraction.Ignore))
@@ -180,7 +183,7 @@ namespace RealmRaiders.Characters
             if (isDodging || !Motor || !Motor.enabled) return;
             if (Time.time < rootedUntil) velocity = Vector3.zero;
             velocity.y = 0;
-            if (velocity.sqrMagnitude > .01f) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 15 * Time.deltaTime);
+            if (velocity.sqrMagnitude > .01f && !action.IsResolving) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 15 * Time.deltaTime);
             var gravity = jump.IsActive ? Vector3.up * jump.Step(Time.deltaTime) : Physics.gravity;
             Motor.Move((velocity + gravity) * Time.deltaTime);
             jump.ObserveGrounded(Motor.isGrounded);

@@ -75,13 +75,15 @@ The prototype's modular character factory needs a truthful, repeatable way to se
 
 - Further changes to this accepted pass.
 
-## Active — Module Pass MMP 04: Explicit Character Motion Binding Batch
+## Accepted — Module Pass MMP 04: Explicit Character Motion Binding Batch
 
 Owner: Module Developer / Technical Art
 
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
 
-Base: preserve the existing uncommitted v0.4 candidate; this is its fresh recovery brief.
+Accepted Modules commit: `50d7a4a`
+
+Base: recovered the existing uncommitted v0.4 candidate under a fresh focused brief.
 Reserved paths only:
 
 - `Packages/com.realmraiders.character-motion-profiles/Runtime/CharacterMotionBindingBatchEvaluator.cs`
@@ -89,7 +91,7 @@ Reserved paths only:
 - `Packages/com.realmraiders.character-motion-profiles/Documentation~/CharacterMotionProfiles.md`
 - `Packages/com.realmraiders.character-motion-profiles/package.json`
 
-Do not touch the unrelated untracked `.meta` files, character-visual-tuning package or main checkout. Do not stage, commit or push.
+The unrelated untracked `.meta` files, character-visual-tuning package and main checkout were not included.
 
 ### Player/product value
 
@@ -108,4 +110,4 @@ Hundreds of modular characters need a deterministic pre-Unity check that every e
 
 ## Next Module gate
 
-Architect reviews MMP 04 immediately on handoff. Accepted work is committed in the Modules repository and recorded in the main project; a concrete defect returns to the same lease. After that, the next Module lease must be tied to either a named Core integration seam or a user-approved art source/provenance task.
+MMP 04 is accepted and committed. The next Module lease must be tied to either a named Core integration seam or a user-approved art source/provenance task; do not invent another generic validator merely to keep the lane busy.

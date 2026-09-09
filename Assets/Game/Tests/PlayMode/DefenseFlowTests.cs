@@ -151,8 +151,12 @@ namespace RealmRaiders.Tests
                 Assert.That(hud.OpeningCueVisible, Is.False);
                 possession.Release(); hud.SendMessage("RefreshOpeningCue", SendMessageOptions.RequireReceiver);
                 Assert.That(hud.OpeningCueVisible, Is.False);
-                yield return new WaitForSecondsRealtime(.35f);
-                brain.Tick();
+                var openingDeadline = Time.realtimeSinceStartup + .75f;
+                while ((brain.IsOpeningHold || brain.WaypointIndex == 0) && Time.realtimeSinceStartup < openingDeadline)
+                {
+                    brain.Tick();
+                    yield return null;
+                }
                 Assert.That(brain.IsOpeningHold, Is.False);
                 Assert.That(brain.WaypointIndex, Is.EqualTo(1));
                 hud.SendMessage("RefreshRouteStatus", SendMessageOptions.RequireReceiver);

@@ -1695,3 +1695,64 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 ### Scope intentionally deferred
 
 - Model measurement, policy selection, starter-profile edits, asset/import work, Unity/Core integration, animation/material work and runtime use.
+
+## Diamond Pass 12.7 — Build-to-Defense Deployment Receipt
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Sylvan defense now opens with one factual, non-interactive receipt of the five defense slots that were actually instantiated from the saved Build plan.
+- The receipt names the real Root Gate, guards, open slots and Heart Tree route without adding a new defense rule or duplicating unavailable pieces.
+- It yields the instructional lane to the first-minute guide and clears on possession, movement, terminal result, retry, transition, disable and teardown in both orientations.
+
+### Verification
+
+- Focused EditMode receipt data/layout coverage and PlayMode `SylvanDeploymentReceipt_UsesActualDeploymentAndCleansEveryOpeningExit` passed in the final suites.
+- The project owner manually confirmed the resulting prototype presentation was good before final automated acceptance.
+- Final Unity GUI Test Runner baseline shared with 12.8: EditMode `137/137` and PlayMode `78/78`, `0` failures, on 2026-09-10. `git diff --check` passed.
+
+### Scope intentionally deferred
+
+- Editable deployment during defense, new defense pieces/rules, route editing, animation, sound/haptics, final art and physical-device readability claims.
+
+## Diamond Pass 12.8 — Camera-Relative Direct Attack Direction
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Untargeted direct-player attacks now snapshot their world direction from the visible camera plane: screen-up/HUD means camera-forward and Fingertap screen-right means camera-right after camera yaw.
+- A factual Fingertap enemy tap remains stronger explicit target intent; Joystick world drag remains camera-only and does not cast an attack.
+- Buffered abilities retain their input-time direction. Ongoing movement may translate the actor during an action but cannot rotate its accepted telegraph, dash/impact geometry or recovery facing away from that direction.
+- Stabilized three legacy PlayMode proofs by pumping their exact state transitions with bounded deadlines and adding only float-representation headroom at the intended landing tolerance boundary; gameplay timings and assertions remain intact.
+
+### Verification
+
+- New PlayMode coverage passed for HeroCombat/PossessedCreature, portrait/landscape, Fingertap/Joystick, enemy-tap priority, buffered snapshots and held-movement action direction.
+- Final Unity GUI Test Runner: EditMode `137/137` and PlayMode `78/78`, both with `0` failures. PlayMode XML recorded 2026-09-09 22:17:47Z–22:18:41Z; no source changed after the final suites and `git diff --check` passed.
+- No physical-device or subjective attack-feel claim is made for this pass; the user owns the next device feel check.
+
+### Scope intentionally deferred
+
+- Aim assist, target lock/acquisition, camera-relative movement, camera framing/yaw tuning, AI direction, combat values/timing, animation/VFX/audio/haptics and physical-device validation.
+
+## Module Pass MMP 04 — Explicit Character Motion Binding Batch
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Added an immutable explicit character-to-motion-profile batch evaluator over the existing deterministic catalogue and compatibility gate.
+- Requests are snapshotted, exact ordinal lookup is required, compatibility issue detail is preserved, duplicate/malformed/missing input fails closed, and successful records are character-ID ordered.
+- A partially unreadable input stream discards partial data and returns only the unreadable collection boundary; the package does not select fallbacks, clips or animation authority.
+
+### Verification
+
+- Scoped whitespace and prohibited-runtime scans passed, with focused NUnit coverage authored for the full contract including partial enumeration failure.
+- The isolated package remains uninstalled and its external `RealmRaiders.ModuleContracts` source is absent from the Modules repository, so no standalone compile or Unity Test Runner result is claimed.
+- Accepted in Modules commit `50d7a4a` (`feat: add character motion binding batch gate`).
+
+### Scope intentionally deferred
+
+- Package installation, concrete motion profiles/clips, model/rig import, fallback selection, Core adapter/runtime animation authority and Unity integration.

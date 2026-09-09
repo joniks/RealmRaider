@@ -2,38 +2,45 @@
 
 This is the tracked continuation queue for the main Unity checkout. `NEXT_JOB.md` remains the full active lease; this file states what happens immediately after every intermediate result so a valid handoff cannot become silent idle time.
 
-## Current verification batch — Diamond Passes 12.7 and 12.8
+## Accepted — Diamond Passes 12.7 and 12.8
 
-- Diamond Pass 12.7 Build-to-Defense Deployment Receipt is source-frozen and has a positive user manual smoke. Its focused and final automated evidence remains pending.
-- The user explicitly authorized one small follow-up before that final evidence: Diamond Pass 12.8 Camera-Relative Direct Attack Direction.
-- Architect has approved one combined final verification batch after 12.8 freezes. The frozen 12.7 files remain outside the 12.8 write lease.
+- Diamond Pass 12.7 Build-to-Defense Deployment Receipt is accepted after the user's positive manual smoke and the final automated gates.
+- Diamond Pass 12.8 Camera-Relative Direct Attack Direction is accepted with deterministic legacy PlayMode gate repairs.
+- Final Unity GUI Test Runner: EditMode `137/137`, PlayMode `78/78`, `0` failures. PlayMode XML completed 2026-09-09 22:18:41Z; `git diff --check` is clean.
+- Architect records and commits only the accepted paths; user push is asynchronous publication and does not block 12.9.
 
-## Now — Diamond Pass 12.8: Camera-Relative Direct Attack Direction
+## Now — Diamond Pass 12.9: Possessed-Defense Invader Awareness
 
 Owner: Core developer
 
 Workspace: main checkout; source only, no Unity.
 
-Base: local `46bd32a` plus the frozen, uncommitted 12.7 candidate.
+Base: Architect's accepted local 12.7/12.8 commit.
 
-Reserved paths: `Assets/Game/Scripts/Controllers/PlayerController.cs`, `Assets/Game/Tests/PlayMode/CombatCameraReadabilityTests.cs`; `Assets/Game/Scripts/Characters/CombatEntity.cs` only if the focused held-movement test proves that active movement overwrites the accepted attack direction.
+Reserved paths:
+
+- `Assets/Game/Scripts/AI/RaidInvaderBrain.cs`
+- `Assets/Game/Scripts/Camera/CombatCameraAwareness.cs`
+- `Assets/Game/Tests/PlayMode/PossessionFlowTests.cs`
 
 Handoff: frozen scoped diff, `git diff --check`, six-line Core report; no stage, commit, push or Unity.
 
 ### Outcome
 
-Untargeted direct-player abilities resolve their world direction from the visible camera plane at input time. Swipe-up means camera-forward and swipe-right means camera-right after camera yaw. HUD abilities keep camera-forward. An explicit Fingertap enemy tap remains a stronger factual target direction. A buffered ability keeps its accepted input-time direction even if the camera later moves.
+During the signature possessed-defense fight, factual `RaidInvaderBrain` target intent feeds the existing bounded camera-awareness presentation before the first hit. A nearby Blood Knight targeting the possessed defender can show the existing plate or left/right edge cue without gaining targeting, combat or camera authority.
 
 ### Guardrails
 
-- Keep AI target direction, enemy-tap direction, movement basis, dodge, jump, damage, range, cooldown, action timing, camera framing/yaw speed, HUD, persistence and scenes unchanged.
-- Do not introduce aim assist, target lock, automatic target acquisition or camera authority over movement.
-- If held direct movement can rotate an already accepted attack away from its camera direction during Windup/Impact, freeze only that action's accepted planar direction while preserving existing translation and timing. Do not broadly refactor `CombatEntity`.
+- Event-driven intent only; no scene scan or new per-frame global search.
+- Reuse the existing focus/plate/edge-cue system, 14 m eligibility and current text/layout roots.
+- `ATTACKING` urgency is factual only during accepted Windup/Impact; existing damage recency remains unchanged.
+- Clear immediately on retarget/range exit, invader control loss/death/destroy, possession/controller loss, terminal state, camera transition and teardown.
+- Do not change AI target selection, route/opening/recovery timing, damage, abilities, player input, `CombatEntity`, HUD, bootstraps, scenes, persistence or art.
 
 ## Next gate — Architect verification
 
-After Core freezes 12.8, Architect performs static preflight, the two focused 12.7 tests, focused camera-direction coverage, then exactly one final EditMode and one final PlayMode run for the combined candidate. Concrete failures return to the same lease; green evidence advances immediately to acceptance records and commit.
+After Core freezes 12.9, Architect performs static preflight, focused possessed-defense awareness coverage, then exactly one final EditMode and one final PlayMode run. A concrete failure returns to the same lease; green evidence advances immediately to acceptance records and commit.
 
-## Next implementation
+## Ready after 12.9
 
-Before the combined candidate is committed, Architect must name the next player-visible Core slice or record the exact missing product decision. Core may prepare that next slice read-only while verification runs, but may not change main-checkout source until Architect activates its lease.
+Architect prepares the next player-visible slice read-only while 12.9 is verified. Core may inspect that queued scope but may not modify its files until Architect activates the lease.

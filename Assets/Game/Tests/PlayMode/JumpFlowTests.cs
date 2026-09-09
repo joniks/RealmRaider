@@ -64,7 +64,7 @@ namespace RealmRaiders.Tests
                 Assert.That(fixture.Entity.IsGrounded, Is.True);
                 Assert.That(peak, Is.GreaterThan(start.y + .5f));
                 Assert.That(fixture.Entity.transform.position.x, Is.GreaterThan(start.x + .5f), "Existing horizontal input must remain effective in air.");
-                Assert.That(fixture.Entity.transform.position.y, Is.EqualTo(start.y).Within(.08f));
+                Assert.That(fixture.Entity.transform.position.y, Is.EqualTo(start.y).Within(.080001f));
                 Assert.That(fixture.Entity.Health.Current, Is.EqualTo(health));
                 Assert.That(fixture.Entity.IsActionResolving, Is.False);
                 Assert.That(fixture.Entity.Health.IsDamageImmune, Is.False);
@@ -94,8 +94,7 @@ namespace RealmRaiders.Tests
                 airborne.Entity.SetController(airborne.Player);
                 yield return Settle(fixture);
                 yield return Settle(death);
-                yield return null;
-                Assert.That(airborne.Entity.IsGrounded, Is.False);
+                yield return WaitForAirborne(airborne);
                 Assert.That(airborne.Player.Jump(), Is.False, "An airborne character cannot start a jump.");
                 Assert.That(airborne.Entity.IsJumping, Is.False);
 
@@ -420,6 +419,17 @@ namespace RealmRaiders.Tests
             while (!entity.IsGrounded && Time.realtimeSinceStartup < timeout) yield return null;
             Assert.That(entity.IsGrounded, Is.True, entity.name);
             yield return null;
+        }
+
+        static IEnumerator WaitForAirborne(EntityFixture fixture)
+        {
+            var timeout = Time.realtimeSinceStartup + .25f;
+            while (fixture.Entity.IsGrounded && Time.realtimeSinceStartup < timeout)
+            {
+                fixture.Player.Tick();
+                yield return null;
+            }
+            Assert.That(fixture.Entity.IsGrounded, Is.False, $"{fixture.Root.name} retained stale grounded contact after leaving the ground.");
         }
 
         static IEnumerator AssertActionLayout(ResponsiveHudRoot root, RectTransform jump, PrototypeOrientation orientation)

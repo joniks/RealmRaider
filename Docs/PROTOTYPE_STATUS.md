@@ -63,7 +63,10 @@ Last reviewed: 2026-09-10
 - Diamond Pass 12.3 First Realm Surface Preview is present: the existing Sylvan and Infernal route presentation safely uses two cached, provenance-recorded preview albedos with exact solid-colour fallback and no gameplay or collision changes.
 - Diamond Pass 12.4–12.5 Jump Preview and Defender Terminal Cleanup are present: Joystick Jump has a non-interactive, provenance-recorded preview icon while Defender terminal results hide live actions and resist late callback reactivation.
 - Diamond Pass 12.6 Spatial Defense Plan Preview is present: RealmBuild now shows the actual five-slot defense order from invader entry through its factual roles to Heart Tree, as a non-interactive visual explanation rather than a new build system.
-- Current Unity Test Runner baseline: EditMode `123/123` and PlayMode `74/74` passed with `0` failures on 2026-09-10.
+- Diamond Pass 12.7 Build-to-Defense Deployment Receipt is present: the Sylvan opening states the five pieces actually deployed from the saved Build plan and clears for guide, possession, movement, terminal and transition ownership.
+- Diamond Pass 12.8 Camera-Relative Direct Attack Direction is present: untargeted direct attacks follow the visible camera plane at input time, while explicit enemy taps and buffered direction snapshots remain authoritative.
+- Module Pass MMP 04 Explicit Character Motion Binding Batch is accepted in the pinned Modules submodule: explicit characters can be deterministically checked against exact compatible motion-profile IDs without fallback selection or animation authority.
+- Current Unity Test Runner baseline: EditMode `137/137` and PlayMode `78/78` passed with `0` failures on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -80,7 +83,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `123/123` and PlayMode `74/74` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `137/137` and PlayMode `78/78` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -94,12 +97,12 @@ Last reviewed: 2026-09-10
 - Device controls, audio balance and performance have not yet been validated on a representative Android phone.
 - Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
 - Direct-controlled characters now have one grounded jump, including a guarded Fingertap empty-ground double-tap path that keeps the initial destination for ordinary airborne movement. It intentionally has no coyote time, input buffer, double/wall/charged jump, air dodge/attack, animation, VFX/audio or physical-device validation. A Unity Game-view smoke confirmed Sylvan portrait and landscape control copy; possessed-Defender direct-control Game View remained unobserved because QA automation lost stable Game View coordinates, although its control path is covered by PlayMode tests.
-- Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests. Joystick manual yaw and factual Fingertap locomotion recentering are intentionally presentation-only; physical-device noticeability, rotation continuity and comfort remain unverified.
+- Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests. Joystick manual yaw and factual Fingertap locomotion recentering are intentionally presentation-only; untargeted direct attacks now use the visible camera plane without target lock or camera-relative movement. Physical-device noticeability, rotation continuity, attack feel and comfort remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 - The starter-character-catalogue package is installed and explicitly hosted as the five-entry prototype identity roster; authoritative stats, abilities, roles and scene construction intentionally remain in Core bootstraps.
 - The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
-- The character-motion-profiles package now includes deterministic explicit-provider catalogue construction but remains uninstalled; its isolated package tests are authored but not yet run, and no approved shared rigs, clips, concrete motion providers or Core presentation adapter exist yet.
+- The character-motion-profiles package now includes deterministic explicit-provider catalogue construction, compatibility evaluation and explicit binding-batch evidence but remains uninstalled; its isolated package tests are authored but not yet run, and no approved shared rigs, clips, concrete motion providers or Core presentation adapter exist yet.
 - The character-art-manifests package now includes deterministic evidence validation, hashing, explicit-provider catalogue construction, an adapter-neutral measurement gate and immutable batch reporting but remains uninstalled; its isolated package tests are authored but not yet run, and no concrete source manifest, measurement adapter or Unity importer is approved.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.

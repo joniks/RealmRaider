@@ -76,6 +76,7 @@ namespace RealmRaiders.UI
         ResponsiveHudRoot responsive;
         InRunControlStyleSelector controlStyleSelector;
         FirstPlayableMinuteDefenseGuide firstMinuteGuide;
+        DefenseDeploymentReceipt deploymentReceipt;
         AbilityButtonReadiness[] abilityButtons;
         int displayedOpeningSeconds = -1;
         bool openingCueDismissed;
@@ -113,6 +114,7 @@ namespace RealmRaiders.UI
         public bool TrapButtonInteractable => activateTrap && activateTrap.interactable;
         public RectTransform TrapButtonRect => activateTrap ? (RectTransform)activateTrap.transform : null;
         public FirstPlayableMinuteDefenseGuide FirstMinuteGuide => firstMinuteGuide;
+        public DefenseDeploymentReceipt DeploymentReceipt => deploymentReceipt;
         public string ResultText => result ? result.text : string.Empty;
         public string PossessionEnergyText => energyText ? energyText.text : string.Empty;
         public PossessionEnergyReadabilityLevel PossessionEnergyLevel => hasDisplayedEnergy ? displayedEnergy.Level : PossessionEnergyReadabilityLevel.Normal;
@@ -124,12 +126,12 @@ namespace RealmRaiders.UI
         public float PossessionEnergyRemaining => energy?.Remaining ?? 0;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
-        public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig)
+        public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig, DefenseDeploymentReceiptData deployment = null)
         {
             if (hudConfig.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && PrototypeJourney.Stage == PrototypeJourneyStage.Defense) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             defense = defenseManager; possessionManager = manager; energy = possessionEnergy; invader = raidInvader; ent = defender; trap = rootTrap; config = hudConfig; guardianEntGrowth = defender ? defender.GetComponent<GuardianEntGrowthPresentation>() : null;
-            Build();
+            Build(deployment);
             manager.SelectionChanged += OnSelection; manager.PossessionChanged += OnPossession; manager.Released += OnReleased; manager.MomentFeedback += ShowMomentFeedback;
             defenseManager.StateChanged += OnDefenseState; possessionEnergy.Changed += (_, _) => Refresh(); core.ProgressChanged += value => coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
             initialized = true;
@@ -140,14 +142,14 @@ namespace RealmRaiders.UI
         void Update()
         {
             if (!initialized) return;
-            Refresh(); RefreshOpeningCue(); RefreshRouteStatus();
+            Refresh(); RefreshOpeningCue(); RefreshRouteStatus(); RefreshDeploymentReceipt();
             RefreshAbilityButtons();
             RefreshControlHint();
             var controller = possessionManager?.Possessed?.Controller<PlayerController>(); var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState;
             if (rootPrompt) { rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; }
         }
 
-        void Build()
+        void Build(DefenseDeploymentReceiptData deployment)
         {
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.Initialize(true);
@@ -177,6 +179,15 @@ namespace RealmRaiders.UI
             retry = Button("DEFEND AGAIN", Vector2.zero, RetryDefense); retry.transform.SetParent(resultPanel.transform, false); nextAction = Button(config.NextActionLabel, Vector2.zero, ContinueAfterDefense); nextAction.transform.SetParent(resultPanel.transform, false);
             realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
             responsive.LayoutChanged += ApplyResultLayout; ApplyResultLayout(responsive.Orientation);
+            if (config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && deployment != null)
+            {
+                var receiptObject = new GameObject(DefenseDeploymentReceipt.ObjectName, typeof(RectTransform), typeof(Text), typeof(DefenseDeploymentReceipt));
+                receiptObject.transform.SetParent(transform, false);
+                deploymentReceipt = receiptObject.GetComponent<DefenseDeploymentReceipt>();
+                deploymentReceipt.Initialize(deployment);
+                responsive.LayoutChanged += deploymentReceipt.ApplyOrientation;
+                deploymentReceipt.ApplyOrientation(responsive.Orientation);
+            }
             resultPanel.SetActive(false);
             controlStyleSelector = InRunControlStyleSelector.Attach(responsive, presentation);
         }
@@ -250,6 +261,7 @@ namespace RealmRaiders.UI
         }
         void RetryDefense()
         {
+            SetDeploymentReceiptVisible(false);
             firstMinuteGuide?.PrepareRetry();
             if (journeyToken != 0) PrototypeJourney.Cancel(journeyToken);
             journeyHandoff = true;
@@ -257,12 +269,14 @@ namespace RealmRaiders.UI
         }
         void ContinueAfterDefense()
         {
+            SetDeploymentReceiptVisible(false);
             if (journeyToken != 0) PrototypeJourney.Cancel(journeyToken);
             journeyHandoff = true;
             SceneManager.LoadScene(config.NextActionScene);
         }
         void ReturnToHub()
         {
+            SetDeploymentReceiptVisible(false);
             PrototypeJourney.Cancel();
             FirstPlayableMinute.ResetBuildHandoff();
             journeyHandoff = true;
@@ -278,7 +292,7 @@ namespace RealmRaiders.UI
         {
             if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
             bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active); jump.gameObject.SetActive(active);
-            if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); }
+            if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); SetDeploymentReceiptVisible(false); }
             if (!active) possess.gameObject.SetActive(false);
             selection.text = active ? ControlledSelectionCopy() : $"Tap the {config.DefenderName} to select it";
             RefreshJumpButton();
@@ -301,10 +315,13 @@ namespace RealmRaiders.UI
 
         void OnDestroy()
         {
+            SetDeploymentReceiptVisible(false);
             firstMinuteGuide?.Shutdown();
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
+            if (responsive && deploymentReceipt) responsive.LayoutChanged -= deploymentReceipt.ApplyOrientation;
             if (journeyToken != 0 && !journeyHandoff && !journeyCompletedForResult) PrototypeJourney.Cancel(journeyToken);
         }
+        void OnDisable() => SetDeploymentReceiptVisible(false);
         void ShowMomentFeedback(string message)
         {
             if (!releaseNotice || GameplayInput.TerminalState || (resultPanel && resultPanel.activeSelf)) return;
@@ -321,7 +338,7 @@ namespace RealmRaiders.UI
             RefreshJumpButton();
             guardianEntGrowth?.SetVisible(!terminal);
             if (guardianEntVitality) guardianEntVitality.gameObject.SetActive(guardianEntGrowth && !terminal);
-            if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); ClearRouteStatus(); }
+            if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); SetDeploymentReceiptVisible(false); ClearRouteStatus(); }
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
             {
@@ -352,6 +369,15 @@ namespace RealmRaiders.UI
             if (!visible) displayedOpeningSeconds = -1;
             if (openingCue.gameObject.activeSelf != visible) openingCue.gameObject.SetActive(visible);
         }
+        void RefreshDeploymentReceipt()
+        {
+            if (!deploymentReceipt) return;
+            var brain = invader ? invader.Controller<RaidInvaderBrain>() : null;
+            var guideOwnsOpeningLane = firstMinuteGuide && firstMinuteGuide.GuideLineVisible;
+            var show = brain && brain.IsOpeningHold && !openingCueDismissed && !guideOwnsOpeningLane && possessionManager && !possessionManager.IsPossessing && defense != null && !defense.IsFinished && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf);
+            SetDeploymentReceiptVisible(show);
+        }
+        void SetDeploymentReceiptVisible(bool visible) => deploymentReceipt?.SetVisible(visible);
         void RefreshRouteStatus()
         {
             if (!routeStatus) return;

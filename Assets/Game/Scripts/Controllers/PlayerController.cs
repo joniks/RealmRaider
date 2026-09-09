@@ -185,7 +185,7 @@ namespace RealmRaiders.Controllers
             if (delta.magnitude > SwipePixels && Time.unscaledTime - startedAt < SwipeSeconds)
             {
                 ClearGroundTap();
-                RequestAbility(1, new Vector3(delta.x, 0, delta.y));
+                RequestAbility(1, ResolveCameraPlaneDirection(view ? view.transform : null, delta, transform.forward));
                 return;
             }
             ProcessFingertapRelease(screenPosition);
@@ -257,8 +257,25 @@ namespace RealmRaiders.Controllers
 
         public bool UseAbility(int index)
         {
-            var direction = view ? view.transform.forward : transform.forward; direction.y = 0;
-            return RequestAbility(index, direction);
+            return RequestAbility(index, ResolveCameraPlaneDirection(view ? view.transform : null, Vector2.up, transform.forward));
+        }
+
+        public static Vector3 ResolveCameraPlaneDirection(Transform cameraTransform, Vector2 screenDirection, Vector3 fallbackFacing)
+        {
+            if (!TryNormalizePlanar(fallbackFacing, out var fallback)) fallback = Vector3.forward;
+
+            var cameraForward = cameraTransform ? cameraTransform.forward : Vector3.zero;
+            if (!TryNormalizePlanar(cameraForward, out cameraForward)) cameraForward = fallback;
+
+            var cameraRight = cameraTransform ? cameraTransform.right : Vector3.zero;
+            if (!TryNormalizePlanar(cameraRight, out cameraRight))
+            {
+                cameraRight = Vector3.Cross(Vector3.up, cameraForward);
+                if (!TryNormalizePlanar(cameraRight, out cameraRight)) cameraRight = Vector3.right;
+            }
+
+            var resolved = cameraRight * screenDirection.x + cameraForward * screenDirection.y;
+            return TryNormalizePlanar(resolved, out resolved) ? resolved : fallback;
         }
 
         public bool CanBufferAbility(int index)
@@ -393,6 +410,14 @@ namespace RealmRaiders.Controllers
             !float.IsNaN(value.x) && !float.IsInfinity(value.x) &&
             !float.IsNaN(value.y) && !float.IsInfinity(value.y) &&
             !float.IsNaN(value.z) && !float.IsInfinity(value.z);
+
+        static bool TryNormalizePlanar(Vector3 value, out Vector3 normalized)
+        {
+            value.y = 0;
+            if (!IsFinite(value) || value.sqrMagnitude <= .000001f) { normalized = Vector3.zero; return false; }
+            normalized = value.normalized;
+            return true;
+        }
 
         void ReportLocomotionAccepted(Vector3 displacement)
         {
