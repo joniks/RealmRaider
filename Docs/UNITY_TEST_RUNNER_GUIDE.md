@@ -26,6 +26,8 @@ vai Core izstrādātājam, kas strādā tajā pašā projektā.
    Izvēlies **EditMode** vai **PlayMode** atbilstoši uzdevumam un spied
    **Run Selected**. Negaidi manuālu spēles testu, ja automatizētais tests jau
    ir pietiekams konkrētajai pārbaudei.
+   Ja iepriekšējais filtrs ir aktīvs, **notīri to ar meklēšanas lauka `×` pogu**
+   pirms jebkura `Run All`; citādi `Run All` var palaist tikai filtrēto testu.
 4. Ja fokusētais tests ir zaļš un kandidāts kopš tā nav mainīts, palaid vienu
    pilno komplektu: **EditMode → Run All**, pēc tam **PlayMode → Run All**.
    Šajā projektā pilnais **Run All** izpildās pietiekami ātri.
@@ -35,6 +37,18 @@ vai Core izstrādātājam, kas strādā tajā pašā projektā.
    nākamajiem uzdevumiem.
 6. Zaļus pilnos komplektus neatkārto. Atkārto tikai tad, ja pēc tiem mainījās
    kandidāts, imports vai tests, vai ja atradi konkrētu testu problēmu.
+
+## Nepārtraukta QA kārtība
+
+- Pēc Architect uzdevuma neapstājies pie starpposma kopsavilkuma: turpini ar
+  nākamo jau atļauto QA soli, līdz ir gala rezultāts vai konkrēts bloķētājs.
+- Par **katru faktisko** fokusētā testa, pilnā komplekta, manuālā smoke vai UI
+  bloķētāja rezultātu uzreiz ziņo Architect (un Core, ja tas ir koda/testa
+  defekts). Neziņo izdomātu vai vēl nenolasītu rezultātu.
+- Pirms `Run All` pārbaudi, ka meklēšanas lauks ir tukšs un Test Runner rāda
+  pilnu attiecīgā režīma testu skaitu.
+- Ja kļūme bloķē turpmākos atļautos soļus, nekavējoties nosūti pilno testa
+  nosaukumu un kļūdas tekstu Architect; nepaliec klusā gaidīšanas stāvoklī.
 
 ## Ja kaut kas neizdodas
 
