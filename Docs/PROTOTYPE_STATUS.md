@@ -51,6 +51,7 @@ Last reviewed: 2026-09-09
 - Diamond Pass 11.0 In-Run Control Style Switcher is present: gameplay HUDs now offer a factual persistent `AUTO`/`TAP`/`STICK` cycle with immediate transient-input reset and responsive joystick visibility, while Hub and BUILD controls remain unchanged.
 - Module Pass MMP 03 Motion Profile Compatibility Gate is staged in the pinned Modules submodule: explicitly supplied motion targets can be fail-closed checked for family, rig, six clips and fallback policy without Unity, asset or gameplay authority.
 - Diamond Pass 11.1 Keeper Touch Selection Reliability is present: registered creatures now use a deterministic mobile press/release selection path with safe near-miss tolerance and strict UI/swipe/state rejection before the existing possession flow.
+- Module Preview Passes MWS 02/MWS 03 and MUI 01 are staged in the pinned Modules submodule: original-generated Sylvan/Infernal ground-material and Jump-icon candidates have explicit provenance but remain preview-only until seam, import, readability and mobile-budget gates pass.
 - P0 Sylvan Raid Boundary Path Recovery is present: the factual Portal → Crossroads route has a non-blocking visible route tree and seam-aligned node support collider, while its intended outer boundary closure remains intact.
 - Current Unity Test Runner baseline: EditMode 119/119 and PlayMode 63/63 passed on 2026-09-09; PlayMode exited normally with 0 failures.
 - Physical-device validation remains pending; no device performance result is claimed here.

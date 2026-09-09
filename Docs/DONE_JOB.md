@@ -1459,3 +1459,22 @@ Completed on 2026-09-09.
 ### Scope intentionally deferred
 
 - Boundary visual redesign, terrain, navigation/pathfinding, movement/dash tuning, combat/possession changes, new map content, art, UI changes, device-performance claims and any unrelated route work.
+
+## Module Preview Passes MWS 02, MWS 03 and MUI 01 — World-Surface and Jump-Icon Candidates
+
+Accepted on 2026-09-09 in the Modules submodule.
+
+### Delivered
+
+- Added separately documented original-generated `1024×1024` Sylvan moss/root-stone and Infernal basalt/iron/ember albedo plus normal-map candidates.
+- Added one original-generated `512×512` transparent Jump action icon candidate designed for `64 px` mobile readability.
+- Every candidate records its provenance, exact role, intended Unity import settings and a clear `preview-import-candidate-not-approved-for-runtime` status. No third-party source is involved.
+
+### Verification
+
+- Reviewed from the committed Modules sources as preview-only assets; they do not alter Unity package resolution, scenes, runtime visuals, gameplay, licensing notices or device claims.
+- `git diff --check` was clean when each isolated Modules commit was accepted.
+
+### Scope intentionally deferred
+
+- Texture tileability/seam proof, Unity import, normal-map orientation, compression/memory budget, sprite readability in a real HUD, material/shader setup, runtime installation and all gameplay integration.
