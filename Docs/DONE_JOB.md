@@ -1919,3 +1919,27 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 - Unity import/material binding, Android compression, on-device lighting and
   periodicity, runtime geometry/collision/gameplay, final-art approval and
   Infernal clearing art.
+
+## Art Pass MUI 02 — Encounter Cue Icon Candidates
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Produced three original 512×512 RGBA preview icons for factual `discovered`,
+  `hostiles present` and `area clear` states without text or third-party sources.
+- Added a dark-neutral 48 px actual-size contact sheet, a 256 px overview and
+  provenance containing exact prompts, mappings and SHA-256 values.
+
+### Verification
+
+- Dimensions, RGB/RGBA modes, transparent/partial/opaque alpha evidence, JSON,
+  declared hashes and whitespace are clean.
+- All three silhouettes remain distinct at 48 px. The dark hostiles silhouette
+  retains an explicit 32 px/in-context contrast gate and is not runtime-approved.
+- Accepted in Modules commit `3bc738c` (`art: prepare encounter cue icon set`).
+
+### Scope intentionally deferred
+
+- Unity sprite import, runtime binding, 13.2 text/layout changes, animation,
+  font/audio/VFX, gameplay/reward changes and final UI approval.

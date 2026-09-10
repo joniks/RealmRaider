@@ -337,13 +337,15 @@ and the recommended 3.5-world-unit tile scale remain explicit Unity/device gates
 
 ## Next Module gate
 
-## Now — Art Pass MUI 02: Encounter Cue Icon Candidates
+## Accepted — Art Pass MUI 02: Encounter Cue Icon Candidates
 
 Owner: Module Developer / Technical Art
 
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
 
 Base: Modules commit `646ecde`.
+
+Accepted Modules commit: `3bc738c`.
 
 Reserved folder only:
 
@@ -376,3 +378,49 @@ candidates until the text-first cue passes QA and Architect names an integration
 Main checkout, Unity or `.meta`, 13.2 code/text/layout changes, runtime binding,
 animation, font, audio/VFX, gameplay/reward logic, third-party sources or package
 validators.
+
+Acceptance: all three 512×512 RGBA candidates, their actual-size 48 px contact
+sheet, 256 px overview, alpha evidence, declared hashes and original-generation
+provenance were reviewed on 2026-09-10. The silhouettes are distinct at 48 px;
+the darker hostiles mark still requires explicit 32 px/in-context contrast review.
+
+## Now — Art Pass MUI 03: Blood Knight Ability Icon Candidates
+
+Owner: Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Base: Modules commit `3bc738c`.
+
+Reserved folder only:
+
+- `ArtPreviews/MUI03-BloodKnightAbilityIcons/`
+
+### Outcome
+
+Prepare an original, cohesive icon family for the three truthful direct-control
+actions already present in the first Sylvan raid: Basic Slash, Blood Rush and
+Heavy Cleave. The set remains preview-only until a later named HUD integration.
+
+### Required deliverables
+
+1. Create three original 512×512 transparent-background RGBA PNGs: `basic-slash`,
+   `blood-rush` and `heavy-cleave`.
+2. Use bold mobile-readable silhouettes with shared Blood Knight palette and
+   shape language. Slash must read as a quick single arc, Rush as forward motion,
+   and Cleave as a heavier broad area arc without relying on text or numerals.
+3. Avoid model likeness, logos, gore, realistic blood, a full character, backdrop,
+   frame, watermark or recognizable franchise design. Use no third-party source.
+4. Produce one neutral dark 48 px actual-size contact sheet and one 256 px overview.
+   Evidence sheets are not runtime assets.
+5. Record exact prompts/tools/date/output hashes, intended ability mapping,
+   original-generation truth and preview-only status in one provenance JSON.
+6. Inspect silhouette distinction, transparent edges and 32–48 px readability;
+   verify dimensions, RGBA/alpha, JSON, hashes and whitespace. Freeze only the
+   reserved folder and send a compact handoff; no commit or push.
+
+### Non-goals
+
+Main checkout, Unity or `.meta`, RaidHUD or ability changes, runtime binding,
+cooldown/readiness logic, combat balance, animation/VFX/audio, third-party source,
+character/model art or package validators.

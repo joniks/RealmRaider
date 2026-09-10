@@ -72,6 +72,7 @@ Last reviewed: 2026-09-10
 - Module Pass MWS 09 is accepted in the pinned Modules submodule: a deterministic wrapped-edge tool and restrained Sylvan living-root normal-map candidate are ready for the named boundary presentation gate, but remain unimported until Unity orientation and device-lighting review.
 - Diamond Pass 13.1 Sylvan Living-Root Boundary Presentation is present: Sylvan arena closure now uses the accepted original-generated root albedo and restrained normal response through deterministic visual-only UV/tangents, while all boundary geometry, colliders, gameplay and non-Sylvan fallbacks remain unchanged.
 - Module Pass MWS 10 is accepted in the pinned Modules submodule: a project-owned Sylvan clearing-floor albedo, restrained wrapped-edge normal and exact repeat evidence are ready for a named future Unity integration gate; runtime binding and device periodicity remain unclaimed.
+- Art Pass MUI 02 is accepted in the pinned Modules submodule: three original encounter-state icon candidates and actual-size evidence are ready for a later named integration, while the dark hostiles mark retains an explicit in-context contrast gate.
 - Current Unity Test Runner baseline: EditMode `145/145` and PlayMode `80/80` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
