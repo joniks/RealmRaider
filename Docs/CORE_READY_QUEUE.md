@@ -61,7 +61,7 @@ SylvanRealm portrait and DefenderTest landscape showed restrained root relief wi
 no obvious seams, streaking or gaps; Portal → Crossroads movement and autonomous
 defense engagement continued, and the Console remained clean.
 
-## Now — Diamond Pass 13.2: Factual Encounter Entry and Clear Cue
+## Accepted — Diamond Pass 13.2: Factual Encounter Entry and Clear Cue
 
 Owner: Core developer. Base: `d5bdf91`. Full lease: `Docs/NEXT_JOB.md`.
 
@@ -73,15 +73,26 @@ must not gate movement, discover enemies by scan/name, or change AI, combat,
 camera, rewards, fog, input or route availability. Core never controls Unity;
 Architect reviews the frozen diff and QA alone produces Unity evidence.
 
-## Ready after 13.2
+Acceptance: QA's final native gates passed EditMode `148/148` and PlayMode
+`81/81`, both with zero failed/skipped/inconclusive tests; Console was `0/0/0`.
+The assigned Game-view smoke remains honestly unobserved because CUA returned
+`noWindowsAvailable` for every Game-view action, not because of a runtime failure.
 
-If QA finds no P0/P1 defect in 13.2, activate **Diamond Pass 13.3 — Sylvan
-Clearing-Floor Presentation** from the accepted Modules MWS10 commit `646ecde`.
-Import only the 1024×1024 albedo and restrained normal with provenance and mobile
-settings, then apply them only to the existing Sylvan circular node/clearing
-presentation. Preserve every node transform, collider, visit radius, route,
-combat and fog behavior plus exact missing-resource fallback. QA must inspect
-both orientations for obvious periodicity and verify normal orientation under
-the existing light. If 13.2 instead exposes a P0/P1 defect, fix that one bounded
-defect first. Infernal surface integration remains blocked on its documented
-on-device periodicity review.
+## Now — Diamond Pass 13.3: Sylvan Clearing-Floor Presentation
+
+Owner: Core developer. Base: Architect's accepted 13.2 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Import only the accepted MWS10 Sylvan clearing albedo and restrained normal with
+exact provenance/mobile settings, then bind them only to existing circular Sylvan
+node-floor presentation. Preserve every transform, mesh, collider, visit radius,
+fog/encounter/route/combat behavior and exact missing-resource fallback. Core does
+not control Unity; Architect statically reviews and QA alone verifies the frozen
+candidate.
+
+## Ready after 13.3
+
+Use QA's actual node-scale/periodicity observation for one bounded correction or
+accept the surface. The next Core gate then chooses one named MUI02/MUI03 icon
+integration, not both at once. Infernal surface integration remains blocked on
+its documented on-device periodicity review.

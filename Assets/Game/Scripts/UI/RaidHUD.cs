@@ -25,6 +25,7 @@ namespace RealmRaiders.UI
         RealmCore core;
         Camera view;
         HudPresentation presentation;
+        RaidEncounterCue encounterCue;
         InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
@@ -55,15 +56,16 @@ namespace RealmRaiders.UI
         public string ResultPrimaryActionText => planNextDefense ? planNextDefense.GetComponentInChildren<Text>().text : string.Empty;
         public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
         public string ControlHintText => controlHint ? controlHint.text : string.Empty;
+        public RaidEncounterCue EncounterCue => encounterCue;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
             if (PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; Build();
-            manager.StateChanged += OnState; manager.Finished += ShowResult;
+            manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter;
             hero.Health.Changed += (_, _) => Refresh();
-            Refresh(); OnState(manager.State);
+            Refresh(); OnState(manager.State); OnEncounter(manager.Encounter);
         }
 
         public static string ResultActionDestination(string action) => action switch
@@ -113,6 +115,7 @@ namespace RealmRaiders.UI
             objectiveCompass = Label("", Vector2.zero, 24, TextAnchor.MiddleCenter); objectiveCompass.name = "Heart Tree Compass"; objectiveCompass.raycastTarget = false; objectiveCompass.gameObject.SetActive(false);
             rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             controlHint = Label("", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true); controlHint.raycastTarget = false;
+            encounterCue = gameObject.AddComponent<RaidEncounterCue>(); encounterCue.Initialize(responsive);
             abilityButtons = new[]
             {
                 new AbilityButtonReadiness(Button("SLASH", new Vector2(-260, 110), () => Ability(0)), "SLASH", 0),
@@ -198,7 +201,16 @@ namespace RealmRaiders.UI
         void Dodge() => hero.Controller<PlayerController>()?.Dodge();
         void Jump() => hero.Controller<PlayerController>()?.Jump();
         public void SetObjectiveProgress(float progress) { objectiveProgress = progress; objective.text = progress > 0 ? $"Capturing Heart Tree  {progress * 100:0}%" : "Reach the Heart Tree"; }
-        void OnState(RaidState value) => state.text = $"SYLVAN RAID — {value}";
+        void OnState(RaidState value)
+        {
+            state.text = $"SYLVAN RAID — {value}";
+            if (value is RaidState.Victory or RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) encounterCue?.Clear();
+        }
+        void OnEncounter(RaidEncounterState value)
+        {
+            if (GameplayInput.TerminalState || resultPanel && resultPanel.activeSelf) encounterCue?.Clear();
+            else encounterCue?.Show(value);
+        }
         void Refresh()
         {
             health.text = $"Blood Knight  {hero.Health.Current:0}/{hero.Health.Maximum:0} HP";
@@ -272,6 +284,7 @@ namespace RealmRaiders.UI
             RefreshDodgeButton();
             RefreshJumpButton();
             SetCompassVisible(false);
+            encounterCue?.Clear();
             resultPanel.SetActive(true);
             presentation?.PlayResult();
             result.text = ResultCopy(value);
@@ -321,8 +334,9 @@ namespace RealmRaiders.UI
 
         void OnDestroy()
         {
-            if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; }
+            if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; raid.EncounterChanged -= OnEncounter; }
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
+            encounterCue?.Clear();
             if (journeyToken != 0 && !journeyHandoff && PrototypeJourney.Cancel(journeyResultReached ? journeyResultToken : journeyToken))
                 FirstPlayableMinute.ResetBuildHandoff();
         }

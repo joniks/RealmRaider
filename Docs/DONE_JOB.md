@@ -1966,3 +1966,34 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 
 - Unity sprite import, RaidHUD binding, mobile compression, 32 px comprehension,
   cooldown/readiness behavior, combat balance, animation/VFX/audio and final art.
+
+## Diamond Pass 13.2 — Factual Encounter Entry and Clear Cue
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Realm nodes now publish their immutable first-visit identity and explicitly
+  supplied, currently alive `CombatEntity` contents without scene scans, tags,
+  names or polling.
+- `RaidManager` owns an idempotent scene-local entry/count/clear lifecycle using
+  existing Health death events while preserving exact-once room/enemy rewards.
+- `RaidHUD` has one brief non-raycast responsive text cue for discovery, factual
+  hostile count and `AREA CLEAR`, with timeout, next-state, terminal, disable and
+  teardown cleanup.
+
+### Verification
+
+- Architect static review confirmed reserved scope, event unsubscription,
+  gameplay/input boundaries and clean whitespace.
+- QA native gates passed EditMode `148/148` and PlayMode `81/81`, with zero
+  failed, skipped or inconclusive tests after correcting one Unity fake-null test
+  assertion. Console after the final run was 0 logs, 0 warnings and 0 errors.
+- Manual Crossroads → Wolf Grove portrait/landscape smoke is not claimed: CUA
+  returned `noWindowsAvailable` for Game-view actions. This is an automation
+  observation blocker, not a recorded runtime failure.
+
+### Scope intentionally deferred
+
+- Encounter icons, audio/VFX/haptics, gates/doors, loot, minimap, AI, combat,
+  camera, route/reward changes and physical-device/manual cue readability.
