@@ -1802,3 +1802,32 @@ Completed on 2026-09-10.
 ### Scope intentionally deferred
 
 - Infernal/boundary integration, second-tile macro variation, terrain/shader work, normal/height/emission maps, final-art approval and physical-device performance/readability.
+
+## QA Tool 01 — Accessible Unity Test Gates
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Added two accessible **Realm Raiders → QA** commands that launch one full,
+  explicitly unfiltered EditMode or PlayMode suite through Unity's public
+  `TestRunnerApi` without manipulating the Test Runner window.
+- The gate refuses compilation, asset update, Play Mode and overlapping owned-run
+  states; it logs factual start/final totals and preserves only minimal ownership
+  across PlayMode domain reload.
+- Core and Module remain Unity-free. Reviewer / QA + Build is restored as the
+  sole Unity/test/build operator; Architect retains static review and acceptance.
+
+### Verification
+
+- QA invoked each new command exactly once in the existing healthy Unity GUI.
+- EditMode passed `139/139`; PlayMode passed `79/79`, both with `0` failures,
+  skipped or inconclusive tests.
+- PlayMode ownership recovered after script reload and cleared on completion;
+  both menu commands were enabled afterwards. No CLI, restart, overlapping run,
+  Test Runner filter/layout change, source edit, commit or export occurred in QA.
+
+### Scope intentionally deferred
+
+- Focused-test selection through this menu, automatic suite chaining, CLI tests,
+  automatic retries and platform export orchestration.

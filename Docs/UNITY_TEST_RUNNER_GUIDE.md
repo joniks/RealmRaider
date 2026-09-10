@@ -23,26 +23,33 @@ vai Core izstrādātājam, kas strādā tajā pašā projektā.
 
 1. Pārliecinies, ka šis ir QA uzdevums, diff ir iesaldēts un nav jaunu koda vai
    testa izmaiņu kopš pēdējās pilnās zaļās palaišanas.
-2. Unity redaktorā atver **Window → General → Test Runner**. Ja logs jau ir
-   atvērts, vispirms to skaidri pacel un aktivizē; neveido jaunu Unity procesu.
-   **Tieši pirms katra `Run Selected` vai `Run All` klikšķa Test Runner logam
-   jābūt atvērtam, redzamam un aktīvam.** Nepalaiž testu no nefokusēta vai tikai
-   fonā redzama Test Runner loga.
-3. Vispirms palaid mazāko uzdevumā prasīto fokusēto testu vai testa klasi.
+2. Pilnam nefiltrētam komplektam lieto projekta izvēlni **Realm Raiders → QA →
+   Run All EditMode Tests** vai **Run All PlayMode Tests**. Šīs komandas lieto
+   oficiālo `TestRunnerApi`, neņem vērā Test Runner meklēšanas filtru un konsolē
+   izvada sākumu, precīzus gala skaitītājus un statusu. Test Runner logs šim
+   ceļam nav jāatver vai jāpārkārto.
+3. Ja lease prasa mazāko fokusēto testu vai testa klasi, atver **Window →
+   General → Test Runner**. Ja logs jau ir atvērts, vispirms to skaidri pacel
+   un aktivizē; neveido jaunu Unity procesu.
    Izvēlies **EditMode** vai **PlayMode** atbilstoši uzdevumam un spied
    **Run Selected**. Negaidi manuālu spēles testu, ja automatizētais tests jau
    ir pietiekams konkrētajai pārbaudei.
    Ja iepriekšējais filtrs ir aktīvs, **notīri to ar meklēšanas lauka `×` pogu**
    pirms jebkura `Run All`; citādi `Run All` var palaist tikai filtrēto testu.
-4. Ja fokusētais tests ir zaļš un kandidāts kopš tā nav mainīts, palaid vienu
-   pilno komplektu: **EditMode → Run All**, pēc tam **PlayMode → Run All**.
-   Šajā projektā pilnais **Run All** izpildās pietiekami ātri.
+4. Ja fokusētais tests ir zaļš un kandidāts kopš tā nav mainīts, izvēlnē palaid
+   **Run All EditMode Tests**, nogaidi `[Realm Raiders QA] ... run finished`, un
+   tikai tad palaid **Run All PlayMode Tests**. Nekad nepalaiž abus reizē.
 5. Pieraksti tikai redzamo rezultātu: nokārtoto/kopējo skaitu, kļūmju skaitu un
    to, vai pēc gala komplektiem ir mainījies kods vai testi. Aktuālo pieņemto
    baseline skaties `Docs/PROTOTYPE_STATUS.md`; testa skaits var pieaugt ar
    nākamajiem uzdevumiem.
 6. Zaļus pilnos komplektus neatkārto. Atkārto tikai tad, ja pēc tiem mainījās
    kandidāts, imports vai tests, vai ja atradi konkrētu testu problēmu.
+
+Ja Unity kompilē, atjaunina assetus, ir Play Mode vai šis rīks jau palaidis
+komplektu, izvēlnes komanda atsakās sākt otru darbu un izvada faktisku brīdinājumu.
+Pēc PlayMode domain reload īpašumtiesības tiek atjaunotas, un gala callback tās
+notīra. Neapiet šo aizsardzību ar Test Runner pogu vai CLI.
 
 ### Zināms Test Runner gadījums — filtrētais tests paliek sagatavošanā
 
@@ -101,11 +108,10 @@ iepriekš saskaņotā robežā. Tad eksports ir pieņemts tikai ar kodu `0`, vei
 - Par **katru faktisko** fokusētā testa, pilnā komplekta, manuālā smoke vai UI
   bloķētāja rezultātu uzreiz ziņo Architect (un Core, ja tas ir koda/testa
   defekts). Neziņo izdomātu vai vēl nenolasītu rezultātu.
-- Pirms `Run All` pārbaudi, ka meklēšanas lauks ir tukšs un Test Runner rāda
-  pilnu attiecīgā režīma testu skaitu.
-- Pirms katras palaišanas vēlreiz aktivizē pašu Test Runner logu; tikai pēc tam
-  spied `Run Selected` vai `Run All` un nogaidi palaišanas beigas pirms nākamā
-  klikšķa.
+- Pilniem komplektiem lieto tikai **Realm Raiders → QA** komandas; tās vienmēr
+  pieprasa visu režīmu un nepārmanto Test Runner filtru.
+- Test Runner logu aktivizē tikai fokusētam `Run Selected`; pēc katras
+  palaišanas nogaidi gala rezultātu pirms nākamās darbības.
 - Ja kļūme bloķē turpmākos atļautos soļus, nekavējoties nosūti pilno testa
   nosaukumu un kļūdas tekstu Architect; nepaliec klusā gaidīšanas stāvoklī.
 

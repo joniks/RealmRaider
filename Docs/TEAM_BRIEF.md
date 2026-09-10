@@ -24,20 +24,21 @@ The highest-value proof is the 30–60 second Keeper → same-creature possessio
 
 | Role | Owns | Must not do |
 | --- | --- | --- |
-| Architect / temporary QA gate | Priority, leases, docs, static preflight, frozen-candidate Unity evidence, accepted commits | Implement beside Core, push, repeat suites or alter Test Runner layout |
+| Architect / Product Lead | Priority, leases, docs, static preflight, acceptance decisions and accepted commits | Implement beside Core, control Unity, run tests/builds, push |
 | Core | One named main-checkout vertical slice | Unity, tests, docs/process edits, commit/push |
 | Module / Technical Art | One isolated Modules package/tool/data slice | Main checkout, Unity, mixed bundles, integration/commit/push |
+| Reviewer / QA + Build | The single Unity GUI instance, focused/final tests, observed smoke and build/export evidence | Implement source, restart a healthy Editor, run CLI beside GUI, change layout, commit/push |
 
-The separate QA conversation is temporarily inactive. Architect supplies that gate until the user explicitly restores it; Core and Module restrictions remain unchanged.
+The separate QA conversation is active again. Only QA controls Unity and produces Unity test/build evidence; Architect performs static preflight and acceptance, while Core and Module remain Unity-free.
 
 ## Fast, reliable rhythm
 
 1. Read `NEXT_JOB.md`, inspect status and edit only the named lease.
-2. Core freezes a narrow candidate and reports six facts. Architect checks scope and `git diff --check`.
-3. Architect runs focused checks, then exactly one final EditMode and PlayMode run after the final change. A green suite is never rerun without a concrete cause.
-4. Architect reports only observed manual smoke. A UI/lock/tool limitation is recorded precisely, not disguised as a gameplay failure or success.
+2. Core freezes a narrow candidate and reports six facts. Architect checks scope and `git diff --check`, then issues one named QA lease.
+3. QA runs focused checks, then exactly one final EditMode and PlayMode run after the final change. A green suite is never rerun without a concrete cause.
+4. QA reports only observed manual smoke. A UI/lock/tool limitation is recorded precisely, not disguised as a gameplay failure or success.
 5. Architect records accepted facts, commits only accepted paths, and leaves push to the user. URP, generated files and unrelated Modules state are never swept into a feature commit.
-6. Architect works deliberately as the temporary QA gate. Tests use the established Unity Test Runner GUI: clear the filter → click one gate → wait for the UI/result to settle → verify the result before the next click. After each accepted Core commit, use **Realm Raiders → Build → Export Android Studio Project** in the already-open healthy Editor; do not close or restart it for export. The CLI wrapper is a fallback only when the Editor is already closed and that boundary was approved. Never run a second Unity process against the same project or use `Reimport All`, Library deletion or blind UI clicks.
+6. QA alone uses the established Unity Test Runner GUI: open Test Runner, clear the filter → click one gate → wait for the UI/result to settle → verify the result before the next click. After each accepted Core commit, QA uses **Realm Raiders → Build → Export Android Studio Project** in the already-open healthy Editor; it does not close or restart it for export. The CLI wrapper is a fallback only when the Editor is already closed and that boundary was approved. Never run a second Unity process against the same project or use `Reimport All`, Library deletion or blind UI clicks.
 7. A frozen handoff is not idle permission: Core immediately prepares the next `CORE_READY_QUEUE.md` gate read-only, while Architect reviews or verifies. A user push never blocks local continuation.
 8. A filtered PlayMode `Run Selected` can stall in Test Runner staging before the test method begins. This is not evidence of a gameplay loop and does not justify a Mac/Unity restart: cancel that run, focus Test Runner, clear the filter, verify the full count and use one ordinary `Run All`.
 

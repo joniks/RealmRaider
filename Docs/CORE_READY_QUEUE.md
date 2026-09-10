@@ -11,7 +11,7 @@ This is the tracked continuation queue for the main Unity checkout. `NEXT_JOB.md
 - Final Unity GUI Test Runner: EditMode `139/139`, PlayMode `79/79`, `0` failures. PlayMode XML completed 2026-09-10 06:25:24Z; scoped and complete-new-file checks are clean.
 - Architect records and commits only the accepted paths; user push is asynchronous publication and does not block QA Tool 01.
 
-## Now — QA Tool 01: Accessible Unity Test Gates
+## Accepted — QA Tool 01: Accessible Unity Test Gates
 
 Owner: Core developer
 
@@ -36,12 +36,18 @@ Expose two accessible Unity menu commands that start full EditMode or PlayMode r
 - Refuse while compiling, updating, entering/inside Play Mode or while a gate launched by this tool is already active. Never start a second run or Unity process.
 - Register a lightweight callback that logs factual passed/failed/skipped totals and clears the owned active state; persist only the minimum session state needed across a PlayMode domain reload.
 - Do not mutate tests, Test Runner layout/filter, scenes, packages, ProjectSettings or gameplay. Do not auto-chain broad suites; Architect deliberately invokes each final gate once.
-- Architect updates the QA guide after direct acceptance; Core does not edit process documentation.
+- Architect updates the QA guide after QA's direct acceptance; Core does not edit process documentation.
 
-## Next gate — Architect verification
+## Verification
 
-After Core freezes QA Tool 01, Architect performs static API/lifecycle review, invokes its EditMode menu command, reads the result, then invokes its PlayMode command and reads that result. A concrete failure returns to the same lease; green direct use accepts the tool without a second redundant suite.
+Reviewer / QA + Build invoked each new menu command exactly once in the existing
+healthy Editor. EditMode passed `139/139`; PlayMode passed `79/79`. PlayMode
+ownership recovered across domain reload and cleared after completion. No CLI,
+restart, overlapping run or Test Runner layout/filter change occurred.
 
-## Ready after QA Tool 01
+## Now — Diamond Pass 13.1: Sylvan Living-Root Boundary Presentation
 
-Diamond Pass 13.1 integrates the accepted MWS08 Sylvan living-root boundary candidate as presentation only, preserving all boundary collider geometry and mobile budgets. The matching Infernal path remains queued behind its documented ember-periodicity check.
+Core integrates the accepted MWS08 Sylvan living-root boundary albedo and accepted
+MWS09 restrained normal candidate as presentation only, preserving all boundary
+collider geometry, gameplay authority and mobile budgets. The matching Infernal
+surface remains queued behind its documented periodicity check.
