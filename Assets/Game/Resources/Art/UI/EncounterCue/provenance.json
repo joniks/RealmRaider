@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "candidateSetId": "realmraiders.preview.encounter-cues.mui02.v1",
+  "createdOn": "2026-09-10",
+  "status": "accepted-runtime-preview-not-final-art",
+  "creation": "original-generated",
+  "thirdPartySources": false,
+  "generationTool": "OpenAI built-in image generation",
+  "modulesCommit": "3bc738c",
+  "sourcePaths": {
+    "discovered": "Modules/RealmRaider.Modules/ArtPreviews/MUI02-EncounterCueIconSet/discovered-rgba-candidate.png",
+    "hostiles": "Modules/RealmRaider.Modules/ArtPreviews/MUI02-EncounterCueIconSet/hostiles-rgba-candidate.png",
+    "area-clear": "Modules/RealmRaider.Modules/ArtPreviews/MUI02-EncounterCueIconSet/area-clear-rgba-candidate.png"
+  },
+  "paletteDirection": "restrained pale gold with dark forest-green and muted Sylvan teal",
+  "intendedFactualMapping": {
+    "discovered": "node discovered",
+    "hostiles": "hostiles present",
+    "area-clear": "area clear"
+  },
+  "generationPrompts": {
+    "discovered": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy encounter-cue icon candidate; Primary request: one bold, simple discovered-node silhouette: a small upright Sylvan waystone seed with one restrained pale-gold discovery spark above it; Scene/backdrop: genuinely transparent background only; no panel or badge; Subject: exactly one centered waystone/seed landmark and one tiny accent spark; Style/medium: polished mobile game UI icon, crisp stylized silhouette with broad clean shapes readable at 32–48 px; Composition/framing: centered, occupies 58–64% of square with generous transparent margin; Lighting/mood: quiet discovery, no glow cloud or vignette; Color palette: dark forest-green silhouette with restrained pale gold and muted Sylvan teal accent; Text (verbatim): none; Constraints: RGBA transparent background; no words, numerals, frame, border, logo, watermark, gradient backdrop, recognizable franchise design, characters, weapons, maps, UI controls or external symbols; original preview candidate.",
+    "hostiles": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy encounter-cue icon candidate; Primary request: one bold, simple hostiles-present silhouette: three upward dark talon tips emerging from a low Sylvan thorn shadow, with one restrained pale-gold edge accent; Scene/backdrop: genuinely transparent background only; no panel or badge; Subject: exactly three chunky talon/thorn points as one compact threat silhouette; Style/medium: polished mobile game UI icon, crisp stylized silhouette with broad clean shapes readable at 32–48 px; Composition/framing: centered, occupies 58–64% of square with generous transparent margin; Lighting/mood: alert threat, no glow cloud or vignette; Color palette: deep forest-green/near-black silhouette with restrained pale gold and muted Sylvan teal accent; Text (verbatim): none; Constraints: RGBA transparent background; no words, numerals, frame, border, logo, watermark, gradient backdrop, recognizable franchise design, characters, weapons, skulls, maps, UI controls or external symbols; original preview candidate.",
+    "area-clear": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy encounter-cue icon candidate; Primary request: one bold, simple area-clear silhouette: an open circular pair of Sylvan leaves around a small calm pale-gold clearing ray, clearly peaceful and unlike a threat claw or discovered waystone; Scene/backdrop: genuinely transparent background only; no panel or badge; Subject: exactly one open leaf-circle / clearing-ray motif as a single compact silhouette; Style/medium: polished mobile game UI icon, crisp stylized silhouette with broad clean shapes readable at 32–48 px; Composition/framing: centered, occupies 58–64% of square with generous transparent margin; Lighting/mood: calm resolved area, no glow cloud or vignette; Color palette: dark forest-green silhouette with restrained pale gold and muted Sylvan teal accent; Text (verbatim): none; Constraints: RGBA transparent background; no words, numerals, frame, border, logo, watermark, gradient backdrop, recognizable franchise design, characters, weapons, check marks, maps, UI controls or external symbols; original preview candidate."
+  },
+  "outputs": [
+    {
+      "file": "discovered-rgba-candidate.png",
+      "role": "node-discovered-icon-candidate",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "5b42f7d3220c81eeabf2dd7d1524bf4c946fecc8a47dc57822974c01bee334f1"
+    },
+    {
+      "file": "hostiles-rgba-candidate.png",
+      "role": "hostiles-present-icon-candidate",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "02229bca31794d8aa556cc1f52ebc27604d02dd9c200b3fcfba891b932942613"
+    },
+    {
+      "file": "area-clear-rgba-candidate.png",
+      "role": "area-clear-icon-candidate",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "3756f8b0aea1b12bc7dd844432a2adb6b1303214baff44038f56eba4cf702b1d"
+    },
+    {
+      "file": "contact-sheet-48px-dark-neutral.png",
+      "role": "non-runtime-actual-size-48px-contact-sheet",
+      "dimensions": [256, 96],
+      "colorFormat": "RGB",
+      "sha256": "1336c6901d57786a4e72da185151c4da72f0d644d888b463f1e45b25d1035ffe"
+    },
+    {
+      "file": "overview-sheet-256px-dark-neutral.png",
+      "role": "non-runtime-256px-overview-sheet",
+      "dimensions": [1024, 320],
+      "colorFormat": "RGB",
+      "sha256": "7beabc9c914443c569a65994517efea58ea859613454d69bee0b25b0b1637a94"
+    }
+  ],
+  "evidenceOperations": {
+    "iconResample": "sips resize to 512 square while preserving alpha",
+    "contactSheets": "standard-library RGBA alpha compositing onto neutral #141b1d; 48px row and 256px overview; evidence sheets are not runtime imports"
+  },
+  "reviewRequired": [
+    "in-context encounter-cue comprehension review",
+    "dark hostiles silhouette contrast review at 32px",
+    "Unity sprite import and mobile-compression review"
+  ],
+  "nonGoals": [
+    "animation, font, audio or VFX",
+    "gameplay, rewards, input or camera authority",
+    "final-art or device-readability approval"
+  ]
+}

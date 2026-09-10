@@ -96,7 +96,7 @@ failed/skipped/inconclusive tests; Console was `0/0/0`. Manual surface scale,
 normal and periodicity remain unobserved because the first Game-view click failed
 with `windowNotFoundAtPosition`; this is not an automated runtime failure.
 
-## Now — Diamond Pass 13.4: Factual Encounter Cue Icons
+## Accepted — Diamond Pass 13.4: Factual Encounter Cue Icons
 
 Owner: Core developer. Base: Architect's accepted 13.3 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -106,8 +106,23 @@ settings. Add one non-raycast phase icon to the existing `RaidEncounterCue` whil
 keeping truthful text primary, responsive layout intentional and every timeout,
 terminal and teardown rule unchanged. No gameplay/input/camera/reward authority.
 
-## Ready after 13.4
+Acceptance: QA's native gates passed EditMode `158/158` and PlayMode `82/82`,
+both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
+40–44 px meaning/contrast/layout remains unobserved because the first Game-view
+click failed externally; no runtime failure was recorded.
 
-Use QA's 32/48 px in-context observation for one bounded icon contrast/placement
-correction or accept the set. Then activate one named MUI03 Blood Knight HUD icon
-integration; do not bundle Guardian/Infernal sets into the same Core gate.
+## Now — Diamond Pass 13.5: Blood Knight Ability Icons
+
+Owner: Core developer. Base: Architect's accepted 13.4 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Import only the accepted original MUI03 Basic Slash, Blood Rush and Heavy Cleave
+sprites with exact provenance/mobile settings. Decorate the existing three RaidHUD
+ability buttons without changing labels, readiness/cooldowns, input or combat.
+Missing/throwing resources retain the exact text-only controls.
+
+## Ready after 13.5
+
+Use QA's actual 32–48 px comprehension/contrast observation for one bounded
+correction or accept the set. Then choose Guardian Ent MUI04 as one separate
+DefenderHUD gate; do not bundle Infernal MUI05 in the same change.

@@ -1,3 +1,4 @@
+using System;
 using RealmRaiders.Controllers;
 using RealmRaiders.Raid;
 using UnityEngine;
@@ -9,6 +10,10 @@ namespace RealmRaiders.UI
     public sealed class RaidEncounterCue : MonoBehaviour
     {
         public const string LabelName = "Raid Encounter Cue";
+        public const string IconName = "Raid Encounter Cue Icon";
+        public const string DiscoveredIconResource = "Art/UI/EncounterCue/discovered-rgba-candidate";
+        public const string HostilesIconResource = "Art/UI/EncounterCue/hostiles-rgba-candidate";
+        public const string ClearedIconResource = "Art/UI/EncounterCue/area-clear-rgba-candidate";
         public const float DiscoveryDuration = 1.8f;
         public const float HostileCountDuration = 2.4f;
         public const float ClearDuration = 2f;
@@ -16,13 +21,27 @@ namespace RealmRaiders.UI
         ResponsiveHudRoot responsive;
         RectTransform labelRect;
         Text label;
+        RectTransform iconRect;
+        Image icon;
         float hideAt;
         RaidEncounterState current = RaidEncounterState.Hidden;
+
+        static Sprite discoveredIcon;
+        static Sprite hostilesIcon;
+        static Sprite clearedIcon;
+        static bool discoveredIconResolved;
+        static bool hostilesIconResolved;
+        static bool clearedIconResolved;
+        static Func<string, Sprite> spriteLoader = LoadSprite;
 
         public bool Visible => label && label.gameObject.activeSelf;
         public string Text => Visible ? label.text : string.Empty;
         public bool RaycastTarget => label && label.raycastTarget;
         public RectTransform Rect => labelRect;
+        public bool IconVisible => icon && icon.gameObject.activeSelf;
+        public Sprite IconSprite => icon ? icon.sprite : null;
+        public bool IconRaycastTarget => icon && icon.raycastTarget;
+        public RectTransform IconRect => iconRect;
         public RaidEncounterState Current => current;
 
         public void Initialize(ResponsiveHudRoot responsiveRoot)
@@ -30,6 +49,7 @@ namespace RealmRaiders.UI
             if (responsive) responsive.LayoutChanged -= ApplyLayout;
             responsive = responsiveRoot;
             if (!label) CreateLabel();
+            if (!icon) CreateIcon();
             if (responsive)
             {
                 responsive.LayoutChanged -= ApplyLayout;
@@ -55,6 +75,9 @@ namespace RealmRaiders.UI
             current = state;
             label.text = copy;
             label.gameObject.SetActive(true);
+            var sprite = SpriteFor(state.Phase);
+            icon.sprite = sprite;
+            icon.gameObject.SetActive(sprite);
             hideAt = Time.unscaledTime + DurationFor(state.Phase);
         }
 
@@ -66,6 +89,11 @@ namespace RealmRaiders.UI
             {
                 label.text = string.Empty;
                 label.gameObject.SetActive(false);
+            }
+            if (icon)
+            {
+                icon.sprite = null;
+                icon.gameObject.SetActive(false);
             }
         }
 
@@ -81,6 +109,14 @@ namespace RealmRaiders.UI
                 _ => string.Empty
             };
         }
+
+        public static string IconResourceFor(RaidEncounterPhase phase) => phase switch
+        {
+            RaidEncounterPhase.Discovered => DiscoveredIconResource,
+            RaidEncounterPhase.Hostiles => HostilesIconResource,
+            RaidEncounterPhase.Cleared => ClearedIconResource,
+            _ => string.Empty
+        };
 
         void Update()
         {
@@ -102,6 +138,19 @@ namespace RealmRaiders.UI
             label.gameObject.SetActive(false);
         }
 
+        void CreateIcon()
+        {
+            var iconObject = new GameObject(IconName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.transform.SetParent(transform, false);
+            iconRect = (RectTransform)iconObject.transform;
+            iconRect.anchorMin = iconRect.anchorMax = new Vector2(.5f, 1);
+            iconRect.pivot = new Vector2(.5f, .5f);
+            icon = iconObject.GetComponent<Image>();
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            icon.gameObject.SetActive(false);
+        }
+
         void ApplyLayout(PrototypeOrientation orientation)
         {
             if (!labelRect) return;
@@ -109,16 +158,57 @@ namespace RealmRaiders.UI
             labelRect.pivot = new Vector2(.5f, 1);
             if (orientation == PrototypeOrientation.Portrait)
             {
-                labelRect.anchoredPosition = new Vector2(0, -285);
-                labelRect.sizeDelta = new Vector2(760, 72);
+                labelRect.anchoredPosition = new Vector2(24, -285);
+                labelRect.sizeDelta = new Vector2(680, 72);
                 label.fontSize = 28;
+                iconRect.anchoredPosition = new Vector2(-350, -321);
+                iconRect.sizeDelta = new Vector2(44, 44);
             }
             else
             {
-                labelRect.anchoredPosition = new Vector2(0, -290);
-                labelRect.sizeDelta = new Vector2(620, 64);
+                labelRect.anchoredPosition = new Vector2(25, -290);
+                labelRect.sizeDelta = new Vector2(540, 64);
                 label.fontSize = 26;
+                iconRect.anchoredPosition = new Vector2(-270, -322);
+                iconRect.sizeDelta = new Vector2(40, 40);
             }
+        }
+
+        static Sprite SpriteFor(RaidEncounterPhase phase) => phase switch
+        {
+            RaidEncounterPhase.Discovered => ResolveSprite(ref discoveredIcon, ref discoveredIconResolved, DiscoveredIconResource),
+            RaidEncounterPhase.Hostiles => ResolveSprite(ref hostilesIcon, ref hostilesIconResolved, HostilesIconResource),
+            RaidEncounterPhase.Cleared => ResolveSprite(ref clearedIcon, ref clearedIconResolved, ClearedIconResource),
+            _ => null
+        };
+
+        static Sprite ResolveSprite(ref Sprite sprite, ref bool resolved, string resourcePath)
+        {
+            if (resolved) return sprite;
+            resolved = true;
+            try { sprite = spriteLoader?.Invoke(resourcePath); }
+            catch (Exception) { sprite = null; }
+            return sprite;
+        }
+
+        static Sprite LoadSprite(string resourcePath) => Resources.Load<Sprite>(resourcePath);
+
+        public static void ConfigureSpriteLoaderForTests(Func<string, Sprite> loader)
+        {
+            ResetSpriteCache();
+            spriteLoader = loader ?? (_ => null);
+        }
+
+        public static void ResetSpriteLoaderForTests()
+        {
+            ResetSpriteCache();
+            spriteLoader = LoadSprite;
+        }
+
+        static void ResetSpriteCache()
+        {
+            discoveredIcon = hostilesIcon = clearedIcon = null;
+            discoveredIconResolved = hostilesIconResolved = clearedIconResolved = false;
         }
 
         static float DurationFor(RaidEncounterPhase phase) => phase switch

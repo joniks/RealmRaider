@@ -2054,6 +2054,36 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 - Unity import, HUD/runtime binding, mobile compression, 32 px comprehension,
   combat logic/balance, animation/VFX/audio and final art.
 
+## Diamond Pass 13.4 — Factual Encounter Cue Icons
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported the three accepted original MUI02 encounter sprites byte-identically
+  with exact provenance and explicit single-sprite Android settings.
+- The existing text-first encounter cue now owns exactly one non-raycast phase
+  icon for discovery, hostiles and clear states, with intentional 44 px portrait
+  and 40 px landscape placement.
+- Per-phase cached loading preserves exact text-only behavior when sprites are
+  missing or throw; every existing timeout, next-node, terminal and teardown
+  cleanup remains authoritative.
+
+### Verification
+
+- Architect confirmed exact Modules `3bc738c` hashes, provenance/prompts, sprite
+  import settings, phase mapping, one-image ownership and clean fallback scope.
+- QA native gates passed EditMode `158/158` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual icon meaning, contrast, count/clear transition and both-orientation layout
+  are not claimed because the first Game-view click failed externally and QA
+  correctly stopped repeated attempts.
+
+### Scope intentionally deferred
+
+- Device/manual readability, animation/glow, ability/control icons, audio/VFX,
+  encounter/gameplay changes and final UI approval.
+
 ## Art Pass MUI 04 — Guardian Ent Ability Icon Candidates
 
 Completed on 2026-09-10 and accepted in the Modules submodule.
