@@ -31,7 +31,12 @@ namespace RealmRaiders.UI
             orientationHelp = Label("AUTO follows device rotation", new Vector2(0, -530), 20, TextAnchor.UpperCenter, 36); controlTitle = Label("CONTROL STYLE", new Vector2(0, -720), 24, TextAnchor.UpperCenter, 44);
             controlHelp = Label("CONTEXTUAL: fingertap in portrait • joystick in landscape", new Vector2(0, -790), 20, TextAnchor.UpperCenter, 36); journey = Label(JourneyExplanation, new Vector2(0, -970), 22, TextAnchor.UpperCenter, 50); prototypeRoutes = Label("PROTOTYPE ROUTES", new Vector2(0, -1180), 24, TextAnchor.UpperCenter, 44);
             Button("AUTO", new Vector2(-230, 1300), () => ChooseOrientation("Auto")); Button("PORTRAIT", new Vector2(0, 1300), () => ChooseOrientation("Portrait")); Button("LANDSCAPE", new Vector2(230, 1300), () => ChooseOrientation("Landscape"));
-            Button("CONTEXTUAL", new Vector2(-230, 1030), () => ChooseControl("Contextual")); Button("FINGERTAP", new Vector2(0, 1030), () => ChooseControl("Fingertap")); Button("JOYSTICK", new Vector2(230, 1030), () => ChooseControl("Joystick"));
+            var contextualControl = Button("CONTEXTUAL", new Vector2(-230, 1030), () => ChooseControl("Contextual"));
+            var fingertapControl = Button("FINGERTAP", new Vector2(0, 1030), () => ChooseControl("Fingertap"));
+            var joystickControl = Button("JOYSTICK", new Vector2(230, 1030), () => ChooseControl("Joystick"));
+            presentation.DecorateControlStyleButton(contextualControl, InRunControlStyleSelector.Contextual);
+            presentation.DecorateControlStyleButton(fingertapControl, InRunControlStyleSelector.Fingertap);
+            presentation.DecorateControlStyleButton(joystickControl, InRunControlStyleSelector.Joystick);
             Button("START SYLVAN JOURNEY", new Vector2(0, 820), StartJourney);
             Button("BUILD SYLVAN", new Vector2(0, 630), () => SelectAndLoad("Sylvan", "RealmBuild")); Button("DEFEND SYLVAN", new Vector2(0, 505), () => SelectAndLoad("Sylvan", "DefenderTest")); Button("RAID SYLVAN", new Vector2(0, 380), () => SelectAndLoad("Sylvan", "SylvanRealm")); Button("DEFEND INFERNAL", new Vector2(0, 255), () => SelectAndLoad("Infernal", "InfernalRealm")); Button("CHARACTER SANDBOX", new Vector2(0, 130), () => CancelAndLoad("CharacterSandbox"));
             if (FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active) skipGuide = Button("SKIP GUIDE", Vector2.zero, SkipGuide);

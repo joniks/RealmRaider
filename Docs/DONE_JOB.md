@@ -2449,3 +2449,33 @@ Completed on 2026-09-10.
 
 - Hub button decoration, selected-state art, control behavior, animation/audio,
   final-art approval and physical-device validation.
+
+## Diamond Pass 14.5 — Hub Control Choice Marks
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Existing Hub CONTEXTUAL, FINGERTAP and JOYSTICK buttons now bind explicitly to
+  the three already imported MUI06 saved-style sprites.
+- Each retains exact text, tint, action, pointer ownership and responsive button
+  footprint; the existing selected summary remains the only preference truth.
+- HudPresentation now stores text-only fallback geometry independently per label,
+  so one missing/throwing sprite cannot disturb another decorated button.
+- Tests cover three-button mapping/cache/fallback independence, icon reuse,
+  portrait/landscape rectangles, selection-summary updates and singleton safety.
+
+### Verification
+
+- Architect confirmed explicit mapping, independent fallback, unchanged control
+  authority and reuse of committed assets without provenance/import changes.
+- QA native gates passed EditMode `178/178` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests.
+- Game-view imagery and numeric Console counters were unavailable to QA's
+  automation surface; no Hub readability claim is made. Editor log tail showed no
+  warning/error/exception entries after the run.
+
+### Scope intentionally deferred
+
+- Selected-state art, orientation/navigation icons, control behavior, final-art
+  approval, manual portrait readability and physical-device validation.

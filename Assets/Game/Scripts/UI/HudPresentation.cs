@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using RealmRaiders.Core;
@@ -49,9 +50,7 @@ namespace RealmRaiders.UI
         bool infernalBruteSmashIconResolved, infernalBruteChargeIconResolved, infernalBruteGroundSlamIconResolved;
         bool sylvanRealmIdentityIconResolved, infernalRealmIdentityIconResolved;
         bool contextualControlStyleIconResolved, fingertapControlStyleIconResolved, joystickControlStyleIconResolved;
-        Text controlStyleLabel;
-        Vector2 controlStyleLabelOffsetMin, controlStyleLabelOffsetMax;
-        bool controlStyleLabelLayoutCaptured;
+        readonly Dictionary<Text, ControlStyleLabelLayout> controlStyleLabelLayouts = new();
         bool initialized;
         System.Func<string, Sprite> jumpIconLoader = LoadJumpIcon;
         System.Func<string, Sprite> abilityIconLoader = LoadAbilityIcon;
@@ -82,6 +81,7 @@ namespace RealmRaiders.UI
         void OnDestroy()
         {
             if (ownsButtonSprite && buttonSprite) Destroy(buttonSprite);
+            controlStyleLabelLayouts.Clear();
         }
 
         Sprite LoadButtonSprite()
@@ -194,8 +194,9 @@ namespace RealmRaiders.UI
             if (label)
             {
                 var rect = label.rectTransform;
-                rect.offsetMin = new Vector2(Mathf.Max(controlStyleLabelOffsetMin.x, 52), controlStyleLabelOffsetMin.y);
-                rect.offsetMax = controlStyleLabelOffsetMax;
+                var layout = controlStyleLabelLayouts[label];
+                rect.offsetMin = new Vector2(Mathf.Max(layout.OffsetMin.x, 52), layout.OffsetMin.y);
+                rect.offsetMax = layout.OffsetMax;
             }
             return icon;
         }
@@ -210,18 +211,22 @@ namespace RealmRaiders.UI
 
         void CaptureControlStyleLabelLayout(Text label)
         {
-            if (!label || controlStyleLabelLayoutCaptured && controlStyleLabel == label) return;
-            controlStyleLabel = label;
-            controlStyleLabelOffsetMin = label.rectTransform.offsetMin;
-            controlStyleLabelOffsetMax = label.rectTransform.offsetMax;
-            controlStyleLabelLayoutCaptured = true;
+            if (!label || controlStyleLabelLayouts.ContainsKey(label)) return;
+            controlStyleLabelLayouts.Add(label, new ControlStyleLabelLayout(label.rectTransform.offsetMin, label.rectTransform.offsetMax));
         }
 
         void RestoreControlStyleLabelLayout(Text label)
         {
-            if (!label || !controlStyleLabelLayoutCaptured || controlStyleLabel != label) return;
-            label.rectTransform.offsetMin = controlStyleLabelOffsetMin;
-            label.rectTransform.offsetMax = controlStyleLabelOffsetMax;
+            if (!label || !controlStyleLabelLayouts.TryGetValue(label, out var layout)) return;
+            label.rectTransform.offsetMin = layout.OffsetMin;
+            label.rectTransform.offsetMax = layout.OffsetMax;
+        }
+
+        readonly struct ControlStyleLabelLayout
+        {
+            public readonly Vector2 OffsetMin;
+            public readonly Vector2 OffsetMax;
+            public ControlStyleLabelLayout(Vector2 offsetMin, Vector2 offsetMax) { OffsetMin = offsetMin; OffsetMax = offsetMax; }
         }
 
         public Image DecorateJumpButton(Button button)

@@ -278,9 +278,9 @@ Landscape manual smoke observed synchronized AUTO/TAP/STICK marks in Raid and
 Defender and terminal hiding; portrait and possessed-Defender entry remain
 unobserved because the UI state did not settle for those steps.
 
-## Now — Diamond Pass 14.5: Hub Control Choice Marks
+## Accepted — Diamond Pass 14.5: Hub Control Choice Marks
 
-Owner: Core developer. Base: Architect's accepted 14.4 commit. Full lease:
+Owner: Core developer. Base: Architect's accepted 14.4 commit `0312034`. Full lease:
 `Docs/NEXT_JOB.md`.
 
 Reuse the accepted 14.4 sprites so the existing Hub CONTEXTUAL, FINGERTAP and
@@ -288,8 +288,24 @@ JOYSTICK buttons each carry their explicit non-raycast mark beside unchanged
 text. Preserve button footprints, selection truth, actions and independent
 text-only fallback; do not add a selected-state highlight.
 
-## Ready after 14.5
+Acceptance: QA's fresh native gates passed EditMode `178/178` and PlayMode
+`82/82`, both with zero failed/skipped/inconclusive tests. Game-view imagery and
+Console counters were unavailable to the automation surface, so Hub icon/text
+readability and numeric Console state are not manually claimed; Editor log tail
+showed no warning/error/exception entries.
 
-Use QA's observation to accept or make one bounded per-button layout correction.
-The visual-profile integration remains blocked until a fresh Module role supplies
-reviewed non-no-op transform intent; Core must not invent transform values.
+## Now — Diamond Pass 14.6: Grounded Jump Coyote Time
+
+Owner: Core developer. Base: Architect's accepted 14.5 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Give direct players a strict 0.10-second grace after walking off a grounded edge,
+using CombatEntity's existing Motor movement and jump authority. Preserve startup
+airborne rejection, no double jump, every root/action/dodge/terminal/death/
+controller gate and distinct Joystick/Fingertap intent.
+
+## Ready after 14.6
+
+Use QA's observation to accept or make one bounded timing/lifecycle correction.
+Input buffering and the visual-profile integration remain separate later gates;
+Core must not infer queued intent or invent visual transform values.

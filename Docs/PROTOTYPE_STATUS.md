@@ -91,6 +91,7 @@ Last reviewed: 2026-09-10
 - Diamond Pass 14.2 Completed Loop Primes the Next Raid is present: returning to RealmBuild from a completed canonical Defense now primes the existing journey so the primary action truthfully becomes SAVE & RAID and advances to SylvanRealm, while ordinary Build entry remains SAVE & DEFEND.
 - Diamond Pass 14.3 Raid Result Copy Matches the Next Action is present: journey victory and defeat results now describe the factual immediate DEFEND YOUR REALM step while direct raids retain their planning copy and PLAN NEXT DEFENSE route; metrics and exact-once credit are unchanged.
 - Diamond Pass 14.4 In-Run Control Style Mark is present: the existing gameplay selector now reinforces exact CONTROL AUTO/TAP/STICK text with one cached original 32 px mark, complete independent text-only fallback and unchanged control authority.
+- Diamond Pass 14.5 Hub Control Choice Marks is present: the existing CONTEXTUAL, FINGERTAP and JOYSTICK choice buttons now reuse their explicit original non-raycast marks while exact text, saved-preference summary, button actions and responsive footprints remain authoritative.
 - Current Unity Test Runner baseline: EditMode `178/178` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 

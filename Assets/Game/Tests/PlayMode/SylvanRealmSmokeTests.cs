@@ -288,10 +288,10 @@ namespace RealmRaiders.Tests
         [UnityTest]
         public IEnumerator PrototypeHub_BootstrapsNavigationHud()
         {
-            var width = Screen.width; var height = Screen.height; var previousRealm = PrototypeSave.SelectedRealm;
+            var width = Screen.width; var height = Screen.height; var previousRealm = PrototypeSave.SelectedRealm; var previousControl = PrototypeSave.ControlStylePreference;
             try
             {
-                PrototypeSave.SelectRealm(HudPresentation.SylvanRealmIdentity);
+                PrototypeSave.SelectRealm(HudPresentation.SylvanRealmIdentity); PrototypeSave.SetControlStyle(InRunControlStyleSelector.Contextual);
                 Screen.SetResolution(1920, 1080, false); SceneManager.LoadScene("PrototypeHub");
                 yield return null;
                 yield return null;
@@ -311,12 +311,23 @@ namespace RealmRaiders.Tests
                 var responsive = Object.FindFirstObjectByType<ResponsiveHudRoot>();
                 responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
                 var sylvanMark = AssertRealmIdentityMark(hub, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "Selected realm: Sylvan");
+                var controlMarks = AssertHubControlStyleMarks();
+                Assert.That(Object.FindObjectsByType<InRunControlStyleSelector>(FindObjectsInactive.Include, FindObjectsSortMode.None), Is.Empty);
                 var buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None); AssertNoButtonOverlap(buttons);
                 AssertHubLabelsClear(buttons);
                 responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
                 Assert.That(AssertRealmIdentityMark(hub, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "Selected realm: Sylvan"), Is.SameAs(sylvanMark));
+                AssertHubControlStyleMarks(controlMarks);
                 AssertNoButtonOverlap(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
                 AssertHubLabelsClear(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
+
+                foreach (var style in new[] { InRunControlStyleSelector.Contextual, InRunControlStyleSelector.Fingertap, InRunControlStyleSelector.Joystick })
+                {
+                    GameObject.Find(style.ToUpperInvariant()).GetComponent<Button>().onClick.Invoke();
+                    Assert.That(PrototypeSave.ControlStylePreference, Is.EqualTo(style));
+                    Assert.That(SelectedSummary().text, Does.Contain("• " + style));
+                    AssertHubControlStyleMarks(controlMarks);
+                }
 
                 PrototypeSave.SelectRealm(HudPresentation.InfernalRealmIdentity);
                 hub.SendMessage("Refresh", SendMessageOptions.RequireReceiver);
@@ -329,9 +340,41 @@ namespace RealmRaiders.Tests
             finally
             {
                 PrototypeSave.SelectRealm(previousRealm);
+                PrototypeSave.SetControlStyle(previousControl);
                 Screen.SetResolution(width, height, false);
             }
         }
+
+        static Dictionary<string, Image> AssertHubControlStyleMarks(Dictionary<string, Image> expected = null)
+        {
+            var result = new Dictionary<string, Image>();
+            foreach (var pair in new[]
+            {
+                (InRunControlStyleSelector.Contextual, "CONTEXTUAL"),
+                (InRunControlStyleSelector.Fingertap, "FINGERTAP"),
+                (InRunControlStyleSelector.Joystick, "JOYSTICK")
+            })
+            {
+                var button = GameObject.Find(pair.Item2).GetComponent<Button>();
+                var marks = button.GetComponentsInChildren<Image>(true).Where(image => image.name == HudPresentation.ControlStyleIconName).ToArray();
+                Assert.That(marks, Has.Length.EqualTo(1), pair.Item2);
+                var mark = marks[0];
+                Assert.That(mark.sprite, Is.SameAs(Resources.Load<Sprite>(HudPresentation.ControlStyleIconResourceFor(pair.Item1))), pair.Item2);
+                Assert.That(mark.rectTransform.sizeDelta, Is.EqualTo(new Vector2(32, 32)), pair.Item2);
+                Assert.That(mark.raycastTarget, Is.False, pair.Item2);
+                Assert.That(mark.preserveAspect, Is.True, pair.Item2);
+                Assert.That(mark.GetComponent<Button>(), Is.Null, pair.Item2);
+                Assert.That(mark.GetComponent<UiPointerOwnership>(), Is.Null, pair.Item2);
+                Assert.That(button.GetComponent<UiPointerOwnership>(), Is.Not.Null, pair.Item2);
+                Assert.That(button.GetComponentInChildren<Text>(true).text, Is.EqualTo(pair.Item2), pair.Item2);
+                if (expected != null) Assert.That(mark, Is.SameAs(expected[pair.Item2]), pair.Item2);
+                result.Add(pair.Item2, mark);
+            }
+            return result;
+        }
+
+        static Text SelectedSummary() => Object.FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .Single(text => text.text.StartsWith("Selected realm:"));
 
         static Image AssertRealmIdentityMark(Component hud, string realmIdentity, string resourcePath, string expectedCopyPrefix)
         {

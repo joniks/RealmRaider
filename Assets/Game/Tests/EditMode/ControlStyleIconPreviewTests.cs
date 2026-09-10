@@ -78,14 +78,31 @@ namespace RealmRaiders.Tests
                 var label = button.GetComponentInChildren<Text>();
                 var baselineMin = label.rectTransform.offsetMin;
                 var baselineMax = label.rectTransform.offsetMax;
+                var fingertapButton = CreateButton(root.transform, InRunControlStyleSelector.TapCopy);
+                var joystickButton = CreateButton(root.transform, InRunControlStyleSelector.StickCopy);
+                var fingertapLabel = fingertapButton.GetComponentInChildren<Text>();
+                var joystickLabel = joystickButton.GetComponentInChildren<Text>();
 
                 var icon = presentation.DecorateControlStyleButton(button, InRunControlStyleSelector.Contextual);
                 AssertIcon(icon, button, contextual);
                 Assert.That(presentation.DecorateControlStyleButton(button, InRunControlStyleSelector.Contextual), Is.SameAs(icon));
+                var fingertapIcon = presentation.DecorateControlStyleButton(fingertapButton, InRunControlStyleSelector.Fingertap);
+                var joystickIcon = presentation.DecorateControlStyleButton(joystickButton, InRunControlStyleSelector.Joystick);
+                AssertIcon(fingertapIcon, fingertapButton, fingertap);
+                AssertIcon(joystickIcon, joystickButton, joystick);
                 Assert.That(button.transform.Cast<Transform>().Count(child => child.name == HudPresentation.ControlStyleIconName), Is.EqualTo(1));
-                Assert.That(requests, Is.EqualTo(new[] { HudPresentation.ContextualControlStyleIconResource }));
+                Assert.That(fingertapButton.transform.Cast<Transform>().Count(child => child.name == HudPresentation.ControlStyleIconName), Is.EqualTo(1));
+                Assert.That(joystickButton.transform.Cast<Transform>().Count(child => child.name == HudPresentation.ControlStyleIconName), Is.EqualTo(1));
+                CollectionAssert.AreEqual(new[]
+                {
+                    HudPresentation.ContextualControlStyleIconResource,
+                    HudPresentation.FingertapControlStyleIconResource,
+                    HudPresentation.JoystickControlStyleIconResource
+                }, requests);
                 Assert.That(label.text, Is.EqualTo(InRunControlStyleSelector.AutoCopy));
                 Assert.That(label.rectTransform.offsetMin.x, Is.EqualTo(52));
+                Assert.That(fingertapLabel.rectTransform.offsetMin.x, Is.EqualTo(52));
+                Assert.That(joystickLabel.rectTransform.offsetMin.x, Is.EqualTo(52));
 
                 label.text = InRunControlStyleSelector.TapCopy;
                 Assert.That(presentation.DecorateControlStyleButton(button, InRunControlStyleSelector.Fingertap), Is.SameAs(icon));
@@ -106,6 +123,12 @@ namespace RealmRaiders.Tests
                 Assert.That(label.text, Is.EqualTo(InRunControlStyleSelector.StickCopy));
                 Assert.That(label.rectTransform.offsetMin, Is.EqualTo(baselineMin));
                 Assert.That(label.rectTransform.offsetMax, Is.EqualTo(baselineMax));
+                Assert.That(fingertapIcon.gameObject.activeSelf, Is.True);
+                Assert.That(joystickIcon.gameObject.activeSelf, Is.True);
+                Assert.That(fingertapLabel.text, Is.EqualTo(InRunControlStyleSelector.TapCopy));
+                Assert.That(joystickLabel.text, Is.EqualTo(InRunControlStyleSelector.StickCopy));
+                Assert.That(fingertapLabel.rectTransform.offsetMin.x, Is.EqualTo(52));
+                Assert.That(joystickLabel.rectTransform.offsetMin.x, Is.EqualTo(52));
                 Assert.That(presentation.DecorateControlStyleButton(button, InRunControlStyleSelector.Contextual), Is.SameAs(icon));
                 Assert.That(requests, Has.Count.EqualTo(3), "Returning to a resolved style must reuse its cached sprite.");
             }
@@ -117,6 +140,7 @@ namespace RealmRaiders.Tests
         public void MissingOrThrowingReplacementHidesStaleMarkAndRestoresExactTextOnlyLayout(bool loaderThrows)
         {
             var contextual = AssetDatabase.LoadAssetAtPath<Sprite>(ContextualAsset);
+            var joystick = AssetDatabase.LoadAssetAtPath<Sprite>(JoystickAsset);
             var root = new GameObject("Control Style Icon Fallback");
             var cleanRoot = new GameObject("Control Style Icon Clean Fallback");
             try
@@ -140,26 +164,34 @@ namespace RealmRaiders.Tests
 
                 var presentation = root.AddComponent<HudPresentation>();
                 var button = CreateButton(root.transform, InRunControlStyleSelector.AutoCopy);
+                var preservedButton = CreateButton(root.transform, InRunControlStyleSelector.StickCopy);
                 var label = button.GetComponentInChildren<Text>();
+                var preservedLabel = preservedButton.GetComponentInChildren<Text>();
                 var baseline = TextLayoutSnapshot.Capture(label);
                 var requests = 0;
                 presentation.ConfigureControlStyleIconLoaderForTests(path =>
                 {
                     requests++;
                     if (path == HudPresentation.ContextualControlStyleIconResource) return contextual;
+                    if (path == HudPresentation.JoystickControlStyleIconResource) return joystick;
                     if (loaderThrows) throw new System.InvalidOperationException("Control style icon unavailable");
                     return null;
                 });
 
                 var stale = presentation.DecorateControlStyleButton(button, InRunControlStyleSelector.Contextual);
+                var preserved = presentation.DecorateControlStyleButton(preservedButton, InRunControlStyleSelector.Joystick);
                 Assert.That(stale, Is.Not.Null);
+                Assert.That(preserved, Is.Not.Null);
                 label.text = InRunControlStyleSelector.TapCopy;
                 Assert.DoesNotThrow(() => presentation.DecorateControlStyleButton(button, InRunControlStyleSelector.Fingertap));
                 Assert.That(presentation.DecorateControlStyleButton(button, InRunControlStyleSelector.Fingertap), Is.Null);
-                Assert.That(requests, Is.EqualTo(2), "A failed resource lookup must be cached for that style.");
+                Assert.That(requests, Is.EqualTo(3), "A failed resource lookup must be cached for that style.");
                 Assert.That(stale.gameObject.activeSelf, Is.False);
                 Assert.That(button.transform.Cast<Transform>().Count(child => child.name == HudPresentation.ControlStyleIconName), Is.EqualTo(1));
                 baseline.AssertLayout(label, InRunControlStyleSelector.TapCopy);
+                Assert.That(preserved.gameObject.activeSelf, Is.True);
+                Assert.That(preservedLabel.text, Is.EqualTo(InRunControlStyleSelector.StickCopy));
+                Assert.That(preservedLabel.rectTransform.offsetMin.x, Is.EqualTo(52));
                 Assert.That(button.GetComponent<UiPointerOwnership>(), Is.Null);
             }
             finally { Object.DestroyImmediate(root); Object.DestroyImmediate(cleanRoot); }
