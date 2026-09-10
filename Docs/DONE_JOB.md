@@ -2760,3 +2760,40 @@ Completed on 2026-09-10.
 - Emission, height, roughness, metallic, macro variation, second tiles, shaders,
   lighting redesign, route/boundary replacement, geometry/collider/gameplay
   changes, production-art approval and physical-device performance claims.
+
+## Diamond Pass 15.5 — Defeat Presentation Keeps Gameplay Root Authoritative
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Factual `Health.Died` no longer multiplies the authoritative `CombatEntity`
+  root scale. Root transform and CharacterController geometry remain unchanged,
+  while the existing death path still disables the Motor.
+- Death starts one non-restarting 0.24-second unscaled fall/squash on the existing
+  `Presentation Pivot`, then holds an exact stable defeated pose.
+- The response cancels transient hit, action, jump and possession-arrival motion
+  before taking presentation ownership; rebind, component disable and destruction
+  restore the old pivot and cannot strand stale visual state.
+- Possession forced return, death callbacks, result/reward idempotence, camera and
+  controller authority, entity lifetime and combat timing remain unchanged.
+
+### Verification
+
+- Architect reviewed the single factual runtime caller, bounded/stable sampling,
+  lifecycle composition and root/collider invariants; the new test companion GUID
+  is unique and `git diff --check` is clean.
+- QA exposed one invalid EditMode assumption about runtime `OnDisable`; coverage
+  was corrected to keep deterministic explicit cleanup in EditMode and prove the
+  real disable callback in PlayMode without adding `ExecuteAlways` behavior.
+- Final QA gates passed EditMode `192/192` in 0.767 seconds and PlayMode `89/89`
+  in 70.367 seconds, with zero failed/skipped/inconclusive tests and no Editor-log
+  errors or exceptions after the frozen candidate.
+- Manual death-pose readability is not claimed because QA could not safely observe
+  the Game view; physical-device feel remains user-owned.
+
+### Scope intentionally deferred
+
+- Revive/ragdoll/corpse lifetime, death VFX/audio/haptics/loot/camera/UI, balance,
+  collider disabling, destruction, Animator/rig/clips/root motion, new assets and
+  result-flow changes.

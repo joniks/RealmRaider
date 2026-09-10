@@ -582,9 +582,38 @@ namespace RealmRaiders.Tests
 
                 fixture.Possession.Select(fixture.Defender);
                 Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                var rootLocalPosition = fixture.Defender.transform.localPosition;
+                var rootWorldPosition = fixture.Defender.transform.position;
+                var rootLocalRotation = fixture.Defender.transform.localRotation;
+                var rootWorldRotation = fixture.Defender.transform.rotation;
+                var rootLocalScale = fixture.Defender.transform.localScale;
+                var motor = fixture.Defender.Motor;
+                var motorRadius = motor.radius;
+                var motorHeight = motor.height;
+                var motorCenter = motor.center;
+                Assert.That(motor.enabled, Is.True);
                 fixture.Defender.Health.TakeDamage(new DamageInfo(1000, null, fixture.Defender.transform.position), 0);
                 Assert.That(fixture.Possession.Possessed, Is.Null, "Possessed death follows the existing forced return path.");
                 Assert.That(motion.IsPossessionArrivalActive, Is.False, "Possessed death clears arrival feedback immediately.");
+                Assert.That(motion.IsDefeatActive, Is.True, "Only the factual lethal Health.Died path begins the final pivot response.");
+                Assert.That(fixture.Defender.transform.localPosition, Is.EqualTo(rootLocalPosition));
+                Assert.That(fixture.Defender.transform.position, Is.EqualTo(rootWorldPosition));
+                Assert.That(fixture.Defender.transform.localRotation, Is.EqualTo(rootLocalRotation));
+                Assert.That(fixture.Defender.transform.rotation, Is.EqualTo(rootWorldRotation));
+                Assert.That(fixture.Defender.transform.localScale, Is.EqualTo(rootLocalScale));
+                Assert.That(motor.radius, Is.EqualTo(motorRadius));
+                Assert.That(motor.height, Is.EqualTo(motorHeight));
+                Assert.That(motor.center, Is.EqualTo(motorCenter));
+                Assert.That(motor.enabled, Is.False, "The established death path alone disables the authoritative motor.");
+                motion.Sample(0, motion.DefeatEndsAt - CharacterVisualMotion.DefeatSettleDuration * .5f, .016f, Vector3.zero, CombatActionPhase.Idle);
+                Assert.That(Quaternion.Angle(motion.PresentationPivot.localRotation, motion.BaseRotation), Is.GreaterThan(.1f));
+                Assert.That(motion.PresentationPivot.localScale.y, Is.LessThan(motion.BaseScale.y));
+                motion.enabled = false;
+                yield return null;
+                Assert.That(motion.IsDefeatActive, Is.False, "Runtime component disable clears an unfinished defeated pose.");
+                Assert.That(motion.PresentationPivot.localPosition, Is.EqualTo(motion.BasePosition));
+                Assert.That(motion.PresentationPivot.localRotation, Is.EqualTo(motion.BaseRotation));
+                Assert.That(motion.PresentationPivot.localScale, Is.EqualTo(motion.BaseScale));
             }
             finally
             {

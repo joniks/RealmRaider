@@ -233,7 +233,9 @@ namespace RealmRaiders.Characters
         void OnDeath()
         {
             rootedUntil = 0; CancelActionPresentation(); CancelDodge(); CancelJump();
-            Controller<PlayerController>()?.ResetEscapeState(); Motor.enabled = false; transform.localScale *= .75f;
+            Controller<PlayerController>()?.ResetEscapeState();
+            GetComponent<CharacterVisualMotion>()?.StartDefeat();
+            Motor.enabled = false;
         }
 
         void CancelActionPresentation()

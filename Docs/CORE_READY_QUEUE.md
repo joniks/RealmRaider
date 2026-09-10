@@ -408,16 +408,29 @@ test-only production-collider trigger assumption, QA final gates passed EditMode
 `190/190` and PlayMode `89/89`, both with zero failures. Manual device appearance
 remains unclaimed.
 
-## Now — Diamond Pass 15.5: Defeat Presentation Keeps Gameplay Root Authoritative
+## Accepted — Diamond Pass 15.5: Defeat Presentation Keeps Gameplay Root Authoritative
 
 Replace the current death-time `CombatEntity` root shrink with one bounded
 presentation-pivot defeat settle. The visual result must remain readable, but the
 entity root transform, CharacterController dimensions and gameplay geometry may
 never change. Preserve death callbacks, possession release, results, combat timing
-and all existing controller cleanup. Full lease is in `Docs/NEXT_JOB.md`.
+and all existing controller cleanup.
 
-## Ready after 15.5
+Acceptance: Architect confirmed the sole factual death caller, bounded unscaled
+settle, stable pose and exact root/CharacterController preservation. After one
+EditMode lifecycle-fixture correction, QA final gates passed EditMode `192/192`
+and PlayMode `89/89`, both with zero failures. Manual Game-view readability remains
+unclaimed.
 
-Integrate the accepted MWS12 restrained route normal pair only after Architect
-accepts that isolated Module source. If MWS12 is not yet accepted, Core prepares
-the route-material seam read-only and does not invent substitute art.
+## Now — Diamond Pass 15.6: Restrained Route Normal Pair Integration
+
+Integrate only the accepted Modules `e4d1358` MWS12 Sylvan and Infernal route
+normal candidates beside their existing MWS07 albedos. Preserve shared materials,
+route/floor/boundary separation and all geometry/collider/gameplay authority. Full
+details and exact hashes are in `Docs/NEXT_JOB.md`.
+
+## Ready after 15.6
+
+Run the Blood Knight motion pilot only after an official redistribution-safe motion
+source and an exact current-model rig/retarget route are frozen. Keep gameplay
+movement authoritative and put Animator/clip output under Presentation Pivot only.

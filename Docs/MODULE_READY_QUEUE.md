@@ -110,10 +110,12 @@ Hundreds of modular characters need a deterministic pre-Unity check that every e
 
 ## Next Module gate
 
-MMP 04 is accepted and committed. Art Pass MWS12 is active in the isolated Modules
-repo: derive a restrained normal pair and exact repeat evidence from the accepted,
-project-owned MWS07 Sylvan and Infernal route albedos. This is tied to the named
-future Core route-lighting integration seam; it grants no Unity/runtime authority.
+MMP 04 is accepted and committed. Art Pass MWS12 is accepted in Modules commit
+`e4d1358`: two restrained strength-`0.20` route normals and exact 2×2 evidence are
+deterministically derived from the accepted project-owned MWS07 Sylvan and Infernal
+albedos. Existing tool tests passed `5/5`; Architect visually inspected all four
+outputs and independently reproduced their exact hashes. Unity/runtime integration
+belongs only to Core 15.6.
 
 ## Accepted — Art Pass MWS 11: Infernal Courtyard Floor Pair
 

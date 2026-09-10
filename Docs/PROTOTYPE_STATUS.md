@@ -100,7 +100,9 @@ Last reviewed: 2026-09-10
 - Diamond Pass 15.2 Infernal Boundary Surface Identity is present: Infernal arena boundaries now use the accepted original-generated MWS08 repeating forged-iron and obsidian albedo with exact provenance/mobile import and cached solid fallback while Neutral, Sylvan, geometry, collision and gameplay remain unchanged.
 - Diamond Pass 15.3 Possession Arrival Impact is present: every factual successful takeover adds one bounded 0.22-second unscaled squash/rebound/settle on the same creature's presentation pivot, with complete release/death/terminal/controller/visual cleanup and no gameplay-root or possession-authority change.
 - Diamond Pass 15.4 Infernal Courtyard Floor Surface is present: the factual Volcanic Floor uses the accepted original-generated MWS11 albedo/normal pair with renderer-local square world tiling, while MWS07 causeways, MWS08 boundaries, all Sylvan presentation and gameplay remain unchanged.
-- Current Unity Test Runner baseline: EditMode `190/190` and PlayMode `89/89` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Diamond Pass 15.5 Defeat Presentation Keeps Gameplay Root Authoritative is present: factual death now settles only the visual Presentation Pivot while the entity root and CharacterController geometry remain exact and all existing death/possession/result authority is preserved.
+- Module Art Pass MWS12 is accepted in the pinned Modules submodule: restrained deterministic Sylvan and Infernal route normal candidates and exact repeat evidence are ready for a named Unity lighting integration gate.
+- Current Unity Test Runner baseline: EditMode `192/192` and PlayMode `89/89` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -117,7 +119,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `190/190` and PlayMode `89/89` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `192/192` and PlayMode `89/89` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

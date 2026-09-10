@@ -11,6 +11,7 @@ namespace RealmRaiders.Characters
         const float TakeoffDuration = .10f;
         const float LandingDuration = .14f;
         public const float PossessionArrivalDuration = .22f;
+        public const float DefeatSettleDuration = .24f;
         const float MaximumOffset = .08f;
         const float MinimumScaleFactor = .90f;
         const float MaximumScaleFactor = 1.10f;
@@ -30,6 +31,10 @@ namespace RealmRaiders.Characters
         bool jumpStateObserved;
         bool observedJumping;
         bool possessionArrivalActive;
+        bool defeatActive;
+        bool defeatSettled;
+        float defeatStartedAt;
+        float defeatUntil;
         bool hasOrdinaryPose;
         Vector3 ordinaryPosition;
         Quaternion ordinaryRotation;
@@ -41,6 +46,9 @@ namespace RealmRaiders.Characters
         public Vector3 BaseScale => baseScale;
         public bool IsPossessionArrivalActive => possessionArrivalActive;
         public float PossessionArrivalEndsAt => possessionArrivalUntil;
+        public bool IsDefeatActive => defeatActive;
+        public bool IsDefeatSettled => defeatSettled;
+        public float DefeatEndsAt => defeatUntil;
 
         void Awake()
         {
@@ -51,6 +59,7 @@ namespace RealmRaiders.Characters
 
         public void Bind(Transform pivot)
         {
+            ClearDefeat();
             ClearPossessionArrival();
             Restore();
             presentationPivot = pivot;
@@ -69,7 +78,7 @@ namespace RealmRaiders.Characters
         public void ClearTransientReaction()
         {
             hitReactionUntil = 0;
-            Restore();
+            if (!defeatActive) Restore();
         }
 
         public void Restore()
@@ -95,6 +104,33 @@ namespace RealmRaiders.Characters
             return true;
         }
 
+        /// <summary>Starts the one factual death response. CombatEntity invokes this only from Health.Died.</summary>
+        public bool StartDefeat()
+        {
+            if (!presentationPivot || defeatActive) return false;
+            ClearPossessionArrival();
+            hitReactionUntil = 0;
+            movement = 0;
+            ResetJumpTransitions();
+            hasOrdinaryPose = false;
+            defeatStartedAt = Time.unscaledTime;
+            defeatUntil = defeatStartedAt + DefeatSettleDuration;
+            defeatSettled = false;
+            defeatActive = true;
+            return true;
+        }
+
+        /// <summary>Restores a bound pivot before a visual rebind, disable, or destruction can leave a stale defeat pose.</summary>
+        public void ClearDefeat()
+        {
+            if (!defeatActive) return;
+            defeatActive = false;
+            defeatSettled = false;
+            defeatStartedAt = 0;
+            defeatUntil = 0;
+            Restore();
+        }
+
         /// <summary>Removes only the pending possession accent, retaining ordinary motion and other reactions.</summary>
         public void ClearPossessionArrival()
         {
@@ -102,7 +138,7 @@ namespace RealmRaiders.Characters
             possessionArrivalActive = false;
             possessionArrivalStartedAt = 0;
             possessionArrivalUntil = 0;
-            if (!presentationPivot || !hasOrdinaryPose) return;
+            if (defeatActive || !presentationPivot || !hasOrdinaryPose) return;
             presentationPivot.localPosition = ordinaryPosition;
             presentationPivot.localRotation = ordinaryRotation;
             presentationPivot.localScale = ordinaryScale;
@@ -129,7 +165,13 @@ namespace RealmRaiders.Characters
 
         void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
         {
-            if (!presentationPivot || deltaTime <= 0 || float.IsNaN(horizontalVelocity.x) || float.IsNaN(horizontalVelocity.z)) return;
+            if (!presentationPivot || float.IsNaN(horizontalVelocity.x) || float.IsNaN(horizontalVelocity.z)) return;
+            if (defeatActive)
+            {
+                ApplyDefeatPose(unscaledClock);
+                return;
+            }
+            if (deltaTime <= 0) return;
             var targetMovement = Mathf.Clamp01(new Vector2(horizontalVelocity.x, horizontalVelocity.z).magnitude / 4f);
             movement = Mathf.MoveTowards(movement, targetMovement, deltaTime * 7f);
             var idleWeight = 1f - movement * .72f;
@@ -175,6 +217,19 @@ namespace RealmRaiders.Characters
             presentationPivot.localPosition = arrivalSettledThisSample ? position : Vector3.Lerp(presentationPivot.localPosition, position, Mathf.Clamp01(deltaTime * 12f));
             presentationPivot.localRotation = arrivalSettledThisSample ? rotation : Quaternion.Slerp(presentationPivot.localRotation, rotation, Mathf.Clamp01(deltaTime * 14f));
             presentationPivot.localScale = scale;
+        }
+
+        void ApplyDefeatPose(float unscaledClock)
+        {
+            var progress = Mathf.Clamp01((unscaledClock - defeatStartedAt) / DefeatSettleDuration);
+            var weight = Mathf.SmoothStep(0, 1, progress);
+            var defeatedPosition = ClampOffset(basePosition + Vector3.down * .055f);
+            var defeatedRotation = baseRotation * Quaternion.Euler(52f, 0, -8f);
+            var defeatedScale = ClampScale(Vector3.Scale(baseScale, new Vector3(1.065f, .90f, 1.065f)));
+            presentationPivot.localPosition = Vector3.Lerp(basePosition, defeatedPosition, weight);
+            presentationPivot.localRotation = Quaternion.Slerp(baseRotation, defeatedRotation, weight);
+            presentationPivot.localScale = Vector3.Lerp(baseScale, defeatedScale, weight);
+            defeatSettled = unscaledClock >= defeatUntil;
         }
 
         (Vector3 scale, float y) PossessionArrivalPose(float unscaledClock)
@@ -284,7 +339,7 @@ namespace RealmRaiders.Characters
             SamplePose(Time.time, Time.unscaledTime, deltaTime, new Vector3(velocity.x, 0, velocity.z), entity ? entity.ActionPhase : CombatActionPhase.Idle);
         }
 
-        void OnDisable() { ClearPossessionArrival(); ClearTransientReaction(); }
-        void OnDestroy() { ClearPossessionArrival(); Restore(); }
+        void OnDisable() { ClearDefeat(); ClearPossessionArrival(); ClearTransientReaction(); }
+        void OnDestroy() { ClearDefeat(); ClearPossessionArrival(); Restore(); }
     }
 }
