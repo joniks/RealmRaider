@@ -1,4 +1,5 @@
 using RealmRaiders.Combat;
+using RealmRaiders.Controllers;
 using RealmRaiders.Modules.CharacterMotionProfiles;
 using RealmRaiders.Modules.CharacterProceduralMotion;
 using UnityEngine;
@@ -22,8 +23,8 @@ namespace RealmRaiders.Characters
         CombatEntity entity;
         Health health;
         Transform baseBody;
+        CharacterVisualMotion visualMotion;
         CharacterJumpPresentationTimeline jumpPresentation;
-        Vector3 lastRootPosition;
         float hitResponseUntil;
         bool subscribed;
 
@@ -50,7 +51,9 @@ namespace RealmRaiders.Characters
 
             jumpPresentation = GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
             jumpPresentation.Configure(driver.Tuning.JumpPresentationDurationMultiplier, driver.Tuning.TakeoffStraightenDurationMultiplier);
-            lastRootPosition = transform.position;
+            visualMotion = GetComponent<CharacterVisualMotion>();
+            if (!visualMotion) { driver.Clear(); baseBody = null; return false; }
+            visualMotion.ResetDynamics();
             health.Damaged += OnDamaged;
             subscribed = true;
             return true;
@@ -63,6 +66,7 @@ namespace RealmRaiders.Characters
             driver.Clear();
             baseBody = null;
             hitResponseUntil = 0;
+            if (visualMotion) visualMotion.ResetDynamics();
             jumpPresentation?.ResetTimeline();
         }
 
@@ -71,22 +75,21 @@ namespace RealmRaiders.Characters
         /// <summary>Samples factual state at explicit clocks for deterministic presentation coverage; it has no gameplay authority.</summary>
         public void SamplePresentation(float unscaledClock, float presentationClock, float deltaTime, bool isJumping, bool isGrounded, bool hasDirectControl)
         {
-            if (!driver.IsBound || !entity || !health) return;
+            if (!driver.IsBound || !entity || !health || !visualMotion) return;
 
-            var rootDisplacement = transform.position - lastRootPosition;
-            lastRootPosition = transform.position;
-            rootDisplacement.y = 0;
-            var speed = deltaTime > .0001f ? rootDisplacement.magnitude / deltaTime : 0;
-            var normalizedSpeed = entity.Stats.MoveSpeed > .0001f ? Mathf.Clamp01(speed / entity.Stats.MoveSpeed) : 0;
             jumpPresentation ??= GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
             var jump = jumpPresentation.Observe(unscaledClock, isJumping, isGrounded, hasDirectControl);
+            var dynamics = visualMotion.SampleFactualDynamics(unscaledClock, deltaTime,
+                (hasDirectControl || CharacterVisualMotion.HasMotionAuthority(entity)) && !health.IsDead && !GameplayInput.TerminalState, jump);
 
             var input = new CharacterMotionPresentationInput(
                 health.IsDead ? MotionPresentationReaction.Death : unscaledClock < hitResponseUntil ? MotionPresentationReaction.Hit : MotionPresentationReaction.None,
                 entity.ActionPhase == CombatActionPhase.Idle ? MotionPresentationAttack.None : MotionPresentationAttack.Primary,
                 ResolveJumpPhase(jump.Phase),
-                normalizedSpeed > .01f);
-            driver.Sample(input, normalizedSpeed, presentationClock, deltaTime, jump.Progress);
+                dynamics.Speed > 0);
+            // The module evaluates sin((clock + dt) * cadence). Supply distance phase and zero time advance.
+            var gaitClock = dynamics.Speed > 0 ? dynamics.Phase / driver.Tuning.SwingCadenceRadiansPerSecond : 0f;
+            driver.Sample(input, dynamics.Speed, gaitClock, 0f, jump.Progress);
         }
 
         static MotionPresentationJumpPhase ResolveJumpPhase(CharacterJumpPresentationPhase phase)
@@ -112,6 +115,7 @@ namespace RealmRaiders.Characters
             Unsubscribe();
             driver.Clear();
             hitResponseUntil = 0;
+            if (visualMotion) visualMotion.ResetDynamics();
             jumpPresentation?.ResetTimeline();
         }
 

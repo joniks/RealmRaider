@@ -8,6 +8,170 @@ namespace RealmRaiders.Tests
     public sealed class CharacterProceduralMotionAdapterTests
     {
         [Test]
+        public void VisualMotion_BreathingCannotOverrideProgressiveJumpScale()
+        {
+            var fixture = CreateFixture();
+            try
+            {
+                var motion = fixture.Host.GetComponent<CharacterVisualMotion>();
+                var pivot = motion.PresentationPivot;
+                var timeline = fixture.Host.GetComponent<CharacterJumpPresentationTimeline>();
+                timeline.Configure(4f, 3f);
+                for (var cycle = 0; cycle < 4; cycle++)
+                {
+                    motion.Restore();
+                    var start = cycle * 2f;
+                    motion.Sample(start, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                    Assert.That(pivot.localScale, Is.EqualTo(motion.BaseScale), "Ordinary breathing translates the pivot without changing its neutral scale.");
+                    motion.Sample(start, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                    Assert.That(pivot.localScale, Is.EqualTo(motion.BaseScale), "Takeoff/0 joins the neutral scale exactly.");
+                    motion.Sample(start + .0001f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                    Assert.That(pivot.localScale.y, Is.GreaterThan(motion.BaseScale.y), "Even small positive takeoff progress stretches upward, independently of the breathing clock.");
+                    var earlyScale = pivot.localScale.y;
+                    motion.Sample(start + .15f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                    Assert.That(pivot.localScale.y, Is.GreaterThan(earlyScale));
+                    motion.Sample(start + .30f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                    var pushScale = pivot.localScale;
+                    motion.Sample(start + .40f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                    Assert.That(Vector3.Distance(pivot.localScale, pushScale), Is.LessThan(.00001f));
+                    motion.Sample(start + .80f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                    Assert.That(Vector3.Distance(pivot.localScale, motion.BaseScale), Is.LessThan(.00001f));
+                    motion.Sample(start + .80f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                    Assert.That(Vector3.Distance(pivot.localScale, motion.BaseScale), Is.LessThan(.00001f), "Landing/0 joins Falling/1 continuously.");
+                    motion.Sample(start + 1.08f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                    Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y));
+                    motion.Sample(start + 1.361f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                    Assert.That(pivot.localScale, Is.EqualTo(motion.BaseScale), "Recovery returns to the same neutral scale without a breathing-scale step.");
+                }
+            }
+            finally { fixture.Dispose(); }
+        }
+
+        [Test]
+        public void MotionDynamics_DistanceDrivesPhaseAndStopSettlesBeforeNeutralRestart()
+        {
+            var motion = new CharacterMotionDynamics();
+            motion.Step(Vector3.zero, 0, 20f, 4f);
+            Assert.That(motion.Phase, Is.Zero);
+            Assert.That(motion.Speed, Is.Zero);
+            motion.Step(Vector3.forward * .2f, 0, .05f, 4f);
+            Assert.That(motion.Phase, Is.EqualTo(.375f).Within(.00001f));
+            Assert.That(motion.Speed, Is.InRange(.1f, .9f), "Visual onset ramps rather than jumping to full stride.");
+            Assert.That(motion.WeightPitch, Is.GreaterThan(0));
+            var phase = motion.Phase;
+            var weight = motion.Speed;
+            motion.Step(Vector3.zero, 0, .05f, 4f);
+            Assert.That(motion.Phase, Is.EqualTo(phase), "A stopped body cannot keep marching during settle.");
+            Assert.That(motion.Speed, Is.GreaterThan(0).And.LessThan(weight));
+            motion.Step(Vector3.zero, 0, 2f, 4f);
+            Assert.That(motion.Speed, Is.Zero);
+            Assert.That(motion.Phase, Is.Zero);
+            Assert.That(motion.WeightPitch, Is.Zero);
+            motion.Step(Vector3.forward * .2f, 0, .05f, 4f);
+            Assert.That(motion.Phase, Is.EqualTo(phase));
+            Assert.That(motion.Speed, Is.EqualTo(weight));
+            motion.Step(Vector3.up * 5, 0, .05f, 4f);
+            Assert.That(motion.Phase, Is.EqualTo(phase), "Vertical physics cannot advance the horizontal gait.");
+        }
+
+        [Test]
+        public void MotionDynamics_EqualTravelAndTimeMatchAcrossFrameRatesWithSignedBoundedTurnAndBrake()
+        {
+            var coarse = new CharacterMotionDynamics();
+            var fine = new CharacterMotionDynamics();
+            for (var i = 0; i < 6; i++) coarse.Step(Vector3.forward * .2f, 4.5f, .05f, 4f);
+            for (var i = 0; i < 36; i++) fine.Step(Vector3.forward / 30f, .75f, 1f / 120f, 4f);
+            AssertDynamicsEqual(coarse, fine);
+            Assert.That(coarse.TurnLean, Is.LessThan(0).And.GreaterThanOrEqualTo(-CharacterMotionDynamics.MaximumTurnLean));
+            for (var i = 0; i < 2; i++) coarse.Step(Vector3.zero, 0, .05f, 4f);
+            for (var i = 0; i < 12; i++) fine.Step(Vector3.zero, 0, 1f / 120f, 4f);
+            AssertDynamicsEqual(coarse, fine);
+            Assert.That(coarse.WeightPitch, Is.LessThan(0).And.GreaterThanOrEqualTo(-CharacterMotionDynamics.MaximumWeightPitch));
+            var left = new CharacterMotionDynamics();
+            left.Step(Vector3.zero, -180f, .1f, 4f);
+            Assert.That(left.TurnLean, Is.GreaterThan(0).And.LessThanOrEqualTo(CharacterMotionDynamics.MaximumTurnLean));
+            left.Step(Vector3.zero, 0, 2f, 4f);
+            Assert.That(left.TurnLean, Is.Zero);
+            left.Step(new Vector3(float.NaN, 0, 0), 0, .1f, 4f);
+            Assert.That(left.Phase, Is.Zero);
+            Assert.That(left.Speed, Is.Zero);
+        }
+
+        static void AssertDynamicsEqual(CharacterMotionDynamics a, CharacterMotionDynamics b)
+        {
+            Assert.That(a.Phase, Is.EqualTo(b.Phase).Within(.00002f));
+            Assert.That(a.Speed, Is.EqualTo(b.Speed).Within(.00002f));
+            Assert.That(a.ForwardSpeed, Is.EqualTo(b.ForwardSpeed).Within(.00002f));
+            Assert.That(a.WeightPitch, Is.EqualTo(b.WeightPitch).Within(.00002f));
+            Assert.That(a.TurnLean, Is.EqualTo(b.TurnLean).Within(.00002f));
+        }
+
+        [Test]
+        public void Adapter_SharedFactualGaitIgnoresGlobalClockCounterSwingsAndClearsOnControlChange()
+        {
+            var fixture = CreateFixture();
+            try
+            {
+                var motion = fixture.Host.GetComponent<CharacterVisualMotion>();
+                var pivot = motion.PresentationPivot;
+                var body = CreateBody(pivot, true, out var bones);
+                var baseline = Snapshot(bones);
+                var pivotPose = Pose.Of(pivot);
+                var bodyPose = Pose.Of(body);
+                var motor = fixture.Host.GetComponent<CharacterController>();
+                var center = motor.center; var height = motor.height; var radius = motor.radius;
+                Assert.That(fixture.Adapter.Bind(body), Is.True);
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                fixture.Adapter.SamplePresentation(1f, 999f, .05f, false, true, true);
+                var first = Snapshot(bones);
+                var shared = motion.SampleFactualDynamics(1f, .05f, true, CharacterJumpPresentationSample.None);
+                var phase = shared.Phase; var speed = shared.Speed;
+                fixture.Adapter.SamplePresentation(1f, -1000f, .05f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(first), "Global clock and second consumer cannot advance the per-entity gait.");
+                Assert.That(shared.Phase, Is.EqualTo(phase));
+                Assert.That(shared.Speed, Is.EqualTo(speed));
+                var swing = Mathf.Sin(phase) * speed;
+                AssertBoneAngle(bones[0], baseline[0], 56f * swing);
+                AssertBoneAngle(bones[1], baseline[1], -56f * swing);
+                AssertBoneAngle(bones[2], baseline[2], -50f * swing);
+                AssertBoneAngle(bones[3], baseline[3], 50f * swing);
+                AssertBoneAngle(bones[4], baseline[4], 26f * swing);
+                AssertBoneAngle(bones[5], baseline[5], -26f * swing);
+                Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
+                Assert.That(Pose.Of(body), Is.EqualTo(bodyPose));
+                Assert.That(motor.center, Is.EqualTo(center)); Assert.That(motor.height, Is.EqualTo(height)); Assert.That(motor.radius, Is.EqualTo(radius));
+
+                fixture.Adapter.SamplePresentation(2f, 500f, .05f, false, true, true);
+                Assert.That(shared.Phase, Is.EqualTo(phase));
+                Assert.That(shared.Speed, Is.LessThan(speed));
+                fixture.Adapter.SamplePresentation(3f, 500f, 2f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Stopped limbs settle exactly, including idle arms.");
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                fixture.Adapter.SamplePresentation(4f, 123f, .05f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(first), "Restart begins from the same neutral phase regardless of global clock.");
+                fixture.Adapter.SamplePresentation(5f, 124f, .05f, false, true, false);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+                Assert.That(shared.Phase, Is.Zero);
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                fixture.Adapter.SamplePresentation(6f, 125f, .05f, false, true, true);
+                Assert.That(shared.Speed, Is.GreaterThan(0));
+                fixture.Adapter.Clear();
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+                Assert.That(shared.Speed, Is.Zero);
+                Assert.That(shared.Phase, Is.Zero);
+                Assert.That(fixture.Adapter.Bind(body), Is.True);
+                fixture.Adapter.SamplePresentation(7f, 126f, .05f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Rebinding cannot resume stale gait travel.");
+            }
+            finally { fixture.Dispose(); }
+        }
+
+        static void AssertBoneAngle(Transform bone, Pose baseline, float angle)
+        {
+            Assert.That(Quaternion.Angle(bone.localRotation, baseline.Rotation * Quaternion.AngleAxis(angle, Vector3.forward)), Is.LessThan(.01f));
+        }
+
+        [Test]
         public void Adapter_BindsExactBonesFailsClosedAndRestoresWithoutMovingRootOrPivot()
         {
             var fixture = CreateFixture();

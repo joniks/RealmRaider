@@ -112,8 +112,9 @@ Last reviewed: 2026-09-10
 - Diamond Pass 15.10 Blood Knight Motion Plane is present through Modules commit `6769716`: the device-readable preset now uses a forward/back local-Z locomotion plane with opposing limbs and an asymmetric one-leg takeoff pose, while the compatibility profile and all gameplay authority remain unchanged.
 - Module Research Pass MART05 records the exact Tennessippi Guardian Ent Tree01 CC0 archive and local FBX structural evidence in Modules commit `91e0323`; Unity rig, clip, material and performance validation remain separate import facts.
 - Diamond Pass 15.11 Blood Knight Readable Stride and Staged Jump is present through Modules commit `501c812`: exact doubled forward/back counter-swing and one shared continuous 0.30/0.40/0.40/0.56-second visual jump timeline affect only the pivot and six bound bones, including sparse-frame and early-ground continuity.
-- Current Unity Test Runner baseline: EditMode `251/251` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-10.
-- Physical-device validation of the corrected stride and staged jump remains pending; no device performance result is claimed here.
+- Diamond Pass 15.12 Factual Character Motion Dynamics is present: one shared per-entity state drives the six bound bones and bounded pivot weight from factual horizontal displacement and yaw, stops exactly at neutral, composes with the staged jump/action/hit priorities and clears on every authority/lifecycle boundary without changing gameplay physics.
+- Current Unity Test Runner baseline: EditMode `255/255` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Physical-device validation of the corrected stride, staged jump and new start/stop/turn weight remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
 

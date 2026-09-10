@@ -221,14 +221,14 @@ namespace RealmRaiders.Tests
                 var rootScale = fixture.Root.transform.localScale; var motorHeight = fixture.Entity.Motor.height; var motorRadius = fixture.Entity.Motor.radius; var motorCenter = fixture.Entity.Motor.center;
 
                 Assert.That(fixture.Player.Jump(), Is.True);
-                yield return null;
+                yield return SampleNonzeroJumpAccent(fixture.Entity, motion, CharacterJumpPresentationPhase.Takeoff);
                 Assert.That(pivot.localScale.y, Is.GreaterThan(motion.BaseScale.y), "Real takeoff stretches only the assembled presentation pivot.");
                 Assert.That(fixture.Root.transform.localScale, Is.EqualTo(rootScale));
                 Assert.That(fixture.Entity.Motor.height, Is.EqualTo(motorHeight)); Assert.That(fixture.Entity.Motor.radius, Is.EqualTo(motorRadius)); Assert.That(fixture.Entity.Motor.center, Is.EqualTo(motorCenter));
                 AssertPivotBounds(motion);
 
                 yield return WaitForGrounded(fixture.Entity);
-                yield return null;
+                yield return SampleNonzeroJumpAccent(fixture.Entity, motion, CharacterJumpPresentationPhase.Landing);
                 Assert.That(fixture.Entity.IsJumping, Is.False);
                 Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y), "Only the factual grounded end of a real jump settles the pivot.");
                 Assert.That(fixture.Root.transform.localScale, Is.EqualTo(rootScale));
@@ -677,6 +677,31 @@ namespace RealmRaiders.Tests
             while (!entity.IsGrounded && Time.realtimeSinceStartup < timeout) yield return null;
             Assert.That(entity.IsGrounded, Is.True, entity.name);
             yield return null;
+        }
+
+        static IEnumerator SampleNonzeroJumpAccent(CombatEntity entity, CharacterVisualMotion motion, CharacterJumpPresentationPhase phase)
+        {
+            var timeline = entity.GetComponent<CharacterJumpPresentationTimeline>();
+            Assert.That(timeline, Is.Not.Null);
+            var timeout = Time.realtimeSinceStartup + 2f;
+            var sample = CharacterJumpPresentationSample.None;
+            while (Time.realtimeSinceStartup < timeout)
+            {
+                sample = timeline.Observe(Time.unscaledTime, entity.IsJumping, entity.IsGrounded,
+                    CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
+                // Zero progress is the continuous neutral endpoint. Observe a meaningful factual response,
+                // not a guessed frame count or an idle-breath sign. Landing must precede its neutral endpoint too.
+                if (sample.Phase == phase && sample.Progress >= .1f &&
+                    (phase != CharacterJumpPresentationPhase.Landing || sample.Progress <= .9f))
+                {
+                    Assert.That(entity.IsJumping, Is.EqualTo(phase == CharacterJumpPresentationPhase.Takeoff));
+                    if (phase == CharacterJumpPresentationPhase.Landing) Assert.That(entity.IsGrounded, Is.True);
+                    motion.SampleFactualPose(Time.time, Time.unscaledTime, Time.deltaTime);
+                    yield break;
+                }
+                yield return null;
+            }
+            Assert.Fail($"Real jump did not expose nonzero {phase} within 2s; last presentation={sample.Phase}/{sample.Progress:0.000}, jumping={entity.IsJumping}, grounded={entity.IsGrounded}.");
         }
 
         static void AssertPivotBounds(CharacterVisualMotion motion)

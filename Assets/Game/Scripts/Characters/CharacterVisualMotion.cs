@@ -1,4 +1,5 @@
 using RealmRaiders.Combat;
+using RealmRaiders.Controllers;
 using UnityEngine;
 
 namespace RealmRaiders.Characters
@@ -18,8 +19,11 @@ namespace RealmRaiders.Characters
         Quaternion baseRotation;
         Vector3 baseScale;
         Vector3 lastRootPosition;
+        float lastRootYaw;
+        float dynamicsClock = float.NaN;
+        object dynamicsController;
+        readonly CharacterMotionDynamics dynamics = new();
         CharacterJumpPresentationTimeline jumpPresentation;
-        float movement;
         float hitReactionUntil;
         float seed;
         float possessionArrivalStartedAt;
@@ -62,7 +66,7 @@ namespace RealmRaiders.Characters
             basePosition = presentationPivot.localPosition;
             baseRotation = presentationPivot.localRotation;
             baseScale = presentationPivot.localScale;
-            movement = 0;
+            ResetDynamics();
             hasOrdinaryPose = false;
             lastRootPosition = transform.position;
             ResetJumpTransitions();
@@ -84,7 +88,7 @@ namespace RealmRaiders.Characters
                 presentationPivot.localRotation = baseRotation;
                 presentationPivot.localScale = baseScale;
             }
-            movement = 0;
+            ResetDynamics();
             ResetJumpTransitions();
         }
 
@@ -105,7 +109,7 @@ namespace RealmRaiders.Characters
             if (!presentationPivot || defeatActive) return false;
             ClearPossessionArrival();
             hitReactionUntil = 0;
-            movement = 0;
+            ResetDynamics();
             ResetJumpTransitions();
             hasOrdinaryPose = false;
             defeatStartedAt = Time.unscaledTime;
@@ -158,7 +162,7 @@ namespace RealmRaiders.Characters
                 ObserveJumpPresentation(clock, isJumping, isGrounded, hasDirectControl));
         }
 
-        void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase, CharacterJumpPresentationSample jump)
+        void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase, CharacterJumpPresentationSample jump, bool sampleDynamics = true)
         {
             if (!presentationPivot || float.IsNaN(horizontalVelocity.x) || float.IsNaN(horizontalVelocity.z)) return;
             if (defeatActive)
@@ -167,15 +171,19 @@ namespace RealmRaiders.Characters
                 return;
             }
             if (deltaTime <= 0) return;
-            var targetMovement = Mathf.Clamp01(new Vector2(horizontalVelocity.x, horizontalVelocity.z).magnitude / 4f);
-            movement = Mathf.MoveTowards(movement, targetMovement, deltaTime * 7f);
+            if (sampleDynamics)
+            {
+                if (jump.Phase != CharacterJumpPresentationPhase.None || phase != CombatActionPhase.Idle) dynamics.Reset();
+                else dynamics.Step(transform.InverseTransformDirection(horizontalVelocity * deltaTime), 0, deltaTime, entity && entity.Definition ? entity.Stats.MoveSpeed : 4f);
+            }
+            var locomotionVisible = phase == CombatActionPhase.Idle && jump.Phase == CharacterJumpPresentationPhase.None && Time.time >= hitReactionUntil;
+            var movement = locomotionVisible ? dynamics.Speed : 0f;
             var idleWeight = 1f - movement * .72f;
             var breath = Mathf.Sin(clock * 2.1f + seed) * .014f * idleWeight;
             var sway = Mathf.Sin(clock * 1.35f + seed) * .009f * idleWeight;
-            var bob = Mathf.Sin(clock * (5.5f + movement * 2.5f) + seed) * .032f * movement;
-            var localVelocity = transform.InverseTransformDirection(horizontalVelocity);
-            var lean = Mathf.Clamp(-localVelocity.x * 2.1f, -7f, 7f) * movement;
-            var pitch = Mathf.Clamp(localVelocity.z * 1.4f, -5f, 5f) * movement;
+            var bob = Mathf.Sin(dynamics.Phase * 2f) * .032f * movement;
+            var lean = locomotionVisible ? dynamics.TurnLean : 0f;
+            var pitch = locomotionVisible ? dynamics.ForwardSpeed * 2f + dynamics.WeightPitch : 0f;
             if (phase == CombatActionPhase.Windup) pitch += 7f;
             else if (phase == CombatActionPhase.Impact) pitch -= 5f;
             else if (phase == CombatActionPhase.Recovery) pitch -= 2f;
@@ -183,7 +191,8 @@ namespace RealmRaiders.Characters
 
             var position = basePosition + new Vector3(sway, breath + bob, 0);
             var rotation = baseRotation * Quaternion.Euler(pitch, 0, lean);
-            var scale = baseScale * (1f + breath * .12f);
+            // Breathing owns translation only; signed idle breath must not invert a small jump scale response.
+            var scale = baseScale;
             var takeoffResponse = jump.Phase == CharacterJumpPresentationPhase.Takeoff ? jump.Progress :
                 jump.Phase == CharacterJumpPresentationPhase.Falling ? 1f - jump.Progress : 0f;
             if (takeoffResponse > 0)
@@ -210,8 +219,8 @@ namespace RealmRaiders.Characters
             scale = Vector3.Scale(scale, arrival.scale);
             position = ClampOffset(position);
             scale = ClampScale(scale);
-            presentationPivot.localPosition = arrivalSettledThisSample ? position : Vector3.Lerp(presentationPivot.localPosition, position, Mathf.Clamp01(deltaTime * 12f));
-            presentationPivot.localRotation = arrivalSettledThisSample ? rotation : Quaternion.Slerp(presentationPivot.localRotation, rotation, Mathf.Clamp01(deltaTime * 14f));
+            presentationPivot.localPosition = arrivalSettledThisSample ? position : Vector3.Lerp(presentationPivot.localPosition, position, 1f - Mathf.Exp(-deltaTime * 12f));
+            presentationPivot.localRotation = arrivalSettledThisSample ? rotation : Quaternion.Slerp(presentationPivot.localRotation, rotation, 1f - Mathf.Exp(-deltaTime * 14f));
             presentationPivot.localScale = scale;
         }
 
@@ -286,15 +295,53 @@ namespace RealmRaiders.Characters
             jumpPresentation?.ResetTimeline();
         }
 
-        void LateUpdate()
+        /// <summary>Rebases the shared gait on lifecycle changes; never writes an authoritative transform.</summary>
+        public void ResetDynamics()
         {
-            var deltaTime = Time.deltaTime;
-            var displacement = transform.position - lastRootPosition;
+            dynamics.Reset();
             lastRootPosition = transform.position;
-            var velocity = deltaTime > .0001f ? displacement / deltaTime : Vector3.zero;
-            var jump = ObserveJumpPresentation(Time.unscaledTime, entity && entity.IsJumping, entity && entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
-            SamplePose(Time.time, Time.unscaledTime, deltaTime, new Vector3(velocity.x, 0, velocity.z), entity ? entity.ActionPhase : CombatActionPhase.Idle, jump);
+            lastRootYaw = transform.eulerAngles.y;
+            dynamicsController = entity?.ActiveController;
+            dynamicsClock = float.NaN;
         }
+
+        public static bool HasMotionAuthority(CombatEntity target)
+        {
+            return target && target.Health != null && !target.Health.IsDead && target.Motor && target.Motor.enabled &&
+                !target.IsRooted && !GameplayInput.TerminalState && target.ActiveController != null && target.ActiveController.IsActive &&
+                (!(target.ActiveController is Behaviour controller) || (controller && controller.isActiveAndEnabled));
+        }
+
+        /// <summary>Both visual consumers share one sample per timestamp, independent of LateUpdate order.</summary>
+        public CharacterMotionDynamics SampleFactualDynamics(float clock, float deltaTime, bool allowed, CharacterJumpPresentationSample jump)
+        {
+            if (!ReferenceEquals(dynamicsController, entity?.ActiveController)) ResetDynamics();
+            if (!allowed || jump.Phase != CharacterJumpPresentationPhase.None || (entity && entity.ActionPhase != CombatActionPhase.Idle))
+            {
+                ResetDynamics();
+                return dynamics;
+            }
+            if (dynamicsClock == clock) return dynamics;
+            dynamicsClock = clock;
+            var displacement = transform.position - lastRootPosition;
+            var yaw = transform.eulerAngles.y;
+            var yawDelta = Mathf.DeltaAngle(lastRootYaw, yaw);
+            lastRootPosition = transform.position;
+            lastRootYaw = yaw;
+            displacement.y = 0;
+            dynamics.Step(transform.InverseTransformDirection(displacement), yawDelta, deltaTime, entity && entity.Definition ? entity.Stats.MoveSpeed : 4f);
+            return dynamics;
+        }
+
+        /// <summary>Explicit clocks keep the real transform-to-pivot path deterministically testable.</summary>
+        public void SampleFactualPose(float clock, float unscaledClock, float deltaTime)
+        {
+            var jump = ObserveJumpPresentation(unscaledClock, entity && entity.IsJumping, entity && entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
+            SampleFactualDynamics(unscaledClock, deltaTime, HasMotionAuthority(entity), jump);
+            SamplePose(clock, unscaledClock, deltaTime, Vector3.zero, entity ? entity.ActionPhase : CombatActionPhase.Idle, jump, false);
+        }
+
+        void LateUpdate() => SampleFactualPose(Time.time, Time.unscaledTime, Time.deltaTime);
 
         void OnDisable() { ClearDefeat(); ClearPossessionArrival(); ClearTransientReaction(); }
         void OnDestroy() { ClearDefeat(); ClearPossessionArrival(); Restore(); }

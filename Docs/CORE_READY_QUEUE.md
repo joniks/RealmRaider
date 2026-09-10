@@ -517,3 +517,27 @@ gates passed EditMode `251/251` and PlayMode `92/92`, both with zero failed,
 skipped or inconclusive tests; the post-gate log tail contained no errors or
 exceptions. Android export was explicitly omitted. Final motion feel remains the
 user's direct Unity Game-view acceptance.
+
+## Accepted — Diamond Pass 15.12: Factual Character Motion Dynamics
+
+Replace global-clock marching with one shared per-entity presentation state driven
+only by factual horizontal displacement and yaw. The state feeds the bounded pivot
+and existing six-bone driver once per timestamp, eases starts/stops, returns to
+exact neutral and clears on every controller, root, terminal, death and visual
+lifecycle boundary. Gameplay movement, root, collider, input, camera and combat
+authority remain unchanged.
+
+Acceptance: after two missing import corrections and one factual zero-progress
+jump-test stabilization, focused motion and real-jump checks passed. QA final gates
+passed EditMode `255/255` and PlayMode `92/92`, with no post-gate errors or
+exceptions. No Android export or manual smoke was performed.
+
+## Active next — Diamond Pass 15.13: Directional Attack and Hit-Reaction Motion
+
+First freeze the smallest backward-compatible Modules contract for continuous
+attack/hit pose progress and direction. Core then maps accepted factual combat
+phase notifications and `DamageInfo` direction into bounded windup, impact,
+follow-through and directional flinch/recovery presentation. Preserve exact
+priority and cleanup, and never change combat timing, damage, targeting, entity
+root, `CharacterController`, input or camera authority. Full lease:
+`Docs/NEXT_JOB.md`.

@@ -2986,3 +2986,43 @@ Completed on 2026-09-10.
 
 - Animator clips, root motion, IK, pelvis translation, ragdoll/Rigidbody physics,
   broad skeleton retargeting and final physical-device motion approval.
+
+## Diamond Pass 15.12 — Factual Character Motion Dynamics
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- One per-entity presentation state now advances the Blood Knight gait only from
+  factual horizontal root displacement. Standing freezes the phase, filtered limb
+  weight settles to exact neutral, and a later start cannot inherit an arbitrary
+  global-clock pose.
+- The same idempotent sample feeds both the six bound bones and Presentation Pivot,
+  independent of their `LateUpdate` order. Factual acceleration/braking adds at
+  most `3°` of pitch and factual yaw adds at most `6°` of turn lean.
+- Locomotion accents yield to hit, action and the accepted staged jump. Controller
+  changes, rooting, terminal state, death, disable, clear and rebind reset the
+  presentation without moving the gameplay root, `CharacterController`, body,
+  camera, input or combat authority.
+- Idle breathing now translates without changing neutral scale, so takeoff,
+  falling, landing and idle meet at continuous scale boundaries. The real jump
+  flow test observes factual nonzero phase progress instead of assuming that the
+  first coroutine frame already has a nonzero pose.
+
+### Verification
+
+- QA first caught two missing namespace imports; the minimal compile correction
+  changed no behavior. A later `91/92` PlayMode run exposed the zero-progress
+  jump-test assumption, which was corrected without epsilon motion or gameplay
+  timing changes.
+- Final focused checks passed: the real jump visual-flow test and the complete
+  `18/18` CharacterProceduralMotion EditMode group.
+- Final QA gates passed EditMode `255/255` in 0.847 seconds and PlayMode `92/92`
+  in 73.99 seconds, with no post-gate errors or exceptions.
+- Android was intentionally not exported and no manual smoke is claimed. Final
+  motion feel remains the user's direct Unity Game-view acceptance.
+
+### Scope intentionally deferred
+
+- Continuous directional attack and damage-reaction timelines, additional
+  spine/pelvis/foot bindings, clip-driven animation, IK, root motion and ragdoll.

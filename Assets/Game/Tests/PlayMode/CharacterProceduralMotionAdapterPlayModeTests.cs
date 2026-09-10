@@ -21,8 +21,10 @@ namespace RealmRaiders.Tests
             host.AddComponent<CharacterController>();
             host.AddComponent<Health>();
             var entity = host.AddComponent<CombatEntity>();
+            var previousTerminal = GameplayInput.TerminalState;
             try
             {
+                GameplayInput.SetTerminalState(false);
                 ground.name = "Procedural Motion Test Ground";
                 ground.transform.localScale = Vector3.one * 8f;
                 host.transform.position = Vector3.up;
@@ -61,7 +63,7 @@ namespace RealmRaiders.Tests
                 for (var sample = 0; sample < 3; sample++)
                 {
                     host.transform.position += Vector3.forward * .3f;
-                    yield return null;
+                    adapter.SamplePresentation(sample * .05f, 100f + sample, .05f, false, true, true);
                     locomotionObserved |= RotationDelta(bones[2], baseline[2]) > .001f;
                 }
                 Assert.That(locomotionObserved, Is.True, "Factual horizontal root displacement must map to locomotion.");
@@ -77,6 +79,9 @@ namespace RealmRaiders.Tests
                 Reset(adapter, baseBody);
                 baseline = Snapshot(bones);
                 host.GetComponent<Health>().TakeDamage(new DamageInfo(1, null, host.transform.position), 0);
+                host.transform.position += Vector3.forward * .1f;
+                adapter.SamplePresentation(Time.unscaledTime, 500f, .05f, false, true, true);
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(14f).Within(.01f), "Hit presentation outranks a factual stride.");
                 yield return null;
                 Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(14f).Within(.01f), "Only Health.Damaged may drive the hit pose.");
 
@@ -84,6 +89,9 @@ namespace RealmRaiders.Tests
                 baseline = Snapshot(bones);
                 yield return new WaitForSecondsRealtime(.13f);
                 Assert.That(entity.TryUse(0, Vector3.forward), Is.True);
+                host.transform.position += Vector3.forward * .1f;
+                adapter.SamplePresentation(Time.unscaledTime, 500f, .05f, false, true, true);
+                Assert.That(RotationDelta(bones[1], baseline[1]), Is.EqualTo(30f).Within(.01f), "Action presentation outranks factual travel.");
                 yield return null;
                 Assert.That(entity.ActionPhase, Is.Not.EqualTo(CombatActionPhase.Idle));
                 Assert.That(RotationDelta(bones[1], baseline[1]), Is.EqualTo(30f).Within(.01f), "A non-idle action phase must map to generic primary attack after the hit window expires.");
@@ -111,7 +119,7 @@ namespace RealmRaiders.Tests
                 adapter.SamplePresentation(0f, 0f, .016f, false, true, true);
                 host.transform.position += Vector3.forward * entity.Stats.MoveSpeed * .1f;
                 adapter.SamplePresentation(.01f, .2f, .1f, false, true, true);
-                var stride = Mathf.Sin((.2f + .1f) * 7.5f);
+                var stride = Mathf.Sin(.1f * 7.5f) * (1f - Mathf.Exp(-CharacterMotionDynamics.SpeedResponse * .1f));
                 AssertLocalRotation(bones[0], baseline[0], Vector3.forward, 56f * stride);
                 AssertLocalRotation(bones[1], baseline[1], Vector3.forward, -56f * stride);
                 AssertLocalRotation(bones[2], baseline[2], Vector3.forward, -50f * stride);
@@ -132,6 +140,7 @@ namespace RealmRaiders.Tests
                 var crouch = Snapshot(bones);
                 adapter.SamplePresentation(0f, 0f, .016f, true, false, true);
                 Assert.That(Snapshot(bones), Is.EqualTo(crouch), "Two consumers at the same factual timestamp must receive the same jump sample.");
+                host.transform.position += Vector3.forward * .1f;
                 adapter.SamplePresentation(.15f, .15f, .016f, true, false, true);
                 AssertJumpPose(bones, baseline, -24f, -55f, -38f, 50f, 35f, "Halfway through .30 seconds, crouch continuously straightens.");
                 adapter.SamplePresentation(.30f, .30f, .016f, true, false, true);
@@ -227,10 +236,87 @@ namespace RealmRaiders.Tests
                 Assert.That(controller.radius, Is.EqualTo(controllerRadius));
                 Assert.That(controller.center, Is.EqualTo(controllerCenter));
 
+                // Exercise the shared factual yaw/displacement path under the same real PlayerController.
+                var visualMotion = host.GetComponent<CharacterVisualMotion>();
                 Reset(adapter, baseBody);
                 baseline = Snapshot(bones);
+                host.transform.position += Vector3.forward * .2f;
+                host.transform.rotation = Quaternion.Euler(0, 30f, 0);
+                var drivenRootPosition = host.transform.position;
+                var drivenRootRotation = host.transform.rotation;
+                visualMotion.SampleFactualPose(10f, 10f, .1f);
+                var sharedDynamics = visualMotion.SampleFactualDynamics(10f, .1f, true, CharacterJumpPresentationSample.None);
+                var sharedPhase = sharedDynamics.Phase;
+                Assert.That(sharedDynamics.TurnLean, Is.LessThan(0).And.GreaterThanOrEqualTo(-CharacterMotionDynamics.MaximumTurnLean));
+                Assert.That(Mathf.DeltaAngle(0, pivot.localEulerAngles.z), Is.LessThan(0), "Factual right yaw leans the presentation into the turn.");
+                adapter.SamplePresentation(10f, 1000f, .1f, false, true, true);
+                Assert.That(sharedDynamics.Phase, Is.EqualTo(sharedPhase), "Bone sampling cannot advance the pivot's shared gait a second time.");
+                Assert.That(AnyRotationChanged(bones, baseline), Is.True);
+                for (var i = 1; i <= 20; i++)
+                {
+                    visualMotion.SampleFactualPose(10f + i * .1f, 10f + i * .1f, .1f);
+                    adapter.SamplePresentation(10f + i * .1f, 1000f + i, .1f, false, true, true);
+                }
+                Assert.That(sharedDynamics.Speed, Is.Zero);
+                Assert.That(sharedDynamics.TurnLean, Is.Zero);
+                Assert.That(Quaternion.Angle(pivot.localRotation, pivotPose.Rotation), Is.LessThan(.01f));
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+                Assert.That(host.transform.position, Is.EqualTo(drivenRootPosition));
+                Assert.That(host.transform.rotation, Is.EqualTo(drivenRootRotation));
+                Assert.That(host.transform.localScale, Is.EqualTo(factualRootScale));
+                Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
+                Assert.That(controller.height, Is.EqualTo(controllerHeight));
+                Assert.That(controller.radius, Is.EqualTo(controllerRadius));
+                Assert.That(controller.center, Is.EqualTo(controllerCenter));
+                Assert.That(entity.ActiveController, Is.SameAs(player));
+                host.transform.position += Vector3.forward * .2f;
+                host.transform.rotation = Quaternion.Euler(0, 60f, 0);
+                visualMotion.SampleFactualPose(12.5f, 12.5f, .1f);
+                adapter.SamplePresentation(12.5f, 2000f, .1f, false, true, true);
+                Assert.That(sharedDynamics.Speed, Is.GreaterThan(0));
+                var beforeHitRotation = pivot.localRotation;
+                visualMotion.ShowHitReaction();
+                host.transform.rotation = Quaternion.Euler(0, 90f, 0);
+                visualMotion.SampleFactualPose(12.55f, 12.55f, .05f);
+                var hitRotation = Quaternion.Slerp(beforeHitRotation, pivotPose.Rotation * Quaternion.Euler(0, 0, 5f), 1f - Mathf.Exp(-.05f * 14f));
+                Assert.That(Quaternion.Angle(pivot.localRotation, hitRotation), Is.LessThan(.01f), "Turn/weight accents cannot cancel the factual hit response.");
+                visualMotion.ClearTransientReaction();
+                host.transform.position += Vector3.forward * .2f;
+                adapter.SamplePresentation(12.6f, 2000f, .1f, false, true, true);
+                Assert.That(sharedDynamics.Speed, Is.GreaterThan(0));
+                entity.SetController(null);
+                adapter.SamplePresentation(13f, 3000f, .1f, false, true, false);
+                Assert.That(sharedDynamics.Phase, Is.Zero);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+                Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose), "Controller loss restores the pivot exactly.");
+                entity.SetController(player);
+
+                Reset(adapter, baseBody);
+                host.transform.position += Vector3.forward * .2f;
+                adapter.SamplePresentation(14f, 2000f, .1f, false, true, true);
+                Assert.That(sharedDynamics.Speed, Is.GreaterThan(0));
+                entity.ApplyRoot(1f);
+                adapter.SamplePresentation(14.1f, 2001f, .1f, false, true, false);
+                Assert.That(sharedDynamics.Speed, Is.Zero);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Root clears an active gait.");
+                entity.BreakRoot();
+                host.transform.position += Vector3.forward * .2f;
+                adapter.SamplePresentation(15f, 2002f, .1f, false, true, true);
+                Assert.That(sharedDynamics.Speed, Is.GreaterThan(0));
+                GameplayInput.SetTerminalState(true);
+                adapter.SamplePresentation(15.1f, 2003f, .1f, false, true, true);
+                Assert.That(sharedDynamics.Speed, Is.Zero);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Terminal state clears an active gait.");
+                GameplayInput.SetTerminalState(false);
+
+                Reset(adapter, baseBody);
+                baseline = Snapshot(bones);
+                host.transform.position += Vector3.forward * .2f;
+                adapter.SamplePresentation(16f, 2004f, .1f, false, true, true);
+                Assert.That(sharedDynamics.Speed, Is.GreaterThan(0));
                 host.GetComponent<Health>().TakeDamage(new DamageInfo(10000, null, host.transform.position), 0);
                 yield return null;
+                Assert.That(sharedDynamics.Speed, Is.Zero, "Death clears gait before its dominant pose is sampled.");
                 Assert.That(host.GetComponent<Health>().IsDead, Is.True);
                 Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(16f).Within(.01f), "Health.IsDead must retain death priority.");
                 Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
@@ -242,6 +328,7 @@ namespace RealmRaiders.Tests
             }
             finally
             {
+                GameplayInput.SetTerminalState(previousTerminal);
                 Object.Destroy(host);
                 Object.Destroy(ground);
                 Object.Destroy(definition);
