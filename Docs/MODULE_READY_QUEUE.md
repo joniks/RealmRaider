@@ -479,13 +479,15 @@ hashes and provenance were reviewed on 2026-09-10. Close Smash, forward Charge
 and radial Ground Slam remain distinct at 48 px; Ground Slam retains a named
 32 px/in-context detail gate.
 
-## Now — Art Pass MUI 05: Infernal Brute Ability Icon Candidates
+## Accepted — Art Pass MUI 05: Infernal Brute Ability Icon Candidates
 
 Owner: Module Developer / Technical Art
 
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
 
 Base: Modules commit `0834c2f`.
+
+Accepted Modules commit: `a4c41c1`.
 
 Reserved folder only:
 
@@ -515,3 +517,45 @@ forking ability logic. The set remains preview-only.
 
 Main checkout, Unity or `.meta`, runtime/HUD binding, ability logic/balance,
 animation/VFX/audio, Infernal model/environment art, validators, commit or push.
+
+Acceptance: all three 512×512 RGBA candidates, evidence sheets, alpha checks,
+hashes and exact generation prompts were reviewed on 2026-09-10 after one
+provenance-only correction. The close impact, forward wedge and radial shock are
+distinct at 48 px; Ground Slam retains a named 32 px detail gate.
+
+## Now — Art Pass MUI 06: Control-Style Icon Candidates
+
+Owner: Module Developer / Technical RTS/UI Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Base: Modules commit `a4c41c1`.
+
+Reserved folder only:
+
+- `ArtPreviews/MUI06-ControlStyleIcons/`
+
+### Outcome
+
+Prepare one original icon each for the already truthful Contextual/AUTO,
+Fingertap/TAP and Joystick/STICK modes so the in-run switcher can later communicate
+the real input distinction without relying only on short English labels.
+
+### Required deliverables
+
+1. Create original 512×512 transparent RGBA `contextual`, `fingertap` and
+   `joystick` icons in one restrained neutral/Sylvan mobile UI language.
+2. Contextual must suggest automatic context choice without a gear or AI/robot
+   claim; Fingertap must show a simple touch point/gesture; Joystick must show a
+   clear virtual stick. They must remain distinct at 32–48 px.
+3. No text, letters, numerals, device brand, hand anatomy detail, backdrop, frame,
+   logo, watermark, third-party source or recognizable platform/franchise design.
+4. Produce dark-neutral 32 px and 48 px contact sheets plus a 256 px overview.
+5. Record exact prompts/tools/date/mappings/output hashes and original-generation
+   truth in provenance; verify RGBA/alpha, dimensions, hashes, JSON and whitespace.
+6. Freeze only the reserved folder and send compact handoff; no commit or push.
+
+### Non-goals
+
+Main checkout, Unity or `.meta`, switcher/input/camera behavior, runtime binding,
+new control modes, animation, accessibility claims, validators or device testing.

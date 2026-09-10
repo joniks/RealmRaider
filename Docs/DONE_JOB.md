@@ -2028,6 +2028,32 @@ Completed on 2026-09-10.
 - Final-art/device approval, manual periodicity and normal review, terrain or
   triplanar shaders, second-tile variation, Infernal surfaces and gameplay changes.
 
+## Art Pass MUI 05 — Infernal Brute Ability Icon Candidates
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Produced original 512×512 RGBA Infernal Smash, Charge and Ground Slam previews
+  with forged obsidian, restrained ember-red and pale-hot edges.
+- Kept the shared mechanical meanings while making silhouettes materially
+  different from Guardian Ent living-root icons; added 48/256 px evidence.
+- Provenance contains exact prompts, mappings and SHA-256 values without
+  third-party sources or character likeness.
+
+### Verification
+
+- Dimensions, alpha evidence, JSON, hashes and whitespace are clean after one
+  missing-prompt provenance correction.
+- Close impact, forward momentum and radial shock remain distinct at 48 px;
+  Ground Slam retains a named 32 px detail gate.
+- Accepted in Modules commit `a4c41c1` (`art: prepare Infernal Brute ability icons`).
+
+### Scope intentionally deferred
+
+- Unity import, HUD/runtime binding, mobile compression, 32 px comprehension,
+  combat logic/balance, animation/VFX/audio and final art.
+
 ## Art Pass MUI 04 — Guardian Ent Ability Icon Candidates
 
 Completed on 2026-09-10 and accepted in the Modules submodule.
