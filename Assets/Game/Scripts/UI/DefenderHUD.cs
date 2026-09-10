@@ -337,7 +337,12 @@ namespace RealmRaiders.UI
         void ContinueAfterDefense()
         {
             SetDeploymentReceiptVisible(false);
+            var firstMinuteOutcome = firstMinuteGuide ? firstMinuteGuide.TerminalOutcome : DefenseGuideTerminalOutcome.None;
+            var completedSylvanResult = config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && config.NextActionScene == "RealmBuild"
+                && firstMinuteOutcome != DefenseGuideTerminalOutcome.Retry
+                && (journeyCompletedForResult || firstMinuteOutcome == DefenseGuideTerminalOutcome.Completed);
             if (journeyToken != 0) PrototypeJourney.Cancel(journeyToken);
+            if (completedSylvanResult) PrototypeJourney.TryStart(out _);
             journeyHandoff = true;
             SceneManager.LoadScene(config.NextActionScene);
         }

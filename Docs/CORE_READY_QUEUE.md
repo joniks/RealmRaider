@@ -232,7 +232,7 @@ runtime jump code and strict assertions were unchanged. Manual loss/result copy
 remains unobserved because the first Game-view click failed externally with
 `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-## Now — Diamond Pass 14.2: Completed Loop Primes the Next Raid
+## Accepted — Diamond Pass 14.2: Completed Loop Primes the Next Raid
 
 Owner: Core developer. Base: Architect's accepted 14.1 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -242,8 +242,23 @@ the existing journey Build stage so the existing primary action truthfully reads
 `SAVE & RAID` and advances to SylvanRealm. Direct/legacy Build, early Retry and
 Infernal paths remain inactive and keep `SAVE & DEFEND`.
 
-## Ready after 14.2
+Acceptance: QA's fresh native gates passed EditMode `174/174` and PlayMode
+`82/82`, both with zero failed/skipped/inconclusive tests; Console was `0/0/0`.
+Manual journey return remains unobserved because the first Game-view click failed
+externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
+
+## Now — Diamond Pass 14.3: Raid Result Copy Matches the Next Action
+
+Owner: Core developer. Base: Architect's accepted 14.2 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Journey Raid results already continue directly through DEFEND YOUR REALM, but
+their copy falsely promises another planning/Build step. Align only the journey
+victory/defeat sentence with the factual immediate Defense action while direct
+Raid keeps its existing planning copy and PLAN NEXT DEFENSE route.
+
+## Ready after 14.3
 
 Use QA's observation to accept or make one bounded copy/lifecycle correction.
 Then select the next smallest break in the canonical playable loop; do not expand
-this into new navigation, persistent journey state, rewards or progression.
+this into new navigation, result redesign, rewards or progression.

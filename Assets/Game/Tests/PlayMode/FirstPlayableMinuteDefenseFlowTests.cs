@@ -93,7 +93,11 @@ namespace RealmRaiders.Tests
                 GameObject.Find("RETURN TO BUILD").GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;
                 Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("RealmBuild"));
-                Assert.That(Object.FindObjectsByType<BuildHUD>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                Assert.That(PrototypeJourney.Stage, Is.EqualTo(PrototypeJourneyStage.Build));
+                var buildHuds = Object.FindObjectsByType<BuildHUD>(FindObjectsSortMode.None);
+                Assert.That(buildHuds, Has.Length.EqualTo(1));
+                Assert.That(buildHuds[0].SaveActionText, Is.EqualTo(BuildHUD.SaveAndRaidAction));
+                Assert.That(GameObject.Find(BuildHUD.SaveAndRaidAction), Is.Not.Null);
                 Assert.That(Object.FindObjectsByType<FirstPlayableMinuteDefenseGuide>(FindObjectsSortMode.None), Is.Empty);
                 Assert.That(CountSceneObjectsNamed("First Playable Minute Defense Guide"), Is.Zero);
                 Assert.That(CountSceneObjectsNamed("Defense Result"), Is.Zero);
@@ -105,6 +109,22 @@ namespace RealmRaiders.Tests
                 Assert.That(afterBuild.CompletedRaids, Is.EqualTo(progress.CompletedRaids));
                 Assert.That(afterBuild.Victories, Is.EqualTo(progress.Victories));
                 Assert.That(afterBuild.GuardianEntVitalityRank, Is.EqualTo(progress.GuardianEntVitalityRank));
+
+                GameObject.Find(BuildHUD.SaveAndRaidAction).GetComponent<Button>().onClick.Invoke();
+                yield return null; yield return null;
+                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("SylvanRealm"));
+                Assert.That(PrototypeJourney.Stage, Is.EqualTo(PrototypeJourneyStage.Raid));
+                Assert.That(Object.FindObjectsByType<BuildHUD>(FindObjectsSortMode.None), Is.Empty);
+                Assert.That(Object.FindObjectsByType<FirstPlayableMinuteDefenseGuide>(FindObjectsSortMode.None), Is.Empty);
+                Assert.That(CountSceneObjectsNamed("Defense Result"), Is.Zero);
+                Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
+                Assert.That(FirstPlayableMinute.SuccessfulWritesForTests, Is.EqualTo(completionWrites), "Starting the next raid cannot persist guide completion twice.");
+                var inRaid = RealmProgress.Load();
+                Assert.That(inRaid.Gold, Is.EqualTo(progress.Gold));
+                Assert.That(inRaid.RareMaterials, Is.EqualTo(progress.RareMaterials));
+                Assert.That(inRaid.CompletedRaids, Is.EqualTo(progress.CompletedRaids));
+                Assert.That(inRaid.Victories, Is.EqualTo(progress.Victories));
+                Assert.That(inRaid.GuardianEntVitalityRank, Is.EqualTo(progress.GuardianEntVitalityRank));
             }
             finally { saved.Restore(); }
         }
@@ -613,7 +633,7 @@ namespace RealmRaiders.Tests
 
             public void Restore()
             {
-                GameplayInput.ResetForTests(); Time.timeScale = 1; Time.fixedDeltaTime = .02f;
+                GameplayInput.ResetForTests(); PrototypeJourney.ResetForTests(); Time.timeScale = 1; Time.fixedDeltaTime = .02f;
                 if (hadGuide) PlayerPrefs.SetString(FirstPlayableMinute.KeyForTests, guide); else PlayerPrefs.DeleteKey(FirstPlayableMinute.KeyForTests);
                 if (hadLayout) PlayerPrefs.SetString(DefenseLayoutSave.KeyForTests, layout); else PlayerPrefs.DeleteKey(DefenseLayoutSave.KeyForTests);
                 PlayerPrefs.Save(); PrototypeSave.SelectRealm(realm); PrototypeSave.SetOrientation(orientation); PrototypeSave.SetControlStyle(control); FirstPlayableMinute.ResetBuildHandoff();

@@ -2357,3 +2357,32 @@ Completed on 2026-09-10.
 
 - General result/tutorial redesign, new navigation, reward/progression or journey
   persistence changes, gameplay/balance work and device final polish.
+
+## Diamond Pass 14.2 — Completed Loop Primes the Next Raid
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- RETURN TO BUILD from a factually completed canonical Sylvan Defense now starts
+  the existing in-session journey Build stage immediately before RealmBuild.
+- Existing BuildHUD behavior therefore exposes exact `SAVE & RAID`; one existing
+  click advances to SylvanRealm with journey Stage=Raid.
+- Direct/legacy Build, early Retry and Infernal paths remain inactive and retain
+  their existing `SAVE & DEFEND` behavior and scene authority.
+- The factual-loss regression proves the Build and Raid stages, exact action
+  label, cleanup and unchanged guide-completion writes and RealmProgress credit.
+
+### Verification
+
+- Architect confirmed completed-result provenance, existing TryStart API use,
+  unchanged BuildHUD/callback authority and inactive legacy paths.
+- QA native gates passed EditMode `174/174` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual journey return is not claimed because the first Game-view click failed
+  externally with `windowNotFoundAtPosition`; no runtime failure was observed.
+
+### Scope intentionally deferred
+
+- New navigation, persistent journey state, Build layout/validation, reward or
+  progression changes, gameplay/balance work and device final polish.
