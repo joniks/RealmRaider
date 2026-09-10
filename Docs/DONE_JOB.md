@@ -2947,3 +2947,42 @@ Completed on 2026-09-10.
 - Final bone-axis/amplitude/cadence tuning, clip-driven Animator, Humanoid retarget,
   root motion, IK, ragdoll/Rigidbody physics, broad skeleton support, model or
   material replacement, camera/input/combat changes and physical-device approval.
+
+## Diamond Pass 15.11 — Blood Knight Readable Stride and Staged Jump
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Modules commits `91e0323` and `501c812` preserve the exact Guardian Ent Tree01
+  source/CC0 intake evidence and evolve the reusable procedural humanoid driver.
+- Blood Knight locomotion now uses an explicit mobile-readable forward/back sample:
+  opposing upper arms `±56°`, thighs `∓50°` and calves `±26°`; the compatibility
+  preset retains its exact prior values and axes.
+- One shared, idempotent presentation-only jump timeline drives the existing pivot
+  and six bound bones: bilateral deep crouch, 0.30-second straighten into one-leg
+  push, hold through 0.40 seconds, 0.40-second push-to-fall blend, then a 0.56-second
+  fall-to-compression-to-baseline landing.
+- Early factual grounding finishes only the remaining visual fall blend before the
+  landing response. It never delays or changes authoritative grounding, jump input,
+  `CharacterJumpState`, entity root, `CharacterController`, combat or camera.
+- Same-timestamp consumers, sparse frames, exact endpoints, controller loss,
+  disable, clear and rebind produce deterministic cleanup without pose snapping.
+
+### Verification
+
+- Architect and an independent reviewer closed a landing catch-up error, an exact
+  endpoint/idempotence error, pivot takeoff-to-fall popping and early-ground bone
+  discontinuity before acceptance; `git diff --check` is clean.
+- QA's first EditMode run exposed the sparse-frame landing bug (`250/251`); the
+  bounded correction was made with GPT-6 Astra and no gameplay timing change.
+- Final QA gates passed EditMode `251/251` in 0.895 seconds and PlayMode `92/92`
+  in 73.123 seconds, with zero failed/skipped/inconclusive tests and no post-gate
+  errors or exceptions.
+- Android was intentionally not exported. Subjective motion quality remains the
+  user's direct Unity Game-view acceptance.
+
+### Scope intentionally deferred
+
+- Animator clips, root motion, IK, pelvis translation, ragdoll/Rigidbody physics,
+  broad skeleton retargeting and final physical-device motion approval.

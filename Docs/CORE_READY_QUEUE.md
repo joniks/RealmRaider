@@ -501,3 +501,19 @@ with zero failed/skipped/inconclusive tests; the post-gate log tail was clean.
 Landscape Sylvan loaded the exact Knight and mobile UI, but automation could not
 safely inject Game-view input, so physical-device stride and takeoff quality remain
 the user's next observation.
+
+## Accepted — Diamond Pass 15.11: Blood Knight Readable Stride and Staged Jump
+
+The accepted Modules `501c812` preset doubles the Blood Knight's local-forward
+opposing stride without clipping and supplies deterministic continuous jump-pose
+sampling. Core adds one factual shared presentation timeline for both pivot and
+six-bone consumers: 0.30-second crouch-to-push, 0.40-second takeoff, 0.40-second
+fall blend and 0.56-second landing recovery. Sparse frames, exact endpoints and
+early grounding remain continuous while gameplay physics, input, root, controller,
+collider, combat and camera stay authoritative and unchanged.
+
+Acceptance: after one QA-exposed sparse-frame landing correction, final native
+gates passed EditMode `251/251` and PlayMode `92/92`, both with zero failed,
+skipped or inconclusive tests; the post-gate log tail contained no errors or
+exceptions. Android export was explicitly omitted. Final motion feel remains the
+user's direct Unity Game-view acceptance.

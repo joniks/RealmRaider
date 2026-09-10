@@ -45,6 +45,61 @@ namespace RealmRaiders.Tests
             finally { fixture.Dispose(); }
         }
 
+        [Test]
+        public void JumpPresentationTimeline_UsesSharedDeterministicFourXDurationsAndResets()
+        {
+            var host = new GameObject("Jump Presentation Timeline Test");
+            try
+            {
+                var timeline = host.AddComponent<CharacterJumpPresentationTimeline>();
+                timeline.Configure(4f, 3f);
+                Assert.That(timeline.StraightenSeconds, Is.EqualTo(.30f).Within(.0001f));
+                Assert.That(timeline.TakeoffSeconds, Is.EqualTo(.40f).Within(.0001f));
+                Assert.That(timeline.LandingSeconds, Is.EqualTo(.56f).Within(.0001f));
+
+                Assert.That(timeline.Observe(0f, false, true, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
+                AssertSample(timeline.Observe(0f, true, false, true), CharacterJumpPresentationPhase.Takeoff, 0f);
+                AssertSample(timeline.Observe(0f, true, false, true), CharacterJumpPresentationPhase.Takeoff, 0f);
+                AssertSample(timeline.Observe(.15f, true, false, true), CharacterJumpPresentationPhase.Takeoff, .5f);
+                AssertSample(timeline.Observe(.30f, true, false, true), CharacterJumpPresentationPhase.Takeoff, 1f);
+                AssertSample(timeline.Observe(.40f, true, false, true), CharacterJumpPresentationPhase.Falling, 0f);
+                AssertSample(timeline.Observe(.60f, true, false, true), CharacterJumpPresentationPhase.Falling, .5f);
+                AssertSample(timeline.Observe(.80f, true, false, true), CharacterJumpPresentationPhase.Falling, 1f);
+                AssertSample(timeline.Observe(.80f, false, true, true), CharacterJumpPresentationPhase.Landing, 0f);
+                AssertSample(timeline.Observe(1.08f, false, true, true), CharacterJumpPresentationPhase.Landing, .5f);
+                AssertSample(timeline.Observe(1.36f, false, true, true), CharacterJumpPresentationPhase.Landing, 1f);
+                AssertSample(timeline.Observe(1.36f, false, true, true), CharacterJumpPresentationPhase.Landing, 1f);
+                Assert.That(timeline.Observe(1.361f, false, true, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
+
+                timeline.ResetTimeline();
+                Assert.That(timeline.Observe(0f, false, true, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
+                AssertSample(timeline.Observe(0f, true, false, true), CharacterJumpPresentationPhase.Takeoff, 0f);
+                AssertSample(timeline.Observe(.40f, true, false, true), CharacterJumpPresentationPhase.Falling, 0f);
+                AssertSample(timeline.Observe(.60f, false, true, true), CharacterJumpPresentationPhase.Falling, .5f);
+                AssertSample(timeline.Observe(.70f, false, true, true), CharacterJumpPresentationPhase.Falling, .75f);
+                AssertSample(timeline.Observe(.80f, false, true, true), CharacterJumpPresentationPhase.Landing, 0f);
+                AssertSample(timeline.Observe(.80f, false, true, true), CharacterJumpPresentationPhase.Landing, 0f);
+
+                Assert.That(timeline.Observe(1.37f, true, false, false).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
+                Assert.That(timeline.Observe(1.38f, true, false, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None), "Control loss must not resume an old visual jump.");
+
+                timeline.Configure(1f, 1f);
+                timeline.Observe(0f, false, true, true);
+                timeline.Observe(.01f, true, false, true);
+                AssertSample(timeline.Observe(.20f, false, true, true), CharacterJumpPresentationPhase.Falling, .9f);
+                // Skip the scheduled .21 landing boundary: both consumers must catch up at .28.
+                AssertSample(timeline.Observe(.28f, false, true, true), CharacterJumpPresentationPhase.Landing, .5f);
+                AssertSample(timeline.Observe(.28f, false, true, true), CharacterJumpPresentationPhase.Landing, .5f);
+            }
+            finally { Object.DestroyImmediate(host); }
+        }
+
+        static void AssertSample(CharacterJumpPresentationSample actual, CharacterJumpPresentationPhase phase, float progress)
+        {
+            Assert.That(actual.Phase, Is.EqualTo(phase));
+            Assert.That(actual.Progress, Is.EqualTo(progress).Within(.0001f));
+        }
+
         private static Fixture CreateFixture()
         {
             var host = new GameObject("Procedural Motion Adapter Edit Host");

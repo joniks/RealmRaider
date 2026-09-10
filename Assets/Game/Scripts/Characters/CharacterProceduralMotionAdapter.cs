@@ -13,8 +13,6 @@ namespace RealmRaiders.Characters
     public sealed class CharacterProceduralMotionAdapter : MonoBehaviour
     {
         const float HitResponseSeconds = .12f;
-        const float JumpTakeoffSeconds = .10f;
-        const float JumpLandingSeconds = .14f;
 
         static readonly HumanoidBoneNameMap BloodKnightBones = new(
             "Bip01 L UpperArm", "Bip01 R UpperArm", "Bip01 L Thigh",
@@ -24,11 +22,9 @@ namespace RealmRaiders.Characters
         CombatEntity entity;
         Health health;
         Transform baseBody;
+        CharacterJumpPresentationTimeline jumpPresentation;
         Vector3 lastRootPosition;
         float hitResponseUntil;
-        float jumpTakeoffUntil;
-        float jumpLandingUntil;
-        bool observedJumping;
         bool subscribed;
 
         public bool IsBound => driver.IsBound;
@@ -52,8 +48,9 @@ namespace RealmRaiders.Characters
                 return false;
             }
 
+            jumpPresentation = GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
+            jumpPresentation.Configure(driver.Tuning.JumpPresentationDurationMultiplier, driver.Tuning.TakeoffStraightenDurationMultiplier);
             lastRootPosition = transform.position;
-            observedJumping = entity.IsJumping;
             health.Damaged += OnDamaged;
             subscribed = true;
             return true;
@@ -66,48 +63,37 @@ namespace RealmRaiders.Characters
             driver.Clear();
             baseBody = null;
             hitResponseUntil = 0;
-            jumpTakeoffUntil = 0;
-            jumpLandingUntil = 0;
-            observedJumping = false;
+            jumpPresentation?.ResetTimeline();
         }
 
-        void LateUpdate()
+        void LateUpdate() => SamplePresentation(Time.unscaledTime, Time.time, Time.deltaTime, entity && entity.IsJumping, entity && entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
+
+        /// <summary>Samples factual state at explicit clocks for deterministic presentation coverage; it has no gameplay authority.</summary>
+        public void SamplePresentation(float unscaledClock, float presentationClock, float deltaTime, bool isJumping, bool isGrounded, bool hasDirectControl)
         {
             if (!driver.IsBound || !entity || !health) return;
 
-            var now = Time.unscaledTime;
-            var deltaTime = Time.deltaTime;
             var rootDisplacement = transform.position - lastRootPosition;
             lastRootPosition = transform.position;
             rootDisplacement.y = 0;
             var speed = deltaTime > .0001f ? rootDisplacement.magnitude / deltaTime : 0;
             var normalizedSpeed = entity.Stats.MoveSpeed > .0001f ? Mathf.Clamp01(speed / entity.Stats.MoveSpeed) : 0;
-
-            var isJumping = entity.IsJumping;
-            if (!observedJumping && isJumping)
-            {
-                jumpTakeoffUntil = now + JumpTakeoffSeconds;
-                jumpLandingUntil = 0;
-            }
-            else if (observedJumping && !isJumping && entity.IsGrounded)
-            {
-                jumpTakeoffUntil = 0;
-                jumpLandingUntil = now + JumpLandingSeconds;
-            }
-            observedJumping = isJumping;
+            jumpPresentation ??= GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
+            var jump = jumpPresentation.Observe(unscaledClock, isJumping, isGrounded, hasDirectControl);
 
             var input = new CharacterMotionPresentationInput(
-                health.IsDead ? MotionPresentationReaction.Death : now < hitResponseUntil ? MotionPresentationReaction.Hit : MotionPresentationReaction.None,
+                health.IsDead ? MotionPresentationReaction.Death : unscaledClock < hitResponseUntil ? MotionPresentationReaction.Hit : MotionPresentationReaction.None,
                 entity.ActionPhase == CombatActionPhase.Idle ? MotionPresentationAttack.None : MotionPresentationAttack.Primary,
-                ResolveJumpPhase(now, isJumping),
+                ResolveJumpPhase(jump.Phase),
                 normalizedSpeed > .01f);
-            driver.Sample(input, normalizedSpeed, Time.time, deltaTime);
+            driver.Sample(input, normalizedSpeed, presentationClock, deltaTime, jump.Progress);
         }
 
-        MotionPresentationJumpPhase ResolveJumpPhase(float now, bool isJumping)
+        static MotionPresentationJumpPhase ResolveJumpPhase(CharacterJumpPresentationPhase phase)
         {
-            if (isJumping) return now < jumpTakeoffUntil ? MotionPresentationJumpPhase.Takeoff : MotionPresentationJumpPhase.Falling;
-            return now < jumpLandingUntil ? MotionPresentationJumpPhase.Landing : MotionPresentationJumpPhase.None;
+            return phase == CharacterJumpPresentationPhase.Takeoff ? MotionPresentationJumpPhase.Takeoff :
+                phase == CharacterJumpPresentationPhase.Falling ? MotionPresentationJumpPhase.Falling :
+                phase == CharacterJumpPresentationPhase.Landing ? MotionPresentationJumpPhase.Landing : MotionPresentationJumpPhase.None;
         }
 
         void OnDamaged(DamageInfo _)
@@ -126,9 +112,7 @@ namespace RealmRaiders.Characters
             Unsubscribe();
             driver.Clear();
             hitResponseUntil = 0;
-            jumpTakeoffUntil = 0;
-            jumpLandingUntil = 0;
-            observedJumping = false;
+            jumpPresentation?.ResetTimeline();
         }
 
         void OnEnable()

@@ -110,8 +110,10 @@ Last reviewed: 2026-09-10
 - Module Tool MART05.1 is accepted in the pinned Modules submodule: one explicit local character archive can be hashed and inventoried deterministically without extraction, execution, network access or inferred licence approval.
 - Diamond Pass 15.9 Blood Knight Device Motion Tune is present: only the imported visual receives a 180-degree recipe fit and its exact six-bone adapter selects the stronger bounded preset, while the gameplay root, CharacterController, Presentation Pivot, camera, input and combat timing remain unchanged.
 - Diamond Pass 15.10 Blood Knight Motion Plane is present through Modules commit `6769716`: the device-readable preset now uses a forward/back local-Z locomotion plane with opposing limbs and an asymmetric one-leg takeoff pose, while the compatibility profile and all gameplay authority remain unchanged.
-- Current Unity Test Runner baseline: EditMode `250/250` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-10.
-- Physical-device validation of the corrected stride plane and asymmetric takeoff remains pending; no device performance result is claimed here.
+- Module Research Pass MART05 records the exact Tennessippi Guardian Ent Tree01 CC0 archive and local FBX structural evidence in Modules commit `91e0323`; Unity rig, clip, material and performance validation remain separate import facts.
+- Diamond Pass 15.11 Blood Knight Readable Stride and Staged Jump is present through Modules commit `501c812`: exact doubled forward/back counter-swing and one shared continuous 0.30/0.40/0.40/0.56-second visual jump timeline affect only the pivot and six bound bones, including sparse-frame and early-ground continuity.
+- Current Unity Test Runner baseline: EditMode `251/251` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Physical-device validation of the corrected stride and staged jump remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
 
@@ -127,14 +129,14 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `244/244` and PlayMode `91/91` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `251/251` and PlayMode `92/92` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
 - The BUILD step is a compact five-slot runtime greybox with a live defense-plan summary; full device usability and performance remain unvalidated.
-- Combat presentation uses bounded pivot motion plus a modular six-bone procedural Blood Knight pilot, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge. Android evidence drove a stronger preset, corrected visual forward fit, a forward/back limb plane and asymmetric takeoff; their latest device feel still needs confirmation, and there is no final clip-driven animation rig or production VFX.
+- Combat presentation uses bounded pivot motion plus a modular six-bone procedural Blood Knight pilot, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge. Unity feedback drove corrected visual forward fit, doubled forward/back counter-swing and a continuous deep-crouch/one-leg-push/fall/landing timeline; its latest feel still needs user confirmation, and there is no final clip-driven animation rig or production VFX.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding; the defense invader now has only a narrow deterministic route-obstruction recovery, not general navigation.
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.

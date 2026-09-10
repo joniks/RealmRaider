@@ -103,39 +103,129 @@ namespace RealmRaiders.Tests
 
                 Reset(adapter, baseBody);
                 baseline = Snapshot(bones);
+                var timeline = host.GetComponent<CharacterJumpPresentationTimeline>();
+                Assert.That(timeline.StraightenSeconds, Is.EqualTo(.30f).Within(.0001f));
+                Assert.That(timeline.TakeoffSeconds, Is.EqualTo(.40f).Within(.0001f));
+                Assert.That(timeline.LandingSeconds, Is.EqualTo(.56f).Within(.0001f));
+
+                adapter.SamplePresentation(0f, 0f, .016f, false, true, true);
+                host.transform.position += Vector3.forward * entity.Stats.MoveSpeed * .1f;
+                adapter.SamplePresentation(.01f, .2f, .1f, false, true, true);
+                var stride = Mathf.Sin((.2f + .1f) * 7.5f);
+                AssertLocalRotation(bones[0], baseline[0], Vector3.forward, 56f * stride);
+                AssertLocalRotation(bones[1], baseline[1], Vector3.forward, -56f * stride);
+                AssertLocalRotation(bones[2], baseline[2], Vector3.forward, -50f * stride);
+                AssertLocalRotation(bones[3], baseline[3], Vector3.forward, 50f * stride);
+                AssertLocalRotation(bones[4], baseline[4], Vector3.forward, 26f * stride);
+                AssertLocalRotation(bones[5], baseline[5], Vector3.forward, -26f * stride);
+                Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
+                Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
+                Assert.That(controller.height, Is.EqualTo(controllerHeight));
+                Assert.That(controller.radius, Is.EqualTo(controllerRadius));
+                Assert.That(controller.center, Is.EqualTo(controllerCenter));
+
+                Reset(adapter, baseBody);
+                baseline = Snapshot(bones);
+                adapter.SamplePresentation(0f, 0f, .016f, false, true, true);
+                adapter.SamplePresentation(0f, 0f, .016f, true, false, true);
+                AssertJumpPose(bones, baseline, -30f, -88f, -88f, 80f, 80f, "Takeoff starts in the module's deep bilateral crouch.");
+                var crouch = Snapshot(bones);
+                adapter.SamplePresentation(0f, 0f, .016f, true, false, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(crouch), "Two consumers at the same factual timestamp must receive the same jump sample.");
+                adapter.SamplePresentation(.15f, .15f, .016f, true, false, true);
+                AssertJumpPose(bones, baseline, -24f, -55f, -38f, 50f, 35f, "Halfway through .30 seconds, crouch continuously straightens.");
+                adapter.SamplePresentation(.30f, .30f, .016f, true, false, true);
+                AssertJumpPose(bones, baseline, -18f, -22f, 12f, 20f, -10f, "At .30 seconds the planted and free legs form the one-leg push.");
+                var push = Snapshot(bones);
+                adapter.SamplePresentation(.40f, .40f, .016f, true, false, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(push), "The final .10 seconds of the .40-second takeoff holds the push.");
+                adapter.SamplePresentation(.60f, .60f, .016f, true, false, true);
+                AssertJumpPose(bones, baseline, 2f, -5f, 12f, 10f, -5f, "Falling continuously blends from push toward the fall pose.");
+                adapter.SamplePresentation(.80f, .80f, .016f, true, false, true);
+                AssertJumpPose(bones, baseline, 22f, 12f, 12f, 0f, 0f, "The bounded fall blend reaches its factual fall pose.");
+                var fall = Snapshot(bones);
+                adapter.SamplePresentation(.80f, .80f, .016f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(fall), "Landing begins continuously from the fall pose.");
+                adapter.SamplePresentation(1.08f, 1.08f, .016f, false, true, true);
+                AssertJumpPose(bones, baseline, -10f, -22f, -22f, 24f, 24f, "At the .56-second landing midpoint, compression is exact.");
+                adapter.SamplePresentation(1.36f, 1.36f, .016f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Landing ends at the exact cached baseline.");
+
+                adapter.SamplePresentation(1.37f, 1.37f, .016f, true, false, true);
+                adapter.SamplePresentation(1.38f, 0f, 0f, true, false, false);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Controller loss clears jump presentation immediately.");
+
+                Reset(adapter, baseBody);
+                baseline = Snapshot(bones);
+                adapter.SamplePresentation(0f, 0f, .016f, false, true, true);
+                adapter.SamplePresentation(0f, 0f, .016f, true, false, true);
+                adapter.SamplePresentation(.40f, .40f, .016f, true, false, true);
+                adapter.SamplePresentation(.60f, .60f, .016f, false, true, true);
+                AssertJumpPose(bones, baseline, 2f, -5f, 12f, 10f, -5f, "Early factual grounding remains on the partial fall pose until the scheduled visual boundary.");
+                adapter.SamplePresentation(.7999f, .7999f, .016f, false, true, true);
+                var immediatelyBeforeLanding = Snapshot(bones);
+                adapter.SamplePresentation(.80f, .80f, .016f, false, true, true);
+                AssertJumpPose(bones, baseline, 22f, 12f, 12f, 0f, 0f, "The scheduled landing boundary begins from the full fall pose.");
+                AssertBoneRotationsContinuous(bones, immediatelyBeforeLanding, "Early factual grounding cannot snap from a partial fall pose into landing.");
+
                 var player = host.AddComponent<PlayerController>();
                 entity.RefreshControllers();
                 entity.SetController(player);
-                for (var sample = 0; sample < 12 && !entity.IsGrounded; sample++)
+                var settleDeadline = Time.realtimeSinceStartup + 1f;
+                while (!entity.IsGrounded && Time.realtimeSinceStartup < settleDeadline)
                 {
                     entity.Move(Vector3.zero);
                     yield return null;
                 }
-                Assert.That(entity.IsGrounded, Is.True, "The factual jump test needs the existing CharacterController grounding path.");
+                Assert.That(entity.IsGrounded, Is.True, "The factual PlayerController jump path requires a grounded CharacterController.");
+
                 Reset(adapter, baseBody);
+                yield return null;
                 baseline = Snapshot(bones);
-                Assert.That(entity.TryJump(), Is.True);
+                var factualRootPosition = host.transform.position;
+                var factualRootRotation = host.transform.rotation;
+                var factualRootScale = host.transform.localScale;
+                Assert.That(entity.TryJump(), Is.True, "The factual direct-controlled entity must enter CharacterJumpState through TryJump.");
                 entity.Move(Vector3.zero);
                 yield return null;
                 Assert.That(entity.IsJumping, Is.True);
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(18f).Within(.01f), "The factual jump start must map to takeoff.");
+                var factualTimeline = host.GetComponent<CharacterJumpPresentationTimeline>();
+                var factualAirSample = factualTimeline.Observe(Time.unscaledTime, entity.IsJumping, entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
+                Assert.That(factualAirSample.Phase, Is.Not.EqualTo(CharacterJumpPresentationPhase.None), "The live PlayerController/CharacterController jump must reach presentation sampling.");
+                Assert.That(AnyRotationChanged(bones, baseline), Is.True, "The live jump must visibly move only the bound presentation bones.");
+                Assert.That(host.transform.position.x, Is.EqualTo(factualRootPosition.x).Within(.001f));
+                Assert.That(host.transform.position.z, Is.EqualTo(factualRootPosition.z).Within(.001f));
+                Assert.That(host.transform.rotation, Is.EqualTo(factualRootRotation));
+                Assert.That(host.transform.localScale, Is.EqualTo(factualRootScale));
+                Assert.That(controller.height, Is.EqualTo(controllerHeight));
+                Assert.That(controller.radius, Is.EqualTo(controllerRadius));
+                Assert.That(controller.center, Is.EqualTo(controllerCenter));
 
-                yield return new WaitForSecondsRealtime(.12f);
-                entity.Move(Vector3.zero);
-                yield return null;
-                Assert.That(entity.IsJumping, Is.True);
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(22f).Within(.01f), "The ongoing factual jump must map to falling.");
-
-                var landingDeadline = Time.realtimeSinceStartup + 2f;
-                while (entity.IsJumping && Time.realtimeSinceStartup < landingDeadline)
+                var jumpDeadline = Time.realtimeSinceStartup + 2f;
+                var lastAirborneSample = factualAirSample;
+                while (entity.IsJumping && Time.realtimeSinceStartup < jumpDeadline)
                 {
+                    lastAirborneSample = factualTimeline.Observe(Time.unscaledTime, entity.IsJumping, entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
                     entity.Move(Vector3.zero);
                     yield return null;
                 }
-                Assert.That(entity.IsJumping, Is.False, "The existing jump state must settle through CharacterController grounding.");
+                Assert.That(entity.IsJumping, Is.False, "CharacterController gravity and grounding must settle the factual jump.");
                 Assert.That(entity.IsGrounded, Is.True);
-                yield return null;
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(10f).Within(.01f), "The factual grounded transition must map to landing.");
+                var factualLandingSample = factualTimeline.Observe(Time.unscaledTime, entity.IsJumping, entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
+                Assert.That(factualLandingSample.Phase, Is.EqualTo(CharacterJumpPresentationPhase.Falling).Or.EqualTo(CharacterJumpPresentationPhase.Landing), "Grounding must preserve the factual fall presentation or begin its landing response.");
+                if (factualLandingSample.Phase == CharacterJumpPresentationPhase.Falling)
+                {
+                    Assert.That(lastAirborneSample.Phase, Is.EqualTo(CharacterJumpPresentationPhase.Falling));
+                    Assert.That(factualLandingSample.Progress, Is.GreaterThanOrEqualTo(lastAirborneSample.Progress));
+                    Assert.That(factualLandingSample.Progress, Is.LessThan(1f), "Early factual grounding must not snap straight to the full fall pose.");
+                }
+                Assert.That(host.transform.position.x, Is.EqualTo(factualRootPosition.x).Within(.001f));
+                Assert.That(host.transform.position.z, Is.EqualTo(factualRootPosition.z).Within(.001f));
+                Assert.That(host.transform.rotation, Is.EqualTo(factualRootRotation));
+                Assert.That(host.transform.localScale, Is.EqualTo(factualRootScale));
+                Assert.That(controller.height, Is.EqualTo(controllerHeight));
+                Assert.That(controller.radius, Is.EqualTo(controllerRadius));
+                Assert.That(controller.center, Is.EqualTo(controllerCenter));
 
                 Reset(adapter, baseBody);
                 baseline = Snapshot(bones);
@@ -200,6 +290,28 @@ namespace RealmRaiders.Tests
         private static float RotationDelta(Transform bone, Pose baseline)
         {
             return Quaternion.Angle(bone.localRotation, baseline.Rotation);
+        }
+
+        private static void AssertJumpPose(Transform[] bones, Pose[] baseline, float arm, float leftThigh, float rightThigh, float leftCalf, float rightCalf, string message)
+        {
+            AssertLocalRotation(bones[0], baseline[0], Vector3.forward, arm, message);
+            AssertLocalRotation(bones[1], baseline[1], Vector3.forward, arm, message);
+            AssertLocalRotation(bones[2], baseline[2], Vector3.forward, leftThigh, message);
+            AssertLocalRotation(bones[3], baseline[3], Vector3.forward, rightThigh, message);
+            AssertLocalRotation(bones[4], baseline[4], Vector3.forward, leftCalf, message);
+            AssertLocalRotation(bones[5], baseline[5], Vector3.forward, rightCalf, message);
+        }
+
+        private static void AssertLocalRotation(Transform bone, Pose baseline, Vector3 axis, float degrees, string message = null)
+        {
+            var expected = baseline.Rotation * Quaternion.AngleAxis(degrees, axis);
+            Assert.That(Quaternion.Angle(bone.localRotation, expected), Is.LessThan(.01f), message);
+        }
+
+        private static void AssertBoneRotationsContinuous(Transform[] bones, Pose[] before, string message)
+        {
+            for (var index = 0; index < bones.Length; index++)
+                Assert.That(Quaternion.Angle(bones[index].localRotation, before[index].Rotation), Is.LessThan(.05f), message);
         }
 
         private static void Reset(CharacterProceduralMotionAdapter adapter, Transform baseBody)

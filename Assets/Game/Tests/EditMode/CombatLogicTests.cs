@@ -303,9 +303,24 @@ namespace RealmRaiders.Tests
             {
                 var assembler = host.AddComponent<CharacterVisualAssembler>(); Assert.That(assembler.Assemble(recipe), Is.True);
                 var motion = host.GetComponent<CharacterVisualMotion>(); var pivot = motion.PresentationPivot; var rootPosition = host.transform.position; var rootScale = host.transform.localScale;
+                var jumpTimeline = host.GetComponent<CharacterJumpPresentationTimeline>();
+                jumpTimeline.Configure(4f, 3f);
+                motion.Sample(0f, 1f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                motion.Sample(0f, 1f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                motion.Sample(.30f, 1f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                var pushPosition = pivot.localPosition;
+                var pushScale = pivot.localScale;
+                motion.Sample(.40f, 1f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                Assert.That(Vector3.Distance(pivot.localPosition, pushPosition), Is.LessThan(.005f), "Takeoff(1) and Falling(0) retain the same bounded pivot lift.");
+                Assert.That(Vector3.Distance(pivot.localScale, pushScale), Is.LessThan(.002f), "Takeoff(1) and Falling(0) retain the same bounded pivot stretch.");
+                motion.Sample(.80f, 1f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                Assert.That(pivot.localScale.y, Is.LessThan(pushScale.y - .04f), "Falling(1) releases the takeoff pivot stretch.");
+                motion.Bind(pivot);
+                jumpTimeline.Configure(1f, 1f);
 
                 motion.Sample(0, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
                 motion.Sample(.01f, .01f, Vector3.zero, CombatActionPhase.Windup, true, false, true);
+                motion.Sample(.06f, .01f, Vector3.zero, CombatActionPhase.Windup, true, false, true);
                 Assert.That(pivot.localScale.y, Is.GreaterThan(motion.BaseScale.y), "One inactive-to-jumping transition produces a takeoff stretch.");
                 Assert.That(Quaternion.Angle(pivot.localRotation, motion.BaseRotation), Is.GreaterThan(.1f), "Action and takeoff presentation compose on the pivot.");
                 AssertVisualMotionBounds(motion);
@@ -313,6 +328,7 @@ namespace RealmRaiders.Tests
 
                 motion.Sample(.20f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
                 motion.Sample(.21f, .01f, Vector3.zero, CombatActionPhase.Recovery, false, true, true);
+                motion.Sample(.28f, .01f, Vector3.zero, CombatActionPhase.Recovery, false, true, true);
                 Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y), "Only a factual observed grounded jump end produces the landing settle.");
                 AssertVisualMotionBounds(motion);
                 motion.Sample(.40f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);

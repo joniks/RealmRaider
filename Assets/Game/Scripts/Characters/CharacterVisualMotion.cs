@@ -1,5 +1,4 @@
 using RealmRaiders.Combat;
-using RealmRaiders.Controllers;
 using UnityEngine;
 
 namespace RealmRaiders.Characters
@@ -8,8 +7,6 @@ namespace RealmRaiders.Characters
     [DisallowMultipleComponent]
     public sealed class CharacterVisualMotion : MonoBehaviour
     {
-        const float TakeoffDuration = .10f;
-        const float LandingDuration = .14f;
         public const float PossessionArrivalDuration = .22f;
         public const float DefeatSettleDuration = .24f;
         const float MaximumOffset = .08f;
@@ -21,15 +18,12 @@ namespace RealmRaiders.Characters
         Quaternion baseRotation;
         Vector3 baseScale;
         Vector3 lastRootPosition;
+        CharacterJumpPresentationTimeline jumpPresentation;
         float movement;
         float hitReactionUntil;
         float seed;
-        float takeoffUntil;
-        float landingUntil;
         float possessionArrivalStartedAt;
         float possessionArrivalUntil;
-        bool jumpStateObserved;
-        bool observedJumping;
         bool possessionArrivalActive;
         bool defeatActive;
         bool defeatSettled;
@@ -64,6 +58,7 @@ namespace RealmRaiders.Characters
             Restore();
             presentationPivot = pivot;
             if (!presentationPivot) return;
+            jumpPresentation = GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
             basePosition = presentationPivot.localPosition;
             baseRotation = presentationPivot.localRotation;
             baseScale = presentationPivot.localScale;
@@ -147,23 +142,23 @@ namespace RealmRaiders.Characters
         /// <summary>Samples bounded local presentation values. Public for deterministic regression coverage.</summary>
         public void Sample(float clock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
         {
-            SamplePose(clock, Time.unscaledTime, deltaTime, horizontalVelocity, phase);
+            SamplePose(clock, Time.unscaledTime, deltaTime, horizontalVelocity, phase, CharacterJumpPresentationSample.None);
         }
 
         /// <summary>Samples a pose with an explicit unscaled clock for deterministic presentation regression coverage.</summary>
         public void Sample(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
         {
-            SamplePose(clock, unscaledClock, deltaTime, horizontalVelocity, phase);
+            SamplePose(clock, unscaledClock, deltaTime, horizontalVelocity, phase, CharacterJumpPresentationSample.None);
         }
 
         /// <summary>Samples a factual jump transition and its bounded local presentation response.</summary>
         public void Sample(float clock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase, bool isJumping, bool isGrounded, bool hasDirectControl)
         {
-            ObserveJumpTransition(clock, isJumping, isGrounded, hasDirectControl);
-            SamplePose(clock, Time.unscaledTime, deltaTime, horizontalVelocity, phase);
+            SamplePose(clock, Time.unscaledTime, deltaTime, horizontalVelocity, phase,
+                ObserveJumpPresentation(clock, isJumping, isGrounded, hasDirectControl));
         }
 
-        void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
+        void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase, CharacterJumpPresentationSample jump)
         {
             if (!presentationPivot || float.IsNaN(horizontalVelocity.x) || float.IsNaN(horizontalVelocity.z)) return;
             if (defeatActive)
@@ -189,15 +184,16 @@ namespace RealmRaiders.Characters
             var position = basePosition + new Vector3(sway, breath + bob, 0);
             var rotation = baseRotation * Quaternion.Euler(pitch, 0, lean);
             var scale = baseScale * (1f + breath * .12f);
-            var takeoff = ResponseWeight(takeoffUntil, TakeoffDuration, clock);
-            if (takeoff > 0)
+            var takeoffResponse = jump.Phase == CharacterJumpPresentationPhase.Takeoff ? jump.Progress :
+                jump.Phase == CharacterJumpPresentationPhase.Falling ? 1f - jump.Progress : 0f;
+            if (takeoffResponse > 0)
             {
-                position += Vector3.up * (.034f * takeoff);
-                scale = Vector3.Scale(scale, Vector3.Lerp(Vector3.one, new Vector3(.965f, 1.075f, .965f), takeoff));
+                position += Vector3.up * (.034f * takeoffResponse);
+                scale = Vector3.Scale(scale, Vector3.Lerp(Vector3.one, new Vector3(.965f, 1.075f, .965f), takeoffResponse));
             }
-            var landing = ResponseWeight(landingUntil, LandingDuration, clock);
-            if (landing > 0)
+            if (jump.Phase == CharacterJumpPresentationPhase.Landing)
             {
+                var landing = 1f - Mathf.Abs(jump.Progress * 2f - 1f);
                 position += Vector3.down * (.040f * landing);
                 scale = Vector3.Scale(scale, Vector3.Lerp(Vector3.one, new Vector3(1.045f, .925f, 1.045f), landing));
             }
@@ -258,39 +254,10 @@ namespace RealmRaiders.Characters
             return (Vector3.Lerp(new Vector3(.985f, 1.025f, .985f), Vector3.one, settle), Mathf.Lerp(.009f, 0, settle));
         }
 
-        void ObserveJumpTransition(float clock, bool isJumping, bool isGrounded, bool hasDirectControl)
+        CharacterJumpPresentationSample ObserveJumpPresentation(float unscaledClock, bool isJumping, bool isGrounded, bool hasDirectControl)
         {
-            if (!hasDirectControl)
-            {
-                ResetJumpTransitions();
-                return;
-            }
-
-            if (!jumpStateObserved)
-            {
-                jumpStateObserved = true;
-                observedJumping = isJumping;
-                return;
-            }
-
-            if (!observedJumping && isJumping)
-            {
-                takeoffUntil = clock + TakeoffDuration;
-                landingUntil = 0;
-            }
-            else if (observedJumping && !isJumping)
-            {
-                takeoffUntil = 0;
-                landingUntil = isGrounded ? clock + LandingDuration : 0;
-            }
-
-            observedJumping = isJumping;
-        }
-
-        static float ResponseWeight(float until, float duration, float clock)
-        {
-            if (until <= clock || duration <= 0) return 0;
-            return Mathf.Clamp01((until - clock) / duration);
+            jumpPresentation ??= GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
+            return jumpPresentation.Observe(unscaledClock, isJumping, isGrounded, hasDirectControl);
         }
 
         Vector3 ClampOffset(Vector3 position)
@@ -316,17 +283,7 @@ namespace RealmRaiders.Characters
 
         void ResetJumpTransitions()
         {
-            takeoffUntil = 0;
-            landingUntil = 0;
-            jumpStateObserved = false;
-            observedJumping = false;
-        }
-
-        bool HasFactualDirectJumpControl()
-        {
-            return entity && entity.Health != null && !entity.Health.IsDead && entity.Motor && entity.Motor.enabled &&
-                   !entity.IsRooted && !GameplayInput.TerminalState && entity.ActiveController is PlayerController player &&
-                   player.IsActive && player.isActiveAndEnabled;
+            jumpPresentation?.ResetTimeline();
         }
 
         void LateUpdate()
@@ -335,8 +292,8 @@ namespace RealmRaiders.Characters
             var displacement = transform.position - lastRootPosition;
             lastRootPosition = transform.position;
             var velocity = deltaTime > .0001f ? displacement / deltaTime : Vector3.zero;
-            ObserveJumpTransition(Time.time, entity && entity.IsJumping, entity && entity.IsGrounded, HasFactualDirectJumpControl());
-            SamplePose(Time.time, Time.unscaledTime, deltaTime, new Vector3(velocity.x, 0, velocity.z), entity ? entity.ActionPhase : CombatActionPhase.Idle);
+            var jump = ObserveJumpPresentation(Time.unscaledTime, entity && entity.IsJumping, entity && entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
+            SamplePose(Time.time, Time.unscaledTime, deltaTime, new Vector3(velocity.x, 0, velocity.z), entity ? entity.ActionPhase : CombatActionPhase.Idle, jump);
         }
 
         void OnDisable() { ClearDefeat(); ClearPossessionArrival(); ClearTransientReaction(); }
