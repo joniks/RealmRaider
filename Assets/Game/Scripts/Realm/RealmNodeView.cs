@@ -26,13 +26,16 @@ namespace RealmRaiders.Realm
         public bool HasBeenEntered { get; private set; }
         CombatEntity hero;
         Renderer floor;
+        RealmNodeSurfacePresentation surfacePresentation;
         GameObject[] contents;
         readonly List<CombatEntity> explicitHostiles = new();
 
         public void Initialize(RealmNode node, CombatEntity player, Renderer floorRenderer, params GameObject[] nodeContents)
         {
             if (Node != null) Node.FogChanged -= OnFogChanged;
-            Node = node; hero = player; floor = floorRenderer; contents = nodeContents ?? Array.Empty<GameObject>();
+            Node = node; hero = player; floor = floorRenderer;
+            surfacePresentation = floor ? floor.GetComponent<RealmNodeSurfacePresentation>() : null;
+            contents = nodeContents ?? Array.Empty<GameObject>();
             HasBeenEntered = false;
             explicitHostiles.Clear();
             foreach (var item in contents)
@@ -67,13 +70,16 @@ namespace RealmRaiders.Realm
             foreach (var item in contents) if (item) item.SetActive(revealed);
             if (!floor) return;
             floor.enabled = revealed;
-            floor.material.color = Node.Fog == FogState.Visited ? new Color(.16f, .34f, .18f) : new Color(.08f, .17f, .11f);
+            var tint = Node.Fog == FogState.Visited ? new Color(.16f, .34f, .18f) : new Color(.08f, .17f, .11f);
+            if (surfacePresentation) surfacePresentation.ApplyTint(tint);
+            else floor.material.color = tint;
         }
 
         void OnDestroy()
         {
             if (Node != null) Node.FogChanged -= OnFogChanged;
             explicitHostiles.Clear();
+            surfacePresentation = null;
         }
     }
 }

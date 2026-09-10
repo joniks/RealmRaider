@@ -94,7 +94,8 @@ namespace RealmRaiders.Core
         static RealmNodeView Node(GameObject root, RealmNode node, CombatEntity hero, Vector3 position, string label, params GameObject[] contents)
         {
             var area = new GameObject(label); area.transform.SetParent(root.transform); area.transform.position = position;
-            var floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder); floor.name = label + " Ground"; floor.transform.SetParent(area.transform); floor.transform.localPosition = Vector3.zero; floor.transform.localScale = new Vector3(6.5f, .08f, 6.5f); floor.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(Moss);
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder); floor.name = label + " Ground"; floor.transform.SetParent(area.transform); floor.transform.localPosition = Vector3.zero; floor.transform.localScale = new Vector3(6.5f, .08f, 6.5f);
+            var floorRenderer = floor.GetComponent<Renderer>(); RealmNodeSurfacePresentation.Bind(floorRenderer, Moss);
             var primitiveCollider = floor.GetComponent<Collider>(); primitiveCollider.enabled = false; Object.Destroy(primitiveCollider);
             var groundColliderObject = new GameObject("Node Ground Collider", typeof(MeshCollider)); groundColliderObject.transform.SetParent(floor.transform, false); groundColliderObject.transform.localPosition = Vector3.down; groundColliderObject.isStatic = true;
             var groundCollider = groundColliderObject.GetComponent<MeshCollider>(); groundCollider.sharedMesh = floor.GetComponent<MeshFilter>().sharedMesh; groundCollider.convex = false; groundCollider.isTrigger = false;
@@ -107,7 +108,7 @@ namespace RealmRaiders.Core
                 Object.Destroy(collider);
                 revealables.Add(tree);
             }
-            var view = area.AddComponent<RealmNodeView>(); view.Initialize(node, hero, floor.GetComponent<Renderer>(), revealables.ToArray()); return view;
+            var view = area.AddComponent<RealmNodeView>(); view.Initialize(node, hero, floorRenderer, revealables.ToArray()); return view;
         }
 
         static void CreatePath(Vector3 center, Vector2 size, float yaw = 0)

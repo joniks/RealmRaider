@@ -1998,6 +1998,36 @@ Completed on 2026-09-10.
 - Encounter icons, audio/VFX/haptics, gates/doors, loot, minimap, AI, combat,
   camera, route/reward changes and physical-device/manual cue readability.
 
+## Diamond Pass 13.3 — Sylvan Clearing-Floor Presentation
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported the accepted MWS10 original-generated 1024² RGB clearing albedo and
+  restrained tangent normal byte-identically with local provenance and explicit
+  Repeat/mipmap/Android 512 ASTC 6×6 settings.
+- All existing Sylvan circular node floors share one cached textured material at
+  the accepted initial 3.5-world-unit scale while fog tint remains per renderer.
+- Atomic resource failure retains the existing solid Moss path; geometry,
+  colliders, node radius/events, routes, encounter logic and non-Sylvan art stay
+  unchanged.
+
+### Verification
+
+- Architect confirmed exact Modules `646ecde` hashes, valid provenance, import
+  intent, atomic fallback, shared-material behavior and reserved whitespace.
+- QA native gates passed EditMode `154/154` and PlayMode `82/82`, both with zero
+  failed, skipped or inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual node-scale, fog, normal orientation, repetition, movement and portrait
+  smoke are not claimed: the first Game-view click failed with CUA
+  `windowNotFoundAtPosition`, after which QA correctly stopped further clicks.
+
+### Scope intentionally deferred
+
+- Final-art/device approval, manual periodicity and normal review, terrain or
+  triplanar shaders, second-tile variation, Infernal surfaces and gameplay changes.
+
 ## Art Pass MUI 04 — Guardian Ent Ability Icon Candidates
 
 Completed on 2026-09-10 and accepted in the Modules submodule.

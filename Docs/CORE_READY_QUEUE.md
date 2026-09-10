@@ -78,7 +78,7 @@ Acceptance: QA's final native gates passed EditMode `148/148` and PlayMode
 The assigned Game-view smoke remains honestly unobserved because CUA returned
 `noWindowsAvailable` for every Game-view action, not because of a runtime failure.
 
-## Now — Diamond Pass 13.3: Sylvan Clearing-Floor Presentation
+## Accepted — Diamond Pass 13.3: Sylvan Clearing-Floor Presentation
 
 Owner: Core developer. Base: Architect's accepted 13.2 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -90,9 +90,24 @@ fog/encounter/route/combat behavior and exact missing-resource fallback. Core do
 not control Unity; Architect statically reviews and QA alone verifies the frozen
 candidate.
 
-## Ready after 13.3
+Acceptance: after one test-only source/import-dimension correction, QA's native
+gates passed EditMode `154/154` and PlayMode `82/82`, both with zero
+failed/skipped/inconclusive tests; Console was `0/0/0`. Manual surface scale,
+normal and periodicity remain unobserved because the first Game-view click failed
+with `windowNotFoundAtPosition`; this is not an automated runtime failure.
 
-Use QA's actual node-scale/periodicity observation for one bounded correction or
-accept the surface. The next Core gate then chooses one named MUI02/MUI03 icon
-integration, not both at once. Infernal surface integration remains blocked on
-its documented on-device periodicity review.
+## Now — Diamond Pass 13.4: Factual Encounter Cue Icons
+
+Owner: Core developer. Base: Architect's accepted 13.3 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Import the accepted original MUI02 icon trio with exact provenance/mobile sprite
+settings. Add one non-raycast phase icon to the existing `RaidEncounterCue` while
+keeping truthful text primary, responsive layout intentional and every timeout,
+terminal and teardown rule unchanged. No gameplay/input/camera/reward authority.
+
+## Ready after 13.4
+
+Use QA's 32/48 px in-context observation for one bounded icon contrast/placement
+correction or accept the set. Then activate one named MUI03 Blood Knight HUD icon
+integration; do not bundle Guardian/Infernal sets into the same Core gate.

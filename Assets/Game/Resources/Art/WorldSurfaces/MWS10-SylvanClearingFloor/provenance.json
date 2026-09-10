@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.sylvan-clearing-floor.mws10.v1",
+  "creation": "project-owned original generation with a restrained derived RGB tangent-space normal; no third-party source",
+  "status": "accepted-runtime-preview-not-final-art",
+  "licence": "original-generated project asset; no third-party licence or attribution required",
+  "modulesCommit": "646ecde",
+  "sources": [
+    {
+      "role": "RGB albedo preview",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS10-SylvanClearingFloor/sylvan-clearing-floor-albedo-rgb-candidate.png",
+      "sourceSha256": "e7731ffb989ecb457b787ea19bd13314d61b684b0d4fc75b8adb507501ce6ed6",
+      "file": "sylvan-clearing-floor-albedo-rgb-candidate.png",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB"
+    },
+    {
+      "role": "restrained RGB tangent-space normal preview",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS10-SylvanClearingFloor/sylvan-clearing-floor-mobile-normal-rgb-candidate.png",
+      "sourceSha256": "aca8df9a0b0ed56bea8c839284cb4814d99ffb344307b3e3476a12262f6dcef5",
+      "file": "sylvan-clearing-floor-mobile-normal-rgb-candidate.png",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "derivation": "Tools/surface_maps/derive_normal_map.py --strength 0.35"
+    }
+  ],
+  "recommendedInitialUnityTileScale": "3.5 world units per 1024 px tile",
+  "repeatEvidenceInspected": true,
+  "tileabilityVerified": false,
+  "nonGoals": ["final-art approval", "height or displacement", "emission", "third-party attribution"]
+}
