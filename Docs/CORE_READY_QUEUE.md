@@ -379,7 +379,7 @@ and PlayMode `87/87`, both with zero failed/skipped/inconclusive tests. No files
 changed after the final suites. Manual Game-view and physical-device appearance
 remain unclaimed.
 
-## Ready — Diamond Pass 15.3: Possession Arrival Impact
+## Accepted — Diamond Pass 15.3: Possession Arrival Impact
 
 Strengthen the most important Keeper → same-creature takeover moment with one
 bounded, presentation-only arrival accent that complements the existing slow beat,
@@ -387,3 +387,15 @@ pulse, camera transition and confirmation audio without moving the gameplay root
 changing possession timing/authority, adding assets, or producing repeated effects.
 Core must first inspect the existing possession/presentation paths and freeze a
 minimal lifecycle-clean contract before this ready gate is activated.
+
+Acceptance: after one lifecycle-coverage correction and one no-ground fixture
+invariant correction, QA final native gates passed EditMode `186/186` and PlayMode
+`88/88`, both with zero failed/skipped/inconclusive tests. No files changed after
+the final suites. Manual silhouette readability remains unclaimed.
+
+## Ready after Module MWS11
+
+If Architect accepts the isolated MWS11 Infernal courtyard-floor albedo/normal
+pair, integrate that exact pair through a separate Core lease so Infernal node
+floors, routes and boundaries have three distinct material roles matching Sylvan.
+Until MWS11 is accepted, Core remains read-only and does not invent substitute art.

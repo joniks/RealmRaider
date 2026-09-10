@@ -112,6 +112,55 @@ Hundreds of modular characters need a deterministic pre-Unity check that every e
 
 MMP 04 is accepted and committed. The next Module lease must be tied to either a named Core integration seam or a user-approved art source/provenance task; do not invent another generic validator merely to keep the lane busy.
 
+## Now — Art Pass MWS 11: Infernal Courtyard Floor Pair
+
+Owner: Module Developer / Technical Art
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+Base commit: `04b8861`
+Reserved folder only: `ArtPreviews/MWS11-InfernalCourtyardFloor/`.
+
+Read-only sources/tools:
+
+- `ArtPreviews/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate.png`
+- `ArtPreviews/MWS03-InfernalGroundMaterialCandidate/provenance.json`
+- `Tools/surface_maps/derive_normal_map.py`
+- `Tools/surface_maps/test_derive_normal_map.py`
+
+### Player/product value
+
+MWS10 prepared a calmer Sylvan clearing-floor layer distinct from its routes and
+living-root boundary. Prepare the matching Infernal courtyard-floor layer so a
+later named Core pass can give both realms a coherent three-level material
+hierarchy rather than reusing route or boundary texture everywhere.
+
+### Required deliverables
+
+1. Starting only from the project-owned original MWS03 Infernal direction, create
+   one original 1024×1024 RGB, exact top-down, tileable Infernal courtyard-floor
+   albedo candidate: broad cooled basalt/ash slabs, sparse subdued ember fissures,
+   calm enough behind characters and distinct from both MWS07 route basalt and
+   MWS08 forged boundary iron.
+2. Create exact 2048×2048 2×2 albedo repeat evidence. Inspect center cross, outer
+   edges, brightness bands, repeated focal slabs and ember rivers; iterate obvious
+   defects and record any remaining periodicity honestly.
+3. Use the existing deterministic normal tool without modifying it to derive one
+   restrained 1024×1024 RGB tangent-space normal candidate at strength no greater
+   than `0.35`, plus exact 2×2 normal evidence. Do not exaggerate painted shadows
+   into geometry.
+4. Add local provenance with exact source path/hash, image-generation prompt/tool,
+   deterministic resize/normal commands and versions, parameters, all output hashes,
+   date, preview-only status, no-third-party-source statement and explicit Unity/
+   mobile/on-device review needs.
+5. Run the existing surface-map tool tests and deterministic output/hash checks.
+   Inspect every result at full frame. Freeze only the reserved-folder diff and send
+   the strict six-line Module handoff.
+
+### Non-goals
+
+Main checkout, Unity or `.meta`, runtime/import/material integration, route/boundary
+replacement, emission/height/roughness/metallic maps, shader, gameplay, licence
+research, third-party download, final-art approval, commit or push.
+
 ## Accepted — Art Pass MWS 06: Fantasy Surface Texture Pack
 
 Owner: Art / Module Developer / Technical Art

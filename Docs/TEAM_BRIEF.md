@@ -41,6 +41,7 @@ The separate QA conversation is active again. Only QA controls Unity and produce
 6. QA alone uses the established Unity Test Runner GUI: open Test Runner, clear the filter → click one gate → wait for the UI/result to settle → verify the result before the next click. After each accepted Core commit, QA uses **Realm Raiders → Build → Export Android Studio Project** in the already-open healthy Editor; it does not close or restart it for export. The CLI wrapper is a fallback only when the Editor is already closed and that boundary was approved. Never run a second Unity process against the same project or use `Reimport All`, Library deletion or blind UI clicks.
 7. A frozen handoff is not idle permission: Core immediately prepares the next `CORE_READY_QUEUE.md` gate read-only, while Architect reviews or verifies. A user push never blocks local continuation.
 8. A filtered PlayMode `Run Selected` can stall in Test Runner staging before the test method begins. This is not evidence of a gameplay loop and does not justify a Mac/Unity restart: cancel that run, focus Test Runner, clear the filter, verify the full count and use one ordinary `Run All`.
+9. A launched suite is still active work, not a handoff. QA waits for that exact run's finished callback and totals; a resumed QA turn waits only and never clicks Run a second time.
 
 ## Communication rules
 

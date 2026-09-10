@@ -2682,3 +2682,40 @@ Completed on 2026-09-10.
 - Normal/height/metallic/roughness/emission maps, shaders, second-tile or macro
   variation, UV/geometry/collider/gameplay changes, final-art approval and
   physical-device performance claims.
+
+## Diamond Pass 15.3 — Possession Arrival Impact
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Every factual successful possession now starts one 0.22-second unscaled
+  squash, rebound and exact settle on the same entity's existing presentation
+  pivot; selection, rejection and ordinary controller restoration cannot
+  synthesize or restart it.
+- The response composes with the existing idle, movement, action, hit and jump
+  pose, stays inside the existing offset/scale clamps and creates no new object,
+  asset, renderer, material, collider or input path.
+- Explicit and energy-forced release, death, terminal state, external controller
+  loss, manager/motion disable or destroy and visual rebind clear the response
+  while preserving the gameplay root, CharacterController, health, abilities,
+  action, jump, pulse, slow beat, camera, audio and haptic authority.
+
+### Verification
+
+- Architect returned one missing lifecycle-coverage gap and then rejected one
+  test-only false invariant: a no-ground fixture's authoritative gravity may move
+  Y after a yielded frame. The final proof checks full root invariance directly
+  around possession and permits only factual vertical movement afterwards;
+  `git diff --check` is clean.
+- QA final native gates after that correction passed EditMode `186/186` in 0.695
+  seconds and PlayMode `88/88` in 70.698 seconds, both with zero failed/skipped/
+  inconclusive tests. No files changed after the final suites.
+- Manual Sylvan silhouette readability is not claimed because QA could not safely
+  observe or operate the Game view.
+
+### Scope intentionally deferred
+
+- Pose amplitude tuning without device evidence, new animation clips/Animator or
+  root motion, changes to pulse/slow beat/camera/audio/haptic, new VFX/assets,
+  gameplay timing/authority and physical-device performance claims.

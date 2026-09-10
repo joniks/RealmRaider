@@ -401,18 +401,31 @@ namespace RealmRaiders.Tests
                 entity.Initialize(definition);
                 var ai = entityObject.GetComponent<CreatureBrain>();
                 var player = entityObject.GetComponent<PlayerController>();
+                var motion = entityObject.GetComponent<CharacterVisualMotion>();
+                var rootPosition = entityObject.transform.position;
+                var rootRotation = entityObject.transform.rotation;
+                var rootScale = entityObject.transform.localScale;
+                var motor = entityObject.GetComponent<CharacterController>();
                 entity.SetController(ai);
                 var rig = cameraObject.GetComponent<PrototypeCameraRig>();
                 rig.ConfigureOverview(new Vector3(0, 5, -8), Quaternion.identity);
                 rig.SnapToOverview();
                 var manager = managerObject.GetComponent<PossessionManager>();
                 manager.Initialize(rig); manager.Register(entity); manager.Select(entity);
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Selection alone is not a possession arrival.");
                 entity.Health.TakeDamage(new DamageInfo(17, null, entity.transform.position), 0);
                 var healthBefore = entity.Health.Current;
                 Assert.That(entity.TryUse(0, Vector3.forward), Is.True);
                 var readyBefore = entity.Abilities[0].IsReady;
 
                 Assert.That(manager.PossessSelected(), Is.True);
+                Assert.That(entityObject.transform.position, Is.EqualTo(rootPosition), "Possession itself must not move the gameplay root.");
+                Assert.That(entityObject.transform.rotation, Is.EqualTo(rootRotation), "Possession itself must not rotate the gameplay root.");
+                Assert.That(entityObject.transform.localScale, Is.EqualTo(rootScale), "Possession itself must not scale the gameplay root.");
+                Assert.That(motion.IsPossessionArrivalActive, Is.True, "Only factual successful possession starts the pivot arrival accent.");
+                var arrivalEnd = motion.PossessionArrivalEndsAt;
+                Assert.That(manager.PossessSelected(), Is.False, "A rejected re-entry cannot restart the active possession accent.");
+                Assert.That(motion.PossessionArrivalEndsAt, Is.EqualTo(arrivalEnd));
                 yield return null;
                 Assert.That(manager.Possessed, Is.SameAs(entity));
                 Assert.That(manager.Possessed.gameObject, Is.SameAs(entity.gameObject));
@@ -421,6 +434,11 @@ namespace RealmRaiders.Tests
                 Assert.That(entity.Health.Current, Is.EqualTo(healthBefore));
                 Assert.That(entity.Abilities[0].IsReady, Is.EqualTo(readyBefore));
                 Assert.That(player.IsActive, Is.True); Assert.That(ai.IsActive, Is.False);
+                Assert.That(entityObject.transform.position.x, Is.EqualTo(rootPosition.x));
+                Assert.That(entityObject.transform.position.z, Is.EqualTo(rootPosition.z));
+                Assert.That(entityObject.transform.rotation, Is.EqualTo(rootRotation));
+                Assert.That(entityObject.transform.localScale, Is.EqualTo(rootScale));
+                Assert.That(motor.enabled, Is.True, "Arrival feedback must leave the authoritative CharacterController enabled.");
                 Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
 
@@ -430,8 +448,13 @@ namespace RealmRaiders.Tests
                 Assert.That(entity.Health.Current, Is.EqualTo(healthBefore));
                 Assert.That(entity.Abilities[0].IsReady, Is.EqualTo(readyBefore));
                 Assert.That(player.IsActive, Is.False); Assert.That(ai.IsActive, Is.True);
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Release clears pending arrival feedback immediately.");
                 Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+
+                entity.SetController(player);
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Ordinary direct controller restoration is not a synthetic possession entry.");
+                entity.SetController(ai);
 
                 var assembler = entity.GetComponent<CharacterVisualAssembler>();
                 assembler.Clear();
@@ -511,6 +534,65 @@ namespace RealmRaiders.Tests
                 Assert.That(Object.FindObjectsByType<PossessionSelectionPresentation>(FindObjectsInactive.Include, FindObjectsSortMode.None), Is.Empty);
             }
             finally { Time.timeScale = 1; Time.fixedDeltaTime = .02f; Object.Destroy(managerObject); Object.Destroy(entityObject); Object.Destroy(cameraObject); Object.Destroy(definition); }
+        }
+
+        [UnityTest]
+        public IEnumerator PossessionArrival_ClearsAcrossForcedDeathTerminalControllerLossAndMotionDisable()
+        {
+            GameplayInput.ResetForTests();
+            var fixture = EnergyHudFixture.Create(DefenseHudConfig.Sylvan);
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>();
+            try
+            {
+                recipe.Family = CharacterVisualFamily.LargeCreature; recipe.Primary = Color.green; recipe.Secondary = Color.black; recipe.AccentColor = Color.yellow;
+                var assembler = fixture.Defender.GetComponent<CharacterVisualAssembler>();
+                Assert.That(assembler.Assemble(recipe), Is.True);
+                var motion = fixture.Defender.GetComponent<CharacterVisualMotion>();
+                var brain = fixture.Defender.Controller<CreatureBrain>();
+
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                Assert.That(motion.IsPossessionArrivalActive, Is.True);
+                fixture.Energy.Consume(fixture.Energy.Maximum);
+                fixture.Possession.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Possession.Possessed, Is.Null, "Energy depletion follows the existing forced release path.");
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Forced release clears the pending arrival response.");
+
+                fixture.Energy.Refill(); fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                fixture.Defender.SetController(brain);
+                fixture.Possession.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "External controller loss clears arrival without fabricating a release.");
+                fixture.Possession.Release();
+
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                GameplayInput.SetTerminalState(true);
+                fixture.Possession.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Terminal state immediately clears arrival feedback.");
+                GameplayInput.SetTerminalState(false);
+                fixture.Possession.Release();
+
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                motion.enabled = false;
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Disabling visual motion clears its unfinished arrival response.");
+                motion.enabled = true;
+                fixture.Possession.Release();
+
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                fixture.Defender.Health.TakeDamage(new DamageInfo(1000, null, fixture.Defender.transform.position), 0);
+                Assert.That(fixture.Possession.Possessed, Is.Null, "Possessed death follows the existing forced return path.");
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Possessed death clears arrival feedback immediately.");
+            }
+            finally
+            {
+                Time.timeScale = 1; Time.fixedDeltaTime = .02f;
+                GameplayInput.ResetForTests();
+                fixture.Destroy(); Object.Destroy(recipe);
+            }
+            yield return null;
         }
 
         [UnityTest]

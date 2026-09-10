@@ -62,9 +62,12 @@ namespace RealmRaiders.Possession
             {
                 keeperPresses.Clear();
                 ClearSelected(true);
+                ClearPossessionArrival(Possessed);
             }
             else if (CanAcceptKeeperSelection()) PollKeeperSelectionInput();
             else keeperPresses.Clear();
+            if (Possessed && (!Possessed.Health || Possessed.Health.IsDead || !(Possessed.ActiveController is PlayerController)))
+                ClearPossessionArrival(Possessed);
             if (Possessed && energy != null && !energy.Consume(Time.deltaTime)) Release(true, "POSSESSION ENERGY DEPLETED — RETURNING TO KEEPER");
         }
         public void Select(CombatEntity entity)
@@ -103,6 +106,7 @@ namespace RealmRaiders.Possession
             Possessed = Selected;
             ClearSelection();
             Possessed.SetController(player);
+            Possessed.GetComponent<CharacterVisualMotion>()?.StartPossessionArrival();
             Possessed.Health.Died += OnPossessedDied;
             cameraRig.TransitionTo(Possessed, CameraMode.PossessedCreature, .85f);
             Pulse(Possessed); StartSlowBeat();
@@ -121,6 +125,7 @@ namespace RealmRaiders.Possession
         {
             if (!Possessed) return;
             var released = Possessed;
+            ClearPossessionArrival(released);
             released.Health.Died -= OnPossessedDied;
             var ai = released.Controller<CreatureBrain>();
             if (ai != null && !released.Health.IsDead) released.SetController(ai);
@@ -147,6 +152,11 @@ namespace RealmRaiders.Possession
             ClearSelection();
             Selected = null;
             if (notify && hadSelection) SelectionChanged?.Invoke(null);
+        }
+
+        static void ClearPossessionArrival(CombatEntity entity)
+        {
+            if (entity) entity.GetComponent<CharacterVisualMotion>()?.ClearPossessionArrival();
         }
 
         void OnRegisteredDied(CombatEntity entity)
@@ -280,14 +290,14 @@ namespace RealmRaiders.Possession
         void StartSlowBeat() { RestoreTime(); slowBeat = StartCoroutine(SlowBeat()); }
         System.Collections.IEnumerator SlowBeat() { normalTimeScale = Time.timeScale; normalFixedDeltaTime = Time.fixedDeltaTime; Time.timeScale = .4f; Time.fixedDeltaTime = normalFixedDeltaTime * .4f; yield return new WaitForSecondsRealtime(.35f); slowBeat = null; RestoreTime(); }
         void RestoreTime() { if (slowBeat != null) StopCoroutine(slowBeat); slowBeat = null; Time.timeScale = normalTimeScale; Time.fixedDeltaTime = normalFixedDeltaTime; }
-        void OnDisable() { keeperPresses.Clear(); ClearSelected(false); }
+        void OnDisable() { keeperPresses.Clear(); ClearSelected(false); ClearPossessionArrival(Possessed); }
         void OnApplicationFocus(bool focus) { if (!focus) keeperPresses.Clear(); }
         void OnDestroy()
         {
             foreach (var pair in registeredDeaths)
                 if (pair.Key && pair.Key.Health != null) pair.Key.Health.Died -= pair.Value;
             registeredDeaths.Clear(); registered.Clear(); keeperPresses.Clear(); selectionCandidates.Clear(); uiRaycastResults.Clear();
-            ClearSelection(); ClearPulse(); RestoreTime();
+            ClearSelection(); ClearPossessionArrival(Possessed); ClearPulse(); RestoreTime();
         }
     }
 }

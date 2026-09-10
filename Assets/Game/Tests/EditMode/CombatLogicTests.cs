@@ -342,6 +342,56 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void VisualMotion_PossessionArrivalIsSingleBoundedUnscaledAndCleansUpWithoutSyntheticEntry()
+        {
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.Humanoid; recipe.Primary = Color.red; recipe.Secondary = Color.black; recipe.AccentColor = Color.yellow;
+            var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); host.transform.position = new Vector3(2, 1, -3);
+            try
+            {
+                var assembler = host.AddComponent<CharacterVisualAssembler>(); Assert.That(assembler.Assemble(recipe), Is.True);
+                var motion = host.GetComponent<CharacterVisualMotion>(); var pivot = motion.PresentationPivot;
+                var rootPosition = host.transform.position; var rootRotation = host.transform.rotation; var rootScale = host.transform.localScale;
+
+                motion.Sample(2f, 2f, .016f, Vector3.zero, CombatActionPhase.Idle);
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Ordinary direct presentation sampling cannot synthesize a possession arrival.");
+                Assert.That(motion.StartPossessionArrival(), Is.True);
+                var firstEnd = motion.PossessionArrivalEndsAt;
+                Assert.That(firstEnd - Time.unscaledTime, Is.LessThanOrEqualTo(.24f));
+                Assert.That(motion.StartPossessionArrival(), Is.False, "One factual possession cannot restart its own arrival accent.");
+                Assert.That(motion.PossessionArrivalEndsAt, Is.EqualTo(firstEnd));
+
+                motion.Sample(2f, Time.unscaledTime + .05f, .016f, Vector3.zero, CombatActionPhase.Windup);
+                Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y), "The opening accent is a readable squash.");
+                AssertVisualMotionBounds(motion);
+                Assert.That(host.transform.position, Is.EqualTo(rootPosition)); Assert.That(host.transform.rotation, Is.EqualTo(rootRotation)); Assert.That(host.transform.localScale, Is.EqualTo(rootScale));
+
+                motion.Sample(2f, firstEnd, .016f, Vector3.zero, CombatActionPhase.Windup);
+                var settledPosition = pivot.localPosition; var settledRotation = pivot.localRotation; var settledScale = pivot.localScale;
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "The exact unscaled end boundary removes the response.");
+                Assert.That(motion.StartPossessionArrival(), Is.True, "A later factual possession may begin one new accent.");
+                var secondEnd = motion.PossessionArrivalEndsAt;
+                motion.Sample(2f, Time.unscaledTime + .05f, .016f, Vector3.zero, CombatActionPhase.Windup);
+                motion.Sample(2f, secondEnd, .016f, Vector3.zero, CombatActionPhase.Windup);
+                Assert.That(pivot.localPosition, Is.EqualTo(settledPosition));
+                Assert.That(pivot.localRotation, Is.EqualTo(settledRotation));
+                Assert.That(pivot.localScale, Is.EqualTo(settledScale), "Completion restores the ordinary composed pose exactly.");
+
+                Assert.That(motion.StartPossessionArrival(), Is.True);
+                motion.Sample(2f, Time.unscaledTime + .05f, .016f, Vector3.zero, CombatActionPhase.Windup);
+                motion.ClearPossessionArrival();
+                Assert.That(motion.IsPossessionArrivalActive, Is.False);
+                Assert.That(pivot.localPosition, Is.EqualTo(settledPosition)); Assert.That(pivot.localRotation, Is.EqualTo(settledRotation)); Assert.That(pivot.localScale, Is.EqualTo(settledScale));
+
+                var replacement = new GameObject("Replacement Possession Pivot").transform; replacement.SetParent(host.transform, false);
+                Assert.That(motion.StartPossessionArrival(), Is.True);
+                motion.Bind(replacement);
+                Assert.That(motion.IsPossessionArrivalActive, Is.False, "Visual rebinding clears an unfinished arrival response.");
+                Assert.That(host.transform.position, Is.EqualTo(rootPosition)); Assert.That(host.transform.rotation, Is.EqualTo(rootRotation)); Assert.That(host.transform.localScale, Is.EqualTo(rootScale));
+            }
+            finally { Object.DestroyImmediate(recipe); Object.DestroyImmediate(host); }
+        }
+
+        [Test]
         public void GuardianEntGrowth_BuildsRanksUnderThePresentationPivotAndCleansSafely()
         {
             var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.LargeCreature; recipe.Primary = new Color(.18f, .43f, .14f); recipe.AccentColor = new Color(.4f, .8f, .3f);

@@ -10,6 +10,7 @@ namespace RealmRaiders.Characters
     {
         const float TakeoffDuration = .10f;
         const float LandingDuration = .14f;
+        public const float PossessionArrivalDuration = .22f;
         const float MaximumOffset = .08f;
         const float MinimumScaleFactor = .90f;
         const float MaximumScaleFactor = 1.10f;
@@ -24,13 +25,22 @@ namespace RealmRaiders.Characters
         float seed;
         float takeoffUntil;
         float landingUntil;
+        float possessionArrivalStartedAt;
+        float possessionArrivalUntil;
         bool jumpStateObserved;
         bool observedJumping;
+        bool possessionArrivalActive;
+        bool hasOrdinaryPose;
+        Vector3 ordinaryPosition;
+        Quaternion ordinaryRotation;
+        Vector3 ordinaryScale;
 
         public Transform PresentationPivot => presentationPivot;
         public Vector3 BasePosition => basePosition;
         public Quaternion BaseRotation => baseRotation;
         public Vector3 BaseScale => baseScale;
+        public bool IsPossessionArrivalActive => possessionArrivalActive;
+        public float PossessionArrivalEndsAt => possessionArrivalUntil;
 
         void Awake()
         {
@@ -41,6 +51,7 @@ namespace RealmRaiders.Characters
 
         public void Bind(Transform pivot)
         {
+            ClearPossessionArrival();
             Restore();
             presentationPivot = pivot;
             if (!presentationPivot) return;
@@ -48,6 +59,7 @@ namespace RealmRaiders.Characters
             baseRotation = presentationPivot.localRotation;
             baseScale = presentationPivot.localScale;
             movement = 0;
+            hasOrdinaryPose = false;
             lastRootPosition = transform.position;
             ResetJumpTransitions();
         }
@@ -72,20 +84,50 @@ namespace RealmRaiders.Characters
             ResetJumpTransitions();
         }
 
+        /// <summary>Starts one unscaled, bounded presentation-only possession accent when a pivot is available.</summary>
+        public bool StartPossessionArrival()
+        {
+            if (!presentationPivot) return false;
+            if (possessionArrivalActive && Time.unscaledTime < possessionArrivalUntil) return false;
+            possessionArrivalStartedAt = Time.unscaledTime;
+            possessionArrivalUntil = possessionArrivalStartedAt + PossessionArrivalDuration;
+            possessionArrivalActive = true;
+            return true;
+        }
+
+        /// <summary>Removes only the pending possession accent, retaining ordinary motion and other reactions.</summary>
+        public void ClearPossessionArrival()
+        {
+            if (!possessionArrivalActive) return;
+            possessionArrivalActive = false;
+            possessionArrivalStartedAt = 0;
+            possessionArrivalUntil = 0;
+            if (!presentationPivot || !hasOrdinaryPose) return;
+            presentationPivot.localPosition = ordinaryPosition;
+            presentationPivot.localRotation = ordinaryRotation;
+            presentationPivot.localScale = ordinaryScale;
+        }
+
         /// <summary>Samples bounded local presentation values. Public for deterministic regression coverage.</summary>
         public void Sample(float clock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
         {
-            SamplePose(clock, deltaTime, horizontalVelocity, phase);
+            SamplePose(clock, Time.unscaledTime, deltaTime, horizontalVelocity, phase);
+        }
+
+        /// <summary>Samples a pose with an explicit unscaled clock for deterministic presentation regression coverage.</summary>
+        public void Sample(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
+        {
+            SamplePose(clock, unscaledClock, deltaTime, horizontalVelocity, phase);
         }
 
         /// <summary>Samples a factual jump transition and its bounded local presentation response.</summary>
         public void Sample(float clock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase, bool isJumping, bool isGrounded, bool hasDirectControl)
         {
             ObserveJumpTransition(clock, isJumping, isGrounded, hasDirectControl);
-            SamplePose(clock, deltaTime, horizontalVelocity, phase);
+            SamplePose(clock, Time.unscaledTime, deltaTime, horizontalVelocity, phase);
         }
 
-        void SamplePose(float clock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
+        void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase)
         {
             if (!presentationPivot || deltaTime <= 0 || float.IsNaN(horizontalVelocity.x) || float.IsNaN(horizontalVelocity.z)) return;
             var targetMovement = Mathf.Clamp01(new Vector2(horizontalVelocity.x, horizontalVelocity.z).magnitude / 4f);
@@ -117,11 +159,48 @@ namespace RealmRaiders.Characters
                 position += Vector3.down * (.040f * landing);
                 scale = Vector3.Scale(scale, Vector3.Lerp(Vector3.one, new Vector3(1.045f, .925f, 1.045f), landing));
             }
+            ordinaryPosition = ClampOffset(position);
+            ordinaryRotation = rotation;
+            ordinaryScale = ClampScale(scale);
+            hasOrdinaryPose = true;
+            position = ordinaryPosition;
+            scale = ordinaryScale;
+            var arrivalWasActive = possessionArrivalActive;
+            var arrival = PossessionArrivalPose(unscaledClock);
+            var arrivalSettledThisSample = arrivalWasActive && !possessionArrivalActive;
+            position += Vector3.up * arrival.y;
+            scale = Vector3.Scale(scale, arrival.scale);
             position = ClampOffset(position);
             scale = ClampScale(scale);
-            presentationPivot.localPosition = Vector3.Lerp(presentationPivot.localPosition, position, Mathf.Clamp01(deltaTime * 12f));
-            presentationPivot.localRotation = Quaternion.Slerp(presentationPivot.localRotation, rotation, Mathf.Clamp01(deltaTime * 14f));
+            presentationPivot.localPosition = arrivalSettledThisSample ? position : Vector3.Lerp(presentationPivot.localPosition, position, Mathf.Clamp01(deltaTime * 12f));
+            presentationPivot.localRotation = arrivalSettledThisSample ? rotation : Quaternion.Slerp(presentationPivot.localRotation, rotation, Mathf.Clamp01(deltaTime * 14f));
             presentationPivot.localScale = scale;
+        }
+
+        (Vector3 scale, float y) PossessionArrivalPose(float unscaledClock)
+        {
+            if (!possessionArrivalActive) return (Vector3.one, 0);
+            if (unscaledClock >= possessionArrivalUntil)
+            {
+                possessionArrivalActive = false;
+                possessionArrivalStartedAt = 0;
+                possessionArrivalUntil = 0;
+                return (Vector3.one, 0);
+            }
+
+            var progress = Mathf.Clamp01((unscaledClock - possessionArrivalStartedAt) / PossessionArrivalDuration);
+            if (progress < .32f)
+            {
+                var weight = Mathf.SmoothStep(0, 1, progress / .32f);
+                return (Vector3.Lerp(Vector3.one, new Vector3(1.055f, .925f, 1.055f), weight), -.018f * weight);
+            }
+            if (progress < .72f)
+            {
+                var weight = Mathf.SmoothStep(0, 1, (progress - .32f) / .40f);
+                return (Vector3.Lerp(new Vector3(1.055f, .925f, 1.055f), new Vector3(.985f, 1.025f, .985f), weight), Mathf.Lerp(-.018f, .009f, weight));
+            }
+            var settle = Mathf.SmoothStep(0, 1, (progress - .72f) / .28f);
+            return (Vector3.Lerp(new Vector3(.985f, 1.025f, .985f), Vector3.one, settle), Mathf.Lerp(.009f, 0, settle));
         }
 
         void ObserveJumpTransition(float clock, bool isJumping, bool isGrounded, bool hasDirectControl)
@@ -201,11 +280,11 @@ namespace RealmRaiders.Characters
             var displacement = transform.position - lastRootPosition;
             lastRootPosition = transform.position;
             var velocity = deltaTime > .0001f ? displacement / deltaTime : Vector3.zero;
-            Sample(Time.time, deltaTime, new Vector3(velocity.x, 0, velocity.z), entity ? entity.ActionPhase : CombatActionPhase.Idle,
-                entity && entity.IsJumping, entity && entity.IsGrounded, HasFactualDirectJumpControl());
+            ObserveJumpTransition(Time.time, entity && entity.IsJumping, entity && entity.IsGrounded, HasFactualDirectJumpControl());
+            SamplePose(Time.time, Time.unscaledTime, deltaTime, new Vector3(velocity.x, 0, velocity.z), entity ? entity.ActionPhase : CombatActionPhase.Idle);
         }
 
-        void OnDisable() => ClearTransientReaction();
-        void OnDestroy() => Restore();
+        void OnDisable() { ClearPossessionArrival(); ClearTransientReaction(); }
+        void OnDestroy() { ClearPossessionArrival(); Restore(); }
     }
 }

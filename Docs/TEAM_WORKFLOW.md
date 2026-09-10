@@ -86,6 +86,7 @@ One owner at a time may write a reserved path. A task is released only after Arc
 - QA uses the Unity Editor Test Runner GUI for tests and the existing **Realm Raiders → Build** menu for platform export while a healthy Editor is open. It does not close or restart that Editor merely to export. The repository CLI wrapper is a fallback only when the user-approved boundary already has Unity fully closed, Unity Hub remains open and signed in, and no competing Unity process exists.
 - QA runs a focused check after Architect assigns a new frozen candidate or concrete fix.
 - QA runs full EditMode once and full PlayMode once only after the final code/test change. A green suite is rerun only if the candidate changes afterwards or a concrete reason exists.
+- Invoking a suite is not a handoff boundary: QA keeps the same task active until that exact run reports its final callback/totals. If a task turn ends while a run is still active, the next turn only waits for it and never clicks Run again.
 - Manual device checks belong to the user; reports must say exactly what was observed and never invent a smoke result.
 
 ### Test Runner recovery ladder
