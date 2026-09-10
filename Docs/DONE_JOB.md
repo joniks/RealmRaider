@@ -1831,3 +1831,31 @@ Completed on 2026-09-10.
 
 - Focused-test selection through this menu, automatic suite chaining, CLI tests,
   automatic retries and platform export orchestration.
+
+## Module Pass MWS 09 — Sylvan Living-Root Mobile Normal Map
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Added a deterministic, dependency-free PNG tool that derives normalized RGB
+  tangent-space normals from explicit RGB/RGBA input with wrapped-edge sampling
+  and bounded strength.
+- Produced one restrained 1024×1024 Sylvan living-root normal candidate and an
+  exact 2048×2048 2×2 repeat-evidence image from the accepted MWS08 source.
+- Provenance records the exact source/tool commands, parameters and source/output
+  hashes; no third-party source or Unity authority was introduced.
+
+### Verification
+
+- All `5/5` tool tests passed. Repeated generation was byte-identical, declared
+  SHA-256 values matched, dimensions/colour modes were correct and the full-frame
+  repeat grid showed no hard center-cross seam.
+- The generated relief remains intentionally subtle so painted bark detail does
+  not become exaggerated mobile geometry.
+- Accepted in Modules commit `f3475ac` (`art: derive Sylvan living-root normal map`).
+
+### Scope intentionally deferred
+
+- Unity import orientation, material binding, Android compression/device lighting,
+  colliders/gameplay, height/displacement maps and Infernal derivatives.

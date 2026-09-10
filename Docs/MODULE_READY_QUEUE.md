@@ -236,9 +236,57 @@ evidence were inspected on 2026-09-10. Neither has a hard center seam. Sylvan is
 the preferred first boundary integration candidate; Infernal remains suitable
 for preview with an explicit on-device crimson-network periodicity check.
 
+## Accepted — Module Pass MWS 09: Sylvan Living-Root Mobile Normal Map
+
+Owner: Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Accepted Modules commit: `f3475ac` (based on `c4295e4`).
+
+Reserved paths only:
+
+- `Tools/surface_maps/derive_normal_map.py`
+- `Tools/surface_maps/test_derive_normal_map.py`
+- `ArtPreviews/MWS09-SylvanLivingRootMobileMaps/`
+
+### Player/product value
+
+The accepted living-root boundary albedo now has a named Core integration gate.
+Give that boundary mobile-readable light response without changing collision,
+gameplay, source art or importing speculative third-party content.
+
+### Required implementation
+
+1. Implement a deterministic command-line normal-map derivation tool. It accepts
+   an explicit input/output path and bounded strength, preserves source dimensions,
+   wraps sampling at every edge and writes an RGB tangent-space normal map.
+2. Add tool-level tests for deterministic output, dimensions, wrapped edges,
+   bounded/normalized channels and invalid input/strength handling. Tests must not
+   require Unity or network access.
+3. Starting only from the accepted MWS08 Sylvan living-root edge-hardened albedo,
+   generate one restrained 1024×1024 mobile normal candidate plus exact 2048×2048
+   2×2 repeat evidence. Broad roots must read; painted contact-shadow noise must
+   not become exaggerated geometry.
+4. Record exact source path/hash, tool command/version, parameters, output hashes,
+   date and the fact that no third-party source was used.
+5. Freeze the reserved diff and report code, generated assets, checks, visual
+   caveats, future Core integration seam and Unity/commit/push status.
+
+### Non-goals
+
+Main checkout, Unity or `.meta` files, runtime/material integration, albedo edits,
+height/displacement, colliders, shaders, gameplay, third-party downloads, commit
+or push by the producing role.
+
+Acceptance: deterministic wrapped-edge normal generation, 5/5 tool tests,
+matching source/output hashes, 1024×1024 RGB candidate and exact 2048×2048 RGB
+repeat evidence were reviewed on 2026-09-10. The normal remains deliberately
+restrained and requires Unity import-orientation and device-lighting validation.
+
 ## Next Module gate
 
-No further Art generation is active. The next eligible Module task depends on a
-Core-owned Unity integration smoke of the accepted MWS07 Sylvan path candidate;
-use that evidence to request a named texture adjustment rather than producing
-another speculative surface pack.
+No further generation is active. The next Module lease follows QA evidence from
+the named Sylvan boundary presentation gate; use that evidence for one concrete
+strength/orientation correction or move to the next explicitly accepted realm
+surface rather than producing speculative variants.
