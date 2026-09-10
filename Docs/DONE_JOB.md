@@ -2270,3 +2270,31 @@ Completed on 2026-09-10.
 
 - 32 px runtime use, device/final branding approval, animation/VFX/audio, new
   realms, gameplay changes and physical-device validation.
+
+## Diamond Pass 13.9 — Guided Possessable Ent Locator
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Added one cached `▼  POSSESSABLE ENT` marker under the existing first-minute
+  Defense guide, projected only from its explicitly supplied Guardian Ent.
+- The non-raycast Text/Outline marker clamps inside the responsive safe area in
+  portrait and landscape without any selection, camera or gameplay authority.
+- Selection/possession/dismiss/death/terminal/skip/shutdown hide it; factual
+  forced Keeper return reuses it and teardown leaves no orphan.
+
+### Verification
+
+- Architect confirmed explicit-target ownership, one-object reuse, safe-area
+  projection, noninteraction, lifecycle cleanup and the two-file scope.
+- QA native gates passed EditMode `174/174` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual marker placement/readability is not claimed because the first Game-view
+  click failed externally with `windowNotFoundAtPosition`; no runtime failure was
+  observed.
+
+### Scope intentionally deferred
+
+- General objective/quest/target markers, camera focus, input changes, tutorial
+  expansion, device final polish and gameplay content.

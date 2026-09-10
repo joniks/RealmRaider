@@ -15,6 +15,9 @@ namespace RealmRaiders.UI
     public sealed class FirstPlayableMinuteDefenseGuide : MonoBehaviour
     {
         const float RequiredMovement = .6f;
+        public const string PossessableMarkerObjectName = "First Minute Possessable Ent Marker";
+        public const string PossessableMarkerCopy = "▼  POSSESSABLE ENT";
+        static readonly Vector2 PossessableMarkerSize = new(300, 52);
 
         ResponsiveHudRoot responsive;
         PossessionManager possession;
@@ -35,6 +38,9 @@ namespace RealmRaiders.UI
         Button dismissButton;
         Button skipButton;
         RectTransform emphasis;
+        Text possessableMarker;
+        Camera view;
+        Canvas canvas;
         FirstPlayableMinuteDefenseProof proof;
         string dismissedGroup;
         string displayedCopy;
@@ -65,6 +71,8 @@ namespace RealmRaiders.UI
         public RectTransform SkipRect => skipButton ? (RectTransform)skipButton.transform : null;
         public RectTransform EmphasisRect => emphasis;
         public RectTransform GuideLineRect => line ? line.rectTransform : null;
+        public RectTransform PossessableMarkerRect => possessableMarker ? possessableMarker.rectTransform : null;
+        public bool PossessableMarkerVisible => possessableMarker && possessableMarker.gameObject.activeSelf;
 
         public void Initialize(
             ResponsiveHudRoot layout,
@@ -89,6 +97,8 @@ namespace RealmRaiders.UI
             defense = defenseManager;
             defender = sylvanDefender;
             cameraRig = manager.CameraRig;
+            view = cameraRig ? cameraRig.GetComponent<Camera>() : null;
+            canvas = GetComponentInParent<Canvas>();
             normalSelection = selectionLane;
             resultLane = defenseResultLane;
             possessButton = possessAction;
@@ -104,6 +114,7 @@ namespace RealmRaiders.UI
             rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one; rect.offsetMin = rect.offsetMax = Vector2.zero;
             line = CreateLine();
             emphasis = CreateEmphasis();
+            possessableMarker = CreatePossessableMarker();
             dismissButton = CreateAction("DISMISS", skin, DismissCurrent, new Color(.15f, .23f, .18f, .98f));
             skipButton = CreateAction("SKIP GUIDE", skin, SkipGuide, new Color(.18f, .18f, .2f, .98f));
 
@@ -144,7 +155,8 @@ namespace RealmRaiders.UI
 
         void Update()
         {
-            if (shutdown || proof == null || proof.TerminalOutcome != DefenseGuideTerminalOutcome.None) return;
+            if (shutdown || proof == null) return;
+            if (proof.TerminalOutcome != DefenseGuideTerminalOutcome.None) { HidePossessableMarker(); return; }
             if (proof.Step == DefenseGuideStep.Select && !CanAttemptAgain()) { if (proof.Interrupt(false)) OnStepChanged(); }
             else if (proof.Step == DefenseGuideStep.Possess && (possession.Selected != defender || !CanAttemptAgain())) { if (proof.Interrupt(CanAttemptAgain())) OnStepChanged(); }
             else if (proof.Step is DefenseGuideStep.Move or DefenseGuideStep.Attack or DefenseGuideStep.Dodge or DefenseGuideStep.Release)
@@ -169,13 +181,18 @@ namespace RealmRaiders.UI
         void OnSelectionChanged(CombatEntity selected)
         {
             if (shutdown || proof.TerminalOutcome != DefenseGuideTerminalOutcome.None) return;
-            if (selected == defender && defender.IsPossessable && proof.TrySelect()) OnStepChanged();
+            if (selected == defender)
+            {
+                HidePossessableMarker();
+                if (defender.IsPossessable && proof.TrySelect()) OnStepChanged();
+            }
             else if (!selected && proof.Step == DefenseGuideStep.Possess && proof.Interrupt(CanAttemptAgain())) OnStepChanged();
         }
 
         void OnPossessionChanged(CombatEntity controlled)
         {
             if (shutdown || proof.TerminalOutcome != DefenseGuideTerminalOutcome.None) return;
+            if (controlled) HidePossessableMarker();
             if (controlled == defender)
             {
                 BindPlayer(defender.Controller<PlayerController>());
@@ -210,6 +227,7 @@ namespace RealmRaiders.UI
 
         void OnDefenderDied()
         {
+            HidePossessableMarker();
             explicitReleasePending = false;
             UnbindPlayer();
             if (!shutdown && proof.TerminalOutcome == DefenseGuideTerminalOutcome.None && proof.Interrupt(false)) OnStepChanged();
@@ -218,6 +236,7 @@ namespace RealmRaiders.UI
         void OnDefenseState(DefenseState state)
         {
             if (shutdown || state is not (DefenseState.DefenderVictory or DefenseState.RealmLost)) return;
+            HidePossessableMarker();
             explicitReleasePending = false;
             UnbindPlayer();
             if (proof.Step == DefenseGuideStep.KeeperReturn && KeeperReturnReady()) proof.TryKeeperReturn();
@@ -262,7 +281,11 @@ namespace RealmRaiders.UI
             if (shutdown || proof == null) return;
             Presentation(out var group, out var copy, out var target);
             var show = !string.IsNullOrEmpty(copy) && dismissedGroup != group;
-            if (!force && displayedGroup == group && displayedCopy == copy && displayedTarget == target && GuideLineVisible == show) return;
+            if (!force && displayedGroup == group && displayedCopy == copy && displayedTarget == target && GuideLineVisible == show)
+            {
+                RefreshPossessableMarker();
+                return;
+            }
             displayedGroup = group;
             displayedCopy = copy;
             displayedTarget = target;
@@ -273,6 +296,7 @@ namespace RealmRaiders.UI
             ApplyEmphasis(show ? target : null);
             dismissButton.gameObject.SetActive(guideActionsActive && show);
             skipButton.gameObject.SetActive(guideActionsActive);
+            RefreshPossessableMarker();
         }
 
         void Presentation(out string group, out string copy, out RectTransform target)
@@ -373,6 +397,65 @@ namespace RealmRaiders.UI
             var image = go.GetComponent<Image>(); image.color = new Color(1f, .78f, .24f, .07f); image.raycastTarget = false;
             var outline = go.GetComponent<Outline>(); outline.effectColor = new Color(1f, .82f, .34f, .96f); outline.effectDistance = new Vector2(4, -4); outline.useGraphicAlpha = false;
             go.SetActive(false); return (RectTransform)go.transform;
+        }
+
+        Text CreatePossessableMarker()
+        {
+            var go = new GameObject(PossessableMarkerObjectName, typeof(RectTransform), typeof(Text), typeof(Outline));
+            go.transform.SetParent(transform, false);
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+            rect.pivot = new Vector2(.5f, .5f);
+            rect.sizeDelta = PossessableMarkerSize;
+            var text = go.GetComponent<Text>();
+            text.text = PossessableMarkerCopy;
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = 22;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = new Color(1f, .9f, .52f);
+            text.raycastTarget = false;
+            var outline = go.GetComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, .9f);
+            outline.effectDistance = new Vector2(2, -2);
+            go.SetActive(false);
+            return text;
+        }
+
+        void RefreshPossessableMarker()
+        {
+            if (!possessableMarker) return;
+            var visible = !shutdown && proof != null && proof.Step == DefenseGuideStep.Select
+                && proof.TerminalOutcome == DefenseGuideTerminalOutcome.None && dismissedGroup != "Select"
+                && !GameplayInput.TerminalState && CanAttemptAgain() && defender.Health != null && !defender.Health.IsDead
+                && cameraRig && cameraRig.Mode == CameraMode.KeeperOverview && !cameraRig.IsTransitioning;
+            if (!visible || !view)
+            {
+                HidePossessableMarker();
+                return;
+            }
+
+            var root = (RectTransform)transform;
+            var screenPoint = view.WorldToScreenPoint(defender.transform.TransformPoint(Vector3.up * 2.8f));
+            var eventCamera = canvas && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+            if (screenPoint.z <= 0 || !RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screenPoint, eventCamera, out var localPoint))
+            {
+                HidePossessableMarker();
+                return;
+            }
+
+            var bounds = root.rect;
+            var halfSize = PossessableMarkerSize * .5f;
+            const float margin = 12;
+            localPoint.x = Mathf.Clamp(localPoint.x, bounds.xMin + halfSize.x + margin, bounds.xMax - halfSize.x - margin);
+            localPoint.y = Mathf.Clamp(localPoint.y, bounds.yMin + halfSize.y + margin, bounds.yMax - halfSize.y - margin);
+            possessableMarker.rectTransform.anchoredPosition = localPoint - bounds.center;
+            possessableMarker.gameObject.SetActive(true);
+        }
+
+        void HidePossessableMarker()
+        {
+            if (possessableMarker) possessableMarker.gameObject.SetActive(false);
         }
 
         Button CreateAction(string name, HudPresentation skin, UnityEngine.Events.UnityAction action, Color color)
@@ -513,6 +596,7 @@ namespace RealmRaiders.UI
             if (skipButton) { skipButton.onClick.RemoveAllListeners(); skipButton.gameObject.SetActive(false); }
             if (line) line.gameObject.SetActive(false);
             if (emphasis) emphasis.gameObject.SetActive(false);
+            HidePossessableMarker();
             RestoreSelection();
             RestoreResultLane();
             displayedTarget = null;

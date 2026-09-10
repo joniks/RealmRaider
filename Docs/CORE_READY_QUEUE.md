@@ -181,9 +181,35 @@ expectation update, QA's native gates passed EditMode `174/174` and PlayMode
 Manual realm-mark readability remains unobserved because the first Game-view click
 failed externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-## Selecting Diamond Pass 13.9
+## Accepted — Diamond Pass 13.9: Guided Possessable Ent Locator
 
-Return priority to one bounded player-visible improvement of the playable
-BUILD → raid → possession → defense loop. Core prepares the authoritative seam
-read-only; Architect names the exact lease before any further source edit. Do not
-continue an unbounded icon-only sequence.
+Owner: Core developer. Base: Architect's accepted 13.8 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+During the active first-minute Sylvan Defense Select step, show one compact,
+noninteractive, safe-area-clamped marker projected from the explicitly supplied
+Guardian Ent. It hides on selection/possession/death/terminal/skip/teardown and
+may reuse the same object after a real retry/forced return. It never selects,
+moves the camera, changes controller authority or discovers an entity by scan.
+
+Acceptance: QA's native gates passed EditMode `174/174` and PlayMode `82/82`,
+both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
+marker readability remains unobserved because the first Game-view click failed
+externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
+
+## Now — Diamond Pass 14.0: Explain Premature Explicit Release
+
+Owner: Core developer. Base: Architect's accepted 13.9 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+When a fresh player explicitly taps RELEASE before the ordered guide reaches its
+Release step, preserve the existing factual return to Select but explain it once:
+`RELEASED EARLY — SELECT THE ENT TO TRY AGAIN`. Never blame the player for forced
+release, energy depletion, death, terminal state or controller loss; clear the
+reason on reselect/progress/accepted release/skip/teardown.
+
+## Ready after 14.0
+
+Use QA's observation to accept or make one bounded copy/lifecycle correction.
+Then select the next smallest break in the canonical playable loop; do not expand
+this into a general notification or tutorial framework.

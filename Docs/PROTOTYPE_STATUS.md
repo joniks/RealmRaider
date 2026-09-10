@@ -85,6 +85,7 @@ Last reviewed: 2026-09-10
 - Diamond Pass 13.6 Guardian Ent Ability Icons is present: Sylvan possession now adds original Smash and Ground Slam button sprites plus a truthful Fingertap-only `SWIPE: CHARGE` mark, while Joystick and non-Guardian states remain honest.
 - Diamond Pass 13.7 Infernal Brute Ability Icons is present: Infernal possession now uses its own obsidian/ember Smash and Ground Slam sprites plus the truthful Fingertap-only Charge mark without changing controls or the Guardian family.
 - Diamond Pass 13.8 Realm Identity Marks is present: existing Hub, Build, Raid and Defense realm titles now carry one cached original Sylvan or Infernal mark without becoming controls or weakening exact text-only fallback.
+- Diamond Pass 13.9 Guided Possessable Ent Locator is present: the active first-minute Sylvan Select step now points from the existing guide to the exact possessable Ent with one safe-area-clamped noninteractive marker and complete retry/terminal cleanup.
 - Current Unity Test Runner baseline: EditMode `174/174` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 

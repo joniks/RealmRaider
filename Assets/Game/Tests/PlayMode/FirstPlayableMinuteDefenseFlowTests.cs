@@ -32,6 +32,7 @@ namespace RealmRaiders.Tests
                 Assert.That(scene.Guide.GuideText, Is.EqualTo("SELECT — TAP THE ENT"));
                 Assert.That(scene.Guide.GuideLineRaycastTarget, Is.False);
                 AssertSceneSingletons();
+                yield return VerifyPossessableMarkerPresentation(scene);
                 yield return CompleteOrderedControlProof(scene, true);
 
                 scene.Invader.Health.TakeDamage(new DamageInfo(1000, null, scene.Invader.transform.position), 0);
@@ -44,6 +45,7 @@ namespace RealmRaiders.Tests
                 Assert.That(scene.Hud.ResultText, Does.Contain("DEFENDER VICTORY").And.Contain("The invader was destroyed.").And.Contain("FIRST DEFENSE COMPLETE — RETURN TO BUILD"));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
                 Assert.That(scene.Guide.SkipVisible, Is.False);
+                AssertPossessableMarkerHidden(scene.Guide);
                 AssertTerminalGameplayActionsHidden(scene.Hud);
                 scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
                 scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
@@ -87,25 +89,35 @@ namespace RealmRaiders.Tests
                 PrepareChangedBuildHandoff();
                 SceneManager.LoadScene("DefenderTest"); yield return null; yield return null;
                 var first = GuidedScene.Capture(); first.StopInvader();
+                var firstMarker = AssertPossessableMarkerVisible(first.Guide);
+                GameObject.Find("DISMISS").GetComponent<Button>().onClick.Invoke();
+                AssertPossessableMarkerHidden(first.Guide);
                 first.Invader.Health.TakeDamage(new DamageInfo(1000, null, first.Invader.transform.position), 0); yield return null;
                 Assert.That(first.Guide.Step, Is.EqualTo(DefenseGuideStep.Retry));
                 Assert.That(first.Guide.GuideText, Is.EqualTo("TRY THE CONTROL LOOP — DEFEND AGAIN"));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Active));
+                AssertPossessableMarkerHidden(first.Guide);
                 AssertTerminalGameplayActionsHidden(first.Hud);
                 yield return ExerciseTerminalCallbacksWithoutReactivation(first);
                 first.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertTerminalGameplayActionsHidden(first.Hud); AssertGuideLayoutClear(first.Guide);
                 first.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertTerminalGameplayActionsHidden(first.Hud); AssertGuideLayoutClear(first.Guide);
 
                 GameObject.Find("DEFEND AGAIN").GetComponent<Button>().onClick.Invoke(); yield return null; yield return null;
+                Assert.That(!firstMarker, Is.True, "The terminal scene teardown must destroy its guide marker.");
                 var retry = GuidedScene.Capture(); retry.StopInvader();
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Select));
                 AssertGameplayActionsRestoredForRetry(retry.Hud, false);
+                var retryMarker = AssertPossessableMarkerVisible(retry.Guide);
                 retry.Possession.Select(retry.Defender); AssertGameplayActionsRestoredForRetry(retry.Hud, true); GameObject.Find("POSSESS ENT").GetComponent<Button>().onClick.Invoke(); yield return null;
+                AssertPossessableMarkerHidden(retry.Guide);
                 Assert.That(retry.Possession.Possessed, Is.SameAs(retry.Defender));
                 retry.Possession.Release(true); yield return null;
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Select), "Forced release restarts selection and never satisfies explicit Release.");
+                yield return new WaitForSecondsRealtime(.8f); yield return null; retry.Guide.RefreshForTests();
+                Assert.That(AssertPossessableMarkerVisible(retry.Guide), Is.SameAs(retryMarker), "Forced Keeper return must reuse the existing guide marker.");
 
                 retry.Possession.Select(retry.Defender); GameObject.Find("POSSESS ENT").GetComponent<Button>().onClick.Invoke(); yield return null;
+                AssertPossessableMarkerHidden(retry.Guide);
                 retry.Defender.SetController(retry.Defender.Controller<CreatureBrain>()); yield return null;
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Inactive));
                 retry.Possession.Release(true); yield return null;
@@ -120,6 +132,18 @@ namespace RealmRaiders.Tests
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Skipped));
                 Assert.That(retry.Guide.GuideLineVisible, Is.False); Assert.That(retry.Guide.EmphasisVisible, Is.False);
                 Assert.That(retry.Guide.SkipVisible, Is.False); Assert.That(retry.Guide.DismissVisible, Is.False);
+                AssertPossessableMarkerHidden(retry.Guide);
+
+                var skippedMarker = retry.Guide.PossessableMarkerRect;
+                PrepareChangedBuildHandoff();
+                SceneManager.LoadScene("DefenderTest"); yield return null; yield return null;
+                Assert.That(!skippedMarker, Is.True, "Skipped guide teardown must not orphan its marker.");
+                var death = GuidedScene.Capture(); death.StopInvader();
+                AssertPossessableMarkerVisible(death.Guide);
+                death.Defender.Health.TakeDamage(new DamageInfo(1000, null, death.Defender.transform.position), 0); yield return null;
+                AssertPossessableMarkerHidden(death.Guide);
+                SceneManager.LoadScene("PrototypeHub"); yield return null;
+                Assert.That(CountSceneObjectsNamed(FirstPlayableMinuteDefenseGuide.PossessableMarkerObjectName), Is.Zero, "Scene teardown must leave no guide marker orphan.");
             }
             finally { saved.Restore(); }
         }
@@ -143,6 +167,89 @@ namespace RealmRaiders.Tests
             finally { saved.Restore(); }
         }
 
+        static IEnumerator VerifyPossessableMarkerPresentation(GuidedScene scene)
+        {
+            var controller = scene.Defender.ActiveController;
+            var selected = scene.Possession.Selected;
+            var health = scene.Defender.Health.Current;
+            var cameraRig = scene.Possession.CameraRig;
+            var cameraMode = cameraRig.Mode;
+            var cameraTransitioning = cameraRig.IsTransitioning;
+            var cameraPosition = cameraRig.transform.position;
+            var cameraRotation = cameraRig.transform.rotation;
+            var abilities = new AbilityRuntime[scene.Defender.Abilities.Count];
+            for (var index = 0; index < abilities.Length; index++) abilities[index] = scene.Defender.Abilities[index];
+
+            scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+            scene.Guide.RefreshForTests();
+            var marker = AssertPossessableMarkerVisible(scene.Guide);
+            scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+            scene.Guide.RefreshForTests();
+            Assert.That(AssertPossessableMarkerVisible(scene.Guide), Is.SameAs(marker), "Orientation changes must reuse one guide marker.");
+
+            Assert.That(scene.Possession.Selected, Is.SameAs(selected), "Marker presentation cannot select a creature.");
+            Assert.That(scene.Defender.ActiveController, Is.SameAs(controller), "Marker presentation cannot change controller authority.");
+            Assert.That(scene.Defender.Health.Current, Is.EqualTo(health), "Marker presentation cannot mutate health.");
+            Assert.That(scene.Defender.Abilities.Count, Is.EqualTo(abilities.Length), "Marker presentation cannot change the ability set.");
+            for (var index = 0; index < abilities.Length; index++)
+                Assert.That(scene.Defender.Abilities[index], Is.SameAs(abilities[index]), $"Marker presentation replaced ability {index}.");
+            Assert.That(cameraRig.Mode, Is.EqualTo(cameraMode), "Marker presentation cannot change camera mode.");
+            Assert.That(cameraRig.IsTransitioning, Is.EqualTo(cameraTransitioning), "Marker presentation cannot request a camera transition.");
+            Assert.That(cameraRig.transform.position, Is.EqualTo(cameraPosition), "Marker presentation cannot move the camera.");
+            Assert.That(cameraRig.transform.rotation, Is.EqualTo(cameraRotation), "Marker presentation cannot rotate the camera.");
+        }
+
+        static RectTransform AssertPossessableMarkerVisible(FirstPlayableMinuteDefenseGuide guide)
+        {
+            var marker = guide.PossessableMarkerRect;
+            Assert.That(marker, Is.Not.Null);
+            Assert.That(marker.name, Is.EqualTo(FirstPlayableMinuteDefenseGuide.PossessableMarkerObjectName));
+            Assert.That(marker.parent, Is.SameAs(guide.transform));
+            Assert.That(guide.PossessableMarkerVisible, Is.True);
+            Assert.That(marker.gameObject.activeSelf, Is.True);
+            var label = marker.GetComponent<Text>();
+            Assert.That(label, Is.Not.Null);
+            Assert.That(label.text, Is.EqualTo(FirstPlayableMinuteDefenseGuide.PossessableMarkerCopy));
+            Assert.That(label.raycastTarget, Is.False);
+            Assert.That(marker.GetComponent<Button>(), Is.Null);
+            Assert.That(marker.GetComponent<EventTrigger>(), Is.Null);
+            Assert.That(marker.GetComponent<UiPointerOwnership>(), Is.Null);
+            Assert.That(CountGuideMarkers(guide), Is.EqualTo(1), "The guide must own exactly one reusable marker.");
+
+            var safeBounds = WorldRect((RectTransform)guide.transform);
+            var markerBounds = WorldRect(marker);
+            Assert.That(markerBounds.xMin, Is.GreaterThanOrEqualTo(safeBounds.xMin - .1f));
+            Assert.That(markerBounds.yMin, Is.GreaterThanOrEqualTo(safeBounds.yMin - .1f));
+            Assert.That(markerBounds.xMax, Is.LessThanOrEqualTo(safeBounds.xMax + .1f));
+            Assert.That(markerBounds.yMax, Is.LessThanOrEqualTo(safeBounds.yMax + .1f));
+            return marker;
+        }
+
+        static void AssertPossessableMarkerHidden(FirstPlayableMinuteDefenseGuide guide)
+        {
+            Assert.That(guide.PossessableMarkerRect, Is.Not.Null);
+            Assert.That(guide.PossessableMarkerVisible, Is.False);
+            Assert.That(guide.PossessableMarkerRect.gameObject.activeSelf, Is.False);
+            Assert.That(CountGuideMarkers(guide), Is.EqualTo(1), "A hidden marker must remain owned for factual retry reuse.");
+        }
+
+        static int CountGuideMarkers(FirstPlayableMinuteDefenseGuide guide)
+        {
+            var count = 0;
+            foreach (var child in guide.GetComponentsInChildren<RectTransform>(true))
+                if (child.name == FirstPlayableMinuteDefenseGuide.PossessableMarkerObjectName) count++;
+            return count;
+        }
+
+        static int CountSceneObjectsNamed(string objectName)
+        {
+            var count = 0;
+            foreach (var root in SceneManager.GetActiveScene().GetRootGameObjects())
+                foreach (var child in root.GetComponentsInChildren<Transform>(true))
+                    if (child.name == objectName) count++;
+            return count;
+        }
+
         static IEnumerator CompleteOrderedControlProof(GuidedScene scene, bool verifyResponsivePresentation)
         {
             if (verifyResponsivePresentation)
@@ -152,7 +259,10 @@ namespace RealmRaiders.Tests
             }
 
             SetRootPosition(scene.Defender, new Vector3(0, scene.Defender.transform.position.y, 0));
+            var selectMarker = scene.Guide.PossessableMarkerRect;
             scene.Possession.Select(scene.Defender);
+            Assert.That(scene.Guide.PossessableMarkerRect, Is.SameAs(selectMarker));
+            AssertPossessableMarkerHidden(scene.Guide);
             Assert.That(scene.Guide.Step, Is.EqualTo(DefenseGuideStep.Possess));
             Assert.That(scene.Guide.GuideText, Is.EqualTo("TAKE CONTROL — TAP POSSESS ENT"));
             Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("POSSESS ENT"));
