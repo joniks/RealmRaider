@@ -118,9 +118,9 @@ namespace RealmRaiders.UI
             encounterCue = gameObject.AddComponent<RaidEncounterCue>(); encounterCue.Initialize(responsive);
             abilityButtons = new[]
             {
-                new AbilityButtonReadiness(Button("SLASH", new Vector2(-260, 110), () => Ability(0)), "SLASH", 0),
-                new AbilityButtonReadiness(Button("BLOOD RUSH", new Vector2(0, 110), () => Ability(1)), "BLOOD RUSH", 1),
-                new AbilityButtonReadiness(Button("CLEAVE", new Vector2(260, 110), () => Ability(2)), "CLEAVE", 2)
+                AbilityButton("SLASH", new Vector2(-260, 110), 0),
+                AbilityButton("BLOOD RUSH", new Vector2(0, 110), 1),
+                AbilityButton("CLEAVE", new Vector2(260, 110), 2)
             };
             dodge = Button("DODGE", new Vector2(0, 220), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
             jump = Button("JUMP", new Vector2(260, 220), Jump); jumpLabel = jump.GetComponentInChildren<Text>(); presentation.DecorateJumpButton(jump);
@@ -352,6 +352,13 @@ namespace RealmRaiders.UI
             var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(240, 92);
             go.GetComponent<Image>().color = new Color(.12f, .38f, .17f, .96f); var button = go.GetComponent<Button>(); presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick());
             var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textGo.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = 25; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button;
+        }
+
+        AbilityButtonReadiness AbilityButton(string label, Vector2 position, int index)
+        {
+            var button = Button(label, position, () => Ability(index));
+            presentation?.DecorateAbilityButton(button, index, label);
+            return new AbilityButtonReadiness(button, label, index);
         }
     }
 }

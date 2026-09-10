@@ -2129,3 +2129,32 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 
 - Unity import, DefenderHUD binding, mobile compression, ability/combat changes,
   animation/VFX/audio, 32 px comprehension and final art.
+
+## Diamond Pass 13.5 — Blood Knight Ability Icons
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported only the three accepted original MUI03 Blood Knight ability sprites
+  byte-identically with local provenance and explicit mobile UI import settings.
+- Decorated the existing `SLASH`, `BLOOD RUSH` and `CLEAVE` controls through an
+  explicit stable mapping while preserving labels, cooldown/readiness truth,
+  callbacks, navigation and responsive layouts.
+- Each non-raycast image is cached once and exact text-only controls remain when
+  a resource is missing or throws; teardown removes the presentation cleanly.
+
+### Verification
+
+- Architect confirmed exact MUI03 hashes/provenance/import settings, explicit
+  mapping, cache/fallback behavior, input ownership and scoped whitespace.
+- QA native gates passed EditMode `162/162` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual 32–48 px meaning, cooldown readability and both-orientation layout are
+  not claimed because the first Game-view click failed externally with
+  `windowNotFoundAtPosition`; this is not a recorded runtime failure.
+
+### Scope intentionally deferred
+
+- Device/manual readability, animation/glow, audio/VFX/haptics, Guardian and
+  Infernal ability icons, combat changes and final UI approval.

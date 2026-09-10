@@ -35,8 +35,12 @@ namespace RealmRaiders.Tests
             var hudObject = new GameObject("Encounter Raid HUD", typeof(RaidHUD));
             var heroDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
             var hostileDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var slashDefinition = ScriptableObject.CreateInstance<AbilityDefinition>();
+            var rushDefinition = ScriptableObject.CreateInstance<AbilityDefinition>();
+            var cleaveDefinition = ScriptableObject.CreateInstance<AbilityDefinition>();
             GameObject cueLabelObject = null;
             GameObject cueIconObject = null;
+            GameObject[] abilityIconObjects = System.Array.Empty<GameObject>();
             var initialCanvasCount = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
             var initialEventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
             var initialListenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
@@ -46,6 +50,10 @@ namespace RealmRaiders.Tests
                 PrototypeSave.SetControlStyle(InRunControlStyleSelector.Contextual);
                 heroDefinition.DisplayName = "Encounter Hero";
                 heroDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
+                ConfigureAbility(slashDefinition, "Basic Slash");
+                ConfigureAbility(rushDefinition, "Blood Rush");
+                ConfigureAbility(cleaveDefinition, "Heavy Cleave");
+                heroDefinition.Abilities = new[] { slashDefinition, rushDefinition, cleaveDefinition };
                 hostileDefinition.DisplayName = "Encounter Hostile";
                 hostileDefinition.Stats = new CombatStats { MaxHealth = 40, MoveSpeed = 0 };
 
@@ -77,6 +85,8 @@ namespace RealmRaiders.Tests
                 var discoveredIcon = Resources.Load<Sprite>(RaidEncounterCue.DiscoveredIconResource);
                 var hostilesIcon = Resources.Load<Sprite>(RaidEncounterCue.HostilesIconResource);
                 var clearedIcon = Resources.Load<Sprite>(RaidEncounterCue.ClearedIconResource);
+                abilityIconObjects = AbilityButtons(hudObject).Select((button, index) =>
+                    button.transform.Find(HudPresentation.AbilityIconNamePrefix + index).gameObject).ToArray();
                 Assert.That(cue, Is.Not.Null);
                 Assert.That(cue.transform, Is.SameAs(hudObject.transform));
                 Assert.That(cue.Rect.parent, Is.SameAs(hudObject.transform));
@@ -97,10 +107,27 @@ namespace RealmRaiders.Tests
                 responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
                 yield return null;
                 AssertLayout(cue, responsive, PrototypeOrientation.Portrait, hudObject);
+                AssertAbilityIcons(hudObject, PrototypeOrientation.Portrait);
                 yield return new WaitForSecondsRealtime(RaidEncounterCue.DiscoveryDuration + .05f);
                 Assert.That(cue.Visible, Is.False, "Discovery presentation must clear on its own timeout.");
                 Assert.That(cue.IconVisible, Is.False);
                 Assert.That(cue.IconSprite, Is.Null);
+
+                var abilityButtons = AbilityButtons(hudObject);
+                var abilityCopy = new[] { "SLASH", "BLOOD RUSH", "CLEAVE" };
+                for (var index = 0; index < abilityButtons.Length; index++)
+                {
+                    var readyAt = hero.Abilities[index].ReadyAt;
+                    abilityButtons[index].onClick.Invoke();
+                    Assert.That(hero.Abilities[index].ReadyAt, Is.GreaterThan(readyAt),
+                        $"{abilityCopy[index]} must retain the existing callback for ability index {index}.");
+                    yield return WaitForIdle(hero);
+                    yield return null;
+                    Assert.That(hud.AbilityButtonText(index), Does.StartWith(abilityCopy[index] + "  "),
+                        "The icon must not replace authoritative cooldown copy.");
+                    Assert.That(abilityIconObjects[index].GetComponent<Image>().sprite,
+                        Is.SameAs(Resources.Load<Sprite>(HudPresentation.AbilityIconResourceFor(index, abilityCopy[index]))));
+                }
 
                 heroObject.transform.position = hostileNodeObject.transform.position;
                 Physics.SyncTransforms();
@@ -138,6 +165,7 @@ namespace RealmRaiders.Tests
                 responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
                 yield return null;
                 AssertLayout(cue, responsive, PrototypeOrientation.Landscape, hudObject);
+                AssertAbilityIcons(hudObject, PrototypeOrientation.Landscape);
                 heroObject.transform.position += Vector3.right * 10;
                 yield return null;
                 heroObject.transform.position = hostileNodeObject.transform.position;
@@ -172,10 +200,68 @@ namespace RealmRaiders.Tests
                 foreach (var item in new[] { hudObject, managerObject, coreObject, hostileNodeObject, emptyNodeObject, secondHostileObject, firstHostileObject, heroObject, cameraObject })
                     if (item) Object.Destroy(item);
                 Object.Destroy(heroDefinition); Object.Destroy(hostileDefinition);
+                Object.Destroy(slashDefinition); Object.Destroy(rushDefinition); Object.Destroy(cleaveDefinition);
             }
             yield return null;
             Assert.That(cueLabelObject == null, Is.True, "Scene teardown must destroy its encounter label.");
             Assert.That(cueIconObject == null, Is.True, "Scene teardown must destroy its encounter icon.");
+            Assert.That(abilityIconObjects.All(icon => icon == null), Is.True, "Scene teardown must destroy all ability icons.");
+        }
+
+        static void ConfigureAbility(AbilityDefinition definition, string name)
+        {
+            definition.DisplayName = name;
+            definition.Kind = AbilityKind.Melee;
+            definition.Damage = 0;
+            definition.Range = 1;
+            definition.Radius = .1f;
+            definition.Windup = .01f;
+            definition.Cooldown = .5f;
+        }
+
+        static IEnumerator WaitForIdle(CombatEntity entity)
+        {
+            var timeout = Time.realtimeSinceStartup + 2f;
+            while (entity.ActionPhase != CombatActionPhase.Idle && Time.realtimeSinceStartup < timeout) yield return null;
+            Assert.That(entity.ActionPhase, Is.EqualTo(CombatActionPhase.Idle));
+        }
+
+        static Button[] AbilityButtons(GameObject hud) => new[] { "SLASH", "BLOOD RUSH", "CLEAVE" }
+            .Select(name => hud.transform.Find(name).GetComponent<Button>()).ToArray();
+
+        static void AssertAbilityIcons(GameObject hud, PrototypeOrientation orientation)
+        {
+            var buttons = AbilityButtons(hud);
+            var copy = new[] { "SLASH", "BLOOD RUSH", "CLEAVE" };
+            Assert.That(hud.GetComponentsInChildren<Image>(true)
+                .Count(image => image.name.StartsWith(HudPresentation.AbilityIconNamePrefix)), Is.EqualTo(3));
+            for (var index = 0; index < buttons.Length; index++)
+            {
+                var buttonRect = (RectTransform)buttons[index].transform;
+                var icon = buttons[index].transform.Find(HudPresentation.AbilityIconNamePrefix + index).GetComponent<Image>();
+                var label = buttons[index].GetComponentInChildren<Text>();
+                Assert.That(icon.transform.parent, Is.SameAs(buttons[index].transform));
+                Assert.That(icon.sprite, Is.SameAs(Resources.Load<Sprite>(HudPresentation.AbilityIconResourceFor(index, copy[index]))));
+                Assert.That(icon.raycastTarget, Is.False);
+                Assert.That(icon.GetComponent<Button>(), Is.Null);
+                Assert.That(icon.rectTransform.sizeDelta, Is.EqualTo(new Vector2(44, 44)));
+                Assert.That(icon.rectTransform.anchoredPosition, Is.EqualTo(new Vector2(10, 0)));
+                var iconBounds = WorldRect(icon.rectTransform);
+                Assert.That(iconBounds.Overlaps(WorldRect(label.rectTransform)), Is.False,
+                    $"{orientation} {copy[index]} icon overlaps its authoritative copy.");
+                var buttonBounds = WorldRect(buttonRect);
+                var iconCorners = new Vector3[4]; icon.rectTransform.GetWorldCorners(iconCorners);
+                Assert.That(buttonBounds.Contains(iconCorners[0]) && buttonBounds.Contains(iconCorners[2]), Is.True,
+                    $"{orientation} {copy[index]} icon must remain inside its existing button.");
+                for (var other = 0; other < buttons.Length; other++)
+                    if (other != index) Assert.That(iconBounds.Overlaps(WorldRect((RectTransform)buttons[other].transform)), Is.False,
+                        $"{orientation} {copy[index]} icon overlaps {copy[other]}.");
+                Assert.That(label.text, Does.StartWith(copy[index]));
+                Assert.That(label.rectTransform.offsetMin.x, Is.GreaterThanOrEqualTo(58));
+                var expectedAnchor = orientation == PrototypeOrientation.Portrait ? new Vector2(.5f, 0) : new Vector2(1, 0);
+                Assert.That(buttonRect.anchorMin, Is.EqualTo(expectedAnchor));
+                Assert.That(buttonRect.anchorMax, Is.EqualTo(expectedAnchor));
+            }
         }
 
         static void AssertLayout(RaidEncounterCue cue, ResponsiveHudRoot responsive, PrototypeOrientation orientation, GameObject hud)

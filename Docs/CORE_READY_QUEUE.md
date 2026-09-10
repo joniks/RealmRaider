@@ -111,7 +111,7 @@ both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
 40–44 px meaning/contrast/layout remains unobserved because the first Game-view
 click failed externally; no runtime failure was recorded.
 
-## Now — Diamond Pass 13.5: Blood Knight Ability Icons
+## Accepted — Diamond Pass 13.5: Blood Knight Ability Icons
 
 Owner: Core developer. Base: Architect's accepted 13.4 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -121,8 +121,26 @@ sprites with exact provenance/mobile settings. Decorate the existing three RaidH
 ability buttons without changing labels, readiness/cooldowns, input or combat.
 Missing/throwing resources retain the exact text-only controls.
 
-## Ready after 13.5
+Acceptance: QA's native gates passed EditMode `162/162` and PlayMode `82/82`,
+both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
+portrait/landscape icon readability remains unobserved because the first Game-view
+click failed externally with `windowNotFoundAtPosition`; no runtime failure was
+recorded.
+
+## Now — Diamond Pass 13.6: Guardian Ent Ability Icons
+
+Owner: Core developer. Base: Architect's accepted 13.5 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Import only the accepted original MUI04 Smash, Charge and Ground Slam sprites with
+exact provenance/mobile settings. Decorate only the Sylvan possessed-defender
+ability controls while preserving every label, callback, readiness/cooldown rule,
+possession lifecycle and exact text-only fallback. Infernal icons remain a
+separate later gate. Core never controls Unity; QA alone verifies the frozen
+candidate.
+
+## Ready after 13.6
 
 Use QA's actual 32–48 px comprehension/contrast observation for one bounded
-correction or accept the set. Then choose Guardian Ent MUI04 as one separate
-DefenderHUD gate; do not bundle Infernal MUI05 in the same change.
+correction or accept the set. Then choose Infernal Brute MUI05 as one separate
+gate; do not bundle it into Guardian Ent integration.

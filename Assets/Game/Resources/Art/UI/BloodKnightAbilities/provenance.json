@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "candidateSetId": "realmraiders.preview.blood-knight-abilities.mui03.v1",
+  "createdOn": "2026-09-10",
+  "status": "accepted-runtime-preview-not-final-art",
+  "creation": "original-generated",
+  "thirdPartySources": false,
+  "generationTool": "OpenAI built-in image generation",
+  "modulesCommit": "3fa21af",
+  "sourcePaths": {
+    "basic-slash": "Modules/RealmRaider.Modules/ArtPreviews/MUI03-BloodKnightAbilityIcons/basic-slash-rgba-candidate.png",
+    "blood-rush": "Modules/RealmRaider.Modules/ArtPreviews/MUI03-BloodKnightAbilityIcons/blood-rush-rgba-candidate.png",
+    "heavy-cleave": "Modules/RealmRaider.Modules/ArtPreviews/MUI03-BloodKnightAbilityIcons/heavy-cleave-rgba-candidate.png"
+  },
+  "paletteDirection": "dark iron with restrained dark crimson and pale-gold edge highlights",
+  "intendedAbilityMapping": {
+    "basic-slash": "Basic Slash — one fast diagonal melee arc",
+    "blood-rush": "Blood Rush — forward movement wedge",
+    "heavy-cleave": "Heavy Cleave — broad heavy area arc"
+  },
+  "generationPrompts": {
+    "basic-slash": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy direct-control ability icon candidate; Primary request: Basic Slash — one compact, broad diagonal steel slash mark with a thick tapered blade arc and a short dark-crimson motion ribbon; specifically make the silhouette visibly thick and legible at 32–48 px, not a thin needle; Scene/backdrop: genuinely transparent background only; no panel or badge; Subject: exactly one diagonal slash mark, no character; Style/medium: polished mobile action-game UI icon, bold crisp silhouette with simplified broad planes; Composition/framing: centered, occupies 64% of square with transparent margin; Lighting/mood: swift, precise, no glow cloud or vignette; Color palette: dark iron, restrained dark crimson, pale-gold edge highlight; Text (verbatim): none; Constraints: RGBA transparent background; no words, numerals, frame, logo, watermark, gradient backdrop, full character, face, model likeness, gore, realistic blood, recognizable franchise design, or external symbols; original preview candidate.",
+    "blood-rush": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy direct-control ability icon candidate; Primary request: Blood Rush — one forward-driving armored motion wedge, a compact iron spearhead/boot-like charge silhouette with three short trailing crimson speed bands; must read as forward movement, not an attack arc; Scene/backdrop: genuinely transparent background only; no panel or badge; Subject: exactly one forward-pointing charge wedge and short trailing motion bands, no character; Style/medium: polished mobile action-game UI icon, bold crisp silhouette, readable at 32–48 px; Composition/framing: centered, about 60% of square with transparent margin; Lighting/mood: explosive forward momentum, no glow cloud or vignette; Color palette: dark iron, restrained dark crimson, pale-gold edge highlight; Text (verbatim): none; Constraints: RGBA transparent background; no words, numerals, frame, logo, watermark, gradient backdrop, full character, face, model likeness, gore, realistic blood, recognizable franchise design, or external symbols; original preview candidate.",
+    "heavy-cleave": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy direct-control ability icon candidate; Primary request: Heavy Cleave — one broad, weighty iron crescent blade arc sweeping across a wide area, with a compact dark-crimson impact wedge at its inner base; must read as a heavy area swing, not a narrow slash or forward rush; Scene/backdrop: genuinely transparent background only; no panel or badge; Subject: exactly one wide crescent cleave arc and one compact impact wedge, no character; Style/medium: polished mobile action-game UI icon, bold crisp silhouette, readable at 32–48 px; Composition/framing: centered, about 65% of square with transparent margin; Lighting/mood: heavy decisive impact, no glow cloud or vignette; Color palette: dark iron, restrained dark crimson, pale-gold edge highlight; Text (verbatim): none; Constraints: RGBA transparent background; no words, numerals, frame, logo, watermark, gradient backdrop, full character, face, model likeness, gore, realistic blood, recognizable franchise design, or external symbols; original preview candidate."
+  },
+  "outputs": [
+    {
+      "file": "basic-slash-rgba-candidate.png",
+      "role": "basic-slash-icon-candidate",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "956033a1cad604db0bcb9ee5b463c37e4ca6a7c08758291ec843b5964136b5f2"
+    },
+    {
+      "file": "blood-rush-rgba-candidate.png",
+      "role": "blood-rush-icon-candidate",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "775a583ae83e4617d9d145554903d2fcf3821b8e17955a3ba4f2484cd05e0d18"
+    },
+    {
+      "file": "heavy-cleave-rgba-candidate.png",
+      "role": "heavy-cleave-icon-candidate",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "789fca8aa4e1ea065b0024af972ef9fd5f3a233bab07917707f4767ac49184d7"
+    },
+    {
+      "file": "contact-sheet-48px-dark-neutral.png",
+      "role": "non-runtime-actual-size-48px-contact-sheet",
+      "dimensions": [256, 96],
+      "colorFormat": "RGB",
+      "sha256": "d16afc7a08468b15d666ce11081b876c90603a883204ab1bc45d51dd46137624"
+    },
+    {
+      "file": "overview-sheet-256px-dark-neutral.png",
+      "role": "non-runtime-256px-overview-sheet",
+      "dimensions": [1024, 320],
+      "colorFormat": "RGB",
+      "sha256": "051ff6c5554739161cae37730ab558843c326fe82ec9a75d1aad85984cb029e9"
+    }
+  ],
+  "evidenceOperations": {
+    "iconResample": "sips resize to 512 square while preserving alpha",
+    "contactSheets": "standard-library RGBA alpha compositing onto neutral #141b1d; 48px row and 256px overview; evidence sheets are not runtime assets"
+  },
+  "reviewRequired": [
+    "in-context ability comprehension review",
+    "32px contrast and silhouette distinction review",
+    "Unity sprite import and mobile-compression review"
+  ],
+  "nonGoals": [
+    "ability logic, cooldown or combat balance changes",
+    "character/model art",
+    "animation, VFX or audio",
+    "final-art or device-readability approval"
+  ]
+}
