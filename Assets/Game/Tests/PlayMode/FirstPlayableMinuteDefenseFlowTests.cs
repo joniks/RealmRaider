@@ -70,12 +70,41 @@ namespace RealmRaiders.Tests
                 yield return null; yield return null;
                 Assert.That(scene.Defense.State, Is.EqualTo(DefenseState.RealmLost));
                 Assert.That(scene.Guide.TerminalOutcome, Is.EqualTo(DefenseGuideTerminalOutcome.Completed));
-                Assert.That(scene.Guide.GuideText, Is.EqualTo("REALM LOST — THE CONTROL LOOP IS COMPLETE"));
-                Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("DEFEND AGAIN"));
-                Assert.That(scene.Hud.ResultText, Does.Contain("REALM LOST").And.Contain("Heart Tree was captured.").And.Contain("THE CONTROL LOOP IS COMPLETE"));
+                Assert.That(scene.Guide.GuideText, Is.EqualTo("REALM LOST — RETURN TO BUILD AND ADJUST DEFENCES"));
+                Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("RETURN TO BUILD"));
+                Assert.That(scene.Hud.ResultText, Does.Contain("REALM LOST").And.Contain("Heart Tree was captured.").And.Contain("RETURN TO BUILD AND ADJUST DEFENCES"));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
                 AssertTerminalGameplayActionsHidden(scene.Hud);
-                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+                var completionWrites = FirstPlayableMinute.SuccessfulWritesForTests;
+                var progress = RealmProgress.Load();
+                var retryAction = GameObject.Find("DEFEND AGAIN").GetComponent<Button>();
+                Assert.That(retryAction.gameObject.activeSelf, Is.True, "DEFEND AGAIN remains available as a secondary result action.");
+                Assert.That(retryAction.interactable, Is.True);
+
+                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+                Assert.That(scene.Guide.GuideText, Is.EqualTo("REALM LOST — RETURN TO BUILD AND ADJUST DEFENCES"));
+                Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("RETURN TO BUILD"));
+                AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+                Assert.That(scene.Guide.GuideText, Is.EqualTo("REALM LOST — RETURN TO BUILD AND ADJUST DEFENCES"));
+                Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("RETURN TO BUILD"));
+                AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+
+                GameObject.Find("RETURN TO BUILD").GetComponent<Button>().onClick.Invoke();
+                yield return null; yield return null;
+                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("RealmBuild"));
+                Assert.That(Object.FindObjectsByType<BuildHUD>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                Assert.That(Object.FindObjectsByType<FirstPlayableMinuteDefenseGuide>(FindObjectsSortMode.None), Is.Empty);
+                Assert.That(CountSceneObjectsNamed("First Playable Minute Defense Guide"), Is.Zero);
+                Assert.That(CountSceneObjectsNamed("Defense Result"), Is.Zero);
+                Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
+                Assert.That(FirstPlayableMinute.SuccessfulWritesForTests, Is.EqualTo(completionWrites), "Result navigation cannot persist guide completion twice.");
+                var afterBuild = RealmProgress.Load();
+                Assert.That(afterBuild.Gold, Is.EqualTo(progress.Gold));
+                Assert.That(afterBuild.RareMaterials, Is.EqualTo(progress.RareMaterials));
+                Assert.That(afterBuild.CompletedRaids, Is.EqualTo(progress.CompletedRaids));
+                Assert.That(afterBuild.Victories, Is.EqualTo(progress.Victories));
+                Assert.That(afterBuild.GuardianEntVitalityRank, Is.EqualTo(progress.GuardianEntVitalityRank));
             }
             finally { saved.Restore(); }
         }

@@ -390,8 +390,8 @@ namespace RealmRaiders.UI
                 }
                 else
                 {
-                    group = "CompleteLoss"; copy = "REALM LOST — THE CONTROL LOOP IS COMPLETE";
-                    target = retryButton && retryButton.gameObject.activeInHierarchy ? (RectTransform)retryButton.transform : null;
+                    group = "CompleteLoss"; copy = "REALM LOST — RETURN TO BUILD AND ADJUST DEFENCES";
+                    target = returnToBuildButton && returnToBuildButton.gameObject.activeInHierarchy ? (RectTransform)returnToBuildButton.transform : null;
                 }
             }
         }

@@ -213,9 +213,37 @@ both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
 possess/release/Keeper copy remains unobserved because the first Game-view click
 failed externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-## Selecting Diamond Pass 14.1
+## Accepted — Diamond Pass 14.1: Guided Loss Closes Back to Build
 
-Select the next smallest player-visible break in the canonical playable loop.
-Core prepares the exact authoritative seam read-only; Architect names the lease
-before source changes. Do not expand 14.0 into a general notification/tutorial
-framework.
+Owner: Core developer. Base: Architect's accepted 14.0 commit `28bf0a4`. Full
+lease: `Docs/NEXT_JOB.md`.
+
+After a correctly completed first-minute control proof ending in `RealmLost`,
+guide the player through the existing RETURN TO BUILD action so the canonical
+`RESULT → BUILD` loop closes and the failed defence can be adjusted. Keep DEFEND
+AGAIN available as an unchanged secondary action; preserve early-terminal Retry,
+victory, outcome and scene authority.
+
+Acceptance: QA's fresh native gates passed EditMode `174/174` and PlayMode
+`82/82`, both with zero failed/skipped/inconclusive tests; Console was `0/0/0`.
+The final batch includes the separate fixture-order stabilization that creates an
+airborne Jump test entity at its requested position before adding its controller;
+runtime jump code and strict assertions were unchanged. Manual loss/result copy
+remains unobserved because the first Game-view click failed externally with
+`windowNotFoundAtPosition`; no runtime failure was recorded.
+
+## Now — Diamond Pass 14.2: Completed Loop Primes the Next Raid
+
+Owner: Core developer. Base: Architect's accepted 14.1 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Returning to RealmBuild from a factually completed canonical defense must prime
+the existing journey Build stage so the existing primary action truthfully reads
+`SAVE & RAID` and advances to SylvanRealm. Direct/legacy Build, early Retry and
+Infernal paths remain inactive and keep `SAVE & DEFEND`.
+
+## Ready after 14.2
+
+Use QA's observation to accept or make one bounded copy/lifecycle correction.
+Then select the next smallest break in the canonical playable loop; do not expand
+this into new navigation, persistent journey state, rewards or progression.

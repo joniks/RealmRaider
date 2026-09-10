@@ -87,6 +87,7 @@ Last reviewed: 2026-09-10
 - Diamond Pass 13.8 Realm Identity Marks is present: existing Hub, Build, Raid and Defense realm titles now carry one cached original Sylvan or Infernal mark without becoming controls or weakening exact text-only fallback.
 - Diamond Pass 13.9 Guided Possessable Ent Locator is present: the active first-minute Sylvan Select step now points from the existing guide to the exact possessable Ent with one safe-area-clamped noninteractive marker and complete retry/terminal cleanup.
 - Diamond Pass 14.0 Explain Premature Explicit Release is present: an early player-requested RELEASE now returns to the existing Select step with one factual retry explanation after Keeper view settles, while forced/death/terminal paths never blame the player.
+- Diamond Pass 14.1 Guided Loss Closes Back to Build is present: a factually completed first-minute Sylvan loss now emphasizes the existing RETURN TO BUILD action with truthful adjustment copy while DEFEND AGAIN remains available as a secondary choice.
 - Current Unity Test Runner baseline: EditMode `174/174` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 

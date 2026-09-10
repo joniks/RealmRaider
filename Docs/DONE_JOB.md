@@ -2325,3 +2325,35 @@ Completed on 2026-09-10.
 
 - Disabling RELEASE, general onboarding/notifications, persistence, camera/input,
   gameplay changes, content expansion and device final polish.
+
+## Diamond Pass 14.1 — Guided Loss Closes Back to Build
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- A factually completed guided `RealmLost` result now says `REALM LOST — RETURN
+  TO BUILD AND ADJUST DEFENCES` and emphasizes the existing RETURN TO BUILD.
+- DEFEND AGAIN stays visible and functional as the unchanged secondary action;
+  victory and early-terminal Retry presentation remain unchanged.
+- The factual-loss regression follows one existing button invocation into one
+  RealmBuild/BuildHUD, proves guide/result cleanup and verifies no duplicate
+  guide-completion write or RealmProgress mutation.
+- A separate test-fixture stabilization now creates its airborne Jump entity at
+  the requested position before adding CharacterController, removing a stale
+  `isGrounded` initialization flake without changing runtime or weakening checks.
+
+### Verification
+
+- Architect confirmed the completed-loss-only branch, exact copy, existing-button
+  emphasis, secondary action, transition cleanup and fixture-only repair scope.
+- QA native gates passed EditMode `174/174` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; the full PlayMode gate includes JumpGate.
+- Console after stopped smoke was 0 logs/warnings/errors. Manual loss/result flow
+  is not claimed because the first Game-view click failed externally with
+  `windowNotFoundAtPosition`; no runtime failure was observed.
+
+### Scope intentionally deferred
+
+- General result/tutorial redesign, new navigation, reward/progression or journey
+  persistence changes, gameplay/balance work and device final polish.

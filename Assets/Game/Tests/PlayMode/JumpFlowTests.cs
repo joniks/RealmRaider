@@ -496,8 +496,13 @@ namespace RealmRaiders.Tests
 
             public EntityFixture(Vector3 position, bool withAbility)
             {
-                Root = new GameObject("Jump Test Entity", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
+                Root = new GameObject("Jump Test Entity");
                 Root.transform.position = position;
+                Root.AddComponent<CharacterController>();
+                Root.AddComponent<Health>();
+                Entity = Root.AddComponent<CombatEntity>();
+                Player = Root.AddComponent<PlayerController>();
+                Ai = Root.AddComponent<CreatureBrain>();
                 definition = ScriptableObject.CreateInstance<CharacterDefinition>();
                 definition.DisplayName = "Jump Test Entity";
                 definition.Possessable = true;
@@ -513,9 +518,6 @@ namespace RealmRaiders.Tests
                     ability.Radius = .1f;
                     definition.Abilities = new[] { ability };
                 }
-                Entity = Root.GetComponent<CombatEntity>();
-                Player = Root.GetComponent<PlayerController>();
-                Ai = Root.GetComponent<CreatureBrain>();
                 Entity.Initialize(definition);
             }
 
