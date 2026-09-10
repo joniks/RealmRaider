@@ -104,7 +104,9 @@ Last reviewed: 2026-09-10
 - Module Art Pass MWS12 is accepted in the pinned Modules submodule: restrained deterministic Sylvan and Infernal route normal candidates and exact repeat evidence are ready for a named Unity lighting integration gate.
 - Diamond Pass 15.6 Restrained Route Normal Pair Integration is present: Sylvan and Infernal MWS07 routes now use their own restrained MWS12 normal at strength `0.20`, with atomic realm-local fallback and no floor, boundary, geometry, collision or gameplay leakage.
 - Module Research Pass MMP05 is accepted in the pinned Modules submodule: the official CC0 Quaternius UAL2 route, seven-slot motion pilot intake and conservative archive-evidence gate are frozen without downloading or importing third-party binaries.
-- Current Unity Test Runner baseline: EditMode `197/197` and PlayMode `90/90` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Module Passes MMP06–MMP07 are accepted in the pinned Modules submodule: immutable factual motion input resolves nine semantic states, and a bounded six-bone procedural humanoid driver applies them without gameplay, root-motion or scene authority. Unity package-test compilation was corrected in Modules commit `e57d795`.
+- Diamond Pass 15.8 Modular Procedural Blood Knight Motion Pilot is present: a thin Core adapter maps factual root movement, action, jump, damage and death state into the installed Modules driver, affecting only six exact descendant bones while preserving the gameplay root, CharacterController, Presentation Pivot and Base Body.
+- Current Unity Test Runner baseline: EditMode `244/244` and PlayMode `91/91` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -121,14 +123,14 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `197/197` and PlayMode `90/90` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `244/244` and PlayMode `91/91` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
 - The BUILD step is a compact five-slot runtime greybox with a live defense-plan summary; full device usability and performance remain unvalidated.
-- Combat presentation uses bounded visual motion, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge; it still has no final animation rig or production VFX.
+- Combat presentation uses bounded pivot motion plus a first modular six-bone procedural Blood Knight pilot, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge; its device-visible bone axes/cadence still need tuning and it has no final clip-driven animation rig or production VFX.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding; the defense invader now has only a narrow deterministic route-obstruction recovery, not general navigation.
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.

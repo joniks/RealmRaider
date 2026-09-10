@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "com.realmraiders.character-motion-profiles": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-motion-profiles",
+    "com.realmraiders.character-procedural-motion": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-procedural-motion",
     "com.realmraiders.character-visual-tuning": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-visual-tuning",
     "com.realmraiders.starter-character-catalog": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.starter-character-catalog",
     "com.unity.inputsystem": "1.20.0",
@@ -16,6 +18,8 @@
     "com.unity.modules.vectorgraphics": "1.0.0"
   },
   "testables": [
+    "com.realmraiders.character-motion-profiles",
+    "com.realmraiders.character-procedural-motion",
     "com.realmraiders.character-visual-tuning",
     "com.realmraiders.starter-character-catalog"
   ]

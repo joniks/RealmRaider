@@ -692,3 +692,29 @@ idle, one locomotion loop, jump takeoff/fall/land, one sword attack and death.
 No third-party binary, rig, clip, Animator, Unity import or runtime binding was
 created. Exact free-archive contents and the current 3DRT Generic rig compatibility
 remain the named Core/QA acquisition pilot rather than an assumed result.
+
+## Accepted — Module Pass MMP06: Character Motion Presentation Resolver
+
+Accepted Modules commit: `fc37bc1`.
+
+The motion-profile package now exposes immutable zero-allocation factual input and
+deterministically resolves Idle, Locomotion, two attacks, Hit, Death and three jump
+phases. It retains no timing, scene, asset, root-motion or gameplay authority.
+
+## Accepted — Module Pass MMP07: Procedural Humanoid Pose Driver
+
+Accepted Modules commit: `daddb37`; Unity test-compilation correction `e57d795`.
+
+The new procedural-motion package binds six exact supplied humanoid bone names
+once, caches their local baselines, applies bounded additive rotations for all nine
+semantic keys and restores exactly on clear/rebind. It has no MonoBehaviour,
+Animator, root motion, physics, scene scan or gameplay dependency. QA installation
+in the main project compiled and discovered both Module Editor assemblies; the
+complete final EditMode gate passed `244/244` after the two test-only corrections.
+
+## Ready — Guardian Ent Source Intake
+
+Wait for the user's explicit source selection. The current preferred candidate is
+the creator-published Tennessippi Free Treant Pack (CC0, two rigged stylized models,
+ten listed animations); no archive may be downloaded or approved until the exact
+selection, archive contents, licence evidence and mobile budgets are verified.

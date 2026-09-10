@@ -434,17 +434,40 @@ assertions, QA's final native gates passed EditMode `197/197` and PlayMode `90/9
 both with zero failed/skipped/inconclusive tests. Manual route relief remains
 unobserved; physical-device strength and periodicity are not claimed.
 
-## Now — Diamond Pass 15.7: Blood Knight Motion Source and Rig Pilot
+## Closed safely — Diamond Pass 15.7: Blood Knight Humanoid Rig Probe
 
-Use accepted Modules research `122f5f9` to prove the smallest legal and technical
-path from the current Generic 3DRT Blood Knight to one shared visual-only animation
-pipeline. Start with deterministic inventory of the current embedded take and one
-official UAL2 CC0 archive; do not grant Animator/root motion gameplay authority or
-silently replace the model. Full reserved paths and stop conditions are in
-`Docs/NEXT_JOB.md`.
+The explicit 3DRT Humanoid mapping failed with Unity's factual Avatar error
+`Transform 'Bip01' not found in HumanDescription`. Core restored both FBX imports
+and the active hero to the exact accepted Generic/no-Animator state; no broken
+runtime or import change was retained. Offline rig repair remains a later art-pipeline
+option rather than a prerequisite for prototype motion.
 
-## Ready after 15.7
+## Accepted — Diamond Pass 15.8: Modular Procedural Blood Knight Motion Pilot
 
-If the rig pilot proves a safe binding route, implement a minimal in-place Blood
-Knight Animator slice: idle, locomotion, jump phases, one sword attack and death,
-all below Presentation Pivot and driven by existing factual gameplay state.
+Install accepted Modules motion contracts and the bounded procedural six-bone
+driver. A thin Core adapter maps factual root displacement, action phase, jump,
+damage and death into visual-only local bone rotations under the existing Base
+Body; gameplay root, CharacterController, Presentation Pivot, camera, input and
+combat timing remain authoritative and unchanged.
+
+Acceptance: after two Module test-compilation corrections, one EditMode lifecycle
+fixture correction and one PlayMode float-tolerance correction, QA's final native
+gates passed EditMode `244/244` and PlayMode `91/91`, both with zero failed/skipped/
+inconclusive tests. The post-gate log tail had no new error/exception. Manual
+portrait/landscape motion quality remains unobserved because QA could not safely
+operate the Game view.
+
+## Now — Diamond Pass 15.9: Blood Knight Device Motion Tune
+
+Hold runtime edits until the user's Android smoke identifies whether the exact
+3DRT local axes, six-radian cadence and static action pose read correctly. Core may
+prepare only read-only measurements meanwhile. If evidence shows sideways/twisted
+limbs, slow locomotion or a frozen strike, tune those values in the Modules driver
+through one immutable profile seam; do not add Animator/root motion or change
+gameplay authority.
+
+## Ready after 15.9
+
+Choose the Guardian Ent source/intake gate. Prefer a purpose-built rigged CC0
+Treant over deforming the Humanoid Knight; acquisition/import still requires a
+named user selection and exact archive/licence evidence.

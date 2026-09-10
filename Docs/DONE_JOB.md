@@ -2839,3 +2839,39 @@ Completed on 2026-09-10.
 - Albedo edits, floor/node/boundary replacement, height/roughness/metallic/emission,
   shaders/lighting redesign, second tiles or macro variation, geometry/UV/collider/
   gameplay changes, final-art approval and physical-device performance claims.
+
+## Diamond Pass 15.8 — Modular Procedural Blood Knight Motion Pilot
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Installed the accepted local `character-motion-profiles` and
+  `character-procedural-motion` packages and their Editor tests.
+- Added one thin Core adapter that binds only the active 3DRT Blood Knight's six
+  exact upper-arm, thigh and calf descendants and maps factual movement, action,
+  jump, damage and death state into immutable Module input.
+- The Module driver changes only cached child-bone local rotations. The gameplay
+  root, CharacterController, Presentation Pivot, Base Body, controller, input,
+  camera and combat timing remain unchanged; missing bones fail closed.
+- Clear, reassemble, disable, re-enable and destruction restore cached bone
+  baselines and event ownership without hierarchy scans or per-frame allocation.
+
+### Verification
+
+- Architect reviewed the package boundary, binding order, fail-closed behavior,
+  lifecycle cleanup and root/pivot/body/collider invariants; `git diff --check` is
+  clean.
+- QA exposed and closed two Module test compilation mistakes, one invalid
+  EditMode MonoBehaviour-lifecycle assumption and one exact-float test assertion.
+- Final QA gates passed EditMode `244/244` in 0.866 seconds and PlayMode `91/91`
+  in 71.795 seconds, with zero failed/skipped/inconclusive tests. The post-gate
+  log tail contained no new error or exception.
+- Manual portrait/landscape motion quality is not claimed because QA could not
+  safely observe or control the Game view; Android device tuning remains user-owned.
+
+### Scope intentionally deferred
+
+- Final bone-axis/amplitude/cadence tuning, clip-driven Animator, Humanoid retarget,
+  root motion, IK, ragdoll/Rigidbody physics, broad skeleton support, model or
+  material replacement, camera/input/combat changes and physical-device approval.

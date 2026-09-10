@@ -1,5 +1,19 @@
 {
   "dependencies": {
+    "com.realmraiders.character-motion-profiles": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-motion-profiles",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "com.realmraiders.character-procedural-motion": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-procedural-motion",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.realmraiders.character-motion-profiles": "0.5.0"
+      }
+    },
     "com.realmraiders.character-visual-tuning": {
       "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-visual-tuning",
       "depth": 0,

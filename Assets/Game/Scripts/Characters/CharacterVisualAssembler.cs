@@ -23,7 +23,10 @@ namespace RealmRaiders.Characters
             visualRoot = new GameObject("Character Visual Modules").transform; visualRoot.SetParent(transform, false);
             presentationPivot = new GameObject("Presentation Pivot").transform; presentationPivot.SetParent(visualRoot, false);
             var motion = GetComponent<CharacterVisualMotion>() ?? gameObject.AddComponent<CharacterVisualMotion>(); motion.Bind(presentationPivot);
-            BuildBase(recipe); BuildSlot("Head", recipe.Head, recipe.HeadPrefab, new Vector3(0, BodyHeight(recipe) * .55f, 0), recipe.AccentColor);
+            var baseBody = BuildBase(recipe);
+            var proceduralMotion = GetComponent<CharacterProceduralMotionAdapter>() ?? gameObject.AddComponent<CharacterProceduralMotionAdapter>();
+            proceduralMotion.Bind(baseBody);
+            BuildSlot("Head", recipe.Head, recipe.HeadPrefab, new Vector3(0, BodyHeight(recipe) * .55f, 0), recipe.AccentColor);
             BuildSlot("Back", recipe.Back, recipe.BackPrefab, new Vector3(0, .35f, -.28f), recipe.Secondary);
             BuildSlot("Arms", recipe.Arms, recipe.ArmsPrefab, new Vector3(0, .05f, .1f), recipe.Secondary);
             BuildSlot("Accent", recipe.Accent, recipe.AccentPrefab, new Vector3(0, .1f, .38f), recipe.AccentColor);
@@ -32,17 +35,18 @@ namespace RealmRaiders.Characters
 
         public void Clear()
         {
+            GetComponent<CharacterProceduralMotionAdapter>()?.Clear();
             GetComponent<CharacterVisualMotion>()?.Bind(null);
             if (visualRoot) { if (Application.isPlaying) Destroy(visualRoot.gameObject); else DestroyImmediate(visualRoot.gameObject); } visualRoot = null; presentationPivot = null; Recipe = null;
             var baseRenderer = GetComponent<Renderer>(); if (baseRenderer) baseRenderer.enabled = true;
         }
 
-        void BuildBase(CharacterVisualRecipe recipe)
+        Transform BuildBase(CharacterVisualRecipe recipe)
         {
-            if (recipe.BaseBodyPrefab) { AddPrefab("Base Body", recipe.BaseBodyPrefab, Vector3.zero); return; }
+            if (recipe.BaseBodyPrefab) return AddPrefab("Base Body", recipe.BaseBodyPrefab, Vector3.zero);
             var type = recipe.Family == CharacterVisualFamily.Humanoid ? PrimitiveType.Capsule : recipe.Family == CharacterVisualFamily.LargeCreature ? PrimitiveType.Cube : PrimitiveType.Sphere;
             var scale = recipe.Family == CharacterVisualFamily.Humanoid ? new Vector3(.75f, 1.25f, .55f) : recipe.Family == CharacterVisualFamily.LargeCreature ? new Vector3(1.45f, 1.25f, .85f) : new Vector3(1.15f, .7f, .75f);
-            AddPrimitive("Base Body", type, Vector3.zero, scale, recipe.Primary);
+            return AddPrimitive("Base Body", type, Vector3.zero, scale, recipe.Primary);
         }
         float BodyHeight(CharacterVisualRecipe recipe) => recipe.Family == CharacterVisualFamily.LargeCreature ? 1.35f : recipe.Family == CharacterVisualFamily.Humanoid ? 1.2f : .65f;
         void BuildSlot(string slot, VisualModuleStyle style, GameObject prefab, Vector3 position, Color color)
@@ -54,13 +58,14 @@ namespace RealmRaiders.Characters
             if (slot == "Arms") { AddPrimitive(slot + " Left", type, position + Vector3.left * .7f, scale, color); AddPrimitive(slot + " Right", type, position + Vector3.right * .7f, scale, color); }
             else AddPrimitive(slot, type, position, scale, color);
         }
-        void AddPrefab(string name, GameObject prefab, Vector3 position)
-        { var item = Instantiate(prefab, presentationPivot); item.name = name; item.transform.localPosition = position; DisableColliders(item); }
-        void AddPrimitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Color color)
+        Transform AddPrefab(string name, GameObject prefab, Vector3 position)
+        { var item = Instantiate(prefab, presentationPivot); item.name = name; item.transform.localPosition = position; DisableColliders(item); return item.transform; }
+        Transform AddPrimitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Color color)
         {
             var item = GameObject.CreatePrimitive(type); item.name = name; item.transform.SetParent(presentationPivot, false); item.transform.localPosition = position; item.transform.localScale = scale;
             var collider = item.GetComponent<Collider>(); if (collider) collider.enabled = false;
             item.GetComponent<Renderer>().sharedMaterial = Material(color);
+            return item.transform;
         }
         static void DisableColliders(GameObject item) { foreach (var collider in item.GetComponentsInChildren<Collider>(true)) collider.enabled = false; }
         static Material Material(Color color)
