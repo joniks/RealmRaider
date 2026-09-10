@@ -523,13 +523,15 @@ hashes and exact generation prompts were reviewed on 2026-09-10 after one
 provenance-only correction. The close impact, forward wedge and radial shock are
 distinct at 48 px; Ground Slam retains a named 32 px detail gate.
 
-## Now — Art Pass MUI 06: Control-Style Icon Candidates
+## Accepted — Art Pass MUI 06: Control-Style Icon Candidates
 
 Owner: Module Developer / Technical RTS/UI Art
 
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
 
 Base: Modules commit `a4c41c1`.
+
+Accepted Modules commit: `29bc278`.
 
 Reserved folder only:
 
@@ -559,3 +561,44 @@ the real input distinction without relying only on short English labels.
 
 Main checkout, Unity or `.meta`, switcher/input/camera behavior, runtime binding,
 new control modes, animation, accessibility claims, validators or device testing.
+
+Acceptance: three 512×512 RGBA candidates, 32/48 px contact sheets, 256 px
+overview, exact prompts/hashes and alpha/dimension checks were reviewed on
+2026-09-10. All remain distinct at 32 px; Contextual and Fingertap retain explicit
+in-context comprehension gates, while Joystick reads most directly.
+
+## Now — Art Pass MUI 07: Realm Identity Icon Candidates
+
+Owner: Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Base: Modules commit `29bc278`.
+
+Reserved folder only:
+
+- `ArtPreviews/MUI07-RealmIdentityIcons/`
+
+### Outcome
+
+Create one compact original Sylvan mark and one compact original Infernal mark for
+future Hub/HUD realm identity, without implying unavailable factions or systems.
+
+### Required deliverables
+
+1. Create original 512×512 transparent RGBA `sylvan-realm` and `infernal-realm`
+   icons. Sylvan should read as living canopy/root/seed continuity; Infernal as
+   forged obsidian/ember gate continuity. Avoid generic recolours.
+2. Keep silhouettes bold at 32–48 px and compatible with both dark and moderately
+   coloured UI panels. No text, letters, numerals, crest frame, flag, map, full
+   character, logo, watermark, third-party source or franchise design.
+3. Produce dark-neutral 32 px and 48 px contact sheets, one midtone-panel 48 px
+   contrast sheet and one 256 px overview.
+4. Record exact prompts/tools/date/mappings/output hashes and original-generation
+   truth in provenance; verify dimensions, RGBA/alpha, hashes, JSON and whitespace.
+5. Freeze only the reserved folder and send compact handoff; no commit or push.
+
+### Non-goals
+
+Main checkout, Unity or `.meta`, Hub/HUD/runtime binding, new realms/factions,
+gameplay, animation/VFX, branding finalization, validators or device claims.

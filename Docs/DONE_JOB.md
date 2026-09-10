@@ -2084,6 +2084,29 @@ Completed on 2026-09-10.
 - Device/manual readability, animation/glow, ability/control icons, audio/VFX,
   encounter/gameplay changes and final UI approval.
 
+## Art Pass MUI 06 — Control-Style Icon Candidates
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Produced original 512×512 RGBA preview icons for truthful Contextual,
+  Fingertap and Joystick modes without text, device brands or AI claims.
+- Added actual-size 32 px and 48 px dark-neutral sheets, a 256 px overview and
+  exact prompt/mapping/hash provenance.
+
+### Verification
+
+- Dimensions, RGBA/alpha, all six hashes, JSON and whitespace are clean.
+- All three remain distinct at 32 px. Joystick is clearest; Contextual and
+  Fingertap retain named in-context comprehension checks before integration.
+- Accepted in Modules commit `29bc278` (`art: prepare control-style icons`).
+
+### Scope intentionally deferred
+
+- Unity import, in-run switcher binding, mobile compression, input/camera changes,
+  accessibility/device claims, animation and final UI approval.
+
 ## Art Pass MUI 04 — Guardian Ent Ability Icon Candidates
 
 Completed on 2026-09-10 and accepted in the Modules submodule.

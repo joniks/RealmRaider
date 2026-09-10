@@ -79,6 +79,7 @@ Last reviewed: 2026-09-10
 - Diamond Pass 13.3 Sylvan Clearing-Floor Presentation is present: all existing Sylvan circular node floors share the accepted project-owned clearing albedo/normal with per-node fog tint and exact solid fallback while geometry, collision and encounter authority remain unchanged.
 - Art Pass MUI 05 is accepted in the pinned Modules submodule: original Infernal Brute Smash, Charge and Ground Slam candidates preserve shared mechanics with a distinct obsidian/ember skin; the detailed radial mark retains a 32 px gate.
 - Diamond Pass 13.4 Factual Encounter Cue Icons is present: the text-first discovery/hostiles/clear cue now has one cached, non-raycast original phase sprite with responsive layout and exact text-only fallback/lifecycle cleanup.
+- Art Pass MUI 06 is accepted in the pinned Modules submodule: original Contextual, Fingertap and Joystick candidates remain distinct at 32 px, with the two more abstract modes retaining explicit in-context comprehension gates.
 - Current Unity Test Runner baseline: EditMode `158/158` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
