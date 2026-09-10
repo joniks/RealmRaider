@@ -3150,3 +3150,42 @@ Completed on 2026-09-11; included with this project commit.
 - Production LOD0/1/2 (`4000/2000/800`), cleaned four-weight skinning, clip/rig
   validation, animation, normal/mask use, root motion, IK, gameplay physics and
   final physical-device visual/performance approval.
+
+## Diamond Pass 15.16A — Guardian Ent Generic-Rig Feasibility Probe
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- Modules commits `bda0b86`, `541a7a4` and `8978fe0` add engine-neutral,
+  fail-closed Tree01 production-readiness and reusable LargeCreature-motion
+  evidence contracts without weakening the existing nine-key motion profile.
+- Added one Editor-only exact-source Generic import probe with its own assemblies,
+  build guard and tests. It is outside Resources, build scenes and every runtime
+  recipe, and it protects the accepted static FBX, prefab, material and Guardian
+  recipe hashes before and after generation.
+- The explicit QA-owned builder produced one isolated SkinnedMeshRenderer/Animator
+  preview, a deterministic text report and no controller, root motion, Animation
+  Events, physics, colliders, camera, light, gameplay script or runtime binding.
+- Generated evidence records all source clips and 21 samples for selected Idle,
+  Run, Attack_1 and Death1 takes. The accepted static Guardian visual remains the
+  runtime path and exact primitive fallback remains unchanged.
+
+### Verification
+
+- Generic evidence is `MEASURED`: 3,010 vertices, 5,438 triangles, 31 bones and
+  bindposes, maximum four weights, zero unweighted vertices and zero protected
+  root/pivot/fit drift.
+- Idle, Run, Attack_1 and Death1 all changed the centred mesh while remaining
+  sampled in place. Idle and Run returned to identical sampled endpoints; Death1
+  retained a distinct final pose.
+- After one Unity/NUnit assertion compatibility correction, QA's full EditMode gate
+  passed `320/320`; probe tests passed `11/11`, LargeCreature readiness passed
+  `9/9`, and the final run span contained no errors. PlayMode was intentionally not
+  repeated because no runtime code, scene, recipe or gameplay asset changed.
+
+### Scope intentionally deferred
+
+- Runtime animation binding, visible loop/foot-contact and Death1 held-pose review,
+  final motion feel, root motion, IK, ragdoll/physics, production LODs, source-level
+  weight cleanup and physical-device performance.

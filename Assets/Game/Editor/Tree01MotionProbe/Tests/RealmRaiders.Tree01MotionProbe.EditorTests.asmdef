@@ -1,0 +1,6 @@
+{
+  "name": "RealmRaiders.Tree01MotionProbe.EditorTests",
+  "references": ["RealmRaiders.Tree01MotionProbe.Editor", "RealmRaiders.Runtime"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "includePlatforms": ["Editor"]
+}

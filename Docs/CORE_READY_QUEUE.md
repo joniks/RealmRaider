@@ -576,9 +576,32 @@ Tree01 was visible without pink material or obvious clipping. Cultivation,
 possession/release and true portrait/landscape interaction remain a user-owned
 visual smoke. Android export remains excluded.
 
-## Ready after 15.15 — Guardian Ent Production Optimisation Evidence
+## Accepted — Diamond Pass 15.16A: Guardian Ent Generic-Rig Feasibility Probe
 
-Technical Art prepares a provenance-linked derivative plan for true LargeCreature
-LOD0/1/2 caps (`4000/2000/800`) and cleaned four-weight skinning. It must not alter
-the accepted pilot or main checkout until the user's visual smoke and QA evidence
-confirm Tree01 is worth production optimisation.
+Modules commits `bda0b86`, `541a7a4` and `8978fe0` add fail-closed Tree01
+production and reusable LargeCreature-motion readiness contracts. Core's isolated
+Editor-only exact-source probe creates no runtime recipe dependency and leaves the
+accepted static Guardian prefab untouched. Its generated evidence proves one
+3,010-vertex, 31-bone/31-bindpose SkinnedMeshRenderer with at most four normalized
+weights and in-place deformation for Idle, Run, Attack_1 and Death1. Idle and Run
+have exact sampled endpoint closure; Death1 retains a distinct final pose.
+
+Acceptance: the probe builder produced `MEASURED`; QA's full EditMode gate passed
+`320/320`, including probe `11/11` and LargeCreature readiness `9/9`, with zero
+failed/skipped/inconclusive tests and no error in the final run span. Manual clip
+preview, foot contact, visible loop quality and Death1 held-pose aesthetics remain
+honestly unobserved, so no runtime animation approval is implied.
+
+## Ready after 15.16A — Modular Guardian Ent Motion Integration
+
+Activate one reversible Guardian-only visual binding for the proven Generic
+Tree01 hierarchy: Idle/Run, one factual Attack action and Death1, with the existing
+bounded hit response retained because the source has no hit clip. Root motion,
+Animation Events and gameplay callbacks stay disabled; `CharacterVisualMotion`
+remains sole Presentation Pivot writer, and the accepted static Tree01 plus exact
+primitive fallback remain deterministic. QA must verify one frozen integration
+with final EditMode/PlayMode and the user owns final motion-feel approval.
+
+Production optimisation remains separate: true LOD0/1/2 caps
+(`4000/2000/800`) and cleaned four-weight source skinning are still required before
+Tree01 can be called production-ready.

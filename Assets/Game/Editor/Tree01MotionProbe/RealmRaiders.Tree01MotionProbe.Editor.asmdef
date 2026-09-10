@@ -1,0 +1,5 @@
+{
+  "name": "RealmRaiders.Tree01MotionProbe.Editor",
+  "references": ["RealmRaiders.Runtime", "Unity.Collections"],
+  "includePlatforms": ["Editor"]
+}
