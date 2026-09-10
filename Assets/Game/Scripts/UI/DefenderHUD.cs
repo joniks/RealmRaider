@@ -160,6 +160,7 @@ namespace RealmRaiders.UI
             presentation = gameObject.AddComponent<HudPresentation>();
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920); gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.Initialize(true);
             state = Label(config.RealmTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
+            presentation.DecorateRealmLabel(state, ConfiguredRealmIdentity);
             state.name = "Defense State";
             invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); invaderHealth.name = "Invader Health"; entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); ConstrainDefenderHealthLabel(); guardianEntVitality = GuardianEntVitalityLabel(); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft); energyText.name = "Possession Energy";
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
@@ -412,6 +413,7 @@ namespace RealmRaiders.UI
             if (guardianEntVitality) guardianEntVitality.gameObject.SetActive(guardianEntGrowth && !terminal);
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost) { SetOpeningCueVisible(false); SetDeploymentReceiptVisible(false); ClearRouteStatus(); }
             state.text = value switch { DefenseState.Possessing => "POSSESSED CREATURE", DefenseState.DefenderVictory => "DEFENSE COMPLETE", DefenseState.RealmLost => "REALM BREACHED", _ => "KEEPER OVERVIEW" };
+            presentation.DecorateRealmLabel(state, ConfiguredRealmIdentity);
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
             {
                 if (journeyToken != 0 && !journeyCompletedForResult) journeyCompletedForResult = PrototypeJourney.TryCompleteDefense(journeyToken);
@@ -609,6 +611,10 @@ namespace RealmRaiders.UI
         bool IsInfernalBrute => config.RealmTitle == DefenseHudConfig.Infernal.RealmTitle && ent && ent.Definition && ent.Definition.ArchetypeId == PrototypeCharacterRoster.InfernalBruteId;
 
         bool HasThemedAbilityPresentation => IsSylvanGuardianEnt || IsInfernalBrute;
+
+        string ConfiguredRealmIdentity => config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle
+            ? HudPresentation.SylvanRealmIdentity
+            : config.RealmTitle == DefenseHudConfig.Infernal.RealmTitle ? HudPresentation.InfernalRealmIdentity : string.Empty;
 
         bool IsTerminalResultActive => GameplayInput.TerminalState || defense != null && defense.IsFinished || resultPanel && resultPanel.activeSelf;
 

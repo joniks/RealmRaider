@@ -23,11 +23,17 @@ namespace RealmRaiders.UI
         public const string InfernalBruteSmashIconResource = "Art/UI/InfernalBruteAbilities/smash-rgba-candidate";
         public const string InfernalBruteChargeIconResource = "Art/UI/InfernalBruteAbilities/charge-rgba-candidate";
         public const string InfernalBruteGroundSlamIconResource = "Art/UI/InfernalBruteAbilities/ground-slam-rgba-candidate";
+        public const string SylvanRealmIdentity = "Sylvan";
+        public const string InfernalRealmIdentity = "Infernal";
+        public const string RealmIdentityIconName = "Realm Identity Mark";
+        public const string SylvanRealmIdentityIconResource = "Art/UI/RealmIdentityIcons/sylvan-realm-rgba-candidate";
+        public const string InfernalRealmIdentityIconResource = "Art/UI/RealmIdentityIcons/infernal-realm-rgba-candidate";
         Sprite buttonSprite;
         Sprite jumpIconSprite;
         Sprite basicSlashIconSprite, bloodRushIconSprite, heavyCleaveIconSprite;
         Sprite guardianEntSmashIconSprite, guardianEntChargeIconSprite, guardianEntGroundSlamIconSprite;
         Sprite infernalBruteSmashIconSprite, infernalBruteChargeIconSprite, infernalBruteGroundSlamIconSprite;
+        Sprite sylvanRealmIdentityIconSprite, infernalRealmIdentityIconSprite;
         AudioClip click, confirm, result;
         AudioSource source;
         bool resultPlayed;
@@ -36,11 +42,13 @@ namespace RealmRaiders.UI
         bool basicSlashIconResolved, bloodRushIconResolved, heavyCleaveIconResolved;
         bool guardianEntSmashIconResolved, guardianEntChargeIconResolved, guardianEntGroundSlamIconResolved;
         bool infernalBruteSmashIconResolved, infernalBruteChargeIconResolved, infernalBruteGroundSlamIconResolved;
+        bool sylvanRealmIdentityIconResolved, infernalRealmIdentityIconResolved;
         bool initialized;
         System.Func<string, Sprite> jumpIconLoader = LoadJumpIcon;
         System.Func<string, Sprite> abilityIconLoader = LoadAbilityIcon;
         System.Func<string, Sprite> guardianEntAbilityIconLoader = LoadGuardianEntAbilityIcon;
         System.Func<string, Sprite> infernalBruteAbilityIconLoader = LoadInfernalBruteAbilityIcon;
+        System.Func<string, Sprite> realmIdentityIconLoader = LoadRealmIdentityIcon;
 
         public bool ResultCuePlayed => resultPlayed;
 
@@ -85,6 +93,56 @@ namespace RealmRaiders.UI
             image.sprite = buttonSprite;
             image.type = Image.Type.Sliced;
         }
+
+        public Image DecorateRealmLabel(Text label, string realmIdentity)
+        {
+            if (!label) return null;
+            var existing = label.transform.Find(RealmIdentityIconName);
+            var resourcePath = RealmIdentityIconResourceFor(realmIdentity);
+            if (string.IsNullOrEmpty(resourcePath))
+            {
+                if (existing) existing.gameObject.SetActive(false);
+                return null;
+            }
+
+            var sprite = ResolveRealmIdentityIcon(realmIdentity, resourcePath);
+            if (!sprite)
+            {
+                if (existing) existing.gameObject.SetActive(false);
+                return null;
+            }
+
+            Image icon;
+            if (existing)
+            {
+                icon = existing.GetComponent<Image>();
+                if (!icon) return null;
+            }
+            else
+            {
+                var iconObject = new GameObject(RealmIdentityIconName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                iconObject.transform.SetParent(label.transform, false);
+                icon = iconObject.GetComponent<Image>();
+            }
+
+            var iconRect = icon.rectTransform;
+            iconRect.anchorMin = iconRect.anchorMax = new Vector2(.5f, .5f);
+            iconRect.pivot = new Vector2(0, .5f);
+            iconRect.anchoredPosition = new Vector2(label.preferredWidth * .5f + 10, 0);
+            iconRect.sizeDelta = new Vector2(48, 48);
+            icon.sprite = sprite;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            icon.gameObject.SetActive(true);
+            return icon;
+        }
+
+        public static string RealmIdentityIconResourceFor(string realmIdentity) => realmIdentity switch
+        {
+            SylvanRealmIdentity => SylvanRealmIdentityIconResource,
+            InfernalRealmIdentity => InfernalRealmIdentityIconResource,
+            _ => string.Empty
+        };
 
         public Image DecorateJumpButton(Button button)
         {
@@ -372,6 +430,31 @@ namespace RealmRaiders.UI
             infernalBruteAbilityIconLoader = loader ?? (_ => null);
             infernalBruteSmashIconSprite = infernalBruteChargeIconSprite = infernalBruteGroundSlamIconSprite = null;
             infernalBruteSmashIconResolved = infernalBruteChargeIconResolved = infernalBruteGroundSlamIconResolved = false;
+        }
+
+        Sprite ResolveRealmIdentityIcon(string realmIdentity, string resourcePath) => realmIdentity switch
+        {
+            SylvanRealmIdentity => ResolveRealmIdentitySprite(ref sylvanRealmIdentityIconSprite, ref sylvanRealmIdentityIconResolved, resourcePath),
+            InfernalRealmIdentity => ResolveRealmIdentitySprite(ref infernalRealmIdentityIconSprite, ref infernalRealmIdentityIconResolved, resourcePath),
+            _ => null
+        };
+
+        Sprite ResolveRealmIdentitySprite(ref Sprite sprite, ref bool resolved, string resourcePath)
+        {
+            if (resolved) return sprite;
+            resolved = true;
+            try { sprite = realmIdentityIconLoader?.Invoke(resourcePath); }
+            catch (System.Exception) { sprite = null; }
+            return sprite;
+        }
+
+        static Sprite LoadRealmIdentityIcon(string resourcePath) => Resources.Load<Sprite>(resourcePath);
+
+        public void ConfigureRealmIdentityIconLoaderForTests(System.Func<string, Sprite> loader)
+        {
+            realmIdentityIconLoader = loader ?? (_ => null);
+            sylvanRealmIdentityIconSprite = infernalRealmIdentityIconSprite = null;
+            sylvanRealmIdentityIconResolved = infernalRealmIdentityIconResolved = false;
         }
 
         public void PlayClick() { EnsureInitialized(); Play(click); }

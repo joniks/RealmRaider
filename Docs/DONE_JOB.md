@@ -2241,3 +2241,32 @@ Completed on 2026-09-10.
 
 - Device/manual readability, realm identity marks, animation/VFX/audio, combat,
   input/camera changes and final UI approval.
+
+## Diamond Pass 13.8 — Realm Identity Marks
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported only the accepted original MUI07 Sylvan living-seed and Infernal
+  obsidian-gate marks with exact provenance and mobile UI sprite settings.
+- Added one cached, reusable 48 px non-raycast child to existing canonical realm
+  text in Hub, Build, Raid and both Defense configurations; it is never a button.
+- Explicit identity mapping, Hub refresh/swap and missing/throwing/unknown fallback
+  preserve exact text and prevent stale or duplicate marks.
+
+### Verification
+
+- Architect confirmed exact MUI07 hashes/imports, two-family cache, one-image
+  ownership, state refresh/teardown, fallback and no gameplay/input authority.
+- QA native gates passed EditMode `174/174` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- The initial strict PlayMode layout gate found a shared ~1 px text overlap; the
+  gap was increased from 8 to 10 px and the exact EditMode expectation followed.
+  Manual readability remains unclaimed after the first external Game-view click
+  failed with `windowNotFoundAtPosition`.
+
+### Scope intentionally deferred
+
+- 32 px runtime use, device/final branding approval, animation/VFX/audio, new
+  realms, gameplay changes and physical-device validation.

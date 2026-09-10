@@ -164,7 +164,7 @@ Infernal/Guardian icon readability remains unobserved because the first Game-vie
 click failed externally with `windowNotFoundAtPosition`; no runtime failure was
 recorded.
 
-## Now — Diamond Pass 13.8: Realm Identity Marks
+## Accepted — Diamond Pass 13.8: Realm Identity Marks
 
 Owner: Core developer. Base: Architect's accepted 13.7 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -175,8 +175,15 @@ canonical realm title in Hub, Build, Raid and Defense HUDs, without turning it
 into a control or weakening its text. Unknown/missing identities retain exact
 text-only layout; realm refresh and teardown cannot leave stale marks.
 
-## Ready after 13.8
+Acceptance: after one shared 2 px adjacency correction and its exact test
+expectation update, QA's native gates passed EditMode `174/174` and PlayMode
+`82/82`, both with zero failed/skipped/inconclusive tests; Console was `0/0/0`.
+Manual realm-mark readability remains unobserved because the first Game-view click
+failed externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-Use QA's actual 32–48 px comprehension/contrast observation for one bounded
-correction or accept the set. Then return priority to the playable BUILD → raid →
-possession → defense loop; do not continue an unbounded icon-only sequence.
+## Selecting Diamond Pass 13.9
+
+Return priority to one bounded player-visible improvement of the playable
+BUILD → raid → possession → defense loop. Core prepares the authoritative seam
+read-only; Architect names the exact lease before any further source edit. Do not
+continue an unbounded icon-only sequence.

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
@@ -27,7 +28,13 @@ namespace RealmRaiders.Tests
         {
             SceneManager.LoadScene("RealmBuild"); yield return null; yield return null;
             var hud = Object.FindFirstObjectByType<BuildHUD>();
-            Assert.That(hud, Is.Not.Null); Assert.That(hud.SlotCount, Is.EqualTo(5)); AssertSingleViewAndListener();
+            Assert.That(hud, Is.Not.Null); Assert.That(hud.SlotCount, Is.EqualTo(5));
+            var responsive = hud.GetComponent<ResponsiveHudRoot>();
+            responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+            AssertRealmIdentityMark(hud, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "SYLVAN BUILD");
+            responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+            AssertRealmIdentityMark(hud, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "SYLVAN BUILD");
+            AssertSingleViewAndListener();
         }
 
         [UnityTest]
@@ -215,6 +222,12 @@ namespace RealmRaiders.Tests
             AssertSylvanRaidRoutes();
             AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
             AssertLandmarkPresentation("Root Trap", 6, "Inward Root 1", "Inward Root 4");
+            var raidHud = Object.FindFirstObjectByType<RaidHUD>();
+            var raidResponsive = raidHud.GetComponent<ResponsiveHudRoot>();
+            raidResponsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+            AssertRealmIdentityMark(raidHud, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "SYLVAN RAID");
+            raidResponsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+            AssertRealmIdentityMark(raidHud, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "SYLVAN RAID");
             AssertSingleViewAndListener();
             AssertCombatHudBinding();
         }
@@ -234,6 +247,12 @@ namespace RealmRaiders.Tests
             AssertDefenseRoute("Sylvan Path", RealmRoutePresentation.DefenseRendererCeiling, "Organic Lane Mass 1", "Organic Lane Mass 4");
             AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
             AssertLandmarkPresentation("Manual Root Trap", 6, "Inward Root 1", "Inward Root 4");
+            var defenderHud = Object.FindFirstObjectByType<DefenderHUD>();
+            var defenderResponsive = defenderHud.GetComponent<ResponsiveHudRoot>();
+            defenderResponsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+            AssertRealmIdentityMark(defenderHud, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "KEEPER OVERVIEW");
+            defenderResponsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+            AssertRealmIdentityMark(defenderHud, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "KEEPER OVERVIEW");
             AssertSingleViewAndListener();
             AssertCombatHudBinding();
         }
@@ -256,6 +275,12 @@ namespace RealmRaiders.Tests
             AssertDefenseRoute("Volcanic Floor", RealmRoutePresentation.DefenseRendererCeiling, "Basalt Causeway Plate 1", "Basalt Causeway Plate 4");
             AssertLandmarkPresentation("Infernal Heart", 6, "Heavy Core", "Claw Left");
             AssertLandmarkPresentation("Flame Trap", 6, "Chevron 1 Left", "Chevron 3 Right");
+            var defenderHud = Object.FindFirstObjectByType<DefenderHUD>();
+            var defenderResponsive = defenderHud.GetComponent<ResponsiveHudRoot>();
+            defenderResponsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+            AssertRealmIdentityMark(defenderHud, HudPresentation.InfernalRealmIdentity, HudPresentation.InfernalRealmIdentityIconResource, "KEEPER OVERVIEW");
+            defenderResponsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+            AssertRealmIdentityMark(defenderHud, HudPresentation.InfernalRealmIdentity, HudPresentation.InfernalRealmIdentityIconResource, "KEEPER OVERVIEW");
             AssertSingleViewAndListener();
             AssertCombatHudBinding();
         }
@@ -263,30 +288,92 @@ namespace RealmRaiders.Tests
         [UnityTest]
         public IEnumerator PrototypeHub_BootstrapsNavigationHud()
         {
-            var width = Screen.width; var height = Screen.height; Screen.SetResolution(1920, 1080, false); SceneManager.LoadScene("PrototypeHub");
-            yield return null;
-            yield return null;
-            var hub = Object.FindFirstObjectByType<HubHUD>(); Assert.That(hub, Is.Not.Null);
-            Assert.That(HubHUD.DestinationForButton("START SYLVAN JOURNEY"), Is.EqualTo("RealmBuild"));
-            Assert.That(HubHUD.DestinationForButton("BUILD SYLVAN"), Is.EqualTo("RealmBuild"));
-            Assert.That(HubHUD.DestinationForButton("DEFEND SYLVAN"), Is.EqualTo("DefenderTest"));
-            Assert.That(HubHUD.DestinationForButton("RAID SYLVAN"), Is.EqualTo("SylvanRealm"));
-            Assert.That(HubHUD.DestinationForButton("DEFEND INFERNAL"), Is.EqualTo("InfernalRealm"));
-            Assert.That(HubHUD.DestinationForButton("CHARACTER SANDBOX"), Is.EqualTo("CharacterSandbox"));
-            foreach (var route in new[] { "START SYLVAN JOURNEY", "BUILD SYLVAN", "DEFEND SYLVAN", "RAID SYLVAN", "DEFEND INFERNAL", "CHARACTER SANDBOX" }) Assert.That(GameObject.Find(route), Is.Not.Null);
-            Assert.That(GameObject.Find("Label " + HubHUD.JourneyExplanation).GetComponent<Text>().text, Is.EqualTo(HubHUD.JourneyExplanation));
-            Assert.That(hub.RealmStoresText, Does.StartWith("REALM STORES  •"));
-            Assert.That(GameObject.Find("Realm Stores").GetComponent<Text>().raycastTarget, Is.False);
-            Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
-            Assert.That(Object.FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
-            Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
-            var buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None); AssertNoButtonOverlap(buttons);
-            AssertHubLabelsClear(buttons);
-            Object.FindFirstObjectByType<ResponsiveHudRoot>().SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
-            AssertNoButtonOverlap(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
-            AssertHubLabelsClear(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
-            AssertSingleViewAndListener();
-            Screen.SetResolution(width, height, false);
+            var width = Screen.width; var height = Screen.height; var previousRealm = PrototypeSave.SelectedRealm;
+            try
+            {
+                PrototypeSave.SelectRealm(HudPresentation.SylvanRealmIdentity);
+                Screen.SetResolution(1920, 1080, false); SceneManager.LoadScene("PrototypeHub");
+                yield return null;
+                yield return null;
+                var hub = Object.FindFirstObjectByType<HubHUD>(); Assert.That(hub, Is.Not.Null);
+                Assert.That(HubHUD.DestinationForButton("START SYLVAN JOURNEY"), Is.EqualTo("RealmBuild"));
+                Assert.That(HubHUD.DestinationForButton("BUILD SYLVAN"), Is.EqualTo("RealmBuild"));
+                Assert.That(HubHUD.DestinationForButton("DEFEND SYLVAN"), Is.EqualTo("DefenderTest"));
+                Assert.That(HubHUD.DestinationForButton("RAID SYLVAN"), Is.EqualTo("SylvanRealm"));
+                Assert.That(HubHUD.DestinationForButton("DEFEND INFERNAL"), Is.EqualTo("InfernalRealm"));
+                Assert.That(HubHUD.DestinationForButton("CHARACTER SANDBOX"), Is.EqualTo("CharacterSandbox"));
+                foreach (var route in new[] { "START SYLVAN JOURNEY", "BUILD SYLVAN", "DEFEND SYLVAN", "RAID SYLVAN", "DEFEND INFERNAL", "CHARACTER SANDBOX" }) Assert.That(GameObject.Find(route), Is.Not.Null);
+                Assert.That(GameObject.Find("Label " + HubHUD.JourneyExplanation).GetComponent<Text>().text, Is.EqualTo(HubHUD.JourneyExplanation));
+                Assert.That(hub.RealmStoresText, Does.StartWith("REALM STORES  •"));
+                Assert.That(GameObject.Find("Realm Stores").GetComponent<Text>().raycastTarget, Is.False);
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                Assert.That(Object.FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                var responsive = Object.FindFirstObjectByType<ResponsiveHudRoot>();
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+                var sylvanMark = AssertRealmIdentityMark(hub, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "Selected realm: Sylvan");
+                var buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None); AssertNoButtonOverlap(buttons);
+                AssertHubLabelsClear(buttons);
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+                Assert.That(AssertRealmIdentityMark(hub, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "Selected realm: Sylvan"), Is.SameAs(sylvanMark));
+                AssertNoButtonOverlap(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
+                AssertHubLabelsClear(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
+
+                PrototypeSave.SelectRealm(HudPresentation.InfernalRealmIdentity);
+                hub.SendMessage("Refresh", SendMessageOptions.RequireReceiver);
+                Assert.That(AssertRealmIdentityMark(hub, HudPresentation.InfernalRealmIdentity, HudPresentation.InfernalRealmIdentityIconResource, "Selected realm: Infernal"), Is.SameAs(sylvanMark), "Hub refresh must reuse one mark while replacing its realm sprite.");
+                PrototypeSave.SelectRealm(HudPresentation.SylvanRealmIdentity);
+                hub.SendMessage("Refresh", SendMessageOptions.RequireReceiver);
+                Assert.That(AssertRealmIdentityMark(hub, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "Selected realm: Sylvan"), Is.SameAs(sylvanMark));
+                AssertSingleViewAndListener();
+            }
+            finally
+            {
+                PrototypeSave.SelectRealm(previousRealm);
+                Screen.SetResolution(width, height, false);
+            }
+        }
+
+        static Image AssertRealmIdentityMark(Component hud, string realmIdentity, string resourcePath, string expectedCopyPrefix)
+        {
+            var marks = hud.GetComponentsInChildren<Image>(true).Where(image => image.name == HudPresentation.RealmIdentityIconName).ToArray();
+            Assert.That(marks, Has.Length.EqualTo(1), $"{hud.name} must own exactly one realm identity mark.");
+            var mark = marks[0];
+            var expected = Resources.Load<Sprite>(resourcePath);
+            var otherResource = realmIdentity == HudPresentation.SylvanRealmIdentity
+                ? HudPresentation.InfernalRealmIdentityIconResource
+                : HudPresentation.SylvanRealmIdentityIconResource;
+            var other = Resources.Load<Sprite>(otherResource);
+            Assert.That(expected, Is.Not.Null);
+            Assert.That(other, Is.Not.Null);
+            Assert.That(mark.sprite, Is.SameAs(expected));
+            Assert.That(mark.sprite, Is.Not.SameAs(other), "A HUD must not show the other realm's mark.");
+            Assert.That(mark.raycastTarget, Is.False);
+            Assert.That(mark.preserveAspect, Is.True);
+            Assert.That(mark.rectTransform.sizeDelta, Is.EqualTo(new Vector2(48, 48)));
+            Assert.That(mark.GetComponent<Button>(), Is.Null);
+            Assert.That(mark.GetComponent<EventTrigger>(), Is.Null);
+            Assert.That(mark.GetComponent<UiPointerOwnership>(), Is.Null);
+            var label = mark.GetComponentInParent<Text>();
+            Assert.That(label, Is.Not.Null);
+            Assert.That(label.text, Does.StartWith(expectedCopyPrefix));
+            Assert.That(mark.rectTransform.anchoredPosition.x, Is.GreaterThanOrEqualTo(label.preferredWidth * .5f + 7.9f), "Realm mark must remain adjacent to, not cover, canonical text.");
+
+            var markRect = WorldRect(mark.rectTransform);
+            var hudRect = WorldRect(hud.GetComponent<RectTransform>());
+            Assert.That(markRect.xMin, Is.GreaterThanOrEqualTo(hudRect.xMin - 1));
+            Assert.That(markRect.yMin, Is.GreaterThanOrEqualTo(hudRect.yMin - 1));
+            Assert.That(markRect.xMax, Is.LessThanOrEqualTo(hudRect.xMax + 1));
+            Assert.That(markRect.yMax, Is.LessThanOrEqualTo(hudRect.yMax + 1));
+            foreach (var button in hud.GetComponentsInChildren<Button>(false))
+                Assert.That(markRect.Overlaps(WorldRect((RectTransform)button.transform)), Is.False, $"Realm mark overlaps control {button.name}.");
+            return mark;
+        }
+
+        static Rect WorldRect(RectTransform rect)
+        {
+            var corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+            return Rect.MinMaxRect(corners[0].x, corners[0].y, corners[2].x, corners[2].y);
         }
 
         static void AssertNoButtonOverlap(Button[] buttons)

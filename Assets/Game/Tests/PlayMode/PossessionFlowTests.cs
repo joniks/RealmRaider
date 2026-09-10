@@ -98,6 +98,7 @@ namespace RealmRaiders.Tests
                     var fixture = EnergyHudFixture.Create(config);
                     GameObject[] trackedAbilityIcons = System.Array.Empty<GameObject>();
                     GameObject trackedChargeAffordance = null;
+                    GameObject trackedRealmMark = null;
                     try
                     {
                         var guardian = config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle;
@@ -108,6 +109,7 @@ namespace RealmRaiders.Tests
                         fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
                         trackedAbilityIcons = AbilityIcons(fixture.Hud.transform, true, familyPrefix).Select(image => image.gameObject).ToArray();
                         trackedChargeAffordance = fixture.Hud.ChargeAffordanceRect ? fixture.Hud.ChargeAffordanceRect.gameObject : null;
+                        trackedRealmMark = AssertDefenseRealmIdentityPresentation(fixture.Hud, guardian, "KEEPER OVERVIEW").gameObject;
                         Assert.That(trackedAbilityIcons, Has.Length.EqualTo(3));
                         Assert.That(AbilityIcons(fixture.Hud.transform, true, otherFamilyPrefix), Is.Empty, "A defender must not receive the other realm family's icons.");
                         Assert.That(fixture.Hud.ChargeAffordanceVisible, Is.False, "Keeper view must not show a direct-control gesture affordance.");
@@ -147,6 +149,7 @@ namespace RealmRaiders.Tests
                         responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
                         fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
                         AssertThemedAbilityPresentation(fixture.Hud, PrototypeOrientation.Landscape, true, guardian);
+                        Assert.That(AssertDefenseRealmIdentityPresentation(fixture.Hud, guardian, "POSSESSED CREATURE").gameObject, Is.SameAs(trackedRealmMark));
 
                         PrototypeSave.SetControlStyle(InRunControlStyleSelector.Joystick);
                         fixture.Hud.ControlStyleSelector.RefreshNow();
@@ -217,6 +220,7 @@ namespace RealmRaiders.Tests
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  5.0/30s"));
                         Assert.That(fixture.Hud.ChargeAffordanceVisible, Is.False);
                         Assert.That(AbilityIcons(fixture.Hud.transform, false, familyPrefix), Is.Empty, "Terminal result hides all direct-control themed icon presentation.");
+                        Assert.That(AssertDefenseRealmIdentityPresentation(fixture.Hud, guardian, "DEFENSE COMPLETE").gameObject, Is.SameAs(trackedRealmMark), "Terminal state must preserve the canonical realm title mark.");
                     }
                     finally
                     {
@@ -226,6 +230,7 @@ namespace RealmRaiders.Tests
                     yield return null;
                     foreach (var icon in trackedAbilityIcons) Assert.That(icon == null, Is.True, "HUD teardown must destroy themed ability icon children.");
                     Assert.That(trackedChargeAffordance == null, Is.True, "HUD teardown must destroy the Charge affordance root.");
+                    Assert.That(trackedRealmMark == null, Is.True, "HUD teardown must destroy the realm identity mark with its canonical title.");
                 }
             }
             finally
@@ -1091,6 +1096,35 @@ namespace RealmRaiders.Tests
                 Assert.That(panel.rect.Contains(rectangles[i].min) && panel.rect.Contains(rectangles[i].max), Is.True, $"Result action outside panel: {actions[i].name}");
             }
             for (var i = 0; i < rectangles.Length; i++) for (var j = i + 1; j < rectangles.Length; j++) Assert.That(rectangles[i].Overlaps(rectangles[j]), Is.False, $"Result actions overlap: {actions[i].name}/{actions[j].name}");
+        }
+
+        static Image AssertDefenseRealmIdentityPresentation(DefenderHUD hud, bool sylvan, string expectedStateCopy)
+        {
+            var marks = hud.GetComponentsInChildren<Image>(true)
+                .Where(image => image.name == HudPresentation.RealmIdentityIconName).ToArray();
+            Assert.That(marks, Has.Length.EqualTo(1), "Defense HUD must own exactly one realm identity mark.");
+            var mark = marks[0];
+            var resource = sylvan ? HudPresentation.SylvanRealmIdentityIconResource : HudPresentation.InfernalRealmIdentityIconResource;
+            var otherResource = sylvan ? HudPresentation.InfernalRealmIdentityIconResource : HudPresentation.SylvanRealmIdentityIconResource;
+            var expected = Resources.Load<Sprite>(resource);
+            var other = Resources.Load<Sprite>(otherResource);
+            Assert.That(expected, Is.Not.Null);
+            Assert.That(other, Is.Not.Null);
+            Assert.That(mark.sprite, Is.SameAs(expected));
+            Assert.That(mark.sprite, Is.Not.SameAs(other));
+            Assert.That(mark.raycastTarget, Is.False);
+            Assert.That(mark.preserveAspect, Is.True);
+            Assert.That(mark.rectTransform.sizeDelta, Is.EqualTo(new Vector2(48, 48)));
+            Assert.That(mark.GetComponent<Button>(), Is.Null);
+            Assert.That(mark.GetComponent<EventTrigger>(), Is.Null);
+            Assert.That(mark.GetComponent<UiPointerOwnership>(), Is.Null);
+            var label = mark.GetComponentInParent<Text>();
+            Assert.That(label, Is.Not.Null);
+            Assert.That(label.text, Is.EqualTo(expectedStateCopy));
+            Assert.That(mark.rectTransform.anchoredPosition.x, Is.GreaterThanOrEqualTo(label.preferredWidth * .5f + 7.9f), "Realm identity mark must not cover defense state copy.");
+            foreach (var button in hud.GetComponentsInChildren<Button>(false))
+                Assert.That(WorldRect(mark.rectTransform).Overlaps(WorldRect((RectTransform)button.transform)), Is.False, $"Realm identity mark overlaps {button.name}.");
+            return mark;
         }
 
         static void AssertThemedAbilityPresentation(DefenderHUD hud, PrototypeOrientation orientation, bool chargeVisible, bool guardian)

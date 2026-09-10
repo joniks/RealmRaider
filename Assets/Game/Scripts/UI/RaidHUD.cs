@@ -109,6 +109,7 @@ namespace RealmRaiders.UI
             var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920);
             gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyResultLayout; responsive.Initialize(true);
             state = Label("SYLVAN RAID", new Vector2(0, -40), 38, TextAnchor.UpperCenter);
+            presentation.DecorateRealmLabel(state, HudPresentation.SylvanRealmIdentity);
             health = Label("", new Vector2(35, -105), 28, TextAnchor.UpperLeft);
             stats = Label("", new Vector2(35, -150), 25, TextAnchor.UpperLeft);
             objective = Label("Reach the Heart Tree", new Vector2(0, -205), 28, TextAnchor.UpperCenter);
@@ -204,6 +205,7 @@ namespace RealmRaiders.UI
         void OnState(RaidState value)
         {
             state.text = $"SYLVAN RAID — {value}";
+            presentation.DecorateRealmLabel(state, HudPresentation.SylvanRealmIdentity);
             if (value is RaidState.Victory or RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) encounterCue?.Clear();
         }
         void OnEncounter(RaidEncounterState value)

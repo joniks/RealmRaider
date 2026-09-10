@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "candidateSetId": "realmraiders.preview.realm-identities.mui07.v1",
+  "createdOn": "2026-09-10",
+  "status": "accepted-runtime-preview-not-final-art",
+  "creation": "original-generated",
+  "thirdPartySources": false,
+  "generationTool": "OpenAI built-in image generation",
+  "generationModel": "not separately specified by built-in tool",
+  "modulesCommit": "04b8861",
+  "sourcePaths": {
+    "sylvan-realm": "Modules/RealmRaider.Modules/ArtPreviews/MUI07-RealmIdentityIcons/sylvan-realm-rgba-candidate.png",
+    "infernal-realm": "Modules/RealmRaider.Modules/ArtPreviews/MUI07-RealmIdentityIcons/infernal-realm-rgba-candidate.png"
+  },
+  "intendedMapping": {
+    "sylvan-realm": "living canopy/root/seed continuity",
+    "infernal-realm": "forged obsidian/ember gate continuity"
+  },
+  "generationPrompts": {
+    "sylvan-realm": "Original 512-square RGBA transparent mobile fantasy realm identity icon, Sylvan realm: one compact living canopy/root/seed continuity mark, an organic looping seed with two leaf-root arms. Bold 32–48px silhouette, dark forest green, muted teal and pale-gold edge. No text, letters, crest frame, flag, map, character, logo, watermark or franchise design.",
+    "infernal-realm": "Original 512-square RGBA transparent mobile fantasy realm identity icon, Infernal realm: one compact forged obsidian gate continuity mark, a broken angular black-stone arch with restrained ember-red seams and pale-hot edges. Bold 32–48px silhouette, structurally unlike organic leaves/roots. No text, letters, crest frame, flag, map, character, logo, watermark or franchise design."
+  },
+  "readabilityGates": [
+    "Sylvan 32px fine root-and-leaf detail requires in-context readability review; this is not a final-art approval."
+  ],
+  "outputs": [
+    {
+      "file": "sylvan-realm-rgba-candidate.png",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "abc195dc86c4502d8a88feb9cf92d87eb37efdac5550d9ed1a5854afddeffd77"
+    },
+    {
+      "file": "infernal-realm-rgba-candidate.png",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sha256": "6350b291e050d9e7d6de20f2ec19071343d67084de99c955ccd6045503f6eb39"
+    }
+  ],
+  "evidenceOperations": "48px midtone sheet alpha-composites unchanged candidate pixels onto #5e584a; dark sheets and overview remain non-runtime evidence in Modules",
+  "nonGoals": [
+    "new realms, factions, selection or navigation behavior",
+    "map or minimap behavior",
+    "gameplay, input or camera changes",
+    "ability icon changes",
+    "animation, VFX, audio or haptics",
+    "final-art, 32px runtime or device-readability approval"
+  ]
+}

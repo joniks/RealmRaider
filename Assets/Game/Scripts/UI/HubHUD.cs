@@ -136,6 +136,7 @@ namespace RealmRaiders.UI
         void Refresh()
         {
             selected.text = $"Selected realm: {PrototypeSave.SelectedRealm} • {PrototypeSave.OrientationPreference} • {PrototypeSave.ControlStylePreference}";
+            presentation.DecorateRealmLabel(selected, PrototypeSave.SelectedRealm);
             realmStores.text = RealmProgress.StoreCopy();
         }
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, float height = 90)
