@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "candidateSetId": "realmraiders.preview.guardian-ent-abilities.mui04.v1",
+  "createdOn": "2026-09-10",
+  "status": "accepted-runtime-preview-not-final-art",
+  "creation": "original-generated",
+  "thirdPartySources": false,
+  "generationTool": "OpenAI built-in image generation",
+  "modulesCommit": "0834c2f",
+  "sourcePaths": {
+    "smash": "Modules/RealmRaider.Modules/ArtPreviews/MUI04-GuardianEntAbilityIcons/smash-rgba-candidate.png",
+    "charge": "Modules/RealmRaider.Modules/ArtPreviews/MUI04-GuardianEntAbilityIcons/charge-rgba-candidate.png",
+    "ground-slam": "Modules/RealmRaider.Modules/ArtPreviews/MUI04-GuardianEntAbilityIcons/ground-slam-rgba-candidate.png"
+  },
+  "intendedAbilityMapping": {
+    "smash": "close heavy impact",
+    "charge": "forward trunk/root momentum",
+    "ground-slam": "radial earth/root shock"
+  },
+  "generationPrompts": {
+    "smash": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy Guardian Ent ability icon; Primary request: Smash — one close heavy ancient-wood fist/knotted root impact silhouette striking downward into a small cracked earth burst; Scene/backdrop: genuinely transparent only; Style/medium: bold polished mobile game UI icon, broad silhouette readable at 32–48px; Composition: centered, 62% square, generous margin; Palette: deep living wood brown, Sylvan moss green, restrained pale-gold edge; Text: none; Constraints: no full character, face, model likeness, words, numerals, frame, logo, watermark, gore, recognizable franchise design, or background; original preview candidate.",
+    "charge": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy Guardian Ent ability icon; Primary request: Charge — one forward horizontal ancient-trunk/root momentum wedge with three short trailing root lines, unmistakably forward movement not an impact or radial wave; Scene/backdrop: transparent only; Style: bold mobile icon 32–48px; Palette: deep wood, moss green, pale-gold edge; Text: none; Constraints: one compact motion silhouette; no full character, likeness, words, frame, logo, watermark, gore, franchise design or background.",
+    "ground-slam": "Use case: stylized-concept; Asset type: original 512-square RGBA mobile fantasy Guardian Ent ability icon; Primary request: Ground Slam — one radial circular earth/root shockwave with four broad roots spreading outward from a compact center, unmistakably radial not a close fist or forward charge; Scene/backdrop: transparent only; Style: bold mobile icon 32–48px; Palette: deep wood, moss green, pale-gold edge; Text: none; Constraints: no character, likeness, words, frame, logo, watermark, gore, franchise design or background."
+  },
+  "outputs": [
+    {"file":"smash-rgba-candidate.png","dimensions":[512,512],"colorFormat":"RGBA","alphaStatus":"transparent-background","sha256":"5df3f930d7a477355490a608d62a4c574a56c8741e1527e965e344f836e0db28"},
+    {"file":"charge-rgba-candidate.png","dimensions":[512,512],"colorFormat":"RGBA","alphaStatus":"transparent-background","sha256":"1af01563ecd20b207de63e533e907a858e1a8c70cc64611d440b0cf619e3324c"},
+    {"file":"ground-slam-rgba-candidate.png","dimensions":[512,512],"colorFormat":"RGBA","alphaStatus":"transparent-background","sha256":"4b7c79001268267b93a12778c5d1ca2ac5c9f80d235649c1011b325541ce1786"}
+  ],
+  "evidenceOperations":"RGBA alpha composite on neutral #141b1d; sheets are non-runtime evidence",
+  "reviewRequired":["32–48px distinction","Unity sprite import","mobile compression"],
+  "nonGoals":["ability logic, stats, timing or buffering changes","input or camera changes","Infernal icons","animation, VFX or audio","final-art or device-readability approval"]
+}

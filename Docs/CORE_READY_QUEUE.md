@@ -127,7 +127,7 @@ portrait/landscape icon readability remains unobserved because the first Game-vi
 click failed externally with `windowNotFoundAtPosition`; no runtime failure was
 recorded.
 
-## Now — Diamond Pass 13.6: Guardian Ent Ability Icons
+## Accepted — Diamond Pass 13.6: Guardian Ent Ability Icons
 
 Owner: Core developer. Base: Architect's accepted 13.5 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -139,8 +139,27 @@ possession lifecycle and exact text-only fallback. Infernal icons remain a
 separate later gate. Core never controls Unity; QA alone verifies the frozen
 candidate.
 
-## Ready after 13.6
+Acceptance: after two narrow PlayMode fixture corrections (energy baseline and
+Unity destroyed-object null semantics), QA's final native gates passed EditMode
+`166/166` and PlayMode `82/82`, both with zero failed/skipped/inconclusive tests;
+Console was `0/0/0`. Manual Guardian/control-style readability remains unobserved
+because the first Game-view click failed externally with
+`windowNotFoundAtPosition`; no runtime failure was recorded.
+
+## Now — Diamond Pass 13.7: Infernal Brute Ability Icons
+
+Owner: Core developer. Base: Architect's accepted 13.6 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Import only the accepted original MUI05 Smash, Charge and Ground Slam sprites with
+exact provenance/mobile settings. Decorate the Infernal Brute's two existing
+buttons plus its truthful Fingertap-only `SWIPE: CHARGE` affordance, preserving
+text, readiness/cooldowns, callbacks, control-style and possession lifecycle.
+Guardian behavior remains unchanged; unknown defenders retain exact text-only
+fallback. Core never controls Unity; QA alone verifies the frozen candidate.
+
+## Ready after 13.7
 
 Use QA's actual 32–48 px comprehension/contrast observation for one bounded
-correction or accept the set. Then choose Infernal Brute MUI05 as one separate
-gate; do not bundle it into Guardian Ent integration.
+correction or accept the set. Then evaluate MUI07 realm identity marks as a
+separate Hub/HUD presentation gate; do not bundle them into ability controls.

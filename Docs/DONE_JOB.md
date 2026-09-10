@@ -2182,3 +2182,33 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 
 - Unity import/runtime binding, Hub/HUD layout, final branding, animation/VFX,
   accessibility/device claims and gameplay changes.
+
+## Diamond Pass 13.6 — Guardian Ent Ability Icons
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported the accepted original MUI04 Guardian Ent ability trio byte-identically
+  with exact provenance and explicit mobile UI sprite settings.
+- Added non-raycast Smash and Ground Slam icons to the two existing Sylvan
+  possessed-defender buttons; Charge is a non-interactive `SWIPE: CHARGE` mark
+  only when Fingertap really owns that gesture.
+- Joystick, Keeper, release, death, terminal, Infernal and unknown-defender states
+  hide or avoid the Charge presentation and preserve their truthful controls.
+
+### Verification
+
+- Architect confirmed exact MUI04 hashes/imports, explicit archetype and semantic
+  mapping, cache/fallback behavior, no new Charge button and lifecycle cleanup.
+- QA final native gates passed EditMode `166/166` and PlayMode `82/82`, both with
+  zero failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Two PlayMode fixture defects were corrected without runtime changes: elapsed
+  energy was reset to a deterministic baseline and destroyed objects use Unity
+  null semantics. Manual layout/meaning is not claimed because the first Game-view
+  click failed externally with `windowNotFoundAtPosition`.
+
+### Scope intentionally deferred
+
+- Device/manual readability, Infernal ability icons, animation/VFX/audio, combat,
+  input/camera changes and final UI approval.

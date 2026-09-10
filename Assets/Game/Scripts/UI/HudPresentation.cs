@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using RealmRaiders.Core;
 
 namespace RealmRaiders.UI
 {
@@ -14,18 +15,25 @@ namespace RealmRaiders.UI
         public const string BasicSlashIconResource = "Art/UI/BloodKnightAbilities/basic-slash-rgba-candidate";
         public const string BloodRushIconResource = "Art/UI/BloodKnightAbilities/blood-rush-rgba-candidate";
         public const string HeavyCleaveIconResource = "Art/UI/BloodKnightAbilities/heavy-cleave-rgba-candidate";
+        public const string GuardianEntAbilityIconNamePrefix = "Guardian Ent Ability Icon ";
+        public const string GuardianEntSmashIconResource = "Art/UI/GuardianEntAbilities/smash-rgba-candidate";
+        public const string GuardianEntChargeIconResource = "Art/UI/GuardianEntAbilities/charge-rgba-candidate";
+        public const string GuardianEntGroundSlamIconResource = "Art/UI/GuardianEntAbilities/ground-slam-rgba-candidate";
         Sprite buttonSprite;
         Sprite jumpIconSprite;
         Sprite basicSlashIconSprite, bloodRushIconSprite, heavyCleaveIconSprite;
+        Sprite guardianEntSmashIconSprite, guardianEntChargeIconSprite, guardianEntGroundSlamIconSprite;
         AudioClip click, confirm, result;
         AudioSource source;
         bool resultPlayed;
         bool ownsButtonSprite;
         bool jumpIconResolved;
         bool basicSlashIconResolved, bloodRushIconResolved, heavyCleaveIconResolved;
+        bool guardianEntSmashIconResolved, guardianEntChargeIconResolved, guardianEntGroundSlamIconResolved;
         bool initialized;
         System.Func<string, Sprite> jumpIconLoader = LoadJumpIcon;
         System.Func<string, Sprite> abilityIconLoader = LoadAbilityIcon;
+        System.Func<string, Sprite> guardianEntAbilityIconLoader = LoadGuardianEntAbilityIcon;
 
         public bool ResultCuePlayed => resultPlayed;
 
@@ -147,6 +155,64 @@ namespace RealmRaiders.UI
                 _ => string.Empty
             };
 
+        public Image DecorateGuardianEntAbilityButton(Button button, string archetypeId, int abilityIndex, string semanticName)
+        {
+            if (!button) return null;
+            return DecorateGuardianEntAbilityIcon(button.transform, button.GetComponentInChildren<Text>(true), archetypeId, abilityIndex, semanticName);
+        }
+
+        public Image DecorateGuardianEntChargeAffordance(RectTransform affordance, Text label, string archetypeId)
+        {
+            if (!affordance || !label) return null;
+            return DecorateGuardianEntAbilityIcon(affordance, label, archetypeId, 1, "CHARGE");
+        }
+
+        public static string GuardianEntAbilityIconResourceFor(string archetypeId, int abilityIndex, string semanticName)
+        {
+            if (archetypeId != PrototypeCharacterRoster.GuardianEntId) return string.Empty;
+            return (abilityIndex, semanticName) switch
+            {
+                (0, "SMASH") => GuardianEntSmashIconResource,
+                (1, "CHARGE") => GuardianEntChargeIconResource,
+                (2, "GROUND SLAM") => GuardianEntGroundSlamIconResource,
+                _ => string.Empty
+            };
+        }
+
+        Image DecorateGuardianEntAbilityIcon(Transform host, Text label, string archetypeId, int abilityIndex, string semanticName)
+        {
+            if (!host) return null;
+            var resourcePath = GuardianEntAbilityIconResourceFor(archetypeId, abilityIndex, semanticName);
+            if (string.IsNullOrEmpty(resourcePath)) return null;
+            var iconName = GuardianEntAbilityIconNamePrefix + abilityIndex;
+            var existing = host.Find(iconName);
+            if (existing) return existing.GetComponent<Image>();
+            var sprite = ResolveGuardianEntAbilityIcon(abilityIndex, resourcePath);
+            if (!sprite) return null;
+
+            var iconObject = new GameObject(iconName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.transform.SetParent(host, false);
+            var iconRect = (RectTransform)iconObject.transform;
+            iconRect.anchorMin = iconRect.anchorMax = new Vector2(0, .5f);
+            iconRect.pivot = new Vector2(0, .5f);
+            iconRect.anchoredPosition = new Vector2(10, 0);
+            iconRect.sizeDelta = new Vector2(44, 44);
+            var icon = iconObject.GetComponent<Image>();
+            icon.sprite = sprite;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+
+            if (label)
+            {
+                var labelRect = label.rectTransform;
+                labelRect.offsetMin = new Vector2(Mathf.Max(58, labelRect.offsetMin.x), labelRect.offsetMin.y);
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = Mathf.Min(15, label.fontSize);
+                label.resizeTextMaxSize = Mathf.Max(label.fontSize, label.resizeTextMinSize);
+            }
+            return icon;
+        }
+
         Sprite ResolveJumpIcon()
         {
             if (jumpIconResolved) return jumpIconSprite;
@@ -189,6 +255,32 @@ namespace RealmRaiders.UI
             abilityIconLoader = loader ?? (_ => null);
             basicSlashIconSprite = bloodRushIconSprite = heavyCleaveIconSprite = null;
             basicSlashIconResolved = bloodRushIconResolved = heavyCleaveIconResolved = false;
+        }
+
+        Sprite ResolveGuardianEntAbilityIcon(int abilityIndex, string resourcePath) => abilityIndex switch
+        {
+            0 => ResolveGuardianEntSprite(ref guardianEntSmashIconSprite, ref guardianEntSmashIconResolved, resourcePath),
+            1 => ResolveGuardianEntSprite(ref guardianEntChargeIconSprite, ref guardianEntChargeIconResolved, resourcePath),
+            2 => ResolveGuardianEntSprite(ref guardianEntGroundSlamIconSprite, ref guardianEntGroundSlamIconResolved, resourcePath),
+            _ => null
+        };
+
+        Sprite ResolveGuardianEntSprite(ref Sprite sprite, ref bool resolved, string resourcePath)
+        {
+            if (resolved) return sprite;
+            resolved = true;
+            try { sprite = guardianEntAbilityIconLoader?.Invoke(resourcePath); }
+            catch (System.Exception) { sprite = null; }
+            return sprite;
+        }
+
+        static Sprite LoadGuardianEntAbilityIcon(string resourcePath) => Resources.Load<Sprite>(resourcePath);
+
+        public void ConfigureGuardianEntAbilityIconLoaderForTests(System.Func<string, Sprite> loader)
+        {
+            guardianEntAbilityIconLoader = loader ?? (_ => null);
+            guardianEntSmashIconSprite = guardianEntChargeIconSprite = guardianEntGroundSlamIconSprite = null;
+            guardianEntSmashIconResolved = guardianEntChargeIconResolved = guardianEntGroundSlamIconResolved = false;
         }
 
         public void PlayClick() { EnsureInitialized(); Play(click); }

@@ -82,7 +82,8 @@ Last reviewed: 2026-09-10
 - Art Pass MUI 06 is accepted in the pinned Modules submodule: original Contextual, Fingertap and Joystick candidates remain distinct at 32 px, with the two more abstract modes retaining explicit in-context comprehension gates.
 - Art Pass MUI 07 is accepted in the pinned Modules submodule: original Sylvan living-seed and Infernal obsidian-gate marks are ready for a later named realm-identity integration, with Sylvan 32 px fine detail retaining an in-context readability gate.
 - Diamond Pass 13.5 Blood Knight Ability Icons is present: the Raid HUD's three existing attacks now add explicit original sprites while preserving labels, readiness/cooldowns, callbacks, responsive layouts and exact text-only fallback.
-- Current Unity Test Runner baseline: EditMode `162/162` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Diamond Pass 13.6 Guardian Ent Ability Icons is present: Sylvan possession now adds original Smash and Ground Slam button sprites plus a truthful Fingertap-only `SWIPE: CHARGE` mark, while Joystick and non-Guardian states remain honest.
+- Current Unity Test Runner baseline: EditMode `166/166` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -99,7 +100,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `162/162` and PlayMode `82/82` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `166/166` and PlayMode `82/82` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

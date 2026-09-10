@@ -62,6 +62,8 @@ namespace RealmRaiders.UI
         Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel, jumpLabel;
         Image energyFill;
         Button possess, release, smash, slam, activateTrap, dodge, jump, retry, nextAction, realmHub;
+        RectTransform chargeAffordance;
+        Text chargeAffordanceLabel;
         GameObject resultPanel;
         RectTransform resultRect;
         PossessionManager possessionManager;
@@ -123,6 +125,9 @@ namespace RealmRaiders.UI
         public bool JourneyCompletedForResult => journeyCompletedForResult;
         public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
         public string ControlHintText => possessionManager && possessionManager.IsPossessing && selection ? selection.text : string.Empty;
+        public bool ChargeAffordanceVisible => chargeAffordance && chargeAffordance.gameObject.activeSelf;
+        public string ChargeAffordanceText => chargeAffordanceLabel ? chargeAffordanceLabel.text : string.Empty;
+        public RectTransform ChargeAffordanceRect => chargeAffordance;
         public float PossessionEnergyRemaining => energy?.Remaining ?? 0;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
@@ -145,6 +150,7 @@ namespace RealmRaiders.UI
             Refresh(); RefreshOpeningCue(); RefreshRouteStatus(); RefreshDeploymentReceipt();
             RefreshAbilityButtons();
             RefreshControlHint();
+            RefreshChargeAffordance();
             var controller = possessionManager?.Possessed?.Controller<PlayerController>(); var rooted = controller && controller.IsActive && controller.RootEscapeVisible && !GameplayInput.TerminalState;
             if (rootPrompt) { rootPrompt.gameObject.SetActive(rooted); if (rooted) rootPrompt.text = controller.RootEscapeProgress >= 5 ? "BREAK FREE" : $"ROOTED — TAP TO BREAK FREE\n{controller.RootEscapeProgress}/5"; }
         }
@@ -166,6 +172,13 @@ namespace RealmRaiders.UI
             release = Button("RELEASE", new Vector2(0, 410), ReleasePossession);
             activateTrap = Button("ACTIVATE TRAP", new Vector2(0, 290), ActivateTrap);
             smash = Button("SMASH", new Vector2(-180, 165), () => Ability(0)); slam = Button("GROUND SLAM", new Vector2(180, 165), () => Ability(2));
+            if (IsSylvanGuardianEnt)
+            {
+                var archetypeId = ent.Definition.ArchetypeId;
+                presentation.DecorateGuardianEntAbilityButton(smash, archetypeId, 0, "SMASH");
+                presentation.DecorateGuardianEntAbilityButton(slam, archetypeId, 2, "GROUND SLAM");
+                CreateChargeAffordance(archetypeId);
+            }
             abilityButtons = new[]
             {
                 new AbilityButtonReadiness(smash, "SMASH", 0),
@@ -179,6 +192,7 @@ namespace RealmRaiders.UI
             retry = Button("DEFEND AGAIN", Vector2.zero, RetryDefense); retry.transform.SetParent(resultPanel.transform, false); nextAction = Button(config.NextActionLabel, Vector2.zero, ContinueAfterDefense); nextAction.transform.SetParent(resultPanel.transform, false);
             realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
             responsive.LayoutChanged += ApplyResultLayout; ApplyResultLayout(responsive.Orientation);
+            responsive.LayoutChanged += ApplyChargeAffordanceLayout; ApplyChargeAffordanceLayout(responsive.Orientation);
             if (config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && deployment != null)
             {
                 var receiptObject = new GameObject(DefenseDeploymentReceipt.ObjectName, typeof(RectTransform), typeof(Text), typeof(DefenseDeploymentReceipt));
@@ -214,6 +228,50 @@ namespace RealmRaiders.UI
         static void PlaceResultRegion(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax)
         {
             rect.anchorMin = anchorMin; rect.anchorMax = anchorMax; rect.pivot = new Vector2(.5f, .5f); rect.offsetMin = rect.offsetMax = Vector2.zero;
+        }
+
+        void CreateChargeAffordance(string archetypeId)
+        {
+            var affordanceObject = new GameObject("Guardian Ent Charge Affordance", typeof(RectTransform));
+            affordanceObject.transform.SetParent(transform, false);
+            chargeAffordance = (RectTransform)affordanceObject.transform;
+            chargeAffordance.sizeDelta = new Vector2(340, 64);
+
+            var labelObject = new GameObject("Charge Affordance Text", typeof(RectTransform), typeof(Text));
+            labelObject.transform.SetParent(chargeAffordance, false);
+            var labelRect = (RectTransform)labelObject.transform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
+            chargeAffordanceLabel = labelObject.GetComponent<Text>();
+            chargeAffordanceLabel.text = "SWIPE: CHARGE";
+            chargeAffordanceLabel.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            chargeAffordanceLabel.fontSize = 23;
+            chargeAffordanceLabel.alignment = TextAnchor.MiddleCenter;
+            chargeAffordanceLabel.color = Color.white;
+            chargeAffordanceLabel.raycastTarget = false;
+            presentation.DecorateGuardianEntChargeAffordance(chargeAffordance, chargeAffordanceLabel, archetypeId);
+            chargeAffordance.gameObject.SetActive(false);
+        }
+
+        void ApplyChargeAffordanceLayout(PrototypeOrientation orientation)
+        {
+            if (!chargeAffordance) return;
+            if (orientation == PrototypeOrientation.Landscape)
+            {
+                chargeAffordance.sizeDelta = new Vector2(340, 64);
+                chargeAffordance.anchorMin = chargeAffordance.anchorMax = new Vector2(1, 0);
+                chargeAffordance.pivot = new Vector2(1, 0);
+                chargeAffordance.anchoredPosition = new Vector2(-70, 434);
+            }
+            else
+            {
+                chargeAffordance.sizeDelta = new Vector2(300, 64);
+                chargeAffordance.anchorMin = chargeAffordance.anchorMax = new Vector2(.5f, 0);
+                chargeAffordance.pivot = new Vector2(.5f, 0);
+                chargeAffordance.anchoredPosition = new Vector2(355, 410);
+            }
+            RefreshChargeAffordance();
         }
 
         void ActivateTrap()
@@ -297,11 +355,12 @@ namespace RealmRaiders.UI
             selection.text = active ? ControlledSelectionCopy() : $"Tap the {config.DefenderName} to select it";
             RefreshJumpButton();
             RefreshPossessionEnergy();
+            RefreshChargeAffordance();
         }
         void OnReleased(bool forced)
         {
             if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
-            RefreshPossessionEnergy(); RefreshJumpButton();
+            RefreshPossessionEnergy(); RefreshJumpButton(); RefreshChargeAffordance();
         }
 
         void InitializeFirstMinuteGuide()
@@ -318,10 +377,15 @@ namespace RealmRaiders.UI
             SetDeploymentReceiptVisible(false);
             firstMinuteGuide?.Shutdown();
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
+            if (responsive) responsive.LayoutChanged -= ApplyChargeAffordanceLayout;
             if (responsive && deploymentReceipt) responsive.LayoutChanged -= deploymentReceipt.ApplyOrientation;
             if (journeyToken != 0 && !journeyHandoff && !journeyCompletedForResult) PrototypeJourney.Cancel(journeyToken);
         }
-        void OnDisable() => SetDeploymentReceiptVisible(false);
+        void OnDisable()
+        {
+            SetDeploymentReceiptVisible(false);
+            if (chargeAffordance) chargeAffordance.gameObject.SetActive(false);
+        }
         void ShowMomentFeedback(string message)
         {
             if (!releaseNotice || GameplayInput.TerminalState || (resultPanel && resultPanel.activeSelf)) return;
@@ -516,11 +580,23 @@ namespace RealmRaiders.UI
             if (selection.text != copy) selection.text = copy;
         }
 
+        void RefreshChargeAffordance()
+        {
+            if (!chargeAffordance) return;
+            var controlled = possessionManager ? possessionManager.Possessed : null;
+            var player = controlled ? controlled.Controller<PlayerController>() : null;
+            var visible = IsSylvanGuardianEnt && controlled == ent && possessionManager.IsPossessing && player && player.IsActive &&
+                controlled.Health != null && !controlled.Health.IsDead && !IsTerminalResultActive && !UsesJoystickControls();
+            if (chargeAffordance.gameObject.activeSelf != visible) chargeAffordance.gameObject.SetActive(visible);
+        }
+
         string ControlledSelectionCopy() => $"YOU ARE THE {config.DefenderName.ToUpperInvariant()}\n" + (UsesJoystickControls()
             ? "STICK: MOVE • DRAG WORLD: LOOK • JUMP: LEAP"
             : "TAP GROUND: MOVE • DOUBLE-TAP GROUND: JUMP");
 
         bool UsesJoystickControls() => responsive && PrototypeSave.EffectiveControlStyle(responsive.Orientation == PrototypeOrientation.Landscape) == "Joystick";
+
+        bool IsSylvanGuardianEnt => config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && ent && ent.Definition && ent.Definition.ArchetypeId == PrototypeCharacterRoster.GuardianEntId;
 
         bool IsTerminalResultActive => GameplayInput.TerminalState || defense != null && defense.IsFinished || resultPanel && resultPanel.activeSelf;
 
@@ -531,6 +607,7 @@ namespace RealmRaiders.UI
             HideAndDisable(activateTrap);
             HideAndDisable(smash);
             HideAndDisable(slam);
+            if (chargeAffordance) chargeAffordance.gameObject.SetActive(false);
             HideAndDisable(dodge);
             HideAndDisable(jump);
         }
