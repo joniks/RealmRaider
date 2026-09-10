@@ -111,3 +111,134 @@ Hundreds of modular characters need a deterministic pre-Unity check that every e
 ## Next Module gate
 
 MMP 04 is accepted and committed. The next Module lease must be tied to either a named Core integration seam or a user-approved art source/provenance task; do not invent another generic validator merely to keep the lane busy.
+
+## Accepted — Art Pass MWS 06: Fantasy Surface Texture Pack
+
+Owner: Art / Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Accepted Modules commit: `3b1d7d6`
+
+Reserved folder only: `ArtPreviews/MWS06-FantasySurfaceTexturePack/`.
+
+### Player/product value
+
+The first Sylvan and Infernal ground previews proved that real texture immediately improves the greybox. This pass adds four distinct fantasy material directions for paths and boundary structures so the two realms can gain richer visual hierarchy without changing gameplay or importing unreviewed third-party art.
+
+### Required deliverables
+
+1. Generate four original 1024×1024 square, seamless/tileable albedo preview PNGs:
+   - Sylvan moss-grown ancient stone path;
+   - Sylvan living bark and intertwined root boundary;
+   - Infernal cracked volcanic basalt path with restrained ember seams;
+   - Infernal forged black iron and obsidian boundary surface.
+2. Use a stylized cohesive mobile-fantasy direction: readable medium/large forms, restrained high-frequency noise, no baked directional lighting, no perspective, no isolated object, no text, logo, watermark or recognizable franchise design.
+3. Add one local provenance/manifest record in the same folder containing the exact prompts, generation tool, date, intended surface role, preview-only status and explicit statement that no third-party source image was used.
+4. Inspect every result at full frame. Reject and regenerate obvious perspective, lighting hotspots, seams, text-like marks or non-surface compositions; do not silently call an imperfect image production-ready.
+5. Keep every output isolated in the reserved folder. Do not create Unity `.meta`, normal/height/roughness maps, materials, shaders, import settings or runtime bindings.
+6. Handoff to Architect with: exact files; visual distinction; seam/mobile caveats; provenance; selected recommendation; Unity/commit/push status.
+
+### Non-goals
+
+- Main-checkout edits, Unity control/import, gameplay/collision changes, third-party downloads, final-art approval, derived PBR maps, runtime integration or device-performance claims.
+
+Acceptance: four original 1024×1024 RGB previews and a complete local provenance
+record were inspected on 2026-09-10. The safest first integration candidate is
+the Sylvan moss-grown stone path; the strongest boundary accent is the Sylvan
+living-root surface. Repeat-grid seams and device-scale material behavior remain
+explicit production gates rather than assumed properties.
+
+## Accepted — Art Pass MWS 07: Walkable Surface Seam Hardening
+
+Owner: Art / Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Accepted Modules commit: `6138f71`
+
+Reserved folder only: `ArtPreviews/MWS07-WalkableSurfaceSeamHardening/`.
+
+### Player/product value
+
+Convert the two clearest realm path directions into honestly reviewable tile
+candidates so Core can later test first-world texture integration without visible
+grid seams or importing every exploratory surface.
+
+### Required deliverables
+
+1. Starting only from the accepted MWS06 Sylvan stone and Infernal basalt source
+   previews, create one edge-hardened 1024×1024 RGB candidate for each realm.
+2. Preserve the established palette and large mobile-readable forms. Do not add
+   perspective, directional lighting, text, symbols, isolated props or new IP.
+3. Produce a 2048×2048 2×2 repeat-grid review image for each candidate. The grid
+   is validation evidence only, not a Unity import asset.
+4. Inspect the center cross and all four repeated edges at full frame. Iterate on
+   obvious hard seams, repeated focal stones, clipped ember rivers or brightness
+   bands; record any remaining caveat honestly.
+5. Add a provenance record with exact source paths, every generation/edit tool,
+   exact prompts or deterministic operations, date and preview-only status.
+6. Do not create `.meta`, normal/height/roughness/emission maps, materials,
+   shaders, import settings or runtime bindings. Do not open Unity.
+
+### Non-goals
+
+- Main checkout, runtime integration, boundary surfaces, derived PBR maps,
+  gameplay changes, third-party downloads, device-performance claims, commit or
+  push by the producing role.
+
+Acceptance: both 1024×1024 RGB path candidates and exact 2×2 repeat evidence
+were inspected on 2026-09-10. No hard center-cross seam is visible. Sylvan is
+approved as the first future Unity integration candidate; Infernal remains
+approved for preview with an explicit on-device ember-periodicity check.
+
+## Accepted — Art Pass MWS 08: Realm Boundary Seam Hardening
+
+Owner: Art / Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Accepted Modules commit: `c4295e4`
+
+Reserved folder only: `ArtPreviews/MWS08-RealmBoundarySeamHardening/`.
+
+### Player/product value
+
+Prepare one distinctive boundary surface per realm so arena borders can become
+legible fantasy structures instead of generic grey geometry when Core later
+integrates the selected visuals.
+
+### Required deliverables
+
+1. Starting only from the accepted MWS06 Sylvan living-root and Infernal forged
+   iron/obsidian previews, create one edge-hardened 1024×1024 RGB candidate for
+   each realm.
+2. Preserve the realm palettes and broad mobile-readable forms. Reduce painted
+   contact-shadow/depth hotspots where possible without flattening the material
+   identity; add no perspective, symbols, text, props, new IP or directional
+   lighting.
+3. Produce one exact 2048×2048 2×2 repeat-grid review image per candidate.
+4. Inspect center cross, repeated edges, brightness bands and dominant repeating
+   root/plate motifs. Iterate obvious hard seams and record remaining periodicity.
+5. Add a provenance record containing exact MWS06 source paths and hashes,
+   prompts/tools/operations, date, preview-only status and no-third-party-source
+   statement.
+6. No Unity, `.meta`, PBR maps, materials, shaders, import settings, runtime
+   binding, commit or push by the producing role.
+
+### Non-goals
+
+- Main checkout, gameplay/collision changes, walkable surfaces, production
+  approval, device-performance claims or runtime integration.
+
+Acceptance: both 1024×1024 RGB boundary candidates and their exact 2×2 repeat
+evidence were inspected on 2026-09-10. Neither has a hard center seam. Sylvan is
+the preferred first boundary integration candidate; Infernal remains suitable
+for preview with an explicit on-device crimson-network periodicity check.
+
+## Next Module gate
+
+No further Art generation is active. The next eligible Module task depends on a
+Core-owned Unity integration smoke of the accepted MWS07 Sylvan path candidate;
+use that evidence to request a named texture adjustment rather than producing
+another speculative surface pack.
