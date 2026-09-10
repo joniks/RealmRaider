@@ -31,7 +31,35 @@ namespace RealmRaiders.Core
                 return bloodKnightRecipe;
             }
         }
-        public static CharacterVisualRecipe GuardianEntRecipe => guardianEntRecipe ? guardianEntRecipe : guardianEntRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Bark, VisualModuleStyle.Bark, VisualModuleStyle.Claws, VisualModuleStyle.Mane, new Color(.16f, .38f, .11f), new Color(.25f, .16f, .07f), new Color(.65f, .95f, .28f));
+        public static CharacterVisualRecipe GuardianEntRecipe
+        {
+            get
+            {
+                if (guardianEntRecipe && guardianEntRecipe.BaseBodyPrefab) return guardianEntRecipe;
+                // A QA intake can make the resource available later in the same Editor domain.
+                // Retry only an unavailable binding; never rebuild an already assembled creature.
+                var prefab = Resources.Load<GameObject>("Characters/GuardianEntTree01");
+                if (!guardianEntRecipe) guardianEntRecipe = CreateGuardianEntRecipe(prefab);
+                else if (prefab)
+                {
+                    guardianEntRecipe.BaseBodyPrefab = prefab;
+                    guardianEntRecipe.Head = guardianEntRecipe.Back = guardianEntRecipe.Arms = guardianEntRecipe.Accent = VisualModuleStyle.None;
+                }
+                return guardianEntRecipe;
+            }
+        }
+
+        static CharacterVisualRecipe CreateGuardianEntRecipe(GameObject baseBodyPrefab)
+        {
+            // The complete primitive recipe remains the unavailable-resource fallback.
+            var recipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Bark, VisualModuleStyle.Bark, VisualModuleStyle.Claws, VisualModuleStyle.Mane, new Color(.16f, .38f, .11f), new Color(.25f, .16f, .07f), new Color(.65f, .95f, .28f));
+            if (baseBodyPrefab)
+            {
+                recipe.BaseBodyPrefab = baseBodyPrefab;
+                recipe.Head = recipe.Back = recipe.Arms = recipe.Accent = VisualModuleStyle.None;
+            }
+            return recipe;
+        }
         public static CharacterVisualRecipe InfernalBruteRecipe => infernalBruteRecipe ? infernalBruteRecipe : infernalBruteRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.Spikes, new Color(.28f, .055f, .03f), new Color(.12f, .025f, .02f), new Color(1f, .28f, .05f));
         public static CharacterVisualRecipe SylvanBeastRecipe => sylvanBeastRecipe ? sylvanBeastRecipe : sylvanBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Mane, VisualModuleStyle.None, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.34f, .4f, .32f), new Color(.15f, .2f, .14f), new Color(.75f, .9f, .5f));
         public static CharacterVisualRecipe InfernalBeastRecipe => infernalBeastRecipe ? infernalBeastRecipe : infernalBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.35f, .06f, .025f), new Color(.12f, .02f, .01f), new Color(1f, .25f, .04f));

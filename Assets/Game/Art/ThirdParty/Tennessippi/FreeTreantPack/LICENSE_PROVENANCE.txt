@@ -1,0 +1,65 @@
+FREE TREANT PACK — TREE01 LIGHT VISUAL PILOT (Diamond Pass 15.15)
+Creator: Tennessippi
+Official creator source: https://tennessippistudios.itch.io/treant-pack
+Licence: CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/
+Creator-page wording recorded: "CC0 / no attribution required".
+Source observed 2026-09-10; Architect reverified the official page 2026-09-11.
+Voluntary provenance credit: "Free Treant Pack" by Tennessippi (CC0 1.0).
+The supplied archive contains NO embedded licence/readme. Licence evidence is the
+official creator page recorded in the accepted Modules evidence, not an inferred
+licence from the archive or a mirror.
+
+Accepted local evidence (Modules commit a075494):
+Packages/com.realmraiders.character-art-manifests/Evidence/guardian-ent-tree01/SOURCE_EVIDENCE.md
+Packages/com.realmraiders.character-art-manifests/Evidence/guardian-ent-tree01/TREE01_PILOT.md
+Research/MART05.2-GuardianEntTree01Intake/GuardianEntTree01OfflineIntake.md
+
+Supplied archive (retained outside Assets):
+Temp/Treant Package.7z
+46,456,071 bytes
+SHA-256 1fcddcbd1fbbc8ec84f6001b2192d22794a927c9be2a929457a537e908862cd8
+
+Only these four exact archive members were selected; copied unchanged:
+Treant Package/Treant 1/Tree01_FBX.fbx
+1,937,020 bytes; SHA-256 bd90b4f8dd823334cbb226229ef731c1280ae601ab942d16193b96f5f674a02e
+Destination: Tree01/source/Tree01_FBX.fbx
+
+Treant Package/Treant 1/Treant_1 Textures/Set 2/Tree01 Albedo Light.png
+3,991,821 bytes; SHA-256 cd50e1a9179f1242a862f6fb7f8448cff5cbbd56d599e687d916dc8583625573
+Destination: Tree01/textures/Tree01 Albedo Light.png
+
+Treant Package/Treant 1/Treant_1 Textures/Set 2/Treant_1_LP_DefaultMaterial_Normal.png
+3,387,442 bytes; SHA-256 1b0372d5b2797d520c33cfa2839b46f4536f2ce15104e23f5c50cb4a1b503d2f
+Destination: Tree01/textures/Treant_1_LP_DefaultMaterial_Normal.png
+
+Treant Package/Treant 1/Treant_1 Textures/Set 2/Treant_1_LP_DefaultMaterial_MaskMap.png
+3,694,246 bytes; SHA-256 72b6fe38c9ca4f1b6a7f6f457a73b4900a7897eb3129a4079472eec5c48e093c
+Destination: Tree01/textures/Treant_1_LP_DefaultMaterial_MaskMap.png
+
+Integration modifications (source bytes unchanged):
+Model scale 0.7452205, file units/scale and axis conversion enabled; Medium mesh
+compression, Read/Write off, imported normals, no tangents, welded/optimized mesh.
+No animation import or Animator; no blend shapes, generated colliders, cameras,
+lights or visibility. Custom maximum 4 bone influences. No runtime rig/motion claim.
+One project-owned URP Simple Lit opaque material samples only the light albedo:
+white tint, no metallic/emission/detail/normal/mask binding, 1024 maximum, sRGB,
+mipmaps, bilinear, anisotropy 1, Android ASTC 6x6.
+Normal and mask are retained unbound for provenance: max 1024, linear, mipmaps,
+ASTC 6x6. Normal is imported as Normal Map without green inversion; its convention
+has not been visually established. Mask preserves RGBA.
+Resources/Characters/GuardianEntTree01.prefab is generated explicitly by the
+QA-owned menu Realm Raiders > Art Intake > Build Guardian Ent Tree01 Pilot.
+One identity root contains a Fit child at (0, +0.004083, 0), yaw 0, scale 1; source
+bind transforms remain beneath it. No Collider/Rigidbody/Animator/scripts/Camera/
+Light/AudioListener/Animation is permitted. Gameplay root/CharacterController,
+health, possession, cultivation leaf tiers and combat timing stay unchanged.
+The full primitive Guardian recipe is retained when the Resources prefab is absent.
+
+PILOT ONLY — NOT PRODUCTION BUDGET ACCEPTANCE:
+Offline FBX: 5,438 triangles, 2,721 control points, 31 deform bones, no LODs.
+1,438 triangles above LargeCreature LOD0 cap 4,000; LOD1 2,000 / LOD2 800 absent.
+373 source control points exceed 4 influences (maximum 8); importer pruning is
+not equivalent to production weight cleanup. No source animation clips are used.
+Imported bounds, forward direction, bind-pose rendering, material/submesh counts,
+cultivation clipping and both mobile orientations require QA; device performance
+and later animated deformation remain unverified. Never substitute Tree02/dark set.

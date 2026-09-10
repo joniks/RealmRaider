@@ -561,11 +561,24 @@ Play `1/1` passed. Final native gates passed EditMode `288/288` and PlayMode
 `92/92`; the post-gate log contained no errors/exceptions. Game-view aesthetics
 remain user-owned.
 
-## Ready next — Diamond Pass 15.15: Guardian Ent Visual Intake
+## Accepted — Diamond Pass 15.15: Guardian Ent Tree01 Visual Pilot
 
-Use only the already reviewed exact Tennessippi Free Treant Pack/Tree01 CC0 source
-and its recorded provenance. First freeze the actual extracted-file/import evidence
-and mobile visual budget; then bind one visual-only Guardian Ent prefab through the
-existing LargeCreature recipe while preserving the same entity, CharacterController,
-possession, cultivation and fallback behavior. No source physics, colliders, root
-motion or unverified animation claim may enter gameplay.
+Modules `a075494` freezes the exact Tennessippi Free Treant Pack/Tree01 identity,
+creator-page CC0 evidence, selected light textures and measured import/budget facts.
+Core binds one visual-only Guardian Ent prefab through the existing
+LargeCreature recipe while preserving the same entity, CharacterController,
+possession, cultivation and exact primitive fallback. The over-budget 5,438-triangle
+source is a temporary prototype exception only; no source physics, colliders,
+Animator, root motion or unverified animation may enter gameplay. Architect reviews
+the frozen diff; QA's explicit builder created one factual static renderer, and
+the final native gates passed EditMode `300/300` and PlayMode `93/93`. A light
+Tree01 was visible without pink material or obvious clipping. Cultivation,
+possession/release and true portrait/landscape interaction remain a user-owned
+visual smoke. Android export remains excluded.
+
+## Ready after 15.15 — Guardian Ent Production Optimisation Evidence
+
+Technical Art prepares a provenance-linked derivative plan for true LargeCreature
+LOD0/1/2 caps (`4000/2000/800`) and cleaned four-weight skinning. It must not alter
+the accepted pilot or main checkout until the user's visual smoke and QA evidence
+confirm Tree01 is worth production optimisation.

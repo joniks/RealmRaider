@@ -625,6 +625,123 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator GuardianEntTree01_PreservesPossessionCultivationAndVisualCleanup()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig));
+            cameraObject.tag = "MainCamera";
+            var host = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            host.name = "Guardian Ent Tree01 Fixture";
+            host.GetComponent<Collider>().enabled = false;
+            var motor = host.AddComponent<CharacterController>(); motor.height = 3; motor.radius = .8f;
+            host.AddComponent<Health>();
+            var entity = host.AddComponent<CombatEntity>();
+            var player = host.AddComponent<PlayerController>();
+            var ai = host.AddComponent<CreatureBrain>();
+            var managerObject = new GameObject("Tree01 Possession", typeof(PossessionManager));
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+            var savedTimeScale = Time.timeScale;
+            var savedFixedDelta = Time.fixedDeltaTime;
+            try
+            {
+                host.transform.localScale = Vector3.one * 1.4f;
+                definition.ArchetypeId = "realmraiders.guardian-ent";
+                definition.DisplayName = "Guardian Ent";
+                definition.Possessable = true;
+                definition.Stats = CombatStats.Ent;
+                definition.VisualRecipe = PrototypeRuntimeFactory.GuardianEntRecipe;
+                Assert.That(definition.VisualRecipe.BaseBodyPrefab, Is.Not.Null, "The actual Tree01 Resources prefab is required.");
+                ability.DisplayName = "Tree01 State Probe"; ability.Cooldown = 10; ability.Windup = .1f;
+                definition.Abilities = new[] { ability };
+                entity.Initialize(definition);
+                entity.SetController(ai);
+                var assembler = host.GetComponent<CharacterVisualAssembler>();
+                var pivot = assembler.PresentationPivot;
+                var body = pivot.Find("Base Body");
+                Assert.That(body.Find("Tree01 Fit/Tree01 Source"), Is.Not.Null);
+                var treeRenderers = body.GetComponentsInChildren<MeshRenderer>(true);
+                var treeFilters = body.GetComponentsInChildren<MeshFilter>(true);
+                Assert.That(treeRenderers, Has.Length.EqualTo(1));
+                Assert.That(treeFilters, Has.Length.EqualTo(1));
+                Assert.That(treeRenderers[0].gameObject, Is.SameAs(treeFilters[0].gameObject));
+                foreach (var component in body.GetComponentsInChildren<Component>(true))
+                    Assert.That(component && (component is Transform || component is MeshFilter || component is MeshRenderer), Is.True,
+                        "The imported visual must contain only the static render pair and transforms.");
+                Assert.That(body.GetComponentsInChildren<Collider>(true), Is.Empty);
+                Assert.That(body.GetComponentsInChildren<Animator>(true), Is.Empty);
+                Assert.That(host.GetComponent<CharacterProceduralMotionAdapter>().IsBound, Is.False);
+                var rootPosition = host.transform.position;
+                var rootRotation = host.transform.rotation;
+                var rootScale = host.transform.localScale;
+                var motorCenter = motor.center;
+                var maximum = entity.Health.Maximum;
+                var growth = host.AddComponent<GuardianEntGrowthPresentation>();
+                var tierPositions = new[] { new Vector3(0, 1.08f, .2f), new Vector3(-.52f, .92f, .12f), new Vector3(.52f, .92f, .12f) };
+                for (var rank = 0; rank <= 3; rank++)
+                {
+                    growth.Configure(rank);
+                    Assert.That(growth.TierCount, Is.EqualTo(rank));
+                    Assert.That(entity.Health.Maximum, Is.EqualTo(maximum), "Presentation must not apply or reapply cultivation health.");
+                    Assert.That(host.transform.localScale, Is.EqualTo(rootScale));
+                    if (rank == 0) { Assert.That(growth.MarkerRoot, Is.Null); continue; }
+                    Assert.That(growth.MarkerRoot.parent, Is.SameAs(pivot));
+                    for (var tier = 0; tier < rank; tier++)
+                        Assert.That(growth.MarkerRoot.GetChild(tier).localPosition, Is.EqualTo(tierPositions[tier]));
+                    foreach (var collider in growth.MarkerRoot.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
+                }
+                var marker = growth.MarkerRoot;
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapToOverview();
+                var manager = managerObject.GetComponent<PossessionManager>(); manager.Initialize(rig); manager.Register(entity);
+                entity.Health.TakeDamage(new DamageInfo(17, null, host.transform.position), 0);
+                Assert.That(entity.TryUse(0, Vector3.forward), Is.True);
+                var health = entity.Health.Current;
+                var abilityState = entity.Abilities[0];
+                var readyAt = abilityState.ReadyAt;
+                manager.Select(entity);
+                Assert.That(manager.PossessSelected(), Is.True);
+                Assert.That(manager.Possessed, Is.SameAs(entity));
+                Assert.That(manager.Possessed.gameObject, Is.SameAs(host));
+                Assert.That(host.transform.position, Is.EqualTo(rootPosition), "Controller swap itself cannot move the root.");
+                Assert.That(host.transform.rotation, Is.EqualTo(rootRotation));
+                Assert.That(entity.ActiveController, Is.SameAs(player));
+                Assert.That(growth.MarkerRoot, Is.SameAs(marker));
+                Assert.That(assembler.PresentationPivot, Is.SameAs(pivot));
+                Assert.That(pivot.Find("Base Body"), Is.SameAs(body));
+                Assert.That(entity.Health.Current, Is.EqualTo(health));
+                Assert.That(entity.Abilities[0], Is.SameAs(abilityState));
+                Assert.That(abilityState.ReadyAt, Is.EqualTo(readyAt));
+                manager.Release();
+                Assert.That(entity.ActiveController, Is.SameAs(ai));
+                Assert.That(player.IsActive, Is.False);
+                Assert.That(growth.MarkerRoot, Is.SameAs(marker));
+                Assert.That(entity.Health.Current, Is.EqualTo(health));
+                Assert.That(abilityState.ReadyAt, Is.EqualTo(readyAt));
+                yield return null;
+                Assert.That(host.transform.localScale, Is.EqualTo(rootScale));
+                Assert.That(motor.height, Is.EqualTo(3)); Assert.That(motor.radius, Is.EqualTo(.8f)); Assert.That(motor.center, Is.EqualTo(motorCenter));
+                Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                Assert.That(pivot.Find("Base Body"), Is.SameAs(body));
+
+                entity.Health.TakeDamage(new DamageInfo(10000, null, host.transform.position), 0);
+                Assert.That(growth.MarkerRoot, Is.Null);
+                Assert.That(marker.gameObject.activeSelf, Is.False, "Death must immediately hide cultivation.");
+                assembler.Clear();
+                yield return null;
+                Assert.That(body == null, Is.True, "No orphan imported visual after deferred destruction.");
+                Assert.That(marker == null, Is.True);
+                Assert.That(host.transform.Find("Character Visual Modules"), Is.Null);
+                Assert.That(host.GetComponent<Renderer>().enabled, Is.True, "Clearing visuals restores the gameplay root's fallback renderer.");
+            }
+            finally
+            {
+                Object.Destroy(managerObject); Object.Destroy(host); Object.Destroy(cameraObject);
+                Object.Destroy(definition); Object.Destroy(ability);
+                Time.timeScale = savedTimeScale; Time.fixedDeltaTime = savedFixedDelta;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator BloodKnightHeroPrefab_BuildsAsVisualOnlyChild()
         {
             var heroRecipe = PrototypeRuntimeFactory.BloodKnightRecipe;

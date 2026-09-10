@@ -162,6 +162,10 @@ namespace RealmRaiders.Tests
                 var ent = GameObject.Find("Guardian Ent").GetComponent<CombatEntity>();
                 var growth = ent.GetComponent<GuardianEntGrowthPresentation>();
                 var defenderHud = Object.FindFirstObjectByType<DefenderHUD>();
+                var treeBody = ent.GetComponent<CharacterVisualAssembler>().PresentationPivot.Find("Base Body");
+                Assert.That(ent.Definition.VisualRecipe.BaseBodyPrefab, Is.SameAs(Resources.Load<GameObject>("Characters/GuardianEntTree01")));
+                Assert.That(treeBody.Find("Tree01 Fit/Tree01 Source"), Is.Not.Null, "Real cultivated defense must use the accepted Tree01 visual.");
+                Assert.That(treeBody.GetComponentsInChildren<Collider>(true), Is.Empty);
                 Assert.That(ent.Health.Maximum, Is.EqualTo(374).Within(.01f));
                 Assert.That(GameObject.Find("Realm Wolf A").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(52).Within(.01f));
                 Assert.That(GameObject.Find("Invading Blood Knight").GetComponent<CombatEntity>().Health.Maximum, Is.EqualTo(220).Within(.01f));

@@ -3104,3 +3104,49 @@ Completed on 2026-09-11.
 
 - Pelvis/foot/toe motion, foot planting, IK, authored clips, root motion,
   ragdoll/Rigidbody physics and generic retargeting.
+
+## Diamond Pass 15.15 — Guardian Ent Tree01 Visual Pilot
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- Modules commit `a075494` records the exact locally supplied Tennessippi Free
+  Treant Pack archive, Tree01 FBX and selected light texture hashes, official
+  creator-page CC0 evidence, offline structure and explicit prototype-budget
+  exception.
+- Imported only the exact Tree01 FBX plus its light albedo, normal and mask into a
+  provenance-recorded third-party folder. The pilot material samples only the
+  1024 mobile light albedo; normal and mask remain retained but unbound.
+- Added an explicit, idempotent QA-owned intake command that validates hashes and
+  import settings before creating one project-owned URP material and one sanitized
+  static visual prefab in an isolated preview scene.
+- Guardian Ent's cached LargeCreature recipe now binds the resource when present,
+  suppresses primitive overlays, and preserves the exact primitive recipe when it
+  is unavailable. A fallback cached before the builder can promote in the same
+  Editor domain without replacing live entities or requiring a restart.
+- The prefab contains only transforms and one factual `MeshFilter`/`MeshRenderer`
+  pair. It adds no Collider, Rigidbody, Animator, script, camera, light, root
+  motion or gameplay authority; `CombatEntity`, `CharacterController`, possession,
+  health, cooldowns and cultivation remain on the same root.
+
+### Verification
+
+- Exact source bytes and all four SHA-256 values match the accepted intake;
+  `git diff --check` is clean.
+- QA's explicit builder succeeded with one static renderer and `5,438` triangles.
+  Two pre-gate attempts correctly exposed a stale assembly caused by an unsupported
+  test attribute; after the compatibility fix and a verified Assets Refresh, the
+  new assembly was used.
+- Final QA gates passed EditMode `300/300` and PlayMode `93/93`, with no new C#
+  errors, exceptions or assertions in the post-gate log.
+- A manual Defender view showed the light Tree01 Ent without a pink material or
+  obvious clipping. Cultivation, possession/release and true portrait/landscape
+  interaction remain honestly unobserved because the automation could not select
+  the Ent and the Game view remained `1280×720`.
+
+### Scope intentionally deferred
+
+- Production LOD0/1/2 (`4000/2000/800`), cleaned four-weight skinning, clip/rig
+  validation, animation, normal/mask use, root motion, IK, gameplay physics and
+  final physical-device visual/performance approval.

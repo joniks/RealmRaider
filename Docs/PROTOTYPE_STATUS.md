@@ -115,7 +115,8 @@ Last reviewed: 2026-09-11
 - Diamond Pass 15.12 Factual Character Motion Dynamics is present: one shared per-entity state drives the six bound bones and bounded pivot weight from factual horizontal displacement and yaw, stops exactly at neutral, composes with the staged jump/action/hit priorities and clears on every authority/lifecycle boundary without changing gameplay physics.
 - Diamond Pass 15.13 Sagittal Stride and Directional Combat Motion is present through Modules commit `7aae5d6`: the Blood Knight's six cached limb hinges now follow the owned Presentation Pivot's forward/back plane with opposed gait, while factual accepted attacks and damage drive continuous bounded windup/impact/recovery and directional flinch without gameplay authority.
 - Diamond Pass 15.14 Blood Knight Upper-Torso Counterweight is present through Modules commit `e02e9a4`: the actual skin-weighted `Bip01 Spine1` receives small bounded walk/attack/hit counterweight while invalid optional evidence falls back to the unchanged six-limb motion and every gameplay transform remains authoritative.
-- Current Unity Test Runner baseline: EditMode `288/288` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Diamond Pass 15.15 Guardian Ent Tree01 Visual Pilot is present through Modules evidence commit `a075494`: the exact creator-published CC0 light Tree01 now replaces only the Guardian Ent visual child through a sanitized static prefab, while the same entity, CharacterController, possession, cultivation and primitive fallback remain authoritative.
+- Current Unity Test Runner baseline: EditMode `300/300` and PlayMode `93/93` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -132,7 +133,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `251/251` and PlayMode `92/92` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `300/300` and PlayMode `93/93` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -153,8 +154,13 @@ Last reviewed: 2026-09-11
 - The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package now includes deterministic explicit-provider catalogue construction, compatibility evaluation and explicit binding-batch evidence but remains uninstalled; its isolated package tests are authored but not yet run. MMP05 freezes a CC0 UAL2 pilot intake, but no archive, approved shared rig, clip binding, concrete motion provider or Core presentation adapter exists yet.
 - The character-art-manifests package now includes deterministic evidence validation, hashing, explicit-provider catalogue construction, an adapter-neutral measurement gate and immutable batch reporting but remains uninstalled; its isolated package tests are authored but not yet run, and no concrete source manifest, measurement adapter or Unity importer is approved.
-- The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
-- Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
+- Guardian Ent now has an exact creator-published CC0 Tree01 static visual pilot with
+  retained provenance and automated gameplay-envelope checks. It deliberately
+  exceeds the production LOD0 cap at 5,438 triangles, has no LOD1/LOD2 and relies
+  on importer pruning for 373 source points above four influences; production
+  optimisation and animated-rig validation remain separate gates.
+- The Guardian Ent visual direction has reached a reversible pilot; Sylvan
+  environment production remains incomplete beyond the accepted preview surfaces.
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.
 - Beast production is design-only: the Wolf/Hellhound family still needs a human-approved source/provenance route and one frozen Beast rig/bind/anchor proof before assets or shared clips are produced.
 - Prototype arena boundaries are implemented and automated collision/AI coverage is green; the P0 factual Portal → Crossroads movement/dash regression is also green. Full physical-device edge/action, encounter-completion and portrait-to-landscape feel remain user-owned.
