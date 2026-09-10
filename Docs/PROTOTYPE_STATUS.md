@@ -66,8 +66,9 @@ Last reviewed: 2026-09-10
 - Diamond Pass 12.7 Build-to-Defense Deployment Receipt is present: the Sylvan opening states the five pieces actually deployed from the saved Build plan and clears for guide, possession, movement, terminal and transition ownership.
 - Diamond Pass 12.8 Camera-Relative Direct Attack Direction is present: untargeted direct attacks follow the visible camera plane at input time, while explicit enemy taps and buffered direction snapshots remain authoritative.
 - Diamond Pass 12.9 Possessed-Defense Invader Awareness is present: a factual nearby raid invader targeting the directly controlled possessed defender now feeds the existing bounded plate/edge/focus presentation before the first hit, with lifecycle-safe cleanup and no targeting or combat authority.
+- Diamond Pass 13.0 Sylvan Seam-Hardened Path Integration is present: the accepted original-generated MWS07 mossy stone candidate now textures Sylvan walkable route presentation with Repeat/mobile import settings while exact geometry, collision, Infernal art and solid-colour fallback remain unchanged.
 - Module Pass MMP 04 Explicit Character Motion Binding Batch is accepted in the pinned Modules submodule: explicit characters can be deterministically checked against exact compatible motion-profile IDs without fallback selection or animation authority.
-- Current Unity Test Runner baseline: EditMode `137/137` and PlayMode `79/79` passed with `0` failures on 2026-09-10.
+- Current Unity Test Runner baseline: EditMode `139/139` and PlayMode `79/79` passed with `0` failures on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -84,7 +85,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `137/137` and PlayMode `79/79` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `139/139` and PlayMode `79/79` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

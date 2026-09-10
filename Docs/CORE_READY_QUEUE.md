@@ -2,49 +2,46 @@
 
 This is the tracked continuation queue for the main Unity checkout. `NEXT_JOB.md` remains the full active lease; this file states what happens immediately after every intermediate result so a valid handoff cannot become silent idle time.
 
-## Accepted — Diamond Passes 12.7–12.9
+## Accepted — Diamond Passes 12.7–13.0
 
 - Diamond Pass 12.7 Build-to-Defense Deployment Receipt is accepted after the user's positive manual smoke and the final automated gates.
 - Diamond Pass 12.8 Camera-Relative Direct Attack Direction is accepted with deterministic legacy PlayMode gate repairs.
 - Diamond Pass 12.9 Possessed-Defense Invader Awareness is accepted with factual event-driven invader intent, bounded existing awareness presentation and complete lifecycle cleanup.
-- Final Unity GUI Test Runner: EditMode `137/137`, PlayMode `79/79`, `0` failures. PlayMode XML completed 2026-09-10 05:31:27Z; scoped `git diff --check` is clean.
-- Architect records and commits only the accepted paths; user push is asynchronous publication and does not block 13.0.
+- Diamond Pass 13.0 Sylvan Seam-Hardened Path Integration is accepted with byte-identical original-generated provenance, Repeat/mobile import settings and unchanged authoritative geometry/collision.
+- Final Unity GUI Test Runner: EditMode `139/139`, PlayMode `79/79`, `0` failures. PlayMode XML completed 2026-09-10 06:25:24Z; scoped and complete-new-file checks are clean.
+- Architect records and commits only the accepted paths; user push is asynchronous publication and does not block QA Tool 01.
 
-## Now — Diamond Pass 13.0: Sylvan Seam-Hardened Path Integration
+## Now — QA Tool 01: Accessible Unity Test Gates
 
 Owner: Core developer
 
 Workspace: main checkout; source only, no Unity.
 
-Base: Architect's accepted local 12.9 commit.
+Base: Architect's accepted local 13.0 commit.
 
 Reserved paths:
 
-- `Assets/Game/Resources/Art/WorldSurfaces/MWS07-SylvanPath/`
-- `Assets/Game/Editor/PrototypeWorldSurfacePreviewImport.cs`
-- `Assets/Game/Scripts/Core/RealmRoutePresentation.cs`
-- `Assets/Game/Tests/EditMode/RealmRouteSurfaceMaterialPreviewTests.cs`
-- `Assets/Game/Tests/PlayMode/RealmRouteSurfaceScenePreviewTests.cs`
+- `Assets/Game/Editor/RealmRaidersTestGate.cs`
 
 Handoff: frozen scoped diff, `git diff --check`, six-line Core report; no stage, commit, push or Unity.
 
 ### Outcome
 
-Replace only the current provisional Sylvan walkable-path albedo with the accepted seam-hardened MWS07 Sylvan stone candidate so the first realm reads as intentional fantasy terrain at gameplay scale. Preserve exact geometry, collision, route ownership and fallback behavior.
+Expose two accessible Unity menu commands that start full EditMode or PlayMode runs through the installed official `TestRunnerApi`. This bypasses the Test Runner window's inaccessible internal buttons without CLI, Editor restart, window rearrangement or a second Unity process.
 
 ### Guardrails
 
-- Copy only `Modules/RealmRaider.Modules/ArtPreviews/MWS07-WalkableSurfaceSeamHardening/sylvan-stone-path-edge-hardened-candidate.png` plus a concise local provenance record into the reserved main-project resource folder; the Modules source stays read-only.
-- Import as mobile albedo: sRGB, mipmaps, bilinear, Repeat, non-readable, Android ASTC 6×6 and maximum 512. Do not import the 2×2 evidence image.
-- Keep one lazily shared material per existing Sylvan role; no per-frame allocations, new shader/package, runtime file access or scene scan.
-- Preserve the exact solid-colour fallback when the resource is absent or loading throws.
-- Prove exact resource/provenance binding, import settings, material caching, Repeat wrap, no colliders on presentation children and unchanged authoritative transform/mesh/collider.
-- Do not change Infernal art, gameplay/collision, bootstraps/scenes, camera, UI, input, AI, persistence, lighting or boundary material.
+- Add **Realm Raiders → QA → Run All EditMode Tests** and **Run All PlayMode Tests**; use public `UnityEditor.TestTools.TestRunner.Api` only.
+- Each command supplies exactly one unfiltered `Filter` for its mode. It must not inspect or inherit the Test Runner search field.
+- Refuse while compiling, updating, entering/inside Play Mode or while a gate launched by this tool is already active. Never start a second run or Unity process.
+- Register a lightweight callback that logs factual passed/failed/skipped totals and clears the owned active state; persist only the minimum session state needed across a PlayMode domain reload.
+- Do not mutate tests, Test Runner layout/filter, scenes, packages, ProjectSettings or gameplay. Do not auto-chain broad suites; Architect deliberately invokes each final gate once.
+- Architect updates the QA guide after direct acceptance; Core does not edit process documentation.
 
 ## Next gate — Architect verification
 
-After Core freezes 13.0, Architect performs static/provenance preflight, focused surface import/binding coverage, then exactly one final EditMode and one final PlayMode run. A concrete failure returns to the same lease; green evidence advances immediately to acceptance records, commit and the Android GUI export without restarting a healthy Editor.
+After Core freezes QA Tool 01, Architect performs static API/lifecycle review, invokes its EditMode menu command, reads the result, then invokes its PlayMode command and reads that result. A concrete failure returns to the same lease; green direct use accepts the tool without a second redundant suite.
 
-## Ready after 13.0
+## Ready after QA Tool 01
 
-Prepare the matching Infernal walkable-path integration from the accepted MWS07 candidate, but do not modify its files until the Sylvan material has passed visual scale/readability and collision gates.
+Diamond Pass 13.1 integrates the accepted MWS08 Sylvan living-root boundary candidate as presentation only, preserving all boundary collider geometry and mobile budgets. The matching Infernal path remains queued behind its documented ember-periodicity check.

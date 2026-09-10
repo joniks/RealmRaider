@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.sylvan-walkable-surface.mws07.v1",
+  "creation": "original generation followed by MWS07 seam-hardening",
+  "status": "preview-only-not-production-approved",
+  "modulesCommit": "6138f71",
+  "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS07-WalkableSurfaceSeamHardening/sylvan-stone-path-edge-hardened-candidate.png",
+  "sourceSha256": "c5043bfb793fa4c85ff7e6b7284ef3a1d845bd56d8c4480628cfd91d6ccc101c",
+  "asset": {
+    "file": "sylvan-stone-path-edge-hardened-candidate.png",
+    "role": "seam-hardened RGB albedo preview",
+    "dimensions": [1024, 1024]
+  },
+  "nonGoals": ["normal map", "height map", "emission map", "production approval"]
+}

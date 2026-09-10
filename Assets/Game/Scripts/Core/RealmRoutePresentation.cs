@@ -14,7 +14,7 @@ namespace RealmRaiders.Core
         public const string RootName = "Realm Route Presentation";
         public const int SegmentRendererCeiling = 1;
         public const int DefenseRendererCeiling = 4;
-        public const string SylvanAlbedoResource = "Art/WorldSurfaces/MWS02-SylvanGroundMaterialCandidate/sylvan-ground-albedo-rgb-candidate";
+        public const string SylvanAlbedoResource = "Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate";
         public const string InfernalAlbedoResource = "Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate";
 
         static Material sylvanFloor;

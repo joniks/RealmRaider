@@ -9,14 +9,18 @@ namespace RealmRaiders.Tests
 {
     public sealed class RealmRouteSurfaceMaterialPreviewTests
     {
-        const string SylvanAsset = "Assets/Game/Resources/Art/WorldSurfaces/MWS02-SylvanGroundMaterialCandidate/sylvan-ground-albedo-rgb-candidate.png";
+        const string SylvanAsset = "Assets/Game/Resources/Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate.png";
         const string InfernalAsset = "Assets/Game/Resources/Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate.png";
+        const string SylvanResource = "Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate";
 
         [Test]
-        public void ImportedPreviewProviderCachesExactAlbedosAndPreservesColorFallback()
+        public void ImportedPreviewProviderBindsAndCachesExactAlbedos()
         {
-            var sylvanTexture = AssertPreviewImport(SylvanAsset, "realmraiders.preview.sylvan-ground-material.mws02.v1");
-            var infernalTexture = AssertPreviewImport(InfernalAsset, "realmraiders.preview.infernal-ground-material.mws03.v1");
+            Assert.That(RealmRoutePresentation.SylvanAlbedoResource, Is.EqualTo(SylvanResource));
+            Assert.That(RealmRoutePresentation.InfernalAlbedoResource,
+                Is.EqualTo("Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate"));
+            var sylvanTexture = AssertSylvanPreviewImport();
+            var infernalTexture = AssertLegacyPreviewImport(InfernalAsset, "realmraiders.preview.infernal-ground-material.mws03.v1");
             var roots = new List<GameObject>();
             try
             {
@@ -41,22 +45,9 @@ namespace RealmRaiders.Tests
                 Assert.That(infernalPresentation.GetComponentInChildren<Renderer>().sharedMaterial.mainTexture, Is.SameAs(infernalTexture));
                 Assert.That(secondSylvan.GetComponent<Renderer>().sharedMaterial, Is.SameAs(firstSylvan.GetComponent<Renderer>().sharedMaterial));
                 Assert.That(secondPresentation.GetComponentInChildren<Renderer>().sharedMaterial, Is.SameAs(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial));
-                CollectionAssert.AreEquivalent(new[] { RealmRoutePresentation.SylvanAlbedoResource, RealmRoutePresentation.InfernalAlbedoResource }, requests);
-
-                DestroyRoots(roots);
-                RealmRoutePresentation.ConfigureTextureLoaderForTests(_ => throw new System.InvalidOperationException("Failed preview resource"));
-                var fallbackSylvanA = CreateRoute(roots);
-                var fallbackSylvanB = CreateRoute(roots);
-                var fallbackInfernal = CreateRoute(roots);
-                var fallbackSylvanPresentation = RealmRoutePresentation.BuildDefenseLane(fallbackSylvanA.transform, RealmRouteStyle.SylvanOrganic);
-                RealmRoutePresentation.BuildDefenseLane(fallbackSylvanB.transform, RealmRouteStyle.SylvanOrganic);
-                var fallbackInfernalPresentation = RealmRoutePresentation.BuildDefenseLane(fallbackInfernal.transform, RealmRouteStyle.InfernalFractured);
-
-                AssertFallback(fallbackSylvanA.GetComponent<Renderer>().sharedMaterial, new Color(.08f, .24f, .1f));
-                AssertFallback(fallbackSylvanPresentation.GetComponentInChildren<Renderer>().sharedMaterial, new Color(.25f, .36f, .22f));
-                AssertFallback(fallbackInfernal.GetComponent<Renderer>().sharedMaterial, new Color(.12f, .045f, .035f));
-                AssertFallback(fallbackInfernalPresentation.GetComponentInChildren<Renderer>().sharedMaterial, new Color(.27f, .23f, .2f));
-                Assert.That(fallbackSylvanB.GetComponent<Renderer>().sharedMaterial, Is.SameAs(fallbackSylvanA.GetComponent<Renderer>().sharedMaterial));
+                Assert.That(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial,
+                    Is.Not.SameAs(firstSylvan.GetComponent<Renderer>().sharedMaterial));
+                CollectionAssert.AreEqual(new[] { SylvanResource, RealmRoutePresentation.InfernalAlbedoResource }, requests);
             }
             finally
             {
@@ -65,7 +56,79 @@ namespace RealmRaiders.Tests
             }
         }
 
-        static Texture2D AssertPreviewImport(string assetPath, string candidateId)
+        [TestCase(false)]
+        [TestCase(true)]
+        public void UnavailableSylvanPreviewPreservesExactCachedColorFallback(bool loaderThrows)
+        {
+            var roots = new List<GameObject>();
+            var loadCount = 0;
+            try
+            {
+                RealmRoutePresentation.ConfigureTextureLoaderForTests(path =>
+                {
+                    Assert.That(path, Is.EqualTo(SylvanResource));
+                    loadCount++;
+                    if (loaderThrows) throw new System.InvalidOperationException("Failed preview resource");
+                    return null;
+                });
+
+                var first = CreateRoute(roots);
+                var second = CreateRoute(roots);
+                var firstPresentation = RealmRoutePresentation.BuildDefenseLane(first.transform, RealmRouteStyle.SylvanOrganic);
+                var secondPresentation = RealmRoutePresentation.BuildDefenseLane(second.transform, RealmRouteStyle.SylvanOrganic);
+
+                Assert.That(loadCount, Is.EqualTo(1));
+                AssertFallback(first.GetComponent<Renderer>().sharedMaterial, new Color(.08f, .24f, .1f));
+                AssertFallback(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial, new Color(.25f, .36f, .22f));
+                Assert.That(second.GetComponent<Renderer>().sharedMaterial, Is.SameAs(first.GetComponent<Renderer>().sharedMaterial));
+                Assert.That(secondPresentation.GetComponentInChildren<Renderer>().sharedMaterial,
+                    Is.SameAs(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial));
+                Assert.That(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial,
+                    Is.Not.SameAs(first.GetComponent<Renderer>().sharedMaterial));
+            }
+            finally
+            {
+                DestroyRoots(roots);
+                RealmRoutePresentation.ResetTextureLoaderForTests();
+            }
+        }
+
+        static Texture2D AssertSylvanPreviewImport()
+        {
+            AssertImportSettings(SylvanAsset, TextureWrapMode.Repeat);
+            var provenancePath = "Assets/Game/Resources/Art/WorldSurfaces/MWS07-SylvanPath/provenance.json";
+            var provenance = AssetDatabase.LoadAssetAtPath<TextAsset>(provenancePath);
+            Assert.That(provenance, Is.Not.Null, provenancePath);
+            Assert.That(provenance.text, Does.Contain("realmraiders.preview.sylvan-walkable-surface.mws07.v1"));
+            Assert.That(provenance.text, Does.Contain("original generation followed by MWS07 seam-hardening"));
+            Assert.That(provenance.text, Does.Contain("preview-only-not-production-approved"));
+            Assert.That(provenance.text, Does.Contain("\"modulesCommit\": \"6138f71\""));
+            Assert.That(provenance.text, Does.Contain(
+                "Modules/RealmRaider.Modules/ArtPreviews/MWS07-WalkableSurfaceSeamHardening/sylvan-stone-path-edge-hardened-candidate.png"));
+            Assert.That(provenance.text, Does.Contain("c5043bfb793fa4c85ff7e6b7284ef3a1d845bd56d8c4480628cfd91d6ccc101c"));
+
+            var folder = SylvanAsset.Substring(0, SylvanAsset.LastIndexOf('/'));
+            var images = AssetDatabase.FindAssets("", new[] { folder })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Where(path => path.EndsWith(".png"))
+                .ToArray();
+            CollectionAssert.AreEqual(new[] { SylvanAsset }, images, "Only the accepted RGB albedo belongs in this resource folder.");
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(SylvanAsset);
+        }
+
+        static Texture2D AssertLegacyPreviewImport(string assetPath, string candidateId)
+        {
+            AssertImportSettings(assetPath, TextureWrapMode.Clamp);
+            var provenancePath = assetPath.Substring(0, assetPath.LastIndexOf('/') + 1) + "provenance.json";
+            var provenance = AssetDatabase.LoadAssetAtPath<TextAsset>(provenancePath);
+            Assert.That(provenance, Is.Not.Null, provenancePath);
+            Assert.That(provenance.text, Does.Contain(candidateId));
+            Assert.That(provenance.text, Does.Contain("preview-import-candidate-not-approved-for-runtime"));
+            Assert.That(provenance.text, Does.Contain("\"tileabilityVerified\": false"));
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+        }
+
+        static void AssertImportSettings(string assetPath, TextureWrapMode wrapMode)
         {
             var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
             Assert.That(importer, Is.Not.Null, assetPath);
@@ -73,23 +136,15 @@ namespace RealmRaiders.Tests
             Assert.That(importer.sRGBTexture, Is.True);
             Assert.That(importer.mipmapEnabled, Is.True);
             Assert.That(importer.filterMode, Is.EqualTo(FilterMode.Bilinear));
-            Assert.That(importer.wrapMode, Is.EqualTo(TextureWrapMode.Clamp));
+            Assert.That(importer.wrapMode, Is.EqualTo(wrapMode));
             Assert.That(importer.isReadable, Is.False);
             var android = importer.GetPlatformTextureSettings("Android");
             Assert.That(android.overridden, Is.True);
             Assert.That(android.maxTextureSize, Is.EqualTo(512));
             Assert.That(android.format, Is.EqualTo(TextureImporterFormat.ASTC_6x6));
+            Assert.That(android.textureCompression, Is.EqualTo(TextureImporterCompression.Compressed));
 
-            var provenancePath = assetPath.Substring(0, assetPath.LastIndexOf('/') + 1) + "provenance.json";
-            var provenance = AssetDatabase.LoadAssetAtPath<TextAsset>(provenancePath);
-            Assert.That(provenance, Is.Not.Null, provenancePath);
-            Assert.That(provenance.text, Does.Contain(candidateId));
-            Assert.That(provenance.text, Does.Contain("preview-import-candidate-not-approved-for-runtime"));
-            Assert.That(provenance.text, Does.Contain("\"tileabilityVerified\": false"));
-            Assert.That(AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath.Replace("albedo", "normal")), Is.Null, "Deferred normal candidates must not enter the main project.");
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
-            Assert.That(texture, Is.Not.Null, assetPath);
-            return texture;
+            Assert.That(AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath), Is.Not.Null, assetPath);
         }
 
         static GameObject CreateRoute(List<GameObject> roots)

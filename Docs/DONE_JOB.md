@@ -1779,3 +1779,26 @@ Completed on 2026-09-10.
 ### Scope intentionally deferred
 
 - Target lock, aim assist, AI changes, combat tuning, new HUD/camera systems, animation/VFX/audio/haptics and physical-device readability tuning.
+
+## Diamond Pass 13.0 — Sylvan Seam-Hardened Path Integration
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Copied only the accepted original-generated MWS07 Sylvan RGB path candidate into the main project with its exact Modules source, commit `6138f71`, SHA-256 and preview-only provenance.
+- Sylvan floor and route presentation now use the new seam-hardened resource with Repeat wrapping, while Infernal and boundary materials remain unchanged.
+- The importer keeps sRGB, mipmaps, bilinear filtering and non-readable source data with Android maximum 512 and ASTC 6×6 compression.
+- Existing lazy resource resolution, separate role-shared materials and exact null/throw solid-colour fallbacks are preserved. No geometry, collider, shader, package or gameplay authority changed.
+
+### Verification
+
+- Static review confirmed the project PNG is byte-identical to the Modules source (`c5043bfb…`), provenance JSON is valid and the resource folder contains no repeat-grid evidence or PBR maps.
+- Focused EditMode coverage proves resource/provenance/import settings, cache behavior and exact null/throw fallbacks. Focused PlayMode coverage proves Sylvan segment/defense and Infernal transforms, mesh, collider identity/state/shape/layer plus collider-free presentation children.
+- Final Unity GUI Test Runner: EditMode `139/139` and PlayMode `79/79`, both with `0` failures. PlayMode XML records 2026-09-10 06:24:30Z–06:25:24Z.
+- Architect observed the SylvanRealm Game view with the new mossy-stone route, hero and HUD visible. Movement, device performance and final-art approval are not claimed.
+- Full new-file whitespace, scoped diff and provenance checks are clean after a `.meta` whitespace-only cleanup that changed no import value.
+
+### Scope intentionally deferred
+
+- Infernal/boundary integration, second-tile macro variation, terrain/shader work, normal/height/emission maps, final-art approval and physical-device performance/readability.
