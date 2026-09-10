@@ -337,6 +337,42 @@ and the recommended 3.5-world-unit tile scale remain explicit Unity/device gates
 
 ## Next Module gate
 
-Wait for Architect to name the next player-visible integration seam. Do not
-produce another generic validator or another surface variant without a concrete
-Core dependency; read-only preparation may inspect the accepted MWS10 contract.
+## Now — Art Pass MUI 02: Encounter Cue Icon Candidates
+
+Owner: Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Base: Modules commit `646ecde`.
+
+Reserved folder only:
+
+- `ArtPreviews/MUI02-EncounterCueIconSet/`
+
+### Outcome
+
+Prepare a compact original visual vocabulary for the factual 13.2 encounter cue:
+node discovered, hostiles present and area clear. These remain optional preview
+candidates until the text-first cue passes QA and Architect names an integration.
+
+### Required deliverables
+
+1. Create three cohesive original 512×512 transparent-background RGBA PNGs:
+   `discovered`, `hostiles` and `area-clear`.
+2. Use one bold mobile-fantasy silhouette per icon, readable at 32–48 px; restrained
+   pale-gold/Sylvan accent, no text, numerals, frame, glow cloud, logo, watermark,
+   gradient backdrop or recognizable franchise design.
+3. Produce one neutral dark 48 px contact sheet showing all three at actual size,
+   plus one 256 px overview sheet. Evidence sheets are not runtime imports.
+4. Record exact prompts/tools/date/output hashes, original-generation truth,
+   intended factual mapping and preview-only status in one provenance JSON.
+5. Inspect silhouette distinction, alpha edges and actual-size legibility. Report
+   any ambiguity honestly; do not call the set runtime-approved.
+6. Verify dimensions, RGBA/alpha, JSON, hashes and whitespace. Freeze only the
+   reserved folder and send a compact handoff; no commit or push.
+
+### Non-goals
+
+Main checkout, Unity or `.meta`, 13.2 code/text/layout changes, runtime binding,
+animation, font, audio/VFX, gameplay/reward logic, third-party sources or package
+validators.

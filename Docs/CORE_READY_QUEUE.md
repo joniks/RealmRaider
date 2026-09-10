@@ -61,9 +61,20 @@ SylvanRealm portrait and DefenderTest landscape showed restrained root relief wi
 no obvious seams, streaking or gaps; Portal → Crossroads movement and autonomous
 defense engagement continued, and the Console remained clean.
 
-## Next Core gate
+## Now — Diamond Pass 13.2: Factual Encounter Entry and Clear Cue
 
-Architect will activate one player-visible first-encounter polish slice after the
-13.1 acceptance commit. Infernal surface integration remains blocked on its
-documented on-device periodicity review rather than being silently bundled with
-Sylvan.
+Owner: Core developer. Base: `d5bdf91`. Full lease: `Docs/NEXT_JOB.md`.
+
+Publish the first-entered node and its explicitly supplied alive hostile contents
+through the existing raid/HUD path. Show one short, non-raycast, responsive cue for
+discovery, factual hostile count and `AREA CLEAR`, with exact-once room/reward
+behavior and complete terminal/teardown cleanup. This is presentation only: it
+must not gate movement, discover enemies by scan/name, or change AI, combat,
+camera, rewards, fog, input or route availability. Core never controls Unity;
+Architect reviews the frozen diff and QA alone produces Unity evidence.
+
+## Ready after 13.2
+
+Use QA's first-encounter observation to choose either one concrete cue correction
+or the next BUILD → RAID continuity slice. Infernal surface integration remains
+blocked on its documented on-device periodicity review.
