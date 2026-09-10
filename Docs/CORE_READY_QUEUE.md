@@ -75,6 +75,13 @@ Architect reviews the frozen diff and QA alone produces Unity evidence.
 
 ## Ready after 13.2
 
-Use QA's first-encounter observation to choose either one concrete cue correction
-or the next BUILD → RAID continuity slice. Infernal surface integration remains
-blocked on its documented on-device periodicity review.
+If QA finds no P0/P1 defect in 13.2, activate **Diamond Pass 13.3 — Sylvan
+Clearing-Floor Presentation** from the accepted Modules MWS10 commit `646ecde`.
+Import only the 1024×1024 albedo and restrained normal with provenance and mobile
+settings, then apply them only to the existing Sylvan circular node/clearing
+presentation. Preserve every node transform, collider, visit radius, route,
+combat and fog behavior plus exact missing-resource fallback. QA must inspect
+both orientations for obvious periodicity and verify normal orientation under
+the existing light. If 13.2 instead exposes a P0/P1 defect, fix that one bounded
+defect first. Infernal surface integration remains blocked on its documented
+on-device periodicity review.
