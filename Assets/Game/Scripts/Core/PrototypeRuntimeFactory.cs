@@ -27,6 +27,7 @@ namespace RealmRaiders.Core
                 bloodKnightRecipe = Recipe(CharacterVisualFamily.Humanoid, VisualModuleStyle.None, VisualModuleStyle.None, VisualModuleStyle.None, VisualModuleStyle.None, new Color(.55f, .04f, .06f), new Color(.16f, .12f, .14f), new Color(.95f, .65f, .2f));
                 bloodKnightHeroPrefab = Resources.Load<GameObject>("Characters/BloodKnightHero");
                 bloodKnightRecipe.BaseBodyPrefab = bloodKnightHeroPrefab;
+                bloodKnightRecipe.BaseBodyLocalEulerAngles = new Vector3(0, 180, 0);
                 return bloodKnightRecipe;
             }
         }

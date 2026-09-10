@@ -43,10 +43,16 @@ namespace RealmRaiders.Characters
 
         Transform BuildBase(CharacterVisualRecipe recipe)
         {
-            if (recipe.BaseBodyPrefab) return AddPrefab("Base Body", recipe.BaseBodyPrefab, Vector3.zero);
-            var type = recipe.Family == CharacterVisualFamily.Humanoid ? PrimitiveType.Capsule : recipe.Family == CharacterVisualFamily.LargeCreature ? PrimitiveType.Cube : PrimitiveType.Sphere;
-            var scale = recipe.Family == CharacterVisualFamily.Humanoid ? new Vector3(.75f, 1.25f, .55f) : recipe.Family == CharacterVisualFamily.LargeCreature ? new Vector3(1.45f, 1.25f, .85f) : new Vector3(1.15f, .7f, .75f);
-            return AddPrimitive("Base Body", type, Vector3.zero, scale, recipe.Primary);
+            Transform baseBody;
+            if (recipe.BaseBodyPrefab) baseBody = AddPrefab("Base Body", recipe.BaseBodyPrefab, Vector3.zero);
+            else
+            {
+                var type = recipe.Family == CharacterVisualFamily.Humanoid ? PrimitiveType.Capsule : recipe.Family == CharacterVisualFamily.LargeCreature ? PrimitiveType.Cube : PrimitiveType.Sphere;
+                var scale = recipe.Family == CharacterVisualFamily.Humanoid ? new Vector3(.75f, 1.25f, .55f) : recipe.Family == CharacterVisualFamily.LargeCreature ? new Vector3(1.45f, 1.25f, .85f) : new Vector3(1.15f, .7f, .75f);
+                baseBody = AddPrimitive("Base Body", type, Vector3.zero, scale, recipe.Primary);
+            }
+            baseBody.localRotation = Quaternion.Euler(recipe.BaseBodyLocalEulerAngles) * baseBody.localRotation;
+            return baseBody;
         }
         float BodyHeight(CharacterVisualRecipe recipe) => recipe.Family == CharacterVisualFamily.LargeCreature ? 1.35f : recipe.Family == CharacterVisualFamily.Humanoid ? 1.2f : .65f;
         void BuildSlot(string slot, VisualModuleStyle style, GameObject prefab, Vector3 position, Color color)

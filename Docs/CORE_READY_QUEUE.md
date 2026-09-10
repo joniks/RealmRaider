@@ -457,17 +457,32 @@ inconclusive tests. The post-gate log tail had no new error/exception. Manual
 portrait/landscape motion quality remains unobserved because QA could not safely
 operate the Game view.
 
-## Now — Diamond Pass 15.9: Blood Knight Device Motion Tune
+## Accepted — Diamond Pass 15.9: Blood Knight Device Motion Tune
 
-Hold runtime edits until the user's Android smoke identifies whether the exact
-3DRT local axes, six-radian cadence and static action pose read correctly. Core may
-prepare only read-only measurements meanwhile. If evidence shows sideways/twisted
-limbs, slow locomotion or a frozen strike, tune those values in the Modules driver
-through one immutable profile seam; do not add Animator/root motion or change
-gameplay authority.
+Android evidence showed that the imported Knight appeared to move backwards and
+that the first procedural pose was not noticeable. The accepted correction adds
+one neutral-by-default visual Base Body fit, gives only Blood Knight a 180-degree
+local yaw, and selects the bounded Module `BloodKnightDeviceReadable` preset. The
+compatibility profile retains every 15.8 value; the stronger preset remains within
+30 degrees and changes only the exact six bound bone rotations.
 
-## Ready after 15.9
+Acceptance: after removing a direct package dependency from the Core test
+assemblies, QA's final native gates passed EditMode `248/248` and PlayMode `92/92`,
+both with zero failed/skipped/inconclusive tests. The post-gate log tail was clean.
+QA could not safely enter or control the Game view, so physical-device facing and
+motion readability remain the next user-owned observation.
 
-Choose the Guardian Ent source/intake gate. Prefer a purpose-built rigged CC0
-Treant over deforming the Humanoid Knight; acquisition/import still requires a
-named user selection and exact archive/licence evidence.
+## Now — MART05 Guardian Ent archive intake
+
+The user selected the creator-published Tennessippi Free Treant Pack. Acquire only
+the exact official `Treant Package.7z`, preserve the creator page and embedded
+licence evidence, then run the accepted offline fail-closed inventory helper from
+Modules commit `45bdf67`. No mirror, substitute, extraction, import or licence
+approval is authorized before the exact archive is locally supplied and reviewed.
+
+## Ready after MART05
+
+Choose Tree01 or Tree02 against the measured mobile budgets, freeze a LargeCreature
+fit/rig/animation manifest, and activate one visual-only Guardian Ent Core binding.
+Keep gameplay on the existing entity root and CharacterController, disable source
+colliders and root motion, and preserve possession and cultivation continuity.

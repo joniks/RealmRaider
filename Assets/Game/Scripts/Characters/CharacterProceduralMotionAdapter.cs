@@ -20,7 +20,7 @@ namespace RealmRaiders.Characters
             "Bip01 L UpperArm", "Bip01 R UpperArm", "Bip01 L Thigh",
             "Bip01 R Thigh", "Bip01 L Calf", "Bip01 R Calf");
 
-        readonly ProceduralHumanoidPoseDriver driver = new();
+        readonly ProceduralHumanoidPoseDriver driver = new(ProceduralHumanoidMotionTuning.BloodKnightDeviceReadable);
         CombatEntity entity;
         Health health;
         Transform baseBody;

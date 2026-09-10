@@ -1,5 +1,44 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 15.9 — Blood Knight Device Motion Tune
+
+Completed on 2026-09-10; included with the next project commit.
+
+### Delivered
+
+- Converted the procedural driver's hard-coded strengths into immutable bounded
+  tuning data. `CompatibilityDefault` preserves the 15.8 behavior, while the named
+  `BloodKnightDeviceReadable` preset strengthens phone-visible locomotion, attack,
+  jump, hit and death silhouettes without exceeding 30 degrees.
+- Added a neutral-by-default Base Body local fit to the shared visual recipe and
+  assembler. Only the 3DRT Blood Knight receives the Android-evidence-driven
+  180-degree yaw correction, so its visual forward matches the authoritative
+  character direction without rotating gameplay.
+- The Blood-Knight-only adapter selects the new preset but still maps only factual
+  displacement, action, jump, damage and death state to the same six exact bones.
+- Gameplay root, CharacterController, Presentation Pivot, camera, input, combat
+  timing, possession identity and visual-collider rules remain unchanged.
+- Modules commits `0cec1d4` and `45bdf67` also add the accepted motion profile and
+  a reusable offline, fail-closed character archive inventory helper.
+
+### Verification
+
+- QA Refresh first exposed and Core removed an invalid direct Module dependency
+  from the main test assemblies; no asmdef broadening was retained.
+- Final EditMode: `248/248` passed, zero failed/skipped/inconclusive, in 0.921 s.
+- Final PlayMode: `92/92` passed, zero failed/skipped/inconclusive, in 71.782 s.
+- Post-gate Editor log tail had no new errors or exceptions; `git diff --check` is
+  clean.
+- QA could not safely enter/control Game view through its automation surface, so
+  corrected facing and stronger motion readability remain for the next Android
+  export and user smoke; no manual result is claimed.
+
+### Scope intentionally deferred
+
+- Animator/root motion, Humanoid retarget, IK, ragdoll/Rigidbody physics, broad
+  skeleton support, gameplay movement/combat changes and speculative axis tuning.
+- Guardian Ent acquisition/import remains a separate exact-source gate.
+
 ## Diamond Pass 02.5 — Adaptive orientation and classic controls
 
 Completed on 2026-09-04 from commit `1b4a551`.

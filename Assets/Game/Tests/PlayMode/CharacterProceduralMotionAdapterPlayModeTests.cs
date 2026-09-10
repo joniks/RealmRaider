@@ -49,6 +49,10 @@ namespace RealmRaiders.Tests
                 var pivotPose = Pose.Of(pivot);
                 var bodyPose = Pose.Of(baseBody);
                 var rootPosition = host.transform.position;
+                var controller = host.GetComponent<CharacterController>();
+                var controllerHeight = controller.height;
+                var controllerRadius = controller.radius;
+                var controllerCenter = controller.center;
                 var bones = RequiredBones(baseBody);
                 host.GetComponent<CharacterVisualMotion>().enabled = false;
 
@@ -63,13 +67,18 @@ namespace RealmRaiders.Tests
                 Assert.That(locomotionObserved, Is.True, "Factual horizontal root displacement must map to locomotion.");
                 Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
                 Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
+                Assert.That(host.transform.localRotation, Is.EqualTo(Quaternion.identity));
+                Assert.That(host.transform.localScale, Is.EqualTo(Vector3.one));
+                Assert.That(controller.height, Is.EqualTo(controllerHeight));
+                Assert.That(controller.radius, Is.EqualTo(controllerRadius));
+                Assert.That(controller.center, Is.EqualTo(controllerCenter));
                 Assert.That(Vector3.Distance(host.transform.position, rootPosition + Vector3.forward * .9f), Is.LessThan(.001f));
 
                 Reset(adapter, baseBody);
                 baseline = Snapshot(bones);
                 host.GetComponent<Health>().TakeDamage(new DamageInfo(1, null, host.transform.position), 0);
                 yield return null;
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(10f).Within(.01f), "Only Health.Damaged may drive the hit pose.");
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(14f).Within(.01f), "Only Health.Damaged may drive the hit pose.");
 
                 Reset(adapter, baseBody);
                 baseline = Snapshot(bones);
@@ -77,7 +86,7 @@ namespace RealmRaiders.Tests
                 Assert.That(entity.TryUse(0, Vector3.forward), Is.True);
                 yield return null;
                 Assert.That(entity.ActionPhase, Is.Not.EqualTo(CombatActionPhase.Idle));
-                Assert.That(RotationDelta(bones[1], baseline[1]), Is.EqualTo(28f).Within(.01f), "A non-idle action phase must map to generic primary attack after the hit window expires.");
+                Assert.That(RotationDelta(bones[1], baseline[1]), Is.EqualTo(30f).Within(.01f), "A non-idle action phase must map to generic primary attack after the hit window expires.");
 
                 yield return new WaitForSecondsRealtime(.15f);
                 Assert.That(entity.ActionPhase, Is.EqualTo(CombatActionPhase.Idle));
@@ -109,13 +118,13 @@ namespace RealmRaiders.Tests
                 entity.Move(Vector3.zero);
                 yield return null;
                 Assert.That(entity.IsJumping, Is.True);
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(12f).Within(.01f), "The factual jump start must map to takeoff.");
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(18f).Within(.01f), "The factual jump start must map to takeoff.");
 
                 yield return new WaitForSecondsRealtime(.12f);
                 entity.Move(Vector3.zero);
                 yield return null;
                 Assert.That(entity.IsJumping, Is.True);
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(16f).Within(.01f), "The ongoing factual jump must map to falling.");
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(22f).Within(.01f), "The ongoing factual jump must map to falling.");
 
                 var landingDeadline = Time.realtimeSinceStartup + 2f;
                 while (entity.IsJumping && Time.realtimeSinceStartup < landingDeadline)
@@ -126,14 +135,14 @@ namespace RealmRaiders.Tests
                 Assert.That(entity.IsJumping, Is.False, "The existing jump state must settle through CharacterController grounding.");
                 Assert.That(entity.IsGrounded, Is.True);
                 yield return null;
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(6f).Within(.01f), "The factual grounded transition must map to landing.");
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(10f).Within(.01f), "The factual grounded transition must map to landing.");
 
                 Reset(adapter, baseBody);
                 baseline = Snapshot(bones);
                 host.GetComponent<Health>().TakeDamage(new DamageInfo(10000, null, host.transform.position), 0);
                 yield return null;
                 Assert.That(host.GetComponent<Health>().IsDead, Is.True);
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(12f).Within(.01f), "Health.IsDead must retain death priority.");
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(16f).Within(.01f), "Health.IsDead must retain death priority.");
                 Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
                 Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
 
