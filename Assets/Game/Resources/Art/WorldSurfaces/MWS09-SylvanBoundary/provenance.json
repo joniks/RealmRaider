@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.sylvan-living-root-boundary.mws09.v1",
+  "creation": "project-owned original generation; MWS08 seam-hardening albedo with MWS09 restrained RGB normal derivation; no third-party source",
+  "status": "preview-only-not-final-art",
+  "licence": "original-generated project asset; no third-party licence or attribution required",
+  "sources": [
+    {
+      "role": "seam-hardened RGB albedo preview",
+      "modulesCommit": "c4295e4",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS08-RealmBoundarySeamHardening/sylvan-living-root-boundary-edge-hardened-candidate.png",
+      "sourceSha256": "f0a79e13023c4191dd4e9405647de07db5fdc9a3cb21d340c08ba4a54c3aaba8",
+      "file": "sylvan-living-root-boundary-edge-hardened-candidate.png",
+      "dimensions": [1024, 1024]
+    },
+    {
+      "role": "restrained RGB tangent-space normal preview",
+      "modulesCommit": "f3475ac",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS09-SylvanLivingRootMobileMaps/sylvan-living-root-mobile-normal-rgb-candidate.png",
+      "sourceSha256": "27828c57fac349a26d73bac44497804296248131d8880a9289c7bad607312122",
+      "file": "sylvan-living-root-mobile-normal-rgb-candidate.png",
+      "dimensions": [1024, 1024]
+    }
+  ],
+  "nonGoals": ["final-art approval", "height or displacement", "emission", "third-party attribution"]
+}

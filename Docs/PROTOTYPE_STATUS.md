@@ -70,7 +70,8 @@ Last reviewed: 2026-09-10
 - Module Pass MMP 04 Explicit Character Motion Binding Batch is accepted in the pinned Modules submodule: explicit characters can be deterministically checked against exact compatible motion-profile IDs without fallback selection or animation authority.
 - QA Tool 01 is present: Reviewer / QA + Build can launch explicit unfiltered EditMode or PlayMode suites from **Realm Raiders → QA** without depending on inaccessible Test Runner buttons, CLI or a second Unity process.
 - Module Pass MWS 09 is accepted in the pinned Modules submodule: a deterministic wrapped-edge tool and restrained Sylvan living-root normal-map candidate are ready for the named boundary presentation gate, but remain unimported until Unity orientation and device-lighting review.
-- Current Unity Test Runner baseline: EditMode `139/139` and PlayMode `79/79` passed with `0` failures through the new QA menu commands on 2026-09-10.
+- Diamond Pass 13.1 Sylvan Living-Root Boundary Presentation is present: Sylvan arena closure now uses the accepted original-generated root albedo and restrained normal response through deterministic visual-only UV/tangents, while all boundary geometry, colliders, gameplay and non-Sylvan fallbacks remain unchanged.
+- Current Unity Test Runner baseline: EditMode `145/145` and PlayMode `80/80` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones

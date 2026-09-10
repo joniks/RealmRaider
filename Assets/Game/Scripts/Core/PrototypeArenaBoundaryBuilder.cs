@@ -62,14 +62,22 @@ namespace RealmRaiders.Core
         public const string VisualName = "Boundary Visual";
         public const float CornerOverlap = .12f;
         public const int SylvanColliderBudget = 56;
+        public const string SylvanAlbedoResource = "Art/WorldSurfaces/MWS09-SylvanBoundary/sylvan-living-root-boundary-edge-hardened-candidate";
+        public const string SylvanNormalResource = "Art/WorldSurfaces/MWS09-SylvanBoundary/sylvan-living-root-mobile-normal-rgb-candidate";
+        public const float SylvanNormalStrength = .35f;
         const int CircleSides = 8;
         const float GeometryEpsilon = .002f;
         const float EndpointTolerance = .01f;
         const float MaximumContourSimplification = .24f;
+        const float SurfaceTileScale = .22f;
 
         static Material neutralMaterial;
         static Material sylvanMaterial;
         static Material infernalMaterial;
+        static Texture2D sylvanAlbedo;
+        static Texture2D sylvanNormal;
+        static bool sylvanSurfaceResolved;
+        static Func<string, Texture2D> textureLoader = LoadTexture;
 
         struct Segment
         {
@@ -208,10 +216,25 @@ namespace RealmRaiders.Core
             }
 
             var mesh = new Mesh { name = $"{style} Boundary Mesh" };
-            mesh.SetVertices(vertices); mesh.SetTriangles(triangles, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds();
+            mesh.SetVertices(vertices); mesh.SetTriangles(triangles, 0); mesh.SetUVs(0, SurfaceUvs(vertices));
+            mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
             visual.GetComponent<MeshFilter>().sharedMesh = mesh;
             visual.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterial(style);
             return root;
+        }
+
+        static List<Vector2> SurfaceUvs(List<Vector3> vertices)
+        {
+            var result = new List<Vector2>(vertices.Count);
+            foreach (var vertex in vertices)
+            {
+                // One oblique world-space projection gives both horizontal crowns and vertical roots useful,
+                // deterministic coverage without splitting or moving any existing visual-mesh vertex.
+                result.Add(new Vector2(
+                    (vertex.x + vertex.z * .37f) * SurfaceTileScale,
+                    (vertex.y * 1.15f + vertex.x * .17f - vertex.z * .29f) * SurfaceTileScale));
+            }
+            return result;
         }
 
         static void AddCollider(Transform root, Segment segment, float groundY, float height, float thickness, int index)
@@ -633,12 +656,71 @@ namespace RealmRaiders.Core
                 case PrototypeArenaBoundaryStyle.NeutralStone:
                     return neutralMaterial ? neutralMaterial : neutralMaterial = CreateMaterial("Neutral Boundary Stone", new Color(.17f, .22f, .21f));
                 case PrototypeArenaBoundaryStyle.SylvanRoots:
-                    return sylvanMaterial ? sylvanMaterial : sylvanMaterial = CreateMaterial("Sylvan Boundary Roots", new Color(.25f, .22f, .105f));
+                    return sylvanMaterial ? sylvanMaterial : sylvanMaterial = CreateSylvanMaterial();
                 case PrototypeArenaBoundaryStyle.InfernalBasalt:
                     return infernalMaterial ? infernalMaterial : infernalMaterial = CreateMaterial("Infernal Boundary Basalt", new Color(.12f, .075f, .06f));
                 default:
                     throw new ArgumentOutOfRangeException(nameof(style), style, null);
             }
+        }
+
+        static Material CreateSylvanMaterial()
+        {
+            var material = CreateMaterial("Sylvan Boundary Roots", new Color(.25f, .22f, .105f));
+            if (!ResolveSylvanSurface() || !material.HasProperty("_BumpMap")) return material;
+            material.color = Color.white;
+            material.mainTexture = sylvanAlbedo;
+            material.SetTexture("_BumpMap", sylvanNormal);
+            if (material.HasProperty("_BumpScale")) material.SetFloat("_BumpScale", SylvanNormalStrength);
+            material.EnableKeyword("_NORMALMAP");
+            return material;
+        }
+
+        static bool ResolveSylvanSurface()
+        {
+            if (sylvanSurfaceResolved) return sylvanAlbedo && sylvanNormal;
+            sylvanSurfaceResolved = true;
+            try
+            {
+                sylvanAlbedo = textureLoader?.Invoke(SylvanAlbedoResource);
+                sylvanNormal = textureLoader?.Invoke(SylvanNormalResource);
+            }
+            catch (Exception)
+            {
+                sylvanAlbedo = null;
+                sylvanNormal = null;
+            }
+            if (sylvanAlbedo && sylvanNormal) return true;
+            sylvanAlbedo = null;
+            sylvanNormal = null;
+            return false;
+        }
+
+        static Texture2D LoadTexture(string resourcePath) => Resources.Load<Texture2D>(resourcePath);
+
+        public static void ConfigureTextureLoaderForTests(Func<string, Texture2D> loader)
+        {
+            ResetSylvanSurfaceCache();
+            textureLoader = loader ?? (_ => null);
+        }
+
+        public static void ResetTextureLoaderForTests()
+        {
+            ResetSylvanSurfaceCache();
+            textureLoader = LoadTexture;
+        }
+
+        static void ResetSylvanSurfaceCache()
+        {
+            if (sylvanMaterial)
+            {
+                if (Application.isPlaying) UnityEngine.Object.Destroy(sylvanMaterial);
+                else UnityEngine.Object.DestroyImmediate(sylvanMaterial);
+            }
+            sylvanMaterial = null;
+            sylvanAlbedo = null;
+            sylvanNormal = null;
+            sylvanSurfaceResolved = false;
         }
 
         static Material CreateMaterial(string name, Color color)

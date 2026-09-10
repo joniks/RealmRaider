@@ -1859,3 +1859,36 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 
 - Unity import orientation, material binding, Android compression/device lighting,
   colliders/gameplay, height/displacement maps and Infernal derivatives.
+
+## Diamond Pass 13.1 — Sylvan Living-Root Boundary Presentation
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported the accepted original-generated MWS08 living-root albedo and MWS09
+  restrained tangent normal byte-identically with local provenance and explicit
+  Repeat/mipmap/mobile ASTC 6×6 settings.
+- Only `SylvanRoots` receives one atomically lazy-loaded shared textured material;
+  missing or throwing resources retain the exact solid fallback, while Neutral
+  and Infernal boundaries remain texture-free.
+- The combined visual mesh now has deterministic oblique UVs and tangents without
+  adding or moving vertices, triangles, children, colliders or gameplay authority.
+
+### Verification
+
+- Architect static checks confirmed exact source hashes, valid provenance,
+  intended import settings, reserved scope and clean whitespace.
+- QA native gates passed EditMode `145/145` and PlayMode `80/80`, both with zero
+  failed, skipped or inconclusive tests; the new six EditMode and one PlayMode
+  boundary-surface cases were included.
+- SylvanRealm portrait showed restrained living-root relief with no obvious
+  streaking, seams or gaps; three safe taps advanced Portal → Crossroads and
+  Rooms 1 → 2. DefenderTest landscape showed the same stable treatment while
+  autonomous engagement reduced invader health `220 → 174`. Console remained
+  at zero logs, warnings and errors.
+
+### Scope intentionally deferred
+
+- Final-art/device-performance approval, Infernal/Neutral textures, triplanar or
+  terrain shaders, height/displacement/emission/masks and geometry/gameplay changes.

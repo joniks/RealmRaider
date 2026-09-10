@@ -45,9 +45,25 @@ healthy Editor. EditMode passed `139/139`; PlayMode passed `79/79`. PlayMode
 ownership recovered across domain reload and cleared after completion. No CLI,
 restart, overlapping run or Test Runner layout/filter change occurred.
 
-## Now — Diamond Pass 13.1: Sylvan Living-Root Boundary Presentation
+## Accepted — Diamond Pass 13.1: Sylvan Living-Root Boundary Presentation
 
-Core integrates the accepted MWS08 Sylvan living-root boundary albedo and accepted
-MWS09 restrained normal candidate as presentation only, preserving all boundary
-collider geometry, gameplay authority and mobile budgets. The matching Infernal
-surface remains queued behind its documented periodicity check.
+Owner: Core developer. Base: `0ae2db1`. Full lease: `Docs/NEXT_JOB.md`.
+
+Core integrates the byte-identical accepted MWS08 Sylvan living-root albedo and
+MWS09 restrained normal candidate as presentation only. The combined visual mesh
+gets deterministic UVs/tangents, while every boundary vertex position, triangle,
+collider, gameplay layer and shared-style material budget remains authoritative
+and unchanged. Core never controls Unity; Architect statically reviews the frozen
+candidate, then Reviewer / QA + Build owns focused/final suites and manual smoke.
+
+Acceptance: QA's native gates passed EditMode `145/145` and PlayMode `80/80`.
+SylvanRealm portrait and DefenderTest landscape showed restrained root relief with
+no obvious seams, streaking or gaps; Portal → Crossroads movement and autonomous
+defense engagement continued, and the Console remained clean.
+
+## Next Core gate
+
+Architect will activate one player-visible first-encounter polish slice after the
+13.1 acceptance commit. Infernal surface integration remains blocked on its
+documented on-device periodicity review rather than being silently bundled with
+Sylvan.
