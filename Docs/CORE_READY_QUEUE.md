@@ -325,7 +325,7 @@ Acceptance: QA's final native gates passed EditMode `179/179` and PlayMode
 no error/exception entries. Manual Sylvan/Defender visual readability is not
 claimed because the Game view was not safely operable through QA automation.
 
-## Now — Diamond Pass 14.8: One Falling Jump Buffer
+## Accepted — Diamond Pass 14.8: One Falling Jump Buffer
 
 Allow exactly one short pre-landing jump request only while a direct player's
 existing active jump is factually descending. Preserve immediate grounded/coyote
@@ -333,8 +333,21 @@ jump, reject repeated presses without refreshing expiry and clear the request on
 every existing jump lifecycle boundary. Visual-profile integration still requires
 approved non-no-op Module data rather than invented Core values.
 
-## Ready after 14.8
+Acceptance: after Unity's temporarily unresponsive import channel recovered
+without a restart, QA's final native gates passed EditMode `179/179` and PlayMode
+`85/85`, both with zero failed/skipped/inconclusive tests. Editor log tail showed
+no error/exception entries. Manual pre-landing behavior is not claimed because
+the Game view was not safely operable through QA automation.
 
-Use QA's factual timing/cleanup result to accept or return one bounded correction.
-Then select a separate player-visible combat/realm slice; do not extend the jump
-mechanic into double, wall, charged or general airborne actions.
+## Now — Diamond Pass 15.0: Possession Energy Urgency Pulse
+
+Make the existing warning and critical possession-energy states harder to miss on
+a phone through one bounded, noninteractive pulse on the existing energy meter.
+Preserve current text, colour, timer, release authority, responsive layout and
+all gameplay timing; do not add a Canvas, object, sound or repeated alarm.
+
+## Ready after 15.0
+
+Use QA's factual threshold/lifecycle result to accept or return one bounded
+presentation correction. Then select a separate combat-contact or realm-identity
+slice from a concrete manual/device observation rather than speculative systems.

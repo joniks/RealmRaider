@@ -15,6 +15,7 @@ namespace RealmRaiders.Characters
         public const float DodgeImmunityDuration = .18f;
         public const float DodgeCooldown = 1.5f;
         public const float JumpCoyoteSeconds = .10f;
+        public const float JumpBufferSeconds = .08f;
         long selectionIdentity;
         public CharacterDefinition Definition { get; private set; }
         public Health Health { get; private set; }
@@ -34,6 +35,8 @@ namespace RealmRaiders.Characters
         float dodgeReadyAt;
         float rootedUntil;
         float lastGroundedAt = float.NegativeInfinity;
+        float pendingJumpUntil = float.NegativeInfinity;
+        bool fallingJumpRequestUsed;
         public bool IsRooted => Time.time < rootedUntil;
         public CombatActionPhase ActionPhase => action.Phase;
         public bool IsActionResolving => action.IsResolving;
@@ -41,7 +44,7 @@ namespace RealmRaiders.Characters
         public bool IsJumping => jump.IsActive;
         public bool IsGrounded => Motor && Motor.enabled && Motor.isGrounded;
         public float DodgeCooldownRemaining => Mathf.Max(0, dodgeReadyAt - Time.time);
-        public bool CanJump => Health != null && !Health.IsDead && HasJumpGrounding && !IsRooted && !isDodging && !jump.IsActive && !action.IsResolving && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled;
+        public bool CanJump => HasDirectJumpAuthority && HasJumpGrounding && !jump.IsActive;
         public bool CanDodge => Health != null && Motor && Motor.enabled && !Health.IsDead && !IsRooted && !isDodging && !jump.IsActive && !action.IsResolving && DodgeCooldownRemaining <= 0 && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive;
         public long SelectionIdentity
         {
@@ -62,6 +65,10 @@ namespace RealmRaiders.Characters
                 return lastGroundedAt >= 0 && elapsed >= 0 && elapsed < JumpCoyoteSeconds;
             }
         }
+
+        bool HasDirectJumpAuthority => Health != null && !Health.IsDead && Motor && Motor.enabled && !IsRooted && !isDodging && !action.IsResolving && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled;
+        bool HasPendingJump => pendingJumpUntil > Time.time;
+        bool CanBufferFallingJump => !fallingJumpRequestUsed && !HasPendingJump && HasDirectJumpAuthority && !Motor.isGrounded && jump.IsActive && jump.VerticalVelocity <= 0;
 
         void Awake() => _ = SelectionIdentity;
 
@@ -171,8 +178,18 @@ namespace RealmRaiders.Characters
 
         public bool TryJump()
         {
-            if (!CanJump) return false;
-            return jump.TryBegin(true);
+            if (CanJump)
+            {
+                ClearPendingJump();
+                if (!jump.TryBegin(true)) return false;
+                fallingJumpRequestUsed = false;
+                return true;
+            }
+
+            if (!CanBufferFallingJump) return false;
+            pendingJumpUntil = Time.time + JumpBufferSeconds;
+            fallingJumpRequestUsed = true;
+            return true;
         }
 
         IEnumerator ExecuteDodge(Vector3 direction)
@@ -199,8 +216,11 @@ namespace RealmRaiders.Characters
             if (velocity.sqrMagnitude > .01f && !action.IsResolving) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 15 * Time.deltaTime);
             var gravity = jump.IsActive ? Vector3.up * jump.Step(Time.deltaTime) : Physics.gravity;
             Motor.Move((velocity + gravity) * Time.deltaTime);
-            if (Motor.isGrounded) lastGroundedAt = Time.time;
-            jump.ObserveGrounded(Motor.isGrounded);
+            var grounded = Motor.isGrounded;
+            if (grounded) lastGroundedAt = Time.time;
+            jump.ObserveGrounded(grounded);
+            if (grounded) ConsumePendingJump();
+            else if (!HasPendingJump) ClearPendingJump();
         }
 
         public void ApplyRoot(float seconds)
@@ -238,7 +258,29 @@ namespace RealmRaiders.Characters
         {
             jump.Cancel();
             lastGroundedAt = float.NegativeInfinity;
+            ClearPendingJump();
+            fallingJumpRequestUsed = false;
         }
+
+        void ConsumePendingJump()
+        {
+            if (!HasPendingJump)
+            {
+                ClearPendingJump();
+                return;
+            }
+
+            if (!CanJump)
+            {
+                ClearPendingJump();
+                return;
+            }
+
+            ClearPendingJump();
+            if (jump.TryBegin(true)) fallingJumpRequestUsed = false;
+        }
+
+        void ClearPendingJump() => pendingJumpUntil = float.NegativeInfinity;
 
         void OnDisable() { CancelDodge(); CancelJump(); }
         void OnDestroy()

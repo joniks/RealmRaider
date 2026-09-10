@@ -133,6 +133,80 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator FallingJumpBuffer_ConsumesOnceExpiresStrictlyAndClearsAcrossLifecycle()
+        {
+            GameplayInput.ResetForTests();
+            var cameraObject = MainCamera();
+            var ground = CreateGround("Falling Jump Buffer Ground", Vector3.zero, new Vector3(20, .5f, 20));
+            var fixture = new EntityFixture(new Vector3(0, 1, 0), false);
+            try
+            {
+                fixture.Entity.SetController(fixture.Player);
+                yield return BeginNearLandingJump(fixture);
+                Assert.That(fixture.Player.Jump(), Is.True, "One factual falling request is accepted for the pending landing slot.");
+                Assert.That(fixture.Player.Jump(), Is.False, "A repeated falling press cannot refresh or stack the pending request.");
+                yield return WaitForBufferedRelaunch(fixture);
+                Assert.That(fixture.Entity.IsJumping, Is.True, "The one pending request relaunches only after factual grounding.");
+                yield return WaitForGrounded(fixture.Entity);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "The consumed request cannot create another automatic jump.");
+
+                yield return BeginFallingJump(fixture);
+                Assert.That(fixture.Player.Jump(), Is.True);
+                yield return new WaitForSeconds(CombatEntity.JumpBufferSeconds);
+                yield return null;
+                Assert.That(fixture.Player.Jump(), Is.False, "An expired request cannot open a second buffer during the same descending jump.");
+                yield return WaitForGrounded(fixture.Entity);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "A pending request expires at 0.08 seconds and cannot relaunch on landing.");
+
+                yield return BeginNearLandingJump(fixture);
+                Assert.That(fixture.Player.Jump(), Is.True, "A separate factual jump receives one new falling request slot.");
+                fixture.Entity.ApplyRoot(1); fixture.Entity.BreakRoot();
+                yield return WaitForGrounded(fixture.Entity);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Root cleanup clears the pending landing request.");
+
+                yield return QueueFallingJump(fixture);
+                GameplayInput.SetTerminalState(true);
+                yield return null;
+                GameplayInput.SetTerminalState(false);
+                yield return WaitForGrounded(fixture.Entity);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Terminal cleanup clears the pending landing request.");
+
+                yield return QueueFallingJump(fixture);
+                fixture.Entity.SetController(fixture.Ai);
+                fixture.Entity.SetController(fixture.Player);
+                yield return WaitForGrounded(fixture.Entity);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Controller release cannot carry a pending landing request into restored direct control.");
+
+                yield return QueueFallingJump(fixture);
+                fixture.Entity.Motor.enabled = false;
+                yield return null;
+                fixture.Entity.Motor.enabled = true;
+                yield return WaitForGrounded(fixture.Entity);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Disabled Motor cleanup clears the pending landing request.");
+
+                yield return QueueFallingJump(fixture);
+                fixture.Player.enabled = false;
+                yield return null;
+                fixture.Player.enabled = true;
+                yield return WaitForGrounded(fixture.Entity);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "PlayerController disable clears the pending landing request.");
+
+                yield return QueueFallingJump(fixture);
+                fixture.Entity.Health.TakeDamage(new DamageInfo(1000, null, fixture.Entity.transform.position), 0);
+                yield return null;
+                Assert.That(fixture.Entity.Health.IsDead, Is.True);
+                Assert.That(fixture.Entity.IsJumping, Is.False, "Death clears the pending landing request before Motor shutdown.");
+            }
+            finally
+            {
+                GameplayInput.ResetForTests();
+                fixture.Dispose();
+                Object.Destroy(ground);
+                Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator JumpVisualMotion_AccentsOnlyThePivotAndCancelsWithoutDelayedLanding()
         {
             GameplayInput.ResetForTests();
@@ -539,6 +613,62 @@ namespace RealmRaiders.Tests
             Physics.SyncTransforms();
             fixture.Entity.Move(Vector3.zero);
             Assert.That(fixture.Entity.IsGrounded, Is.False, "The fixture must leave ground after recording a factual motor contact.");
+        }
+
+        static IEnumerator BeginFallingJump(EntityFixture fixture)
+        {
+            yield return Settle(fixture);
+            Assert.That(fixture.Player.Jump(), Is.True);
+            Assert.That(fixture.Player.Jump(), Is.False, "Ascent cannot queue a falling jump request.");
+            yield return WaitForFalling(fixture);
+        }
+
+        static IEnumerator QueueFallingJump(EntityFixture fixture)
+        {
+            yield return BeginNearLandingJump(fixture);
+            Assert.That(fixture.Player.Jump(), Is.True);
+        }
+
+        static IEnumerator BeginNearLandingJump(EntityFixture fixture)
+        {
+            yield return BeginFallingJump(fixture);
+            var timeout = Time.realtimeSinceStartup + .5f;
+            while (fixture.Entity.transform.position.y > 1.35f && Time.realtimeSinceStartup < timeout) yield return null;
+            Assert.That(fixture.Entity.IsJumping, Is.True, "The fixture must still be in its factual falling jump near landing.");
+            Assert.That(fixture.Entity.IsGrounded, Is.False, "The pending request must be submitted before factual grounding.");
+        }
+
+        static IEnumerator WaitForFalling(EntityFixture fixture)
+        {
+            var previousY = fixture.Entity.transform.position.y;
+            var rose = false;
+            var timeout = Time.realtimeSinceStartup + 1;
+            while (Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+                var currentY = fixture.Entity.transform.position.y;
+                if (currentY > previousY + .001f) rose = true;
+                if (rose && currentY < previousY - .001f)
+                {
+                    Assert.That(fixture.Entity.IsJumping, Is.True);
+                    yield break;
+                }
+                previousY = currentY;
+            }
+            Assert.Fail("The explicit jump fixture did not reach a factual falling phase.");
+        }
+
+        static IEnumerator WaitForBufferedRelaunch(EntityFixture fixture)
+        {
+            var observedLandingHeight = false;
+            var timeout = Time.realtimeSinceStartup + 1.5f;
+            while (Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+                observedLandingHeight |= fixture.Entity.transform.position.y <= 1.08f;
+                if (observedLandingHeight && fixture.Entity.IsJumping && !fixture.Entity.IsGrounded && fixture.Entity.transform.position.y > 1.1f) yield break;
+            }
+            Assert.Fail("The pending jump did not relaunch from factual grounding.");
         }
 
         static IEnumerator WaitForGrounded(CombatEntity entity)

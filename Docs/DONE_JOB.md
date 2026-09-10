@@ -2545,3 +2545,37 @@ Completed on 2026-09-10.
 - Animator/rig/clip/root-motion integration, input buffering, jump physics,
   double/wall/charged/air jump, gameplay VFX/audio/haptics, camera/UI changes and
   physical-device performance validation.
+
+## Diamond Pass 14.8 — One Falling Jump Buffer
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- A valid direct player may submit exactly one 0.08-second pending jump request
+  while the existing active jump is factually descending.
+- Immediate grounded/coyote jump remains first. Startup airborne, ascent and
+  ledge falls without an active jump never queue; repeated or same-descent
+  post-expiry presses return false without refreshing the request.
+- Factual CharacterController grounding consumes a live request once and begins
+  the unchanged jump state; expiry or invalid authority clears it.
+- Root, terminal, controller release/swap, disabled Motor or PlayerController,
+  death, entity disable and destroy cleanup cannot carry intent into a later
+  state. Joystick and Fingertap ownership remain unchanged.
+
+### Verification
+
+- Architect found and closed the initial same-descent post-expiry requeue leak,
+  then confirmed strict timing, one-use guard, factual grounding and complete
+  lifecycle cleanup; `git diff --check` is clean.
+- After Unity's import channel recovered without a restart, QA final gates passed
+  EditMode `179/179` and PlayMode `85/85`, both with zero failed/skipped/
+  inconclusive tests; Editor log tail showed no error/exception entries.
+- Manual Sylvan/possessed-Defender pre-landing behavior is not claimed because QA
+  could not safely operate the Game view through its automation surface.
+
+### Scope intentionally deferred
+
+- Double/wall/charged/air jump, hold-to-bunny-hop, buffer refresh, physics/coyote
+  tuning, AI jump, action/dodge buffering, animation/VFX/audio/haptics, camera/UI
+  changes and physical-device performance validation.
