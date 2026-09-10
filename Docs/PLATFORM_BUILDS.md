@@ -74,3 +74,21 @@ RealmRaiders.Editor.PlatformBuild.ExportXcodeSimulatorProject
 ```
 
 Unity officially generates a Gradle project for Android Studio and an Xcode project for iOS; the native tools then build and deploy those exported projects.
+
+The repository wrapper invokes these entry points with Unity `6000.6.0f1`, the
+matching `-buildTarget`, headless batch mode and a timestamped log. It resolves
+the active Unity Hub licence IPC channel before starting Unity:
+
+```text
+Tools/realmraider-unity-cli.sh export-android
+Tools/realmraider-unity-cli.sh export-ios
+Tools/realmraider-unity-cli.sh export-ios-simulator
+```
+
+Never run the wrapper while this project is open in Unity. Unity Hub must remain
+open and signed in so the Personal licence can be passed to the command-driven
+Editor. Architect warns the user before the Editor is closed and again before
+it may be reopened. Android
+export is a mandatory QA gate after every accepted Core commit; the evidence is
+the commit SHA, zero process exit code, successful completion line in the saved
+log, and refreshed `Builds/AndroidStudio` output.

@@ -10,6 +10,12 @@
 /[Rr]ecordings/
 /[Cc]aptures/
 
+# Unity Test Runner transient recovery scenes
+/Assets/InitTestScene*.unity
+/Assets/InitTestScene*.unity.meta
+/Assets/_Recovery/
+/Assets/_Recovery.meta
+
 # Unity Asset Store helper files
 /[Aa]ssets/AssetStoreTools*
 
