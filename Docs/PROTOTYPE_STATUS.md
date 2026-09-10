@@ -109,8 +109,9 @@ Last reviewed: 2026-09-10
 - Module Pass MMP08 is accepted in the pinned Modules submodule: immutable bounded tuning retains the exact compatibility profile and adds a stronger Blood Knight device-readable cadence/pose preset without root, position, scale, Animator or physics authority.
 - Module Tool MART05.1 is accepted in the pinned Modules submodule: one explicit local character archive can be hashed and inventoried deterministically without extraction, execution, network access or inferred licence approval.
 - Diamond Pass 15.9 Blood Knight Device Motion Tune is present: only the imported visual receives a 180-degree recipe fit and its exact six-bone adapter selects the stronger bounded preset, while the gameplay root, CharacterController, Presentation Pivot, camera, input and combat timing remain unchanged.
-- Current Unity Test Runner baseline: EditMode `248/248` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-10.
-- Physical-device validation of the corrected facing and stronger pose remains pending; no device performance result is claimed here.
+- Diamond Pass 15.10 Blood Knight Motion Plane is present through Modules commit `6769716`: the device-readable preset now uses a forward/back local-Z locomotion plane with opposing limbs and an asymmetric one-leg takeoff pose, while the compatibility profile and all gameplay authority remain unchanged.
+- Current Unity Test Runner baseline: EditMode `250/250` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Physical-device validation of the corrected stride plane and asymmetric takeoff remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
 
@@ -133,7 +134,7 @@ Last reviewed: 2026-09-10
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
 - The BUILD step is a compact five-slot runtime greybox with a live defense-plan summary; full device usability and performance remain unvalidated.
-- Combat presentation uses bounded pivot motion plus a modular six-bone procedural Blood Knight pilot, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge. Android evidence drove a stronger bounded preset and corrected visual forward fit; their new device readability still needs confirmation, and there is no final clip-driven animation rig or production VFX.
+- Combat presentation uses bounded pivot motion plus a modular six-bone procedural Blood Knight pilot, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge. Android evidence drove a stronger preset, corrected visual forward fit, a forward/back limb plane and asymmetric takeoff; their latest device feel still needs confirmation, and there is no final clip-driven animation rig or production VFX.
 - Fog of war is a basic graph-driven show/hide implementation.
 - AI uses direct steering instead of navigation/pathfinding; the defense invader now has only a narrow deterministic route-obstruction recovery, not general navigation.
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.

@@ -486,3 +486,18 @@ Choose Tree01 or Tree02 against the measured mobile budgets, freeze a LargeCreat
 fit/rig/animation manifest, and activate one visual-only Guardian Ent Core binding.
 Keep gameplay on the existing entity root and CharacterController, disable source
 colliders and root motion, and preserve possession and cultivation continuity.
+
+## Accepted parallel correction — Diamond Pass 15.10: Blood Knight Motion Plane
+
+Android follow-up confirmed that 15.9 made motion visible but the Bip01 local-X
+rotations read sideways/inward. Modules commit `6769716` adds a closed safe-axis
+contract: CompatibilityDefault retains exact local-X behavior, while only the
+Blood Knight preset uses local-Z forward/back counter-swing and one bounded
+asymmetric six-bone takeoff pose. No Core call site, gameplay jump timing, root,
+pivot, controller, input, camera, Animator or physics behavior changed.
+
+Acceptance: QA final gates passed EditMode `250/250` and PlayMode `92/92`, both
+with zero failed/skipped/inconclusive tests; the post-gate log tail was clean.
+Landscape Sylvan loaded the exact Knight and mobile UI, but automation could not
+safely inject Game-view input, so physical-device stride and takeoff quality remain
+the user's next observation.

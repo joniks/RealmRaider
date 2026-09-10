@@ -1,5 +1,38 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 15.10 — Blood Knight Motion Plane + Natural Takeoff
+
+Completed on 2026-09-10; included with the next project commit.
+
+### Delivered
+
+- Added an immutable closed local-axis contract to the procedural motion package;
+  invalid axes fail safely to the exact legacy local-X behavior.
+- Kept `CompatibilityDefault` source- and behavior-compatible while changing only
+  `BloodKnightDeviceReadable` locomotion to the evidence-driven local-Z plane.
+- Blood Knight arms and legs now receive opposite forward/back stride values and
+  the arms retain counter-phase with the legs.
+- The factual takeoff window now uses one bounded asymmetric visual pose: a small
+  knee bend plus distinct planted/pushing and free-leg thigh/calf rotations.
+- No pre-jump delay, position/scale/root write, CharacterController, pivot, input,
+  camera, combat, Animator, root motion or physics authority was added.
+
+### Verification
+
+- Module static checks and `git diff --check` passed; only three procedural-motion
+  package files changed in Modules commit `6769716`.
+- Final EditMode: `250/250` passed, zero failed/skipped/inconclusive, in 0.921 s.
+- Final PlayMode: `92/92` passed, zero failed/skipped/inconclusive, in 71.982 s.
+- Post-gate Editor log tail contained no new error or exception.
+- QA loaded Sylvan landscape with the exact Knight and mobile UI, but could not
+  safely inject Game-view inputs; physical-device stride/takeoff quality remains
+  unclaimed and is the next user smoke.
+
+### Scope intentionally deferred
+
+- Actual anticipation delay, spine/pivot/root movement, Animator/root motion, IK,
+  ragdoll physics, broad skeleton support and further tuning without device evidence.
+
 ## Diamond Pass 15.9 — Blood Knight Device Motion Tune
 
 Completed on 2026-09-10; included with the next project commit.
