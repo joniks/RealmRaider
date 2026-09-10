@@ -3189,3 +3189,49 @@ Completed on 2026-09-11; included with this project commit.
 - Runtime animation binding, visible loop/foot-contact and Death1 held-pose review,
   final motion feel, root motion, IK, ragdoll/physics, production LODs, source-level
   weight cleanup and physical-device performance.
+
+## Diamond Pass 15.16B — Modular Guardian Ent Motion Integration
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- Added a separate exact-source Generic runtime Tree01 visual, four sanitized
+  skeleton-only clips and an explicit Resources binding. The accepted static Ent
+  prefab/source remains unchanged and is still the first fallback before the
+  existing primitive recipe.
+- Added one reusable `LargeCreatureMotionAdapter` that maps factual death, bounded
+  hit response, accepted attack phases, measured movement and idle state to the
+  visual skeleton only. The same `CombatEntity`, root `CharacterController`,
+  Presentation Pivot, health, cultivation, cooldowns and controller authority
+  remain authoritative.
+- Root motion, controllers, Animation Events and root/motion curves fail closed.
+  Unity's non-persistent `Animator.fireEvents` flag is enforced on every runtime
+  bind/rebuild before playback rather than trusted as prefab data.
+- Death plays once and holds its final pose; controller changes, terminal state,
+  disable, rebuild and teardown clear the owned graph, subscriptions and bone
+  baselines deterministically.
+- The intake builder now validates the saved and reloaded binding, while its
+  diagnostic contract reports the first invalid clip, hierarchy, avatar, skin or
+  bone fact instead of returning an opaque failure.
+
+### Verification
+
+- QA rebuilt the motion pilot from the exact accepted source; the serialized
+  binding retained `m_Name: GuardianEntTree01Motion` with no blank-name warning.
+- The final refreshed test assembly passed EditMode `328/328`, zero failed,
+  skipped or inconclusive, in 1.756 s (job
+  `469474bf-a790-4ad4-a99e-e2d2dd327eb3`).
+- The final PlayMode gate passed `94/94`, zero failed, skipped or inconclusive,
+  in 73.422 s (job `fea6d58f-f387-4d63-b6f7-f84665422f48`). The actual animated
+  Guardian same-entity possession/cultivation/root invariants and retained static
+  fallback both passed.
+- The final run contained no new compile error or actionable exception;
+  `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual portrait/landscape clip feel, foot contact and Death1 aesthetics remain
+  unobserved because QA could not safely access the Game view.
+- Production LOD0/1/2 (`4000/2000/800`), source-level weight cleanup, IK,
+  ragdoll/physics-authoritative limbs, retargeting and physical-device performance.

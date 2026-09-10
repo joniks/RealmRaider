@@ -26,6 +26,7 @@ namespace RealmRaiders.Characters
         readonly CharacterMotionDynamics dynamics = new();
         CharacterJumpPresentationTimeline jumpPresentation;
         CharacterProceduralMotionAdapter proceduralMotion;
+        LargeCreatureMotionAdapter largeCreatureMotion;
         float hitReactionUntil;
         float seed;
         float possessionArrivalStartedAt;
@@ -247,6 +248,16 @@ namespace RealmRaiders.Characters
 
         void ApplyDefeatPose(float unscaledClock)
         {
+            if (!largeCreatureMotion) largeCreatureMotion = GetComponent<LargeCreatureMotionAdapter>();
+            if (largeCreatureMotion && largeCreatureMotion.IsBound)
+            {
+                // This pivot still has exactly one writer. The bound skeleton owns its authored death pose.
+                presentationPivot.localPosition = basePosition;
+                presentationPivot.localRotation = baseRotation;
+                presentationPivot.localScale = baseScale;
+                defeatSettled = largeCreatureMotion.IsDeathHeld;
+                return;
+            }
             var progress = Mathf.Clamp01((unscaledClock - defeatStartedAt) / DefeatSettleDuration);
             var weight = Mathf.SmoothStep(0, 1, progress);
             var defeatedPosition = ClampOffset(basePosition + Vector3.down * .055f);

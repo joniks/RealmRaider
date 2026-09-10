@@ -22,6 +22,9 @@ namespace RealmRaiders.Characters
         public Color AccentColor = Color.yellow;
         [Header("Future production slots")]
         public GameObject BaseBodyPrefab;
+        [Header("Optional LargeCreature pilot; static BaseBody remains the first fallback")]
+        public LargeCreatureMotionBinding LargeCreatureMotion;
+        public CharacterVisualRecipe MissingBaseBodyFallback;
         /// <summary>Optional authored visual fit applied only to the assembled Base Body; zero preserves its source rotation.</summary>
         public Vector3 BaseBodyLocalEulerAngles = Vector3.zero;
         public GameObject HeadPrefab;

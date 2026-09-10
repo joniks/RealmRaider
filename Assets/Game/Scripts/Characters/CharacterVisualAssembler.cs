@@ -23,21 +23,38 @@ namespace RealmRaiders.Characters
             visualRoot = new GameObject("Character Visual Modules").transform; visualRoot.SetParent(transform, false);
             presentationPivot = new GameObject("Presentation Pivot").transform; presentationPivot.SetParent(visualRoot, false);
             var motion = GetComponent<CharacterVisualMotion>() ?? gameObject.AddComponent<CharacterVisualMotion>(); motion.Bind(presentationPivot);
-            var baseBody = BuildBase(recipe);
+            var effectiveRecipe = !recipe.BaseBodyPrefab && recipe.MissingBaseBodyFallback && recipe.MissingBaseBodyFallback.IsValid
+                ? recipe.MissingBaseBodyFallback : recipe;
+            Transform baseBody = null;
+            var animated = recipe.Family == CharacterVisualFamily.LargeCreature && recipe.BaseBodyPrefab &&
+                recipe.LargeCreatureMotion && recipe.LargeCreatureMotion.IsValid && GetComponent<CombatEntity>();
+            if (animated)
+            {
+                baseBody = AddPrefab("Base Body", recipe.LargeCreatureMotion.VisualPrefab, Vector3.zero);
+                var adapter = GetComponent<LargeCreatureMotionAdapter>() ?? gameObject.AddComponent<LargeCreatureMotionAdapter>();
+                if (!adapter.Bind(baseBody, recipe.LargeCreatureMotion))
+                {
+                    baseBody.gameObject.SetActive(false);
+                    if (Application.isPlaying) Destroy(baseBody.gameObject); else DestroyImmediate(baseBody.gameObject);
+                    baseBody = null;
+                }
+            }
+            if (!baseBody) baseBody = BuildBase(effectiveRecipe);
             var proceduralMotion = GetComponent<CharacterProceduralMotionAdapter>() ?? gameObject.AddComponent<CharacterProceduralMotionAdapter>();
             proceduralMotion.Bind(baseBody, presentationPivot);
-            BuildSlot("Head", recipe.Head, recipe.HeadPrefab, new Vector3(0, BodyHeight(recipe) * .55f, 0), recipe.AccentColor);
-            BuildSlot("Back", recipe.Back, recipe.BackPrefab, new Vector3(0, .35f, -.28f), recipe.Secondary);
-            BuildSlot("Arms", recipe.Arms, recipe.ArmsPrefab, new Vector3(0, .05f, .1f), recipe.Secondary);
-            BuildSlot("Accent", recipe.Accent, recipe.AccentPrefab, new Vector3(0, .1f, .38f), recipe.AccentColor);
+            BuildSlot("Head", effectiveRecipe.Head, effectiveRecipe.HeadPrefab, new Vector3(0, BodyHeight(effectiveRecipe) * .55f, 0), effectiveRecipe.AccentColor);
+            BuildSlot("Back", effectiveRecipe.Back, effectiveRecipe.BackPrefab, new Vector3(0, .35f, -.28f), effectiveRecipe.Secondary);
+            BuildSlot("Arms", effectiveRecipe.Arms, effectiveRecipe.ArmsPrefab, new Vector3(0, .05f, .1f), effectiveRecipe.Secondary);
+            BuildSlot("Accent", effectiveRecipe.Accent, effectiveRecipe.AccentPrefab, new Vector3(0, .1f, .38f), effectiveRecipe.AccentColor);
             return true;
         }
 
         public void Clear()
         {
+            GetComponent<LargeCreatureMotionAdapter>()?.Clear();
             GetComponent<CharacterProceduralMotionAdapter>()?.Clear();
             GetComponent<CharacterVisualMotion>()?.Bind(null);
-            if (visualRoot) { if (Application.isPlaying) Destroy(visualRoot.gameObject); else DestroyImmediate(visualRoot.gameObject); } visualRoot = null; presentationPivot = null; Recipe = null;
+            if (visualRoot) { visualRoot.gameObject.SetActive(false); if (Application.isPlaying) Destroy(visualRoot.gameObject); else DestroyImmediate(visualRoot.gameObject); } visualRoot = null; presentationPivot = null; Recipe = null;
             var baseRenderer = GetComponent<Renderer>(); if (baseRenderer) baseRenderer.enabled = true;
         }
 

@@ -1,0 +1,9 @@
+15.16B reversible Generic motion pilot, NOT production LOD/foot-contact approval.
+Source: https://tennessippistudios.itch.io/treant-pack
+Licence: CC0 https://creativecommons.org/publicdomain/zero/1.0/
+Exact local source: Temp/Treant Package/Treant 1/Tree01_FBX.fbx
+FBX SHA256: bd90b4f8dd823334cbb226229ef731c1280ae601ab942d16193b96f5f674a02e
+See ../../LICENSE_PROVENANCE.txt for creator/archive evidence. No additional download.
+Derived clips: Idle, Run, Attack_1, Death1; only Transform curves below Tree01/ retained. Root/mesh curves and Animation Events excluded.
+Separate Generic copy: 3010 vertices, 5438 triangles, 31 bones, max4 weights; accepted static source/prefab/material unchanged.
+Read/Write off, Medium compression, no colliders/cameras/lights/material import/constraints/custom animation properties.

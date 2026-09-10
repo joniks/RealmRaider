@@ -592,7 +592,7 @@ failed/skipped/inconclusive tests and no error in the final run span. Manual cli
 preview, foot contact, visible loop quality and Death1 held-pose aesthetics remain
 honestly unobserved, so no runtime animation approval is implied.
 
-## Ready after 15.16A — Modular Guardian Ent Motion Integration
+## Accepted — Diamond Pass 15.16B: Modular Guardian Ent Motion Integration
 
 Activate one reversible Guardian-only visual binding for the proven Generic
 Tree01 hierarchy: Idle/Run, one factual Attack action and Death1, with the existing
@@ -605,3 +605,21 @@ with final EditMode/PlayMode and the user owns final motion-feel approval.
 Production optimisation remains separate: true LOD0/1/2 caps
 (`4000/2000/800`) and cleaned four-weight source skinning are still required before
 Tree01 can be called production-ready.
+
+Acceptance: the exact-source runtime builder persisted a valid named binding;
+after correcting only stale-assembly and EditMode test mechanics, QA's final native
+gates passed EditMode `328/328` and PlayMode `94/94`, both with zero failed,
+skipped or inconclusive tests. The actual Guardian motion/possession/cultivation
+path and retained static fallback passed. Manual Game-view motion feel remains
+honestly unobserved.
+
+## Ready — Diamond Pass 16.0: Factual Raid Loot Feedback
+
+Make the already-authoritative raid rewards visible at the moment they are earned:
+publish one immutable reward fact from the existing exact-once room/enemy/core
+credit paths and present a short non-raycast world/HUD cue such as `+15 GOLD` or
+`+100 GOLD • +1 RARE`. The existing reward amounts, result totals, persistence,
+enemy death, objective and scene flow remain unchanged. Duplicate death/result/
+teardown callbacks must never duplicate a cue or credit. Missing UI retains the
+current silent-but-correct reward behavior. This is feedback, not a pickup,
+inventory, drop table, magnet, economy or balance system.

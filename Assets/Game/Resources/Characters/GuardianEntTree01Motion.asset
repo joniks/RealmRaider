@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc70b9921e5886f1ba551b6b590ff5f6, type: 3}
+  m_Name: GuardianEntTree01Motion
+  m_EditorClassIdentifier: RealmRaiders.Runtime::RealmRaiders.Characters.LargeCreatureMotionBinding
+  ValidationVersion: 1
+  VisualPrefab: {fileID: 5593778120901897260, guid: c81caa205d9bb4660a376ead3d26593a, type: 3}
+  Idle: {fileID: 7400000, guid: 48c9f3750c9534af6ae9de2e2ef32c26, type: 2}
+  Run: {fileID: 7400000, guid: 0dd7042be06364b1c906917265f10178, type: 2}
+  Attack: {fileID: 7400000, guid: 60308779fdf9a42218f47f2c792f133c, type: 2}
+  Death: {fileID: 7400000, guid: d5df15de1fe2849f0b4bf30cfeea8ce2, type: 2}
+  AnimatorPath: Tree01 Fit/Tree01 Source
+  SkeletonRootPath: Tree01
+  AnimatedBonePaths:
+  - Tree01/spine
+  - Tree01/spine/pelvis.L
+  - Tree01/spine/pelvis.R
+  - Tree01/spine/spine.001
+  - Tree01/spine/spine.001/spine.002
+  - Tree01/spine/spine.001/spine.002/spine.003
+  - Tree01/spine/spine.001/spine.002/spine.003/breast.L
+  - Tree01/spine/spine.001/spine.002/spine.003/breast.R
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.L
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.L/upper_arm.L
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.L/upper_arm.L/forearm.L
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.L/upper_arm.L/forearm.L/hand.L
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.R
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.R/upper_arm.R
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.R/upper_arm.R/forearm.R
+  - Tree01/spine/spine.001/spine.002/spine.003/shoulder.R/upper_arm.R/forearm.R/hand.R
+  - Tree01/spine/spine.001/spine.002/spine.003/spine.004
+  - Tree01/spine/spine.001/spine.002/spine.003/spine.004/spine.005
+  - Tree01/spine/spine.001/spine.002/spine.003/spine.004/spine.005/spine.006
+  - Tree01/spine/spine.001/spine.002/spine.003/spine.004/spine.005/spine.007
+  - Tree01/spine/spine.001/spine.002/spine.003/spine.004/spine.005/spine.008
+  - Tree01/spine/thigh.L
+  - Tree01/spine/thigh.L/shin.L
+  - Tree01/spine/thigh.L/shin.L/foot.L
+  - Tree01/spine/thigh.L/shin.L/foot.L/heel.02.L
+  - Tree01/spine/thigh.L/shin.L/foot.L/toe.L
+  - Tree01/spine/thigh.R
+  - Tree01/spine/thigh.R/shin.R
+  - Tree01/spine/thigh.R/shin.R/foot.R
+  - Tree01/spine/thigh.R/shin.R/foot.R/heel.02.R
+  - Tree01/spine/thigh.R/shin.R/foot.R/toe.R

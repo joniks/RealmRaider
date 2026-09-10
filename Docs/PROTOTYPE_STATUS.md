@@ -119,7 +119,8 @@ Last reviewed: 2026-09-11
 - Module Pass MART05.3 is accepted through Modules commits `bda0b86` and `8978fe0`: exact Tree01 source identity and temporary-pilot exceptions are separated from production LOD, skin-weight, bone, material and sampled-texture budgets by a fail-closed readiness gate.
 - Module Pass MMP06 LargeCreature Motion Readiness is accepted through Modules commits `541a7a4` and `8978fe0`: immutable caller-supplied skin, clip, root-safety, loop, death-hold and fallback facts can be evaluated without Unity, filesystem or gameplay authority.
 - Diamond Pass 15.16A Guardian Ent Generic-Rig Feasibility Probe is present: an Editor-only exact-source copy proves one 31-bone skinned mesh and in-place deformation for Idle, Run, Attack_1 and Death1 without changing the accepted static runtime prefab or recipe. It is evidence, not yet a runtime animation binding.
-- Current Unity Test Runner baseline: EditMode `320/320` and PlayMode `93/93` passed with `0` failures through the QA menu commands on 2026-09-11. PlayMode is unchanged from 15.15 because 15.16A adds Editor-only evidence and Module contracts only.
+- Diamond Pass 15.16B Modular Guardian Ent Motion Integration is present: the exact Generic Tree01 skin now uses skeleton-only Idle, Run, Attack_1 and Death1 presentation with runtime-disabled events/root motion, deterministic static/primitive fallback and complete graph/bone cleanup while the same gameplay entity remains authoritative.
+- Current Unity Test Runner baseline: EditMode `328/328` and PlayMode `94/94` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -136,7 +137,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `300/300` and PlayMode `93/93` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `328/328` and PlayMode `94/94` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -157,11 +158,12 @@ Last reviewed: 2026-09-11
 - The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
 - The character-motion-profiles package now includes deterministic explicit-provider catalogue construction, compatibility evaluation and explicit binding-batch evidence but remains uninstalled; its isolated package tests are authored but not yet run. MMP05 freezes a CC0 UAL2 pilot intake, but no archive, approved shared rig, clip binding, concrete motion provider or Core presentation adapter exists yet.
 - The character-art-manifests package now includes deterministic evidence validation, hashing, explicit-provider catalogue construction, an adapter-neutral measurement gate and immutable batch reporting but remains uninstalled; its isolated package tests are authored but not yet run, and no concrete source manifest, measurement adapter or Unity importer is approved.
-- Guardian Ent now has an exact creator-published CC0 Tree01 static visual pilot with
-  retained provenance and automated gameplay-envelope checks. It deliberately
-  exceeds the production LOD0 cap at 5,438 triangles, has no LOD1/LOD2 and relies
-  on importer pruning for 373 source points above four influences; production
-  optimisation and animated-rig validation remain separate gates.
+- Guardian Ent now has an exact creator-published CC0 Tree01 animated Generic
+  pilot plus deterministic accepted-static and primitive fallbacks. Idle, Run,
+  Attack_1 and Death1 drive only the owned visual skeleton; runtime events and root
+  motion are disabled. It still exceeds the production LOD0 cap at 5,438 triangles,
+  has no LOD1/LOD2, relies on importer pruning for 373 source points above four
+  influences, and needs user-owned motion-feel/device validation.
 - The Guardian Ent visual direction has reached a reversible pilot; Sylvan
   environment production remains incomplete beyond the accepted preview surfaces.
 - Infernal Brute production is also design-only: its Obsidian Gatebreaker direction still needs a human-approved owned or third-party source and a shared Ent/Brute LargeCreature rig compatibility proof.

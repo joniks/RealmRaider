@@ -640,6 +640,8 @@ namespace RealmRaiders.Tests
             var managerObject = new GameObject("Tree01 Possession", typeof(PossessionManager));
             var definition = ScriptableObject.CreateInstance<CharacterDefinition>();
             var ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+            var staticRecipe = Object.Instantiate(PrototypeRuntimeFactory.GuardianEntRecipe);
+            staticRecipe.LargeCreatureMotion = null; // Keep explicit coverage of the accepted first fallback.
             var savedTimeScale = Time.timeScale;
             var savedFixedDelta = Time.fixedDeltaTime;
             try
@@ -649,7 +651,7 @@ namespace RealmRaiders.Tests
                 definition.DisplayName = "Guardian Ent";
                 definition.Possessable = true;
                 definition.Stats = CombatStats.Ent;
-                definition.VisualRecipe = PrototypeRuntimeFactory.GuardianEntRecipe;
+                definition.VisualRecipe = staticRecipe;
                 Assert.That(definition.VisualRecipe.BaseBodyPrefab, Is.Not.Null, "The actual Tree01 Resources prefab is required.");
                 ability.DisplayName = "Tree01 State Probe"; ability.Cooldown = 10; ability.Windup = .1f;
                 definition.Abilities = new[] { ability };
@@ -737,7 +739,166 @@ namespace RealmRaiders.Tests
             {
                 Object.Destroy(managerObject); Object.Destroy(host); Object.Destroy(cameraObject);
                 Object.Destroy(definition); Object.Destroy(ability);
+                Object.Destroy(staticRecipe);
                 Time.timeScale = savedTimeScale; Time.fixedDeltaTime = savedFixedDelta;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator GuardianEntMotion_ActualSkinFactualStatesPossessionAndCleanup()
+        {
+            var data = Resources.Load<LargeCreatureMotionBinding>("Characters/GuardianEntTree01Motion");
+            Assert.That(data && data.IsValid, Is.True, "QA must build the separate Tree01 motion pilot first.");
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig));
+            cameraObject.tag = "MainCamera";
+            var managerObject = new GameObject("Animated Guardian Possession", typeof(PossessionManager));
+            var ability = PrototypeRuntimeFactory.Ability("Guardian motion fact", AbilityKind.Melee, 0, 1, .01f, 0, 20);
+            var entity = PrototypeRuntimeFactory.CreateEntity(PrototypeCharacterRoster.GuardianEntId, "Animated Guardian", Vector3.zero,
+                CombatStats.Ent, Color.green, true, Vector3.one * 1.4f, new[] { ability }, true);
+            var host = entity.gameObject;
+            var oldTimeScale = Time.timeScale;
+            var impactSeen = false;
+            CombatPresentationFact impact = default;
+            System.Action<CombatPresentationFact> captureImpact = fact =>
+            { if (fact.Phase == CombatActionPhase.Impact && fact.End == CombatPresentationEnd.None) { impact = fact; impactSeen = true; } };
+            entity.PresentationChanged += captureImpact;
+            try
+            {
+                Time.timeScale = 1;
+                var adapter = host.GetComponent<LargeCreatureMotionAdapter>();
+                Assert.That(adapter && adapter.IsBound, Is.True);
+                var assembler = host.GetComponent<CharacterVisualAssembler>();
+                var motion = host.GetComponent<CharacterVisualMotion>();
+                var pivot = assembler.PresentationPivot;
+                var body = pivot.Find("Base Body");
+                var skin = body.GetComponentInChildren<SkinnedMeshRenderer>();
+                var animator = body.GetComponentInChildren<Animator>();
+                Assert.That(body.GetComponentsInChildren<Renderer>(), Has.Length.EqualTo(1));
+                Assert.That(body.GetComponentsInChildren<Collider>(), Is.Empty);
+                Assert.That(animator.applyRootMotion || animator.fireEvents || animator.runtimeAnimatorController, Is.False);
+                Assert.That(host.GetComponent<Renderer>().enabled, Is.False);
+                Assert.That(host.GetComponent<CharacterProceduralMotionAdapter>().IsBound, Is.False);
+                var protectedNodes = new[] { host.transform, pivot, body, body.Find("Tree01 Fit"), animator.transform, animator.transform.Find("Tree01") };
+                var positions = protectedNodes.Select(t => t.localPosition).ToArray();
+                var rotations = protectedNodes.Select(t => t.localRotation).ToArray();
+                var scales = protectedNodes.Select(t => t.localScale).ToArray();
+                var motor = entity.Motor;
+                var height = motor.height; var radius = motor.radius; var center = motor.center;
+                var rootPosition = host.transform.position;
+                var now = Time.unscaledTime;
+                void Sample(float scaled, float unscaled, float delta)
+                {
+                    var currentBody = assembler.PresentationPivot.Find("Base Body");
+                    var currentAnimator = currentBody.GetComponentInChildren<Animator>();
+                    var protectedShell = new[] { host.transform, assembler.PresentationPivot, currentBody,
+                        currentBody.Find("Tree01 Fit"), currentAnimator.transform, currentAnimator.transform.Find("Tree01") };
+                    var beforePositions = protectedShell.Select(t => t.localPosition).ToArray();
+                    var beforeRotations = protectedShell.Select(t => t.localRotation).ToArray();
+                    var beforeScales = protectedShell.Select(t => t.localScale).ToArray();
+                    adapter.Sample(scaled, unscaled, delta);
+                    for (var i = 0; i < protectedShell.Length; i++)
+                    {
+                        Assert.That(protectedShell[i].localPosition, Is.EqualTo(beforePositions[i]));
+                        Assert.That(Quaternion.Angle(protectedShell[i].localRotation, beforeRotations[i]), Is.LessThan(.001f));
+                        Assert.That(protectedShell[i].localScale, Is.EqualTo(beforeScales[i]));
+                    }
+                    Assert.That(motor.height, Is.EqualTo(height)); Assert.That(motor.radius, Is.EqualTo(radius)); Assert.That(motor.center, Is.EqualTo(center));
+                }
+                Sample(Time.time, now, .1f);
+                var firstIdle = skin.bones.Select(b => b.localRotation).ToArray();
+                Sample(Time.time + .4f, now + .4f, .1f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Idle));
+                Assert.That(skin.bones.Select((b, i) => Quaternion.Angle(b.localRotation, firstIdle[i])).Max(), Is.GreaterThan(.01f), "Actual Idle must deform bones.");
+                for (var i = 0; i < protectedNodes.Length; i++)
+                {
+                    Assert.That(protectedNodes[i].localPosition, Is.EqualTo(positions[i]));
+                    Assert.That(Quaternion.Angle(protectedNodes[i].localRotation, rotations[i]), Is.LessThan(.001f));
+                    Assert.That(protectedNodes[i].localScale, Is.EqualTo(scales[i]));
+                }
+
+                // An explicit measured displacement, not AI scheduling or desired input, selects Run.
+                motion.ResetDynamics(); host.transform.position += Vector3.right * .2f;
+                var movedPosition = host.transform.position;
+                Sample(Time.time + .5f, now + .5f, .1f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Move));
+                Assert.That(host.transform.position, Is.EqualTo(movedPosition));
+                var runStart = skin.bones.Select(b => b.localRotation).ToArray();
+                host.transform.position += Vector3.right * .2f;
+                Sample(Time.time + .7f, now + .7f, .1f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Move));
+                Assert.That(skin.bones.Select((b, i) => Quaternion.Angle(b.localRotation, runStart[i])).Max(), Is.GreaterThan(.01f));
+                host.transform.position = rootPosition; motion.ResetDynamics();
+
+                var growth = host.AddComponent<GuardianEntGrowthPresentation>(); growth.Configure(3);
+                var marker = growth.MarkerRoot; var maximum = entity.Health.Maximum;
+                Assert.That(entity.TryUse(0, Vector3.forward), Is.True);
+                var abilityState = entity.Abilities[0]; var readyAt = abilityState.ReadyAt;
+                Sample(Time.time, Time.unscaledTime, .01f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Attack), "Windup is captured immediately.");
+                // Wait only for the actual action phase; no AI movement timing assumption.
+                for (var frame = 0; frame < 12 && !impactSeen; frame++) yield return null;
+                Assert.That(impactSeen, Is.True);
+                Sample(impact.ScaledTime + .07f, impact.UnscaledTime + .07f, .01f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Attack), "Impact and Recovery sharing a frame must retain their visual window.");
+                Assert.That(adapter.ClipTime, Is.GreaterThan(0));
+                Assert.That(skin.bones.Select((b, i) => Quaternion.Angle(b.localRotation, firstIdle[i])).Max(), Is.GreaterThan(.01f));
+                entity.Health.TakeDamage(new DamageInfo(7, null, host.transform.position), 0);
+                var health = entity.Health.Current;
+                Sample(Time.time, Time.unscaledTime + .03f, .01f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Hit));
+
+                var manager = managerObject.GetComponent<PossessionManager>();
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapToOverview(); manager.Initialize(rig); manager.Register(entity);
+                manager.Select(entity); Assert.That(manager.PossessSelected(), Is.True);
+                Assert.That(manager.Possessed, Is.SameAs(entity));
+                Assert.That(adapter.HasGraph, Is.False, "Swap destroys old graph immediately.");
+                Sample(Time.time, Time.unscaledTime, .01f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Idle), "Old attack/hit cannot cross controller ownership.");
+                manager.Release(); Assert.That(entity.ActiveController, Is.SameAs(host.GetComponent<CreatureBrain>()));
+                Assert.That(adapter.HasGraph, Is.False);
+                Assert.That(assembler.PresentationPivot, Is.SameAs(pivot)); Assert.That(pivot.Find("Base Body"), Is.SameAs(body));
+                Assert.That(growth.MarkerRoot, Is.SameAs(marker)); Assert.That(growth.TierCount, Is.EqualTo(3));
+                Assert.That(entity.Health.Maximum, Is.EqualTo(maximum)); Assert.That(entity.Health.Current, Is.EqualTo(health));
+                Assert.That(entity.Abilities[0], Is.SameAs(abilityState)); Assert.That(abilityState.ReadyAt, Is.EqualTo(readyAt));
+                Assert.That(host.transform.localScale, Is.EqualTo(scales[0]));
+                Assert.That(motor.height, Is.EqualTo(height)); Assert.That(motor.radius, Is.EqualTo(radius)); Assert.That(motor.center, Is.EqualTo(center));
+
+                Sample(Time.time, Time.unscaledTime, .01f);
+                GameplayInput.SetTerminalState(true); Sample(Time.time, Time.unscaledTime, .01f);
+                Assert.That(adapter.HasGraph, Is.False);
+                GameplayInput.SetTerminalState(false);
+                adapter.enabled = false; Assert.That(adapter.HasGraph, Is.False); adapter.enabled = true;
+                Sample(Time.time, Time.unscaledTime, .01f); Assert.That(adapter.IsBound && adapter.HasGraph, Is.True);
+
+                // Rebuild must hide the old skin immediately, not wait for deferred destruction.
+                assembler.Assemble(entity.Definition.VisualRecipe);
+                Assert.That(skin.gameObject.activeInHierarchy, Is.False);
+                Assert.That(host.GetComponentsInChildren<SkinnedMeshRenderer>(), Has.Length.EqualTo(1));
+                skin = assembler.VisualRoot.GetComponentInChildren<SkinnedMeshRenderer>();
+                yield return null;
+                Assert.That(body == null, Is.True);
+                var beforeDeath = skin.bones.Select(b => b.localRotation).ToArray();
+                entity.Health.TakeDamage(new DamageInfo(10000, null, host.transform.position), 0);
+                var diedAt = Time.unscaledTime;
+                Sample(Time.time, diedAt + data.Death.length + .1f, .01f);
+                Assert.That(adapter.State, Is.EqualTo(LargeCreatureVisualState.Death));
+                Assert.That(adapter.IsDeathHeld, Is.True); Assert.That(adapter.HasGraph, Is.False);
+                var deathPose = skin.bones.Select(b => b.localRotation).ToArray();
+                Assert.That(skin.bones.Select((b, i) => Quaternion.Angle(b.localRotation, beforeDeath[i])).Max(), Is.GreaterThan(.01f));
+                GameplayInput.SetTerminalState(true);
+                Sample(Time.time, diedAt + data.Death.length + 2, .01f);
+                Assert.That(skin.bones.Select(b => b.localRotation), Is.EqualTo(deathPose));
+                Assert.That(motor.enabled, Is.False, "Only factual death disables the gameplay motor.");
+                assembler.Clear(); Assert.That(adapter.IsBound || adapter.HasGraph, Is.False);
+                yield return null;
+                Assert.That(skin == null, Is.True); Assert.That(host.transform.Find("Character Visual Modules"), Is.Null);
+                Assert.That(host.GetComponent<Renderer>().enabled, Is.True);
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false); Time.timeScale = oldTimeScale;
+                entity.PresentationChanged -= captureImpact;
+                Object.Destroy(managerObject); Object.Destroy(entity.Definition); Object.Destroy(host); Object.Destroy(cameraObject); Object.Destroy(ability);
             }
         }
 

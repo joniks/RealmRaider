@@ -35,7 +35,12 @@ namespace RealmRaiders.Core
         {
             get
             {
-                if (guardianEntRecipe && guardianEntRecipe.BaseBodyPrefab) return guardianEntRecipe;
+                if (guardianEntRecipe && guardianEntRecipe.BaseBodyPrefab)
+                {
+                    if (!guardianEntRecipe.LargeCreatureMotion)
+                        guardianEntRecipe.LargeCreatureMotion = Resources.Load<LargeCreatureMotionBinding>("Characters/GuardianEntTree01Motion");
+                    return guardianEntRecipe;
+                }
                 // A QA intake can make the resource available later in the same Editor domain.
                 // Retry only an unavailable binding; never rebuild an already assembled creature.
                 var prefab = Resources.Load<GameObject>("Characters/GuardianEntTree01");
@@ -43,8 +48,11 @@ namespace RealmRaiders.Core
                 else if (prefab)
                 {
                     guardianEntRecipe.BaseBodyPrefab = prefab;
+                    guardianEntRecipe.MissingBaseBodyFallback = CreateGuardianEntRecipe(null);
                     guardianEntRecipe.Head = guardianEntRecipe.Back = guardianEntRecipe.Arms = guardianEntRecipe.Accent = VisualModuleStyle.None;
                 }
+                if (!guardianEntRecipe.LargeCreatureMotion)
+                    guardianEntRecipe.LargeCreatureMotion = Resources.Load<LargeCreatureMotionBinding>("Characters/GuardianEntTree01Motion");
                 return guardianEntRecipe;
             }
         }
@@ -56,6 +64,7 @@ namespace RealmRaiders.Core
             if (baseBodyPrefab)
             {
                 recipe.BaseBodyPrefab = baseBodyPrefab;
+                recipe.MissingBaseBodyFallback = CreateGuardianEntRecipe(null);
                 recipe.Head = recipe.Back = recipe.Arms = recipe.Accent = VisualModuleStyle.None;
             }
             return recipe;
