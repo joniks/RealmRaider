@@ -82,6 +82,19 @@ namespace RealmRaiders.UI
             var outcome = value.Victory
                 ? "VICTORY\n\nThe Heart Tree fell. Return to your Realm and plan the next defense."
                 : "DEFEAT\n\nRevise the next defense, or try this raid again.";
+            return FormatResultCopy(value, outcome);
+        }
+
+        static string JourneyResultCopy(RaidResult value)
+        {
+            var outcome = value.Victory
+                ? "VICTORY\n\nThe Heart Tree fell. Your built Realm is under attack — defend it now."
+                : "DEFEAT\n\nYour Realm still needs defense — defend it now or retry this raid.";
+            return FormatResultCopy(value, outcome);
+        }
+
+        static string FormatResultCopy(RaidResult value, string outcome)
+        {
             return $"{outcome}\n\nGold collected: {value.Gold}\nRare materials: {value.RareMaterials}\nEnemies defeated: {value.EnemiesDefeated}\nRooms discovered: {value.RoomsDiscovered}\nRaid duration: {value.Duration:0}s\nCore reached: {(value.CoreReached ? "yes" : "no")}\n\nSecured for your Realm: {value.Gold} GOLD • {value.RareMaterials} RARE MATERIALS";
         }
 
@@ -289,7 +302,7 @@ namespace RealmRaiders.UI
             encounterCue?.Clear();
             resultPanel.SetActive(true);
             presentation?.PlayResult();
-            result.text = ResultCopy(value);
+            result.text = journeyResult ? JourneyResultCopy(value) : ResultCopy(value);
         }
 
         void SetPrimaryActionCopy(string copy)

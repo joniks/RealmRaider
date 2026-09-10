@@ -89,6 +89,7 @@ Last reviewed: 2026-09-10
 - Diamond Pass 14.0 Explain Premature Explicit Release is present: an early player-requested RELEASE now returns to the existing Select step with one factual retry explanation after Keeper view settles, while forced/death/terminal paths never blame the player.
 - Diamond Pass 14.1 Guided Loss Closes Back to Build is present: a factually completed first-minute Sylvan loss now emphasizes the existing RETURN TO BUILD action with truthful adjustment copy while DEFEND AGAIN remains available as a secondary choice.
 - Diamond Pass 14.2 Completed Loop Primes the Next Raid is present: returning to RealmBuild from a completed canonical Defense now primes the existing journey so the primary action truthfully becomes SAVE & RAID and advances to SylvanRealm, while ordinary Build entry remains SAVE & DEFEND.
+- Diamond Pass 14.3 Raid Result Copy Matches the Next Action is present: journey victory and defeat results now describe the factual immediate DEFEND YOUR REALM step while direct raids retain their planning copy and PLAN NEXT DEFENSE route; metrics and exact-once credit are unchanged.
 - Current Unity Test Runner baseline: EditMode `174/174` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 

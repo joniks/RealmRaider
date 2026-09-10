@@ -56,6 +56,9 @@ namespace RealmRaiders.Tests
                 Assert.That(raid.State, Is.EqualTo(RaidState.RaidResult));
                 Assert.That(PrototypeJourney.Stage, Is.EqualTo(PrototypeJourneyStage.RaidResult));
                 Assert.That(raidHud.ResultPrimaryActionText, Is.EqualTo(RaidHUD.DefendYourRealmAction));
+                Assert.That(raidHud.ResultText, Does.StartWith("VICTORY\n\nThe Heart Tree fell. Your built Realm is under attack — defend it now."));
+                Assert.That(raidHud.ResultText, Does.Not.Contain("plan the next defense"));
+                Assert.That(raidHud.ResultText, Does.Contain("Gold collected:").And.Contain("Secured for your Realm:"));
                 Assert.That(FirstPlayableMinute.ChangedBuildAcceptedForSession, Is.True);
                 Assert.That(RealmProgress.Load().CompletedRaids, Is.EqualTo(1));
                 AssertResultActionsResponsive(raidHud.GetComponent<ResponsiveHudRoot>(), "Raid Result", RaidHUD.DefendYourRealmAction, "RAID AGAIN", "MY REALM");
@@ -104,7 +107,9 @@ namespace RealmRaiders.Tests
 
                 var hud = Object.FindFirstObjectByType<RaidHUD>();
                 Assert.That(Object.FindFirstObjectByType<RaidManager>().State, Is.EqualTo(RaidState.RaidResult));
-                Assert.That(hud.ResultText, Does.StartWith("DEFEAT"));
+                Assert.That(hud.ResultText, Does.StartWith("DEFEAT\n\nYour Realm still needs defense — defend it now or retry this raid."));
+                Assert.That(hud.ResultText, Does.Not.Contain("Revise the next defense"));
+                Assert.That(hud.ResultText, Does.Contain("Gold collected:").And.Contain("Secured for your Realm:"));
                 Assert.That(hud.ResultPrimaryActionText, Is.EqualTo(RaidHUD.DefendYourRealmAction));
                 Assert.That(PrototypeJourney.Stage, Is.EqualTo(PrototypeJourneyStage.RaidResult));
                 GameObject.Find(RaidHUD.DefendYourRealmAction).GetComponent<Button>().onClick.Invoke();
@@ -131,7 +136,10 @@ namespace RealmRaiders.Tests
                 var firstHud = Object.FindFirstObjectByType<RaidHUD>();
                 var firstResult = new RaidResult(false, 20, 0, 0, 1, 12, false);
                 firstHud.SendMessage("ShowResult", firstResult, SendMessageOptions.RequireReceiver); yield return null;
+                var firstCopy = firstHud.ResultText;
+                Assert.That(firstCopy, Does.StartWith("DEFEAT\n\nYour Realm still needs defense — defend it now or retry this raid."));
                 firstHud.SendMessage("ShowResult", firstResult, SendMessageOptions.RequireReceiver); yield return null;
+                Assert.That(firstHud.ResultText, Is.EqualTo(firstCopy), "Repeated result delivery must keep the journey copy identical.");
                 Assert.That(RealmProgress.Load().CompletedRaids, Is.EqualTo(1));
                 Assert.That(PrototypeJourney.Stage, Is.EqualTo(PrototypeJourneyStage.RaidResult));
 
@@ -179,6 +187,8 @@ namespace RealmRaiders.Tests
                 var directHud = Object.FindFirstObjectByType<RaidHUD>();
                 directHud.SendMessage("ShowResult", new RaidResult(true, 10, 0, 0, 0, 5, true), SendMessageOptions.RequireReceiver); yield return null;
                 Assert.That(directHud.ResultPrimaryActionText, Is.EqualTo(RaidHUD.PlanNextDefenseAction));
+                Assert.That(directHud.ResultText, Does.StartWith("VICTORY\n\nThe Heart Tree fell. Return to your Realm and plan the next defense."));
+                Assert.That(directHud.ResultText, Does.Not.Contain("Your built Realm is under attack"));
                 GameObject.Find(RaidHUD.PlanNextDefenseAction).GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;
                 Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo(RaidHUD.PlanNextDefenseScene));

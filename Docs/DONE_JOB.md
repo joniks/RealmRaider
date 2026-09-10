@@ -2386,3 +2386,33 @@ Completed on 2026-09-10.
 
 - New navigation, persistent journey state, Build layout/validation, reward or
   progression changes, gameplay/balance work and device final polish.
+
+## Diamond Pass 14.3 — Raid Result Copy Matches the Next Action
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Journey victory and defeat results now use route-specific sentences that point
+  truthfully to the existing immediate `DEFEND YOUR REALM` action.
+- Direct Raid retains its existing public planning/revision copy,
+  `PLAN NEXT DEFENSE` action and RealmBuild route.
+- One shared formatter preserves every existing result metric and secured-reward
+  line; action selection, destinations, retry/Hub and exact-once credit remain
+  unchanged.
+- Journey victory, factual defeat, repeated result and direct-result regressions
+  now prove copy/action alignment and unchanged route/credit authority.
+
+### Verification
+
+- Architect confirmed factual journey-result branching, exact sentences, direct
+  compatibility, shared metrics and unchanged result authority.
+- QA native gates passed EditMode `174/174` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual result copy is not claimed because the first Game-view click failed
+  externally with `windowNotFoundAtPosition`; no runtime failure was observed.
+
+### Scope intentionally deferred
+
+- General result redesign/localization, navigation, reward/progression changes,
+  gameplay/balance work and device final polish.

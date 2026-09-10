@@ -247,7 +247,7 @@ Acceptance: QA's fresh native gates passed EditMode `174/174` and PlayMode
 Manual journey return remains unobserved because the first Game-view click failed
 externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-## Now — Diamond Pass 14.3: Raid Result Copy Matches the Next Action
+## Accepted — Diamond Pass 14.3: Raid Result Copy Matches the Next Action
 
 Owner: Core developer. Base: Architect's accepted 14.2 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -257,8 +257,14 @@ their copy falsely promises another planning/Build step. Align only the journey
 victory/defeat sentence with the factual immediate Defense action while direct
 Raid keeps its existing planning copy and PLAN NEXT DEFENSE route.
 
-## Ready after 14.3
+Acceptance: QA's fresh native gates passed EditMode `174/174` and PlayMode
+`82/82`, both with zero failed/skipped/inconclusive tests; Console was `0/0/0`.
+Manual Raid result remains unobserved because the first Game-view click failed
+externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-Use QA's observation to accept or make one bounded copy/lifecycle correction.
-Then select the next smallest break in the canonical playable loop; do not expand
-this into new navigation, result redesign, rewards or progression.
+## Selecting Diamond Pass 14.4
+
+The read-only post-Raid Defense audit found no further evidenced safe slice that
+was not a repeat of 13.9–14.3. Select the next player-visible implementation from
+the recorded prototype backlog or a new manual observation; do not invent another
+guide/copy change or broaden into navigation, rewards or progression.
