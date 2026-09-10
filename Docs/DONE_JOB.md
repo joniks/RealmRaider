@@ -1943,3 +1943,26 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 
 - Unity sprite import, runtime binding, 13.2 text/layout changes, animation,
   font/audio/VFX, gameplay/reward changes and final UI approval.
+
+## Art Pass MUI 03 — Blood Knight Ability Icon Candidates
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Produced three original 512×512 RGBA preview icons for Basic Slash, Blood Rush
+  and Heavy Cleave with one shared dark-iron, crimson and pale-gold language.
+- Added 48 px and 256 px dark-neutral evidence sheets plus exact prompt, mapping,
+  alpha and SHA-256 provenance without third-party sources or model likeness.
+
+### Verification
+
+- Dimensions, alpha evidence, JSON, declared hashes and whitespace are clean.
+- The quick diagonal slash, forward charge wedge and broad area crescent remain
+  visibly distinct at 48 px; Basic Slash keeps a named 32 px/in-context gate.
+- Accepted in Modules commit `3fa21af` (`art: prepare Blood Knight ability icons`).
+
+### Scope intentionally deferred
+
+- Unity sprite import, RaidHUD binding, mobile compression, 32 px comprehension,
+  cooldown/readiness behavior, combat balance, animation/VFX/audio and final art.

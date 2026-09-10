@@ -384,13 +384,15 @@ sheet, 256 px overview, alpha evidence, declared hashes and original-generation
 provenance were reviewed on 2026-09-10. The silhouettes are distinct at 48 px;
 the darker hostiles mark still requires explicit 32 px/in-context contrast review.
 
-## Now — Art Pass MUI 03: Blood Knight Ability Icon Candidates
+## Accepted — Art Pass MUI 03: Blood Knight Ability Icon Candidates
 
 Owner: Module Developer / Technical Art
 
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
 
 Base: Modules commit `3bc738c`.
+
+Accepted Modules commit: `3fa21af`.
 
 Reserved folder only:
 
@@ -424,3 +426,48 @@ Heavy Cleave. The set remains preview-only until a later named HUD integration.
 Main checkout, Unity or `.meta`, RaidHUD or ability changes, runtime binding,
 cooldown/readiness logic, combat balance, animation/VFX/audio, third-party source,
 character/model art or package validators.
+
+Acceptance: all three 512×512 RGBA candidates, 48 px contact sheet, 256 px
+overview, alpha checks, hashes and original-generation provenance were reviewed
+on 2026-09-10. The quick slash, forward rush and broad cleave remain distinct at
+48 px; Basic Slash retains an explicit 32 px/in-context readability gate.
+
+## Now — Art Pass MUI 04: Guardian Ent Ability Icon Candidates
+
+Owner: Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Base: Modules commit `3fa21af`.
+
+Reserved folder only:
+
+- `ArtPreviews/MUI04-GuardianEntAbilityIcons/`
+
+### Outcome
+
+Prepare an original icon family for the three truthful Guardian Ent possession
+actions: Smash, Charge and Ground Slam. This directly supports the prototype's
+Keeper → possession → direct combat proof but remains preview-only until named.
+
+### Required deliverables
+
+1. Create three original 512×512 transparent RGBA PNGs: `smash`, `charge` and
+   `ground-slam`.
+2. Use one cohesive ancient-living-wood/Sylvan palette. Smash must read as one
+   close heavy impact, Charge as forward trunk/root momentum, and Ground Slam as
+   a radial earth/root shock distinct from the other two at 32–48 px.
+3. Use no full character, model likeness, text, numerals, frame, backdrop, logo,
+   watermark, gore, third-party source or recognizable franchise design.
+4. Produce a neutral dark 48 px actual-size contact sheet and 256 px overview;
+   evidence sheets are not runtime imports.
+5. Record exact prompts/tools/date/output hashes, ability mapping,
+   original-generation truth and preview-only status in provenance JSON.
+6. Verify dimensions, RGBA/alpha, JSON, hashes, whitespace and actual-size
+   distinction. Freeze only the reserved folder and send a compact handoff; no
+   commit or push.
+
+### Non-goals
+
+Main checkout, Unity or `.meta`, DefenderHUD/abilities, runtime binding,
+cooldowns/combat tuning, animation/VFX/audio, character/model art or validators.
