@@ -567,13 +567,15 @@ overview, exact prompts/hashes and alpha/dimension checks were reviewed on
 2026-09-10. All remain distinct at 32 px; Contextual and Fingertap retain explicit
 in-context comprehension gates, while Joystick reads most directly.
 
-## Now — Art Pass MUI 07: Realm Identity Icon Candidates
+## Accepted — Art Pass MUI 07: Realm Identity Icon Candidates
 
 Owner: Module Developer / Technical Art
 
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
 
 Base: Modules commit `29bc278`.
+
+Accepted Modules commit: `04b8861`.
 
 Reserved folder only:
 
@@ -602,3 +604,17 @@ future Hub/HUD realm identity, without implying unavailable factions or systems.
 
 Main checkout, Unity or `.meta`, Hub/HUD/runtime binding, new realms/factions,
 gameplay, animation/VFX, branding finalization, validators or device claims.
+
+Acceptance: two original 512×512 RGBA realm marks, dark 32/48 px evidence,
+distinct midtone 48 px evidence, 256 px overview and exact prompt/hash provenance
+were reviewed on 2026-09-10. The candidates are structurally distinct and the
+Infernal gate remains clear at small size; Sylvan fine root/leaf detail retains a
+named 32 px in-context readability gate.
+
+## Lane reset before the next Module gate
+
+MUI07 required two incomplete handoff corrections (missing provenance, then an
+identical dark/midtone evidence sheet). Per team protocol, start the next Module
+lease from a fresh compact role conversation that reads `Docs/TEAM_BRIEF.md` and
+receives one named reserved folder. Do not invent a generic validator or continue
+writing in the old lane merely to avoid idle time.

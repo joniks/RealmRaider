@@ -2158,3 +2158,27 @@ Completed on 2026-09-10.
 
 - Device/manual readability, animation/glow, audio/VFX/haptics, Guardian and
   Infernal ability icons, combat changes and final UI approval.
+
+## Art Pass MUI 07 — Realm Identity Icon Candidates
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Produced original 512×512 transparent Sylvan living-seed/root and Infernal
+  forged-obsidian gate marks with materially different fantasy silhouettes.
+- Added real-size dark 32/48 px, distinct midtone 48 px and 256 px evidence plus
+  exact prompts, mappings, original-generation truth and SHA-256 provenance.
+
+### Verification
+
+- Dimensions, alpha, all six image hashes, JSON and whitespace are clean after
+  correcting an initially duplicated dark/midtone evidence sheet.
+- Both realm identities remain distinct at small size; Sylvan fine root/leaf
+  detail retains a named 32 px in-context readability gate.
+- Accepted in Modules commit `04b8861` (`art: prepare realm identity icons`).
+
+### Scope intentionally deferred
+
+- Unity import/runtime binding, Hub/HUD layout, final branding, animation/VFX,
+  accessibility/device claims and gameplay changes.

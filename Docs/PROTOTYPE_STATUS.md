@@ -80,6 +80,7 @@ Last reviewed: 2026-09-10
 - Art Pass MUI 05 is accepted in the pinned Modules submodule: original Infernal Brute Smash, Charge and Ground Slam candidates preserve shared mechanics with a distinct obsidian/ember skin; the detailed radial mark retains a 32 px gate.
 - Diamond Pass 13.4 Factual Encounter Cue Icons is present: the text-first discovery/hostiles/clear cue now has one cached, non-raycast original phase sprite with responsive layout and exact text-only fallback/lifecycle cleanup.
 - Art Pass MUI 06 is accepted in the pinned Modules submodule: original Contextual, Fingertap and Joystick candidates remain distinct at 32 px, with the two more abstract modes retaining explicit in-context comprehension gates.
+- Art Pass MUI 07 is accepted in the pinned Modules submodule: original Sylvan living-seed and Infernal obsidian-gate marks are ready for a later named realm-identity integration, with Sylvan 32 px fine detail retaining an in-context readability gate.
 - Diamond Pass 13.5 Blood Knight Ability Icons is present: the Raid HUD's three existing attacks now add explicit original sprites while preserving labels, readiness/cooldowns, callbacks, responsive layouts and exact text-only fallback.
 - Current Unity Test Runner baseline: EditMode `162/162` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
