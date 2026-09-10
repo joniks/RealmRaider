@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.infernal-forged-iron-obsidian-boundary.mws08.v1",
+  "creation": "Project-owned original generation followed by MWS08 seam hardening; no third-party source.",
+  "status": "preview-only-not-final-art",
+  "licence": "Original generated project asset; no third-party licence or attribution required.",
+  "sources": [
+    {
+      "role": "Seam-hardened RGB albedo preview",
+      "modulesCommit": "c4295e4",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS08-RealmBoundarySeamHardening/infernal-iron-obsidian-boundary-edge-hardened-candidate.png",
+      "sourceSha256": "b8d21cdc6e1b29fae4e9586c64b034a26755b86989213fca4280106ac906745d",
+      "file": "infernal-iron-obsidian-boundary-edge-hardened-candidate.png",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB"
+    }
+  ],
+  "remainingCaveat": "The crimson network can reveal the 1024-pixel repeat period and must be judged on device.",
+  "nonGoals": [
+    "final-art approval",
+    "normal map",
+    "height map",
+    "metallic map",
+    "roughness map",
+    "emission map",
+    "third-party attribution"
+  ]
+}

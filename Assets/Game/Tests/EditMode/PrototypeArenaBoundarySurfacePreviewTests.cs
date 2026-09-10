@@ -17,6 +17,10 @@ namespace RealmRaiders.Tests
         const string ProvenanceAsset = Folder + "/provenance.json";
         const string AlbedoHash = "f0a79e13023c4191dd4e9405647de07db5fdc9a3cb21d340c08ba4a54c3aaba8";
         const string NormalHash = "27828c57fac349a26d73bac44497804296248131d8880a9289c7bad607312122";
+        const string InfernalFolder = "Assets/Game/Resources/Art/WorldSurfaces/MWS08-InfernalBoundary";
+        const string InfernalAlbedoAsset = InfernalFolder + "/infernal-iron-obsidian-boundary-edge-hardened-candidate.png";
+        const string InfernalProvenanceAsset = InfernalFolder + "/PROVENANCE.json";
+        const string InfernalAlbedoHash = "b8d21cdc6e1b29fae4e9586c64b034a26755b86989213fca4280106ac906745d";
 
         [Test]
         public void AcceptedLivingRootAssetsAreByteExactAndExplicitlyImportedForMobile()
@@ -41,10 +45,30 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
-        public void SylvanSurfaceLoadsAtomicallyOnceAndLeavesOtherStylesTextureFree()
+        public void AcceptedInfernalBoundaryAssetIsByteExactAndExplicitlyImportedForMobile()
+        {
+            Assert.That(Sha256(InfernalAlbedoAsset), Is.EqualTo(InfernalAlbedoHash));
+            CollectionAssert.AreEqual(new[] { InfernalAlbedoAsset }, AssetDatabase.FindAssets("", new[] { InfernalFolder })
+                .Select(AssetDatabase.GUIDToAssetPath).Where(path => path.EndsWith(".png")).OrderBy(path => path).ToArray());
+            AssertImport(InfernalAlbedoAsset, TextureImporterType.Default, true);
+
+            var provenance = AssetDatabase.LoadAssetAtPath<TextAsset>(InfernalProvenanceAsset);
+            Assert.That(provenance, Is.Not.Null);
+            Assert.That(provenance.text, Does.Contain("realmraiders.preview.infernal-forged-iron-obsidian-boundary.mws08.v1"));
+            Assert.That(provenance.text, Does.Contain("preview-only-not-final-art"));
+            Assert.That(provenance.text, Does.Contain("original generation").And.Contain("no third-party source"));
+            Assert.That(provenance.text, Does.Contain("\"modulesCommit\": \"c4295e4\""));
+            Assert.That(provenance.text, Does.Contain("MWS08-RealmBoundarySeamHardening/infernal-iron-obsidian-boundary-edge-hardened-candidate.png"));
+            Assert.That(provenance.text, Does.Contain(InfernalAlbedoHash).And.Contain("1024").And.Contain("RGB"));
+            Assert.That(provenance.text, Does.Contain("repeat period").And.Contain("device"));
+        }
+
+        [Test]
+        public void StyleLocalSurfacesLoadOnceAndLeaveNeutralTextureFree()
         {
             var albedo = AssetDatabase.LoadAssetAtPath<Texture2D>(AlbedoAsset);
             var normal = AssetDatabase.LoadAssetAtPath<Texture2D>(NormalAsset);
+            var infernalAlbedo = AssetDatabase.LoadAssetAtPath<Texture2D>(InfernalAlbedoAsset);
             var requests = new List<string>();
             var owners = new List<GameObject>();
             try
@@ -53,19 +77,22 @@ namespace RealmRaiders.Tests
                 {
                     requests.Add(path);
                     return path == PrototypeArenaBoundaryBuilder.SylvanAlbedoResource ? albedo :
-                        path == PrototypeArenaBoundaryBuilder.SylvanNormalResource ? normal : null;
+                        path == PrototypeArenaBoundaryBuilder.SylvanNormalResource ? normal :
+                        path == PrototypeArenaBoundaryBuilder.InfernalAlbedoResource ? infernalAlbedo : null;
                 });
 
                 var neutral = BuildRectangle(owners, PrototypeArenaBoundaryStyle.NeutralStone);
-                var infernal = BuildRectangle(owners, PrototypeArenaBoundaryStyle.InfernalBasalt);
-                Assert.That(requests, Is.Empty, "Non-Sylvan styles must not resolve living-root resources.");
+                Assert.That(requests, Is.Empty, "Neutral must not resolve either style-local surface.");
                 var firstSylvan = BuildRectangle(owners, PrototypeArenaBoundaryStyle.SylvanRoots);
                 var secondSylvan = BuildRectangle(owners, PrototypeArenaBoundaryStyle.SylvanRoots);
+                var firstInfernal = BuildRectangle(owners, PrototypeArenaBoundaryStyle.InfernalBasalt);
+                var secondInfernal = BuildRectangle(owners, PrototypeArenaBoundaryStyle.InfernalBasalt);
 
                 CollectionAssert.AreEqual(new[]
                 {
                     PrototypeArenaBoundaryBuilder.SylvanAlbedoResource,
-                    PrototypeArenaBoundaryBuilder.SylvanNormalResource
+                    PrototypeArenaBoundaryBuilder.SylvanNormalResource,
+                    PrototypeArenaBoundaryBuilder.InfernalAlbedoResource
                 }, requests);
                 var firstMaterial = Renderer(firstSylvan).sharedMaterial;
                 Assert.That(Renderer(secondSylvan).sharedMaterial, Is.SameAs(firstMaterial));
@@ -73,8 +100,40 @@ namespace RealmRaiders.Tests
                 Assert.That(firstMaterial.GetTexture("_BumpMap"), Is.SameAs(normal));
                 Assert.That(firstMaterial.GetFloat("_BumpScale"), Is.EqualTo(PrototypeArenaBoundaryBuilder.SylvanNormalStrength).Within(.001f));
                 Assert.That(firstMaterial.IsKeywordEnabled("_NORMALMAP"), Is.True);
+                var infernalMaterial = Renderer(firstInfernal).sharedMaterial;
+                Assert.That(Renderer(secondInfernal).sharedMaterial, Is.SameAs(infernalMaterial));
+                Assert.That(infernalMaterial.mainTexture, Is.SameAs(infernalAlbedo));
+                Assert.That(infernalMaterial.IsKeywordEnabled("_NORMALMAP"), Is.False);
+                Assert.That(infernalMaterial.color, Is.EqualTo(Color.white));
                 AssertSolidFallback(Renderer(neutral).sharedMaterial, new Color(.17f, .22f, .21f));
-                AssertSolidFallback(Renderer(infernal).sharedMaterial, new Color(.12f, .075f, .06f));
+            }
+            finally
+            {
+                DestroyOwners(owners);
+                PrototypeArenaBoundaryBuilder.ResetTextureLoaderForTests();
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void MissingOrThrowingInfernalResourcePreservesSolidColourFallback(bool throws)
+        {
+            var requests = new List<string>();
+            var owners = new List<GameObject>();
+            try
+            {
+                PrototypeArenaBoundaryBuilder.ConfigureTextureLoaderForTests(path =>
+                {
+                    requests.Add(path);
+                    if (throws) throw new System.InvalidOperationException("Infernal preview unavailable");
+                    return null;
+                });
+                var first = BuildRectangle(owners, PrototypeArenaBoundaryStyle.InfernalBasalt);
+                var second = BuildRectangle(owners, PrototypeArenaBoundaryStyle.InfernalBasalt);
+
+                CollectionAssert.AreEqual(new[] { PrototypeArenaBoundaryBuilder.InfernalAlbedoResource }, requests);
+                Assert.That(Renderer(second).sharedMaterial, Is.SameAs(Renderer(first).sharedMaterial));
+                AssertSolidFallback(Renderer(first).sharedMaterial, new Color(.12f, .075f, .06f));
             }
             finally
             {

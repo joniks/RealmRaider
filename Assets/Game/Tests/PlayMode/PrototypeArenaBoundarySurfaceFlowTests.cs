@@ -11,16 +11,19 @@ namespace RealmRaiders.Tests
     public sealed class PrototypeArenaBoundarySurfaceFlowTests
     {
         [UnityTest]
-        public IEnumerator SylvanRaidAndDefenseUseLivingRootSurfaceWhileNeutralAndInfernalStayTextureFree()
+        public IEnumerator SylvanAndInfernalBoundariesBindStyleLocalSurfacesWhileNeutralStaysTextureFree()
         {
             PrototypeArenaBoundaryBuilder.ResetTextureLoaderForTests();
             var albedo = Resources.Load<Texture2D>(PrototypeArenaBoundaryBuilder.SylvanAlbedoResource);
             var normal = Resources.Load<Texture2D>(PrototypeArenaBoundaryBuilder.SylvanNormalResource);
+            var infernalAlbedo = Resources.Load<Texture2D>(PrototypeArenaBoundaryBuilder.InfernalAlbedoResource);
             Material sharedSylvanMaterial = null;
+            Material sharedInfernalMaterial = null;
             try
             {
                 Assert.That(albedo, Is.Not.Null);
                 Assert.That(normal, Is.Not.Null);
+                Assert.That(infernalAlbedo, Is.Not.Null);
                 foreach (var scene in new[] { "SylvanRealm", "DefenderTest", "CharacterSandbox", "InfernalRealm" })
                 {
                     SceneManager.LoadScene(scene);
@@ -63,12 +66,19 @@ namespace RealmRaiders.Tests
                         if (sharedSylvanMaterial) Assert.That(renderer.sharedMaterial, Is.SameAs(sharedSylvanMaterial));
                         else sharedSylvanMaterial = renderer.sharedMaterial;
                     }
+                    else if (scene == "InfernalRealm")
+                    {
+                        Assert.That(renderer.sharedMaterial.mainTexture, Is.SameAs(infernalAlbedo));
+                        Assert.That(renderer.sharedMaterial.IsKeywordEnabled("_NORMALMAP"), Is.False);
+                        AssertColor(renderer.sharedMaterial.color, Color.white, scene);
+                        if (sharedInfernalMaterial) Assert.That(renderer.sharedMaterial, Is.SameAs(sharedInfernalMaterial));
+                        else sharedInfernalMaterial = renderer.sharedMaterial;
+                    }
                     else
                     {
                         Assert.That(renderer.sharedMaterial.mainTexture, Is.Null, $"{scene} must retain its texture-free fallback.");
                         Assert.That(renderer.sharedMaterial.IsKeywordEnabled("_NORMALMAP"), Is.False);
-                        var expected = scene == "CharacterSandbox" ? new Color(.17f, .22f, .21f) : new Color(.12f, .075f, .06f);
-                        AssertColor(renderer.sharedMaterial.color, expected, scene);
+                        AssertColor(renderer.sharedMaterial.color, new Color(.17f, .22f, .21f), scene);
                     }
 
                     yield return null;

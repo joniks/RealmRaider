@@ -2646,3 +2646,39 @@ Completed on 2026-09-10.
 - MWS03 deletion, boundary surfaces, normal/height/roughness/emission, shaders,
   UV redesign, second-tile/macro variation, geometry/collision/gameplay, lighting,
   camera/UI, production-art approval and device-performance claims.
+
+## Diamond Pass 15.2 — Infernal Boundary Surface Identity
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Copied only the accepted original-generated MWS08 Infernal forged-iron and
+  obsidian RGB candidate from Modules commit `c4295e4`; source and destination
+  share exact SHA-256
+  `b8d21cdc6e1b29fae4e9586c64b034a26755b86989213fca4280106ac906745d`.
+- Added unique Unity metadata and local preview provenance with no third-party
+  source and the explicit crimson-network 1024-pixel device-periodicity caveat.
+- Infernal boundaries now lazily load and share the MWS08 albedo with Repeat,
+  mipmaps, Bilinear, non-readable sRGB and Android 512 ASTC 6×6 settings.
+- Missing or throwing resource loads retain the exact existing solid Infernal
+  fallback and are cached; Neutral and Sylvan resource/material behavior remains
+  independent and unchanged.
+
+### Verification
+
+- Architect confirmed byte equality, 1024×1024 RGB dimensions, unique GUIDs,
+  valid provenance, exact import settings, style-local cache/fallback behavior,
+  preserved Sylvan binding and unchanged geometry/collider scope;
+  `git diff --check` is clean.
+- QA final native gates passed EditMode `185/185` in 0.689 seconds and PlayMode
+  `87/87` in 70.294 seconds, both with zero failed/skipped/inconclusive tests.
+  No files changed after the final suites.
+- Manual Infernal/Sylvan texture readability, repetition and character contrast
+  are not claimed because QA could not safely operate the Game view.
+
+### Scope intentionally deferred
+
+- Normal/height/metallic/roughness/emission maps, shaders, second-tile or macro
+  variation, UV/geometry/collider/gameplay changes, final-art approval and
+  physical-device performance claims.

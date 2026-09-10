@@ -64,6 +64,7 @@ namespace RealmRaiders.Core
         public const int SylvanColliderBudget = 56;
         public const string SylvanAlbedoResource = "Art/WorldSurfaces/MWS09-SylvanBoundary/sylvan-living-root-boundary-edge-hardened-candidate";
         public const string SylvanNormalResource = "Art/WorldSurfaces/MWS09-SylvanBoundary/sylvan-living-root-mobile-normal-rgb-candidate";
+        public const string InfernalAlbedoResource = "Art/WorldSurfaces/MWS08-InfernalBoundary/infernal-iron-obsidian-boundary-edge-hardened-candidate";
         public const float SylvanNormalStrength = .35f;
         const int CircleSides = 8;
         const float GeometryEpsilon = .002f;
@@ -76,7 +77,9 @@ namespace RealmRaiders.Core
         static Material infernalMaterial;
         static Texture2D sylvanAlbedo;
         static Texture2D sylvanNormal;
+        static Texture2D infernalAlbedo;
         static bool sylvanSurfaceResolved;
+        static bool infernalSurfaceResolved;
         static Func<string, Texture2D> textureLoader = LoadTexture;
 
         struct Segment
@@ -658,7 +661,7 @@ namespace RealmRaiders.Core
                 case PrototypeArenaBoundaryStyle.SylvanRoots:
                     return sylvanMaterial ? sylvanMaterial : sylvanMaterial = CreateSylvanMaterial();
                 case PrototypeArenaBoundaryStyle.InfernalBasalt:
-                    return infernalMaterial ? infernalMaterial : infernalMaterial = CreateMaterial("Infernal Boundary Basalt", new Color(.12f, .075f, .06f));
+                    return infernalMaterial ? infernalMaterial : infernalMaterial = CreateInfernalMaterial();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(style), style, null);
             }
@@ -696,31 +699,65 @@ namespace RealmRaiders.Core
             return false;
         }
 
+        static Material CreateInfernalMaterial()
+        {
+            var material = CreateMaterial("Infernal Boundary Basalt", new Color(.12f, .075f, .06f));
+            if (!ResolveInfernalSurface()) return material;
+            material.color = Color.white;
+            material.mainTexture = infernalAlbedo;
+            return material;
+        }
+
+        static bool ResolveInfernalSurface()
+        {
+            if (infernalSurfaceResolved) return infernalAlbedo;
+            infernalSurfaceResolved = true;
+            try
+            {
+                infernalAlbedo = textureLoader?.Invoke(InfernalAlbedoResource);
+            }
+            catch (Exception)
+            {
+                infernalAlbedo = null;
+            }
+            if (infernalAlbedo) return true;
+            infernalAlbedo = null;
+            return false;
+        }
+
         static Texture2D LoadTexture(string resourcePath) => Resources.Load<Texture2D>(resourcePath);
 
         public static void ConfigureTextureLoaderForTests(Func<string, Texture2D> loader)
         {
-            ResetSylvanSurfaceCache();
+            ResetSurfaceCaches();
             textureLoader = loader ?? (_ => null);
         }
 
         public static void ResetTextureLoaderForTests()
         {
-            ResetSylvanSurfaceCache();
+            ResetSurfaceCaches();
             textureLoader = LoadTexture;
         }
 
-        static void ResetSylvanSurfaceCache()
+        static void ResetSurfaceCaches()
         {
-            if (sylvanMaterial)
-            {
-                if (Application.isPlaying) UnityEngine.Object.Destroy(sylvanMaterial);
-                else UnityEngine.Object.DestroyImmediate(sylvanMaterial);
-            }
-            sylvanMaterial = null;
+            DestroyMaterial(ref sylvanMaterial);
+            DestroyMaterial(ref infernalMaterial);
             sylvanAlbedo = null;
             sylvanNormal = null;
+            infernalAlbedo = null;
             sylvanSurfaceResolved = false;
+            infernalSurfaceResolved = false;
+        }
+
+        static void DestroyMaterial(ref Material material)
+        {
+            if (material)
+            {
+                if (Application.isPlaying) UnityEngine.Object.Destroy(material);
+                else UnityEngine.Object.DestroyImmediate(material);
+            }
+            material = null;
         }
 
         static Material CreateMaterial(string name, Color color)

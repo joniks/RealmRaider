@@ -365,15 +365,25 @@ failed/skipped/inconclusive tests. Editor log tail showed no error/exception.
 Manual seam/periodicity and Sylvan regression are not claimed because Game view
 was not safely operable through QA automation.
 
-## Now — Diamond Pass 15.2: Infernal Boundary Surface Identity
+## Accepted — Diamond Pass 15.2: Infernal Boundary Surface Identity
 
 Apply the accepted original-generated, seam-hardened MWS08 forged black-iron and
 obsidian albedo to Infernal arena boundaries only. Preserve the complete boundary
 mesh/collider topology, Sylvan albedo+normal path, solid fallbacks and gameplay;
 record the crimson-network periodicity as an explicit device caveat.
 
-## Ready after 15.2
+Acceptance: Architect confirmed byte identity, valid provenance, unique GUIDs,
+mobile import settings, style-local cache/fallback behavior and unchanged
+Sylvan/geometry/collider scope. QA final native gates passed EditMode `185/185`
+and PlayMode `87/87`, both with zero failed/skipped/inconclusive tests. No files
+changed after the final suites. Manual Game-view and physical-device appearance
+remain unclaimed.
 
-Use QA's factual Infernal/Sylvan boundary rendering and periodicity observation to
-accept or return one bounded import/material correction. Normal/emission maps,
-shader redesign and macro variation remain separate, evidence-led gates.
+## Ready — Diamond Pass 15.3: Possession Arrival Impact
+
+Strengthen the most important Keeper → same-creature takeover moment with one
+bounded, presentation-only arrival accent that complements the existing slow beat,
+pulse, camera transition and confirmation audio without moving the gameplay root,
+changing possession timing/authority, adding assets, or producing repeated effects.
+Core must first inspect the existing possession/presentation paths and freeze a
+minimal lifecycle-clean contract before this ready gate is activated.
