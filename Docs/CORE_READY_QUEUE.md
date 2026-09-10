@@ -547,10 +547,25 @@ actual imported Blood Knight Play path `1/1`. Final native gates passed EditMode
 The user's Game-view check remains authoritative for knee, weapon-side and stride
 feel.
 
-## Ready next — Diamond Pass 15.14: Exact Rig Extension Decision
+## Accepted — Diamond Pass 15.14: Blood Knight Upper-Torso Counterweight
 
-Inspect the imported Blood Knight's exact hierarchy and the user's Game-view
-evidence before choosing the smallest next visual-motion extension. Prefer a
-measured spine/pelvis contribution only if existing bones and bind orientation are
-unambiguous. Do not claim foot planting or IK from the six-bone map, and do not
-change gameplay physics, root, CharacterController, camera, input or combat.
+Modules commit `e02e9a4` adds one optional baseline-relative upper-torso transform
+without changing legacy six-bone output. Core opts in only when the actual
+skin-weighted `Bip01 Spine1` passes exact ownership, ancestry, scale and axis
+checks; every failure retains the accepted limb motion. Existing factual clocks
+drive walk ≤2°, attack ≤8° and hit ≤5°, while jump/death remain neutral at the
+torso and all gameplay transforms stay unchanged.
+
+Acceptance: focused Module `30/30`, main Adapter `17/17` and actual imported hero
+Play `1/1` passed. Final native gates passed EditMode `288/288` and PlayMode
+`92/92`; the post-gate log contained no errors/exceptions. Game-view aesthetics
+remain user-owned.
+
+## Ready next — Diamond Pass 15.15: Guardian Ent Visual Intake
+
+Use only the already reviewed exact Tennessippi Free Treant Pack/Tree01 CC0 source
+and its recorded provenance. First freeze the actual extracted-file/import evidence
+and mobile visual budget; then bind one visual-only Guardian Ent prefab through the
+existing LargeCreature recipe while preserving the same entity, CharacterController,
+possession, cultivation and fallback behavior. No source physics, colliders, root
+motion or unverified animation claim may enter gameplay.

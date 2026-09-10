@@ -114,8 +114,9 @@ Last reviewed: 2026-09-11
 - Diamond Pass 15.11 Blood Knight Readable Stride and Staged Jump is present through Modules commit `501c812`: exact doubled forward/back counter-swing and one shared continuous 0.30/0.40/0.40/0.56-second visual jump timeline affect only the pivot and six bound bones, including sparse-frame and early-ground continuity.
 - Diamond Pass 15.12 Factual Character Motion Dynamics is present: one shared per-entity state drives the six bound bones and bounded pivot weight from factual horizontal displacement and yaw, stops exactly at neutral, composes with the staged jump/action/hit priorities and clears on every authority/lifecycle boundary without changing gameplay physics.
 - Diamond Pass 15.13 Sagittal Stride and Directional Combat Motion is present through Modules commit `7aae5d6`: the Blood Knight's six cached limb hinges now follow the owned Presentation Pivot's forward/back plane with opposed gait, while factual accepted attacks and damage drive continuous bounded windup/impact/recovery and directional flinch without gameplay authority.
-- Current Unity Test Runner baseline: EditMode `276/276` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-11.
-- Physical-device validation of the corrected sagittal stride, knee bend, weapon-side motion and overall combat feel remains pending; no device performance result is claimed here.
+- Diamond Pass 15.14 Blood Knight Upper-Torso Counterweight is present through Modules commit `e02e9a4`: the actual skin-weighted `Bip01 Spine1` receives small bounded walk/attack/hit counterweight while invalid optional evidence falls back to the unchanged six-limb motion and every gameplay transform remains authoritative.
+- Current Unity Test Runner baseline: EditMode `288/288` and PlayMode `92/92` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
 

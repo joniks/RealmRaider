@@ -7,7 +7,7 @@ using UnityEngine;
 namespace RealmRaiders.Characters
 {
     /// <summary>
-    /// Core-owned bridge from factual combat state to the module's visual-only six-bone driver.
+    /// Core-owned bridge to six visual limb bones and the optional exact Blood Knight upper torso.
     /// It never changes the gameplay root, controller, presentation pivot, or base-body transform.
     /// </summary>
     [DisallowMultipleComponent]
@@ -18,6 +18,9 @@ namespace RealmRaiders.Characters
         static readonly HumanoidBoneNameMap BloodKnightBones = new(
             "Bip01 L UpperArm", "Bip01 R UpperArm", "Bip01 L Thigh",
             "Bip01 R Thigh", "Bip01 L Calf", "Bip01 R Calf");
+        static readonly HumanoidBoneNameMap BloodKnightTorsoBones = new(
+            "Bip01 L UpperArm", "Bip01 R UpperArm", "Bip01 L Thigh",
+            "Bip01 R Thigh", "Bip01 L Calf", "Bip01 R Calf", "Bip01 Spine1");
 
         readonly ProceduralHumanoidPoseDriver driver = new(ProceduralHumanoidMotionTuning.BloodKnightDeviceReadable);
         CombatEntity entity;
@@ -27,9 +30,9 @@ namespace RealmRaiders.Characters
         CharacterVisualMotion visualMotion;
         CharacterJumpPresentationTimeline jumpPresentation;
         readonly CharacterCombatPresentationTimeline combat = new();
-        readonly Transform[] bones = new Transform[6];
-        readonly Quaternion[] lastPose = new Quaternion[6];
-        readonly Quaternion[] blendFrom = new Quaternion[6];
+        readonly Transform[] bones = new Transform[7];
+        readonly Quaternion[] lastPose = new Quaternion[7];
+        readonly Quaternion[] blendFrom = new Quaternion[7];
         object sampledController;
         float blendStarted;
         bool blending, hasPose;
@@ -38,6 +41,7 @@ namespace RealmRaiders.Characters
         bool subscribed;
 
         public bool IsBound => driver.IsBound;
+        public bool HasUpperTorso => driver.IsBound && bones[6];
         public bool HasCombatPresentation => combat.HasHit || combat.HasAttack;
 
         void Awake()
@@ -56,8 +60,7 @@ namespace RealmRaiders.Characters
             var assembler = GetComponent<CharacterVisualAssembler>();
             if (!visualBaseBody || !presentationPivot || !entity || !health || !visualMotion || !assembler ||
                 assembler.PresentationPivot != presentationPivot || visualMotion.PresentationPivot != presentationPivot ||
-                !presentationPivot.IsChildOf(transform) || visualBaseBody.parent != presentationPivot ||
-                !driver.Bind(visualBaseBody, presentationPivot, BloodKnightBones, ProceduralHumanoidAxisPolicy.CharacterSagittalPlane))
+                !presentationPivot.IsChildOf(transform) || visualBaseBody.parent != presentationPivot)
             {
                 Clear();
                 return false;
@@ -65,6 +68,12 @@ namespace RealmRaiders.Characters
             baseBody = visualBaseBody;
             orientationReference = presentationPivot;
             CacheBones();
+            var names = bones[6] ? BloodKnightTorsoBones : BloodKnightBones;
+            if (!driver.Bind(baseBody, orientationReference, names, ProceduralHumanoidAxisPolicy.CharacterSagittalPlane))
+            {
+                Clear();
+                return false;
+            }
             jumpPresentation = GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
             jumpPresentation.Configure(driver.Tuning.JumpPresentationDurationMultiplier, driver.Tuning.TakeoffStraightenDurationMultiplier);
             visualMotion.ResetDynamics();
@@ -125,6 +134,7 @@ namespace RealmRaiders.Characters
             var blend = Mathf.SmoothStep(0, 1, (unscaledClock - blendStarted) / CombatCrossfadeSeconds);
             for (var i = 0; i < bones.Length; i++)
             {
+                if (!bones[i]) continue; // The optional torso may be absent without disabling the six limbs.
                 if (blending && priority != 3) bones[i].localRotation = Quaternion.Slerp(blendFrom[i], bones[i].localRotation, blend);
                 lastPose[i] = bones[i].localRotation;
             }
@@ -183,8 +193,11 @@ namespace RealmRaiders.Characters
 
         void CacheBones()
         {
+            Transform torso = null;
+            var torsoCount = 0;
             foreach (var candidate in baseBody.GetComponentsInChildren<Transform>(true))
             {
+                if (candidate != baseBody && candidate.name == "Bip01 Spine1") { torso = candidate; torsoCount++; }
                 var index = candidate.name switch
                 {
                     "Bip01 L UpperArm" => 0, "Bip01 R UpperArm" => 1, "Bip01 L Thigh" => 2,
@@ -192,6 +205,31 @@ namespace RealmRaiders.Characters
                 };
                 if (candidate != baseBody && index >= 0) bones[index] = candidate;
             }
+            bones[6] = torsoCount == 1 && HasOwnedTorsoChain(torso) ? torso : null;
+        }
+
+        bool HasOwnedTorsoChain(Transform torso)
+        {
+            var spine = torso.parent;
+            var pelvis = spine ? spine.parent : null;
+            var skeleton = pelvis ? pelvis.parent : null;
+            if (!spine || spine.name != "Bip01 Spine" || !pelvis || pelvis.name != "Bip01 Pelvis" ||
+                !skeleton || skeleton.name != "Bip01" || !skeleton.IsChildOf(baseBody)) return false;
+            // The selected upper torso must own the arms, never the legs or a gameplay root.
+            for (var i = 0; i < 6; i++)
+                if (!bones[i] || !bones[i].IsChildOf(pelvis) || bones[i].IsChildOf(torso) != (i < 2)) return false;
+            var scale = torso.lossyScale;
+            var rotation = torso.rotation;
+            var axis = Quaternion.Inverse(rotation) * orientationReference.right;
+            var determinant = torso.localToWorldMatrix.determinant;
+            return CharacterCombatPresentationTimeline.Finite(scale.x) && CharacterCombatPresentationTimeline.Finite(scale.y) &&
+                CharacterCombatPresentationTimeline.Finite(scale.z) && Mathf.Abs(scale.x) >= .0001f &&
+                Mathf.Abs(scale.y) >= .0001f && Mathf.Abs(scale.z) >= .0001f &&
+                CharacterCombatPresentationTimeline.Finite(determinant) && determinant > .000001f &&
+                CharacterCombatPresentationTimeline.Finite(rotation.x) && CharacterCombatPresentationTimeline.Finite(rotation.y) &&
+                CharacterCombatPresentationTimeline.Finite(rotation.z) && CharacterCombatPresentationTimeline.Finite(rotation.w) &&
+                CharacterCombatPresentationTimeline.Finite(axis.x) && CharacterCombatPresentationTimeline.Finite(axis.y) &&
+                CharacterCombatPresentationTimeline.Finite(axis.z) && axis.sqrMagnitude >= .999f;
         }
 
         void Unsubscribe()

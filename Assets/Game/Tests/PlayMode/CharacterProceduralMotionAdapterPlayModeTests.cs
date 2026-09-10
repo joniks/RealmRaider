@@ -58,6 +58,14 @@ namespace RealmRaiders.Tests
                 var controllerRadius = controller.radius;
                 var controllerCenter = controller.center;
                 var bones = RequiredBones(baseBody);
+                var torso = bones[6];
+                Assert.That(adapter.HasUpperTorso, Is.True, "The real imported optional Spine1 must pass exact ownership/ancestry validation.");
+                Assert.That(torso.parent.name, Is.EqualTo("Bip01 Spine"));
+                Assert.That(torso.parent.parent.name, Is.EqualTo("Bip01 Pelvis"));
+                var weightedTorso = false;
+                foreach (var renderer in baseBody.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                    foreach (var bone in renderer.bones) weightedTorso |= bone == torso;
+                Assert.That(weightedTorso, Is.True, "The chosen real transform must participate in the imported skin, not be a decorative name match.");
                 host.GetComponent<CharacterVisualMotion>().enabled = false;
 
                 var baseline = Snapshot(bones);
@@ -67,8 +75,12 @@ namespace RealmRaiders.Tests
                     host.transform.position += Vector3.forward * .3f;
                     adapter.SamplePresentation(sample * .05f, 100f + sample, .05f, false, true, true);
                     locomotionObserved |= RotationDelta(bones[2], baseline[2]) > .001f;
+                    Assert.That(RotationDelta(torso, baseline[6]), Is.LessThanOrEqualTo(2.01f));
                 }
                 Assert.That(locomotionObserved, Is.True, "Factual horizontal root displacement must map to locomotion.");
+                Assert.That(RotationDelta(torso, baseline[6]), Is.GreaterThan(.01f));
+                Assert.That(torso.localPosition, Is.EqualTo(baseline[6].Position));
+                Assert.That(torso.localScale, Is.EqualTo(baseline[6].Scale));
                 Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
                 Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
                 Assert.That(host.transform.localRotation, Is.EqualTo(Quaternion.identity));
@@ -86,6 +98,7 @@ namespace RealmRaiders.Tests
                 Assert.That(RotationDelta(bones[0], baseline[0]), Is.LessThan(.01f), "A factual hit begins continuously at zero, not a static pose.");
                 adapter.SamplePresentation(hitClock + CharacterCombatPresentationTimeline.HitRiseSeconds, Time.time, .05f, false, true, true);
                 Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(16f).Within(.02f));
+                AssertLocalRotation(torso, baseline[6], Vector3.right, -5f, "Factual hit reaches the bounded torso flinch.");
                 adapter.SamplePresentation(hitClock + .2f, Time.time, .05f, false, true, true);
                 adapter.SamplePresentation(hitClock + .25f, Time.time, .05f, false, true, true);
                 Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Hit recovery returns to the exact resting baseline.");
@@ -127,6 +140,7 @@ namespace RealmRaiders.Tests
                 adapter.SamplePresentation(impactClock + .04f, facts[1].ScaledTime, .016f, false, true, true);
                 adapter.SamplePresentation(impactClock + .08f, facts[1].ScaledTime, .016f, false, true, true);
                 Assert.That(AnyRotationChanged(bones, baseline), Is.True, "The real accepted action reaches a continuous semantic six-bone pose.");
+                Assert.That(RotationDelta(torso, baseline[6]), Is.GreaterThan(.01f).And.LessThanOrEqualTo(8.01f));
                 Assert.That(host.transform.position, Is.EqualTo(beforeActionPosition));
                 Assert.That(entity.Abilities[0].ReadyAt, Is.EqualTo(readyAt));
                 Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
@@ -138,13 +152,27 @@ namespace RealmRaiders.Tests
                 Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
 
+                // Establish the factual neutral observation before supplying the next displacement sample.
+                Assert.That(adapter.HasUpperTorso, Is.True);
+                adapter.SamplePresentation(4f, 4f, .05f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+                for (var sample = 1; sample <= 3; sample++)
+                {
+                    host.transform.position += Vector3.forward * .2f;
+                    var gaitClock = 4f + sample * .05f;
+                    adapter.SamplePresentation(gaitClock, gaitClock, .05f, false, true, true);
+                }
+                Assert.That(RotationDelta(bones[2], baseline[2]), Is.GreaterThan(.01f), "Three fixed factual displacement samples must drive limb locomotion.");
+                Assert.That(RotationDelta(torso, baseline[6]), Is.GreaterThan(.01f).And.LessThanOrEqualTo(2.01f));
                 adapter.enabled = false;
                 yield return null;
                 Assert.That(adapter.IsBound, Is.False);
+                Assert.That(adapter.HasUpperTorso, Is.False);
                 Assert.That(Snapshot(bones), Is.EqualTo(baseline), "The actual disable lifecycle must restore cached bone transforms.");
                 adapter.enabled = true;
                 yield return null;
                 Assert.That(adapter.IsBound, Is.True, "The actual enable lifecycle must rebind the retained Base Body.");
+                Assert.That(adapter.HasUpperTorso, Is.True, "The optional spine follows the same retained body/pivot rebind.");
 
                 Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
@@ -356,6 +384,7 @@ namespace RealmRaiders.Tests
                 Assert.That(sharedDynamics.Speed, Is.Zero, "Death clears gait before its dominant pose is sampled.");
                 Assert.That(host.GetComponent<Health>().IsDead, Is.True);
                 Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(16f).Within(.01f), "Health.IsDead must retain death priority.");
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline[6]), "Optional torso adds no death motion.");
                 Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
                 Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
 
@@ -379,7 +408,7 @@ namespace RealmRaiders.Tests
             var names = new[]
             {
                 "Bip01 L UpperArm", "Bip01 R UpperArm", "Bip01 L Thigh",
-                "Bip01 R Thigh", "Bip01 L Calf", "Bip01 R Calf"
+                "Bip01 R Thigh", "Bip01 L Calf", "Bip01 R Calf", "Bip01 Spine1"
             };
             var bones = new Transform[names.Length];
             for (var index = 0; index < names.Length; index++)
@@ -424,6 +453,7 @@ namespace RealmRaiders.Tests
             AssertLocalRotation(bones[3], baseline[3], Vector3.forward, rightThigh, message);
             AssertLocalRotation(bones[4], baseline[4], Vector3.forward, leftCalf, message);
             AssertLocalRotation(bones[5], baseline[5], Vector3.forward, rightCalf, message);
+            Assert.That(Pose.Of(bones[6]), Is.EqualTo(baseline[6]), "Optional torso adds no jump motion.");
         }
 
         private static void AssertLocalRotation(Transform bone, Pose baseline, Vector3 axis, float degrees, string message = null)

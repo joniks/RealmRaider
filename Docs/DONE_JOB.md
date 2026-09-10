@@ -3068,3 +3068,39 @@ Completed on 2026-09-11.
 
 - Spine, pelvis and foot bindings; foot planting/IK; Animator clips, root motion,
   ragdoll/Rigidbody physics and broad skeleton retargeting.
+
+## Diamond Pass 15.14 — Blood Knight Upper-Torso Counterweight
+
+Completed on 2026-09-11.
+
+### Delivered
+
+- Modules commit `e02e9a4` adds a backward-compatible optional upper-torso bind to
+  the reusable procedural humanoid driver. Legacy six-bone callers and outputs
+  remain exact.
+- The actual Blood Knight opts into its exact weighted chain
+  `Bip01 → Bip01 Pelvis → Bip01 Spine → Bip01 Spine1`; invalid, duplicate,
+  reflected, unsupported or wrongly parented optional torso evidence disables only
+  this extension and preserves accepted limb motion.
+- `Spine1` receives caller-clocked, baseline-relative sagittal counterweight only:
+  walk at most `2°`, attack at most `8°`, and hit response at most `5°`.
+  Jump and death add no torso accent.
+- The optional seventh transform participates in existing crossfade, clear,
+  rebind, disable/enable, terminal and death restoration without moving or scaling
+  the gameplay root, Base Body, Presentation Pivot or CharacterController.
+
+### Verification
+
+- Independent Module and Core static reviews found no blocker; both repositories
+  pass `git diff --check`.
+- Focused QA passed the complete Module driver group `30/30`, main adapter group
+  `17/17`, and the actual imported/skin-weighted Blood Knight PlayMode path `1/1`.
+- Final QA gates passed EditMode `288/288` in 0.967 seconds and PlayMode `92/92`
+  in 73.065 seconds. The post-gate Editor log contained no errors/exceptions.
+- Android export was intentionally omitted. Torso strength, neck/armor clipping,
+  weapon follow and overall gait/combat feel remain the user's Game-view approval.
+
+### Scope intentionally deferred
+
+- Pelvis/foot/toe motion, foot planting, IK, authored clips, root motion,
+  ragdoll/Rigidbody physics and generic retargeting.

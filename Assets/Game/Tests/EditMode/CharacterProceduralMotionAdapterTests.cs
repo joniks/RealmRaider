@@ -7,6 +7,155 @@ namespace RealmRaiders.Tests
 {
     public sealed class CharacterProceduralMotionAdapterTests
     {
+        [TestCase(0f)]
+        [TestCase(73f)]
+        public void Adapter_OptionalTorsoUsesOwnedSemanticChainAndPreservesSixLimbLocalOutput(float yaw)
+        {
+            var fixture = CreateFixture();
+            var control = CreateFixture();
+            try
+            {
+                var pivot = fixture.Host.GetComponent<CharacterVisualAssembler>().PresentationPivot;
+                var controlPivot = control.Host.GetComponent<CharacterVisualAssembler>().PresentationPivot;
+                pivot.localRotation = controlPivot.localRotation = Quaternion.Euler(0, yaw, 0);
+                var body = CreateBody(pivot, true, out var bones);
+                var controlBody = CreateBody(controlPivot, true, out var controlBones);
+                body.localRotation = controlBody.localRotation = Quaternion.Euler(0, 180, 0);
+                var torso = AddTorsoChain(body, bones);
+                var controlTorso = AddTorsoChain(controlBody, controlBones);
+                controlTorso.name = "Torso Not Opted In";
+                var baseline = Pose.Of(torso);
+                var bodyPose = Pose.Of(body); var pivotPose = Pose.Of(pivot);
+                var motor = fixture.Host.GetComponent<CharacterController>();
+                var center = motor.center; var height = motor.height; var radius = motor.radius;
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
+                Assert.That(fixture.Adapter.HasUpperTorso, Is.True);
+                Assert.That(control.Adapter.Bind(controlBody, controlPivot), Is.True);
+                Assert.That(control.Adapter.HasUpperTorso, Is.False);
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                control.Host.transform.position += Vector3.forward * .2f;
+                var root = Pose.Of(fixture.Host.transform);
+                fixture.Adapter.SamplePresentation(1, 1, .05f, false, true, true);
+                control.Adapter.SamplePresentation(1, 1, .05f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(Snapshot(controlBones)), "Optional torso must preserve all six accepted LOCAL limb poses.");
+                for (var i = 2; i < 6; i++)
+                {
+                    Assert.That(bones[i].position, Is.EqualTo(controlBones[i].position));
+                    Assert.That(Quaternion.Angle(bones[i].rotation, controlBones[i].rotation), Is.LessThan(.01f), "Torso cannot rotate the separate leg branch.");
+                }
+                var dynamics = fixture.Host.GetComponent<CharacterVisualMotion>().SampleFactualDynamics(1, .05f, true, CharacterJumpPresentationSample.None);
+                AssertBoneAngle(torso, baseline, -2f * Mathf.Sin(dynamics.Phase) * dynamics.Speed);
+                Assert.That(Quaternion.Angle(torso.localRotation, baseline.Rotation), Is.GreaterThan(.01f).And.LessThanOrEqualTo(2.01f));
+                var first = Pose.Of(torso);
+                fixture.Adapter.SamplePresentation(1, 1, .05f, false, true, true);
+                Assert.That(Pose.Of(torso), Is.EqualTo(first));
+                Assert.That(Pose.Of(fixture.Host.transform), Is.EqualTo(root));
+                Assert.That(Pose.Of(body), Is.EqualTo(bodyPose)); Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
+                Assert.That(torso.localPosition, Is.EqualTo(baseline.Position)); Assert.That(torso.localScale, Is.EqualTo(baseline.Scale));
+                Assert.That(motor.center, Is.EqualTo(center)); Assert.That(motor.height, Is.EqualTo(height)); Assert.That(motor.radius, Is.EqualTo(radius));
+                fixture.Adapter.Clear();
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline));
+                Assert.That(fixture.Adapter.HasUpperTorso, Is.False);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                fixture.Adapter.SamplePresentation(2, 2, .05f, false, true, true);
+                InvokeAdapter(fixture.Adapter, "OnDisable");
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline));
+                Assert.That(fixture.Adapter.HasUpperTorso, Is.False);
+                InvokeAdapter(fixture.Adapter, "OnEnable");
+                Assert.That(fixture.Adapter.HasUpperTorso, Is.True);
+            }
+            finally { fixture.Dispose(); control.Dispose(); }
+        }
+
+        [TestCase("missing")]
+        [TestCase("duplicate")]
+        [TestCase("wrong-parent")]
+        [TestCase("reflected")]
+        [TestCase("unsupported-scale")]
+        public void Adapter_InvalidOptionalTorsoRetainsSixBoneMotion(string invalid)
+        {
+            var fixture = CreateFixture();
+            try
+            {
+                var pivot = fixture.Host.GetComponent<CharacterVisualAssembler>().PresentationPivot;
+                var body = CreateBody(pivot, true, out var bones);
+                var torso = AddTorsoChain(body, bones);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
+                var baseline = Pose.Of(torso);
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                fixture.Adapter.SamplePresentation(1, 1, .05f, false, true, true);
+                fixture.Adapter.Clear();
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline));
+                if (invalid == "missing") torso.name = "Not Spine1";
+                if (invalid == "duplicate") new GameObject("Bip01 Spine1").transform.SetParent(body, false);
+                if (invalid == "wrong-parent") torso.SetParent(body, false);
+                if (invalid == "reflected")
+                {
+                    torso.localScale = new Vector3(-1, 1, 1);
+                    // Compensate below torso so the six required limbs remain supported; only torso is reflected.
+                    torso.GetChild(0).localScale = new Vector3(-1, 1, 1);
+                }
+                if (invalid == "unsupported-scale")
+                {
+                    torso.localScale = Vector3.one * .00005f;
+                    torso.GetChild(0).localScale = Vector3.one * 20000f;
+                }
+                baseline = Pose.Of(torso);
+                var limbs = Snapshot(bones);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True, "An invalid OPTIONAL transform cannot disable valid required limbs.");
+                Assert.That(fixture.Adapter.HasUpperTorso, Is.False);
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                fixture.Adapter.SamplePresentation(2, 2, .05f, false, true, true);
+                Assert.That(Quaternion.Angle(bones[2].localRotation, limbs[2].Rotation), Is.GreaterThan(.01f));
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline));
+                Assert.That(body.gameObject.activeSelf, Is.True);
+            }
+            finally { fixture.Dispose(); }
+        }
+
+        [Test]
+        public void Adapter_TorsoParticipatesInCombatCrossfadeAndRestoresOnTerminalDeathAndFailedRebind()
+        {
+            var fixture = CreateFixture();
+            var terminal = RealmRaiders.Controllers.GameplayInput.TerminalState;
+            try
+            {
+                RealmRaiders.Controllers.GameplayInput.SetTerminalState(false);
+                var pivot = fixture.Host.GetComponent<CharacterVisualAssembler>().PresentationPivot;
+                var body = CreateBody(pivot, true, out var bones);
+                var torso = AddTorsoChain(body, bones);
+                var baseline = Pose.Of(torso);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
+                var clock = Time.unscaledTime;
+                InvokeAdapter(fixture.Adapter, "OnAction", new CombatPresentationFact(1, CombatActionPhase.Windup, CombatPresentationEnd.None,
+                    Vector3.forward, Quaternion.identity, null, .2f, Time.time - .2f, clock - .2f));
+                fixture.Adapter.SamplePresentation(clock, Time.time, .016f, false, true, true);
+                AssertBoneAngle(torso, baseline, -4f);
+                var windup = torso.localRotation;
+                fixture.Health.TakeDamage(new DamageInfo(1, null, fixture.Host.transform.position), 0);
+                fixture.Adapter.SamplePresentation(clock, Time.time, .016f, false, true, true);
+                Assert.That(Quaternion.Angle(torso.localRotation, windup), Is.LessThan(.01f), "Torso shares the existing combat crossfade snapshot.");
+                fixture.Adapter.SamplePresentation(clock + .02f, Time.time + .02f, .016f, false, true, true);
+                var hitWeight = Mathf.SmoothStep(0, 1, .02f / .06f);
+                var expected = Quaternion.Slerp(windup, baseline.Rotation * Quaternion.AngleAxis(-5f * hitWeight, baseline.SemanticAxis), .5f);
+                Assert.That(Quaternion.Angle(torso.localRotation, expected), Is.LessThan(.01f));
+                fixture.Adapter.SamplePresentation(clock + .06f, Time.time + .06f, .016f, false, true, true);
+                AssertBoneAngle(torso, baseline, -5f);
+                RealmRaiders.Controllers.GameplayInput.SetTerminalState(true);
+                fixture.Adapter.SamplePresentation(clock + .07f, Time.time + .07f, .016f, false, true, false);
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline));
+                RealmRaiders.Controllers.GameplayInput.SetTerminalState(false);
+                fixture.Health.TakeDamage(new DamageInfo(10000, null, fixture.Host.transform.position), 0);
+                fixture.Adapter.SamplePresentation(clock + .08f, Time.time + .08f, .016f, false, true, false);
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline), "No new torso death accent.");
+                Assert.That(fixture.Adapter.Bind(body, null), Is.False);
+                Assert.That(Pose.Of(torso), Is.EqualTo(baseline));
+                Assert.That(fixture.Adapter.HasUpperTorso, Is.False);
+            }
+            finally { RealmRaiders.Controllers.GameplayInput.SetTerminalState(terminal); fixture.Dispose(); }
+        }
+
         [Test]
         public void Adapter_HitOverridesAttackAndJumpIsIdempotentAndTerminalDeathClearTransientMotion()
         {
@@ -387,6 +536,24 @@ namespace RealmRaiders.Tests
                 bones[index].localRotation = Quaternion.Euler(index, index * 2, index * 3);
             }
             return body;
+        }
+
+        static Transform AddTorsoChain(Transform body, Transform[] bones)
+        {
+            Transform Child(string name, Transform parent)
+            {
+                var child = new GameObject(name).transform; child.SetParent(parent, false); return child;
+            }
+            var skeleton = Child("Bip01", body);
+            var pelvis = Child("Bip01 Pelvis", skeleton);
+            var spine = Child("Bip01 Spine", pelvis);
+            var torso = Child("Bip01 Spine1", spine);
+            torso.localRotation = Quaternion.Euler(17, -11, 6);
+            var neck = Child("Bip01 Neck", torso);
+            bones[0].SetParent(neck, false); bones[1].SetParent(neck, false);
+            bones[2].SetParent(pelvis, false); bones[3].SetParent(pelvis, false);
+            bones[4].SetParent(bones[2], false); bones[5].SetParent(bones[3], false);
+            return torso;
         }
 
         private static Pose[] Snapshot(Transform[] bones)
