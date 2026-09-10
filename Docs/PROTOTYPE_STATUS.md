@@ -75,6 +75,7 @@ Last reviewed: 2026-09-10
 - Art Pass MUI 02 is accepted in the pinned Modules submodule: three original encounter-state icon candidates and actual-size evidence are ready for a later named integration, while the dark hostiles mark retains an explicit in-context contrast gate.
 - Art Pass MUI 03 is accepted in the pinned Modules submodule: original Basic Slash, Blood Rush and Heavy Cleave icon candidates are distinct at 48 px and ready for a later named HUD integration, with Basic Slash retaining a 32 px readability gate.
 - Diamond Pass 13.2 Factual Encounter Entry and Clear Cue is present: first node visits now present truthful discovery, live hostile count and area-clear copy through existing Health and HUD ownership without gating movement or changing rewards/gameplay.
+- Art Pass MUI 04 is accepted in the pinned Modules submodule: original Guardian Ent Smash, Charge and Ground Slam icon candidates are distinct at 48 px, while the detailed radial mark retains an explicit 32 px readability gate.
 - Current Unity Test Runner baseline: EditMode `148/148` and PlayMode `81/81` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 

@@ -432,13 +432,15 @@ overview, alpha checks, hashes and original-generation provenance were reviewed
 on 2026-09-10. The quick slash, forward rush and broad cleave remain distinct at
 48 px; Basic Slash retains an explicit 32 px/in-context readability gate.
 
-## Now — Art Pass MUI 04: Guardian Ent Ability Icon Candidates
+## Accepted — Art Pass MUI 04: Guardian Ent Ability Icon Candidates
 
 Owner: Module Developer / Technical Art
 
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
 
 Base: Modules commit `3fa21af`.
+
+Accepted Modules commit: `0834c2f`.
 
 Reserved folder only:
 
@@ -471,3 +473,45 @@ Keeper → possession → direct combat proof but remains preview-only until nam
 
 Main checkout, Unity or `.meta`, DefenderHUD/abilities, runtime binding,
 cooldowns/combat tuning, animation/VFX/audio, character/model art or validators.
+
+Acceptance: all three 512×512 RGBA candidates, evidence sheets, alpha checks,
+hashes and provenance were reviewed on 2026-09-10. Close Smash, forward Charge
+and radial Ground Slam remain distinct at 48 px; Ground Slam retains a named
+32 px/in-context detail gate.
+
+## Now — Art Pass MUI 05: Infernal Brute Ability Icon Candidates
+
+Owner: Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Base: Modules commit `0834c2f`.
+
+Reserved folder only:
+
+- `ArtPreviews/MUI05-InfernalBruteAbilityIcons/`
+
+### Outcome
+
+Create an Infernal visual skin for the existing Smash, Charge and Ground Slam
+mechanics so future data-driven HUD binding can distinguish realm identity without
+forking ability logic. The set remains preview-only.
+
+### Required deliverables
+
+1. Create original 512×512 transparent RGBA `smash`, `charge` and `ground-slam`
+   icons with forged obsidian, restrained ember-red and pale-hot edge accents.
+2. Keep the same truthful mechanical readings as MUI04—close impact, forward
+   momentum, radial area shock—but make every silhouette clearly Infernal and not
+   a recoloured copy of the living-root set at 32–48 px.
+3. No full character/model likeness, text, numerals, frame, backdrop, logo,
+   watermark, gore, third-party source or recognizable franchise design.
+4. Produce a dark-neutral 48 px contact sheet and 256 px overview, record exact
+   prompts/tools/date/mapping/hashes and original-generation truth in provenance.
+5. Verify dimensions, RGBA/alpha, JSON, hashes, whitespace and actual-size
+   distinction; freeze only the reserved folder and send compact handoff.
+
+### Non-goals
+
+Main checkout, Unity or `.meta`, runtime/HUD binding, ability logic/balance,
+animation/VFX/audio, Infernal model/environment art, validators, commit or push.

@@ -1997,3 +1997,26 @@ Completed on 2026-09-10.
 
 - Encounter icons, audio/VFX/haptics, gates/doors, loot, minimap, AI, combat,
   camera, route/reward changes and physical-device/manual cue readability.
+
+## Art Pass MUI 04 — Guardian Ent Ability Icon Candidates
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Produced original 512×512 RGBA Smash, Charge and Ground Slam previews using a
+  cohesive ancient living-wood, moss and pale-gold visual language.
+- Added 48 px/256 px evidence and exact prompts, mappings, alpha and SHA-256
+  provenance without third-party sources or character likeness.
+
+### Verification
+
+- Dimensions, alpha evidence, JSON, hashes and whitespace are clean.
+- Close impact, forward root momentum and radial root shock are distinct at
+  48 px; the detailed Ground Slam retains a named 32 px/in-context gate.
+- Accepted in Modules commit `0834c2f` (`art: prepare Guardian Ent ability icons`).
+
+### Scope intentionally deferred
+
+- Unity import, DefenderHUD binding, mobile compression, ability/combat changes,
+  animation/VFX/audio, 32 px comprehension and final art.
