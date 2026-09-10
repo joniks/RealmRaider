@@ -146,7 +146,7 @@ Console was `0/0/0`. Manual Guardian/control-style readability remains unobserve
 because the first Game-view click failed externally with
 `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-## Now — Diamond Pass 13.7: Infernal Brute Ability Icons
+## Accepted — Diamond Pass 13.7: Infernal Brute Ability Icons
 
 Owner: Core developer. Base: Architect's accepted 13.6 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -158,8 +158,25 @@ text, readiness/cooldowns, callbacks, control-style and possession lifecycle.
 Guardian behavior remains unchanged; unknown defenders retain exact text-only
 fallback. Core never controls Unity; QA alone verifies the frozen candidate.
 
-## Ready after 13.7
+Acceptance: QA's native gates passed EditMode `170/170` and PlayMode `82/82`,
+both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
+Infernal/Guardian icon readability remains unobserved because the first Game-view
+click failed externally with `windowNotFoundAtPosition`; no runtime failure was
+recorded.
+
+## Now — Diamond Pass 13.8: Realm Identity Marks
+
+Owner: Core developer. Base: Architect's accepted 13.7 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Import only the accepted original MUI07 Sylvan and Infernal marks with exact
+provenance/mobile settings. Add one cached, non-raycast 48 px mark to the existing
+canonical realm title in Hub, Build, Raid and Defense HUDs, without turning it
+into a control or weakening its text. Unknown/missing identities retain exact
+text-only layout; realm refresh and teardown cannot leave stale marks.
+
+## Ready after 13.8
 
 Use QA's actual 32–48 px comprehension/contrast observation for one bounded
-correction or accept the set. Then evaluate MUI07 realm identity marks as a
-separate Hub/HUD presentation gate; do not bundle them into ability controls.
+correction or accept the set. Then return priority to the playable BUILD → raid →
+possession → defense loop; do not continue an unbounded icon-only sequence.

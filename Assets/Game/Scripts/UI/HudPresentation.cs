@@ -19,10 +19,15 @@ namespace RealmRaiders.UI
         public const string GuardianEntSmashIconResource = "Art/UI/GuardianEntAbilities/smash-rgba-candidate";
         public const string GuardianEntChargeIconResource = "Art/UI/GuardianEntAbilities/charge-rgba-candidate";
         public const string GuardianEntGroundSlamIconResource = "Art/UI/GuardianEntAbilities/ground-slam-rgba-candidate";
+        public const string InfernalBruteAbilityIconNamePrefix = "Infernal Brute Ability Icon ";
+        public const string InfernalBruteSmashIconResource = "Art/UI/InfernalBruteAbilities/smash-rgba-candidate";
+        public const string InfernalBruteChargeIconResource = "Art/UI/InfernalBruteAbilities/charge-rgba-candidate";
+        public const string InfernalBruteGroundSlamIconResource = "Art/UI/InfernalBruteAbilities/ground-slam-rgba-candidate";
         Sprite buttonSprite;
         Sprite jumpIconSprite;
         Sprite basicSlashIconSprite, bloodRushIconSprite, heavyCleaveIconSprite;
         Sprite guardianEntSmashIconSprite, guardianEntChargeIconSprite, guardianEntGroundSlamIconSprite;
+        Sprite infernalBruteSmashIconSprite, infernalBruteChargeIconSprite, infernalBruteGroundSlamIconSprite;
         AudioClip click, confirm, result;
         AudioSource source;
         bool resultPlayed;
@@ -30,10 +35,12 @@ namespace RealmRaiders.UI
         bool jumpIconResolved;
         bool basicSlashIconResolved, bloodRushIconResolved, heavyCleaveIconResolved;
         bool guardianEntSmashIconResolved, guardianEntChargeIconResolved, guardianEntGroundSlamIconResolved;
+        bool infernalBruteSmashIconResolved, infernalBruteChargeIconResolved, infernalBruteGroundSlamIconResolved;
         bool initialized;
         System.Func<string, Sprite> jumpIconLoader = LoadJumpIcon;
         System.Func<string, Sprite> abilityIconLoader = LoadAbilityIcon;
         System.Func<string, Sprite> guardianEntAbilityIconLoader = LoadGuardianEntAbilityIcon;
+        System.Func<string, Sprite> infernalBruteAbilityIconLoader = LoadInfernalBruteAbilityIcon;
 
         public bool ResultCuePlayed => resultPlayed;
 
@@ -213,6 +220,64 @@ namespace RealmRaiders.UI
             return icon;
         }
 
+        public Image DecorateInfernalBruteAbilityButton(Button button, string archetypeId, int abilityIndex, string semanticName)
+        {
+            if (!button) return null;
+            return DecorateInfernalBruteAbilityIcon(button.transform, button.GetComponentInChildren<Text>(true), archetypeId, abilityIndex, semanticName);
+        }
+
+        public Image DecorateInfernalBruteChargeAffordance(RectTransform affordance, Text label, string archetypeId)
+        {
+            if (!affordance || !label) return null;
+            return DecorateInfernalBruteAbilityIcon(affordance, label, archetypeId, 1, "CHARGE");
+        }
+
+        public static string InfernalBruteAbilityIconResourceFor(string archetypeId, int abilityIndex, string semanticName)
+        {
+            if (archetypeId != PrototypeCharacterRoster.InfernalBruteId) return string.Empty;
+            return (abilityIndex, semanticName) switch
+            {
+                (0, "SMASH") => InfernalBruteSmashIconResource,
+                (1, "CHARGE") => InfernalBruteChargeIconResource,
+                (2, "GROUND SLAM") => InfernalBruteGroundSlamIconResource,
+                _ => string.Empty
+            };
+        }
+
+        Image DecorateInfernalBruteAbilityIcon(Transform host, Text label, string archetypeId, int abilityIndex, string semanticName)
+        {
+            if (!host) return null;
+            var resourcePath = InfernalBruteAbilityIconResourceFor(archetypeId, abilityIndex, semanticName);
+            if (string.IsNullOrEmpty(resourcePath)) return null;
+            var iconName = InfernalBruteAbilityIconNamePrefix + abilityIndex;
+            var existing = host.Find(iconName);
+            if (existing) return existing.GetComponent<Image>();
+            var sprite = ResolveInfernalBruteAbilityIcon(abilityIndex, resourcePath);
+            if (!sprite) return null;
+
+            var iconObject = new GameObject(iconName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.transform.SetParent(host, false);
+            var iconRect = (RectTransform)iconObject.transform;
+            iconRect.anchorMin = iconRect.anchorMax = new Vector2(0, .5f);
+            iconRect.pivot = new Vector2(0, .5f);
+            iconRect.anchoredPosition = new Vector2(10, 0);
+            iconRect.sizeDelta = new Vector2(44, 44);
+            var icon = iconObject.GetComponent<Image>();
+            icon.sprite = sprite;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+
+            if (label)
+            {
+                var labelRect = label.rectTransform;
+                labelRect.offsetMin = new Vector2(Mathf.Max(58, labelRect.offsetMin.x), labelRect.offsetMin.y);
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = Mathf.Min(15, label.fontSize);
+                label.resizeTextMaxSize = Mathf.Max(label.fontSize, label.resizeTextMinSize);
+            }
+            return icon;
+        }
+
         Sprite ResolveJumpIcon()
         {
             if (jumpIconResolved) return jumpIconSprite;
@@ -281,6 +346,32 @@ namespace RealmRaiders.UI
             guardianEntAbilityIconLoader = loader ?? (_ => null);
             guardianEntSmashIconSprite = guardianEntChargeIconSprite = guardianEntGroundSlamIconSprite = null;
             guardianEntSmashIconResolved = guardianEntChargeIconResolved = guardianEntGroundSlamIconResolved = false;
+        }
+
+        Sprite ResolveInfernalBruteAbilityIcon(int abilityIndex, string resourcePath) => abilityIndex switch
+        {
+            0 => ResolveInfernalBruteSprite(ref infernalBruteSmashIconSprite, ref infernalBruteSmashIconResolved, resourcePath),
+            1 => ResolveInfernalBruteSprite(ref infernalBruteChargeIconSprite, ref infernalBruteChargeIconResolved, resourcePath),
+            2 => ResolveInfernalBruteSprite(ref infernalBruteGroundSlamIconSprite, ref infernalBruteGroundSlamIconResolved, resourcePath),
+            _ => null
+        };
+
+        Sprite ResolveInfernalBruteSprite(ref Sprite sprite, ref bool resolved, string resourcePath)
+        {
+            if (resolved) return sprite;
+            resolved = true;
+            try { sprite = infernalBruteAbilityIconLoader?.Invoke(resourcePath); }
+            catch (System.Exception) { sprite = null; }
+            return sprite;
+        }
+
+        static Sprite LoadInfernalBruteAbilityIcon(string resourcePath) => Resources.Load<Sprite>(resourcePath);
+
+        public void ConfigureInfernalBruteAbilityIconLoaderForTests(System.Func<string, Sprite> loader)
+        {
+            infernalBruteAbilityIconLoader = loader ?? (_ => null);
+            infernalBruteSmashIconSprite = infernalBruteChargeIconSprite = infernalBruteGroundSlamIconSprite = null;
+            infernalBruteSmashIconResolved = infernalBruteChargeIconResolved = infernalBruteGroundSlamIconResolved = false;
         }
 
         public void PlayClick() { EnsureInitialized(); Play(click); }

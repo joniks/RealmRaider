@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "candidateSetId": "realmraiders.preview.infernal-brute-abilities.mui05.v1",
+  "createdOn": "2026-09-10",
+  "status": "accepted-runtime-preview-not-final-art",
+  "creation": "original-generated",
+  "thirdPartySources": false,
+  "generationTool": "OpenAI built-in image generation",
+  "modulesCommit": "a4c41c1",
+  "sourcePaths": {
+    "smash": "Modules/RealmRaider.Modules/ArtPreviews/MUI05-InfernalBruteAbilityIcons/smash-rgba-candidate.png",
+    "charge": "Modules/RealmRaider.Modules/ArtPreviews/MUI05-InfernalBruteAbilityIcons/charge-rgba-candidate.png",
+    "ground-slam": "Modules/RealmRaider.Modules/ArtPreviews/MUI05-InfernalBruteAbilityIcons/ground-slam-rgba-candidate.png"
+  },
+  "intendedAbilityMapping": {
+    "smash": "close forged-obsidian impact",
+    "charge": "forward forged-obsidian momentum",
+    "ground-slam": "radial obsidian shock"
+  },
+  "generationPrompts": {
+    "smash": "Original 512-square RGBA transparent mobile fantasy ability icon, Infernal Brute Smash: one close heavy forged-obsidian fist/iron impact striking cracked black stone with restrained ember-red seams and pale-hot edges. Bold 32–48px silhouette, no character, text, numerals, frame, logo, watermark, gore, or franchise design.",
+    "charge": "Original 512-square RGBA transparent mobile fantasy Infernal Brute ability icon, Charge: one forward horizontal forged-obsidian ram/wedge with three short ember-red trailing speed bands, unmistakably forward momentum not impact or radial shock. Bold 32–48px silhouette, pale-hot edge accents; no character, text, numerals, frame, logo, watermark, gore or franchise design.",
+    "ground-slam": "Original 512-square RGBA transparent mobile fantasy Infernal Brute ability icon, Ground Slam: one radial circular obsidian shockwave with four fractured stone wedges spreading outward from a compact ember-red center. Clearly radial, distinct from close fist and forward charge, bold at 32–48px; pale-hot edges. No character, text, numerals, frame, logo, watermark, gore or franchise design."
+  },
+  "outputs": [
+    {"file":"smash-rgba-candidate.png","dimensions":[512,512],"colorFormat":"RGBA","alphaStatus":"transparent-background","sha256":"0c456b2925f393dc3d4373ca196662189389486f60e5cde44cdcb2bfffc72f59"},
+    {"file":"charge-rgba-candidate.png","dimensions":[512,512],"colorFormat":"RGBA","alphaStatus":"transparent-background","sha256":"a77df3c218e9da413f1bb78beabe1815d422d3f75185ae6dae8dd86f6710074d"},
+    {"file":"ground-slam-rgba-candidate.png","dimensions":[512,512],"colorFormat":"RGBA","alphaStatus":"transparent-background","sha256":"b43d89c7678a978157156d1b31b1f4e45f28c7f1711f3edab23c8d567cf08a2c"}
+  ],
+  "evidenceOperations": "RGBA alpha composite on neutral #141b1d; sheets remain non-runtime evidence in Modules",
+  "reviewRequired": ["32–48px distinction", "Unity sprite import", "mobile compression"],
+  "nonGoals": ["ability logic, stats, timing or buffering changes", "input or camera changes", "Guardian or Blood Knight changes", "animation, VFX or audio", "final-art or device-readability approval"]
+}

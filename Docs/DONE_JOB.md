@@ -2212,3 +2212,32 @@ Completed on 2026-09-10.
 
 - Device/manual readability, Infernal ability icons, animation/VFX/audio, combat,
   input/camera changes and final UI approval.
+
+## Diamond Pass 13.7 — Infernal Brute Ability Icons
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported the accepted original MUI05 Infernal Brute trio byte-identically with
+  exact provenance and explicit mobile UI sprite settings.
+- Added family-isolated obsidian/ember Smash and Ground Slam sprites to the two
+  existing buttons plus a non-interactive Fingertap-only `SWIPE: CHARGE` mark;
+  Joystick still owns world-drag camera look and shows no false Charge gesture.
+- Guardian, Blood Knight, unknown identities, labels, callbacks, readiness/queue,
+  possession/release/death/terminal behavior and text-only fallback remain intact.
+
+### Verification
+
+- Architect confirmed exact MUI05 hashes/imports, separate family caches/prefixes,
+  explicit identity/semantic mapping, no new control and lifecycle cleanup.
+- QA native gates passed EditMode `170/170` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual Infernal/Guardian presentation is not claimed because the first Game-view
+  click failed externally with `windowNotFoundAtPosition`; no runtime failure was
+  observed.
+
+### Scope intentionally deferred
+
+- Device/manual readability, realm identity marks, animation/VFX/audio, combat,
+  input/camera changes and final UI approval.

@@ -96,19 +96,22 @@ namespace RealmRaiders.Tests
                 foreach (var config in configs)
                 {
                     var fixture = EnergyHudFixture.Create(config);
-                    GameObject[] trackedGuardianIcons = System.Array.Empty<GameObject>();
+                    GameObject[] trackedAbilityIcons = System.Array.Empty<GameObject>();
                     GameObject trackedChargeAffordance = null;
                     try
                     {
                         var guardian = config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle;
+                        var familyPrefix = guardian ? HudPresentation.GuardianEntAbilityIconNamePrefix : HudPresentation.InfernalBruteAbilityIconNamePrefix;
+                        var otherFamilyPrefix = guardian ? HudPresentation.InfernalBruteAbilityIconNamePrefix : HudPresentation.GuardianEntAbilityIconNamePrefix;
                         var responsive = fixture.Hud.GetComponent<ResponsiveHudRoot>();
                         responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
                         fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
-                        trackedGuardianIcons = GuardianEntIcons(fixture.Hud.transform, true).Select(image => image.gameObject).ToArray();
+                        trackedAbilityIcons = AbilityIcons(fixture.Hud.transform, true, familyPrefix).Select(image => image.gameObject).ToArray();
                         trackedChargeAffordance = fixture.Hud.ChargeAffordanceRect ? fixture.Hud.ChargeAffordanceRect.gameObject : null;
-                        Assert.That(trackedGuardianIcons, Has.Length.EqualTo(guardian ? 3 : 0));
+                        Assert.That(trackedAbilityIcons, Has.Length.EqualTo(3));
+                        Assert.That(AbilityIcons(fixture.Hud.transform, true, otherFamilyPrefix), Is.Empty, "A defender must not receive the other realm family's icons.");
                         Assert.That(fixture.Hud.ChargeAffordanceVisible, Is.False, "Keeper view must not show a direct-control gesture affordance.");
-                        Assert.That(fixture.Hud.ChargeAffordanceRect != null, Is.EqualTo(guardian));
+                        Assert.That(fixture.Hud.ChargeAffordanceRect, Is.Not.Null);
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  30.0/30s"));
                         Assert.That(CountNamed(fixture.Hud.transform, "Possession Energy Meter"), Is.EqualTo(1));
@@ -120,50 +123,42 @@ namespace RealmRaiders.Tests
                         Assert.That(fixture.Hud.AbilityButtonText(0), Is.EqualTo("SMASH"));
                         Assert.That(fixture.Hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM"));
                         Assert.That(fixture.Hud.transform.Find("CHARGE"), Is.Null, "Charge remains a world-swipe gesture, not a new button.");
-                        if (guardian)
-                        {
-                            AssertGuardianEntAbilityPresentation(fixture.Hud, PrototypeOrientation.Portrait, true);
-                            var player = fixture.Defender.Controller<PlayerController>();
-                            var smashReadyAt = fixture.Defender.Abilities[0].ReadyAt;
-                            fixture.Hud.transform.Find("SMASH").GetComponent<Button>().onClick.Invoke();
-                            fixture.Hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
-                            Assert.That(fixture.Defender.Abilities[0].ReadyAt, Is.GreaterThan(smashReadyAt));
-                            Assert.That(fixture.Hud.AbilityButtonText(0), Is.EqualTo("SMASH — ACTING"));
-                            yield return WaitForActionPhase(fixture.Defender, CombatActionPhase.Recovery);
-                            fixture.Hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
-                            Assert.That(fixture.Hud.AbilityButtonText(0), Does.StartWith("SMASH  "));
-                            Assert.That(fixture.Hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM — NEXT"));
+                        AssertThemedAbilityPresentation(fixture.Hud, PrototypeOrientation.Portrait, true, guardian);
+                        var player = fixture.Defender.Controller<PlayerController>();
+                        var smashReadyAt = fixture.Defender.Abilities[0].ReadyAt;
+                        fixture.Hud.transform.Find("SMASH").GetComponent<Button>().onClick.Invoke();
+                        fixture.Hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                        Assert.That(fixture.Defender.Abilities[0].ReadyAt, Is.GreaterThan(smashReadyAt));
+                        Assert.That(fixture.Hud.AbilityButtonText(0), Is.EqualTo("SMASH — ACTING"));
+                        yield return WaitForActionPhase(fixture.Defender, CombatActionPhase.Recovery);
+                        fixture.Hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                        Assert.That(fixture.Hud.AbilityButtonText(0), Does.StartWith("SMASH  "));
+                        Assert.That(fixture.Hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM — NEXT"));
 
-                            var slamReadyAt = fixture.Defender.Abilities[2].ReadyAt;
-                            fixture.Hud.transform.Find("GROUND SLAM").GetComponent<Button>().onClick.Invoke();
-                            fixture.Hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
-                            Assert.That(player.IsAbilityBuffered(2), Is.True);
-                            Assert.That(fixture.Defender.Abilities[2].ReadyAt, Is.EqualTo(slamReadyAt), "Queueing cannot consume the cooldown before execution.");
-                            Assert.That(fixture.Hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM — QUEUED"));
-                            yield return WaitForAbilityConsumption(fixture.Defender.Abilities[2], slamReadyAt);
-                            yield return WaitForActionPhase(fixture.Defender, CombatActionPhase.Idle);
+                        var slamReadyAt = fixture.Defender.Abilities[2].ReadyAt;
+                        fixture.Hud.transform.Find("GROUND SLAM").GetComponent<Button>().onClick.Invoke();
+                        fixture.Hud.SendMessage("RefreshAbilityButtons", SendMessageOptions.RequireReceiver);
+                        Assert.That(player.IsAbilityBuffered(2), Is.True);
+                        Assert.That(fixture.Defender.Abilities[2].ReadyAt, Is.EqualTo(slamReadyAt), "Queueing cannot consume the cooldown before execution.");
+                        Assert.That(fixture.Hud.AbilityButtonText(1), Is.EqualTo("GROUND SLAM — QUEUED"));
+                        yield return WaitForAbilityConsumption(fixture.Defender.Abilities[2], slamReadyAt);
+                        yield return WaitForActionPhase(fixture.Defender, CombatActionPhase.Idle);
 
-                            responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
-                            fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
-                            AssertGuardianEntAbilityPresentation(fixture.Hud, PrototypeOrientation.Landscape, true);
+                        responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                        fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        AssertThemedAbilityPresentation(fixture.Hud, PrototypeOrientation.Landscape, true, guardian);
 
-                            PrototypeSave.SetControlStyle(InRunControlStyleSelector.Joystick);
-                            fixture.Hud.ControlStyleSelector.RefreshNow();
-                            fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
-                            AssertGuardianEntAbilityPresentation(fixture.Hud, PrototypeOrientation.Landscape, false);
-                            Assert.That(GuardianEntIcons(fixture.Hud.transform, false), Has.Length.EqualTo(2), "Joystick keeps only the two truthful button icons visible.");
+                        PrototypeSave.SetControlStyle(InRunControlStyleSelector.Joystick);
+                        fixture.Hud.ControlStyleSelector.RefreshNow();
+                        fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        AssertThemedAbilityPresentation(fixture.Hud, PrototypeOrientation.Landscape, false, guardian);
+                        Assert.That(AbilityIcons(fixture.Hud.transform, false, familyPrefix), Has.Length.EqualTo(2), "Joystick keeps only the two truthful button icons visible.");
 
-                            PrototypeSave.SetControlStyle(InRunControlStyleSelector.Fingertap);
-                            fixture.Hud.ControlStyleSelector.RefreshNow();
-                            fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
-                            AssertGuardianEntAbilityPresentation(fixture.Hud, PrototypeOrientation.Landscape, true);
-                            Assert.That(player.IsActive, Is.True);
-                        }
-                        else
-                        {
-                            Assert.That(GuardianEntIcons(fixture.Hud.transform, true), Is.Empty);
-                            Assert.That(fixture.Hud.ChargeAffordanceText, Is.Empty);
-                        }
+                        PrototypeSave.SetControlStyle(InRunControlStyleSelector.Fingertap);
+                        fixture.Hud.ControlStyleSelector.RefreshNow();
+                        fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        AssertThemedAbilityPresentation(fixture.Hud, PrototypeOrientation.Landscape, true, guardian);
+                        Assert.That(player.IsActive, Is.True);
 
                         fixture.Energy.Refill();
                         Assert.That(fixture.Energy.Remaining, Is.EqualTo(30));
@@ -181,7 +176,7 @@ namespace RealmRaiders.Tests
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  2.0/30s"));
                         Assert.That(fixture.Hud.ChargeAffordanceVisible, Is.False);
-                        Assert.That(GuardianEntIcons(fixture.Hud.transform, false), Is.Empty, "Release hides all direct-control Guardian icons.");
+                        Assert.That(AbilityIcons(fixture.Hud.transform, false, familyPrefix), Is.Empty, "Release hides all direct-control themed icons.");
 
                         fixture.Possession.Select(fixture.Defender);
                         Assert.That(fixture.Possession.PossessSelected(), Is.True);
@@ -221,7 +216,7 @@ namespace RealmRaiders.Tests
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  5.0/30s"));
                         Assert.That(fixture.Hud.ChargeAffordanceVisible, Is.False);
-                        Assert.That(GuardianEntIcons(fixture.Hud.transform, false), Is.Empty, "Terminal result hides all Guardian direct-control icon presentation.");
+                        Assert.That(AbilityIcons(fixture.Hud.transform, false, familyPrefix), Is.Empty, "Terminal result hides all direct-control themed icon presentation.");
                     }
                     finally
                     {
@@ -229,7 +224,7 @@ namespace RealmRaiders.Tests
                         GameplayInput.ResetForTests();
                     }
                     yield return null;
-                    foreach (var icon in trackedGuardianIcons) Assert.That(icon == null, Is.True, "HUD teardown must destroy Guardian icon children.");
+                    foreach (var icon in trackedAbilityIcons) Assert.That(icon == null, Is.True, "HUD teardown must destroy themed ability icon children.");
                     Assert.That(trackedChargeAffordance == null, Is.True, "HUD teardown must destroy the Charge affordance root.");
                 }
             }
@@ -1098,28 +1093,33 @@ namespace RealmRaiders.Tests
             for (var i = 0; i < rectangles.Length; i++) for (var j = i + 1; j < rectangles.Length; j++) Assert.That(rectangles[i].Overlaps(rectangles[j]), Is.False, $"Result actions overlap: {actions[i].name}/{actions[j].name}");
         }
 
-        static void AssertGuardianEntAbilityPresentation(DefenderHUD hud, PrototypeOrientation orientation, bool chargeVisible)
+        static void AssertThemedAbilityPresentation(DefenderHUD hud, PrototypeOrientation orientation, bool chargeVisible, bool guardian)
         {
-            var icons = GuardianEntIcons(hud.transform, true);
-            Assert.That(icons, Has.Length.EqualTo(3), "Guardian presentation must contain exactly the accepted icon trio.");
+            var prefix = guardian ? HudPresentation.GuardianEntAbilityIconNamePrefix : HudPresentation.InfernalBruteAbilityIconNamePrefix;
+            var smashResource = guardian ? HudPresentation.GuardianEntSmashIconResource : HudPresentation.InfernalBruteSmashIconResource;
+            var chargeResource = guardian ? HudPresentation.GuardianEntChargeIconResource : HudPresentation.InfernalBruteChargeIconResource;
+            var slamResource = guardian ? HudPresentation.GuardianEntGroundSlamIconResource : HudPresentation.InfernalBruteGroundSlamIconResource;
+            var icons = AbilityIcons(hud.transform, true, prefix);
+            Assert.That(icons, Has.Length.EqualTo(3), "The active defender family must contain exactly its accepted icon trio.");
             var smashButton = hud.transform.Find("SMASH");
             var slamButton = hud.transform.Find("GROUND SLAM");
             var chargeAffordance = hud.ChargeAffordanceRect;
             Assert.That(smashButton, Is.Not.Null);
             Assert.That(slamButton, Is.Not.Null);
             Assert.That(chargeAffordance, Is.Not.Null);
+            Assert.That(chargeAffordance.name, Is.EqualTo(guardian ? "Guardian Ent Charge Affordance" : "Infernal Brute Charge Affordance"));
             Assert.That(hud.ChargeAffordanceText, Is.EqualTo("SWIPE: CHARGE"));
             Assert.That(hud.ChargeAffordanceVisible, Is.EqualTo(chargeVisible));
             Assert.That(chargeAffordance.GetComponent<Button>(), Is.Null);
             Assert.That(chargeAffordance.GetComponent<UiPointerOwnership>(), Is.Null);
             Assert.That(chargeAffordance.GetComponentInChildren<Text>().raycastTarget, Is.False);
 
-            var smashIcon = smashButton.Find(HudPresentation.GuardianEntAbilityIconNamePrefix + "0").GetComponent<Image>();
-            var chargeIcon = chargeAffordance.Find(HudPresentation.GuardianEntAbilityIconNamePrefix + "1").GetComponent<Image>();
-            var slamIcon = slamButton.Find(HudPresentation.GuardianEntAbilityIconNamePrefix + "2").GetComponent<Image>();
-            AssertGuardianIcon(smashIcon, smashButton.GetComponentInChildren<Text>(), HudPresentation.GuardianEntSmashIconResource);
-            AssertGuardianIcon(chargeIcon, chargeAffordance.GetComponentInChildren<Text>(), HudPresentation.GuardianEntChargeIconResource);
-            AssertGuardianIcon(slamIcon, slamButton.GetComponentInChildren<Text>(), HudPresentation.GuardianEntGroundSlamIconResource);
+            var smashIcon = smashButton.Find(prefix + "0").GetComponent<Image>();
+            var chargeIcon = chargeAffordance.Find(prefix + "1").GetComponent<Image>();
+            var slamIcon = slamButton.Find(prefix + "2").GetComponent<Image>();
+            AssertThemedIcon(smashIcon, smashButton.GetComponentInChildren<Text>(), smashResource);
+            AssertThemedIcon(chargeIcon, chargeAffordance.GetComponentInChildren<Text>(), chargeResource);
+            AssertThemedIcon(slamIcon, slamButton.GetComponentInChildren<Text>(), slamResource);
             Assert.That(smashIcon.gameObject.activeInHierarchy, Is.True);
             Assert.That(slamIcon.gameObject.activeInHierarchy, Is.True);
             Assert.That(chargeIcon.gameObject.activeInHierarchy, Is.EqualTo(chargeVisible));
@@ -1141,7 +1141,7 @@ namespace RealmRaiders.Tests
             }
         }
 
-        static void AssertGuardianIcon(Image icon, Text label, string resourcePath)
+        static void AssertThemedIcon(Image icon, Text label, string resourcePath)
         {
             Assert.That(icon, Is.Not.Null);
             Assert.That(icon.sprite, Is.SameAs(Resources.Load<Sprite>(resourcePath)));
@@ -1156,8 +1156,8 @@ namespace RealmRaiders.Tests
             Assert.That(icon.rectTransform.anchoredPosition.x + icon.rectTransform.sizeDelta.x, Is.LessThanOrEqualTo(label.rectTransform.offsetMin.x));
         }
 
-        static Image[] GuardianEntIcons(Transform root, bool includeInactive) => root.GetComponentsInChildren<Image>(includeInactive)
-            .Where(image => image.name.StartsWith(HudPresentation.GuardianEntAbilityIconNamePrefix)).ToArray();
+        static Image[] AbilityIcons(Transform root, bool includeInactive, string prefix) => root.GetComponentsInChildren<Image>(includeInactive)
+            .Where(image => image.name.StartsWith(prefix)).ToArray();
 
         static Rect WorldRect(RectTransform rect)
         {

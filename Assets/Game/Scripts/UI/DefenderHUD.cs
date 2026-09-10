@@ -177,7 +177,14 @@ namespace RealmRaiders.UI
                 var archetypeId = ent.Definition.ArchetypeId;
                 presentation.DecorateGuardianEntAbilityButton(smash, archetypeId, 0, "SMASH");
                 presentation.DecorateGuardianEntAbilityButton(slam, archetypeId, 2, "GROUND SLAM");
-                CreateChargeAffordance(archetypeId);
+                CreateChargeAffordance("Guardian Ent Charge Affordance", archetypeId, false);
+            }
+            else if (IsInfernalBrute)
+            {
+                var archetypeId = ent.Definition.ArchetypeId;
+                presentation.DecorateInfernalBruteAbilityButton(smash, archetypeId, 0, "SMASH");
+                presentation.DecorateInfernalBruteAbilityButton(slam, archetypeId, 2, "GROUND SLAM");
+                CreateChargeAffordance("Infernal Brute Charge Affordance", archetypeId, true);
             }
             abilityButtons = new[]
             {
@@ -230,9 +237,9 @@ namespace RealmRaiders.UI
             rect.anchorMin = anchorMin; rect.anchorMax = anchorMax; rect.pivot = new Vector2(.5f, .5f); rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
 
-        void CreateChargeAffordance(string archetypeId)
+        void CreateChargeAffordance(string objectName, string archetypeId, bool infernal)
         {
-            var affordanceObject = new GameObject("Guardian Ent Charge Affordance", typeof(RectTransform));
+            var affordanceObject = new GameObject(objectName, typeof(RectTransform));
             affordanceObject.transform.SetParent(transform, false);
             chargeAffordance = (RectTransform)affordanceObject.transform;
             chargeAffordance.sizeDelta = new Vector2(340, 64);
@@ -250,7 +257,8 @@ namespace RealmRaiders.UI
             chargeAffordanceLabel.alignment = TextAnchor.MiddleCenter;
             chargeAffordanceLabel.color = Color.white;
             chargeAffordanceLabel.raycastTarget = false;
-            presentation.DecorateGuardianEntChargeAffordance(chargeAffordance, chargeAffordanceLabel, archetypeId);
+            if (infernal) presentation.DecorateInfernalBruteChargeAffordance(chargeAffordance, chargeAffordanceLabel, archetypeId);
+            else presentation.DecorateGuardianEntChargeAffordance(chargeAffordance, chargeAffordanceLabel, archetypeId);
             chargeAffordance.gameObject.SetActive(false);
         }
 
@@ -585,7 +593,7 @@ namespace RealmRaiders.UI
             if (!chargeAffordance) return;
             var controlled = possessionManager ? possessionManager.Possessed : null;
             var player = controlled ? controlled.Controller<PlayerController>() : null;
-            var visible = IsSylvanGuardianEnt && controlled == ent && possessionManager.IsPossessing && player && player.IsActive &&
+            var visible = HasThemedAbilityPresentation && controlled == ent && possessionManager.IsPossessing && player && player.IsActive &&
                 controlled.Health != null && !controlled.Health.IsDead && !IsTerminalResultActive && !UsesJoystickControls();
             if (chargeAffordance.gameObject.activeSelf != visible) chargeAffordance.gameObject.SetActive(visible);
         }
@@ -597,6 +605,10 @@ namespace RealmRaiders.UI
         bool UsesJoystickControls() => responsive && PrototypeSave.EffectiveControlStyle(responsive.Orientation == PrototypeOrientation.Landscape) == "Joystick";
 
         bool IsSylvanGuardianEnt => config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && ent && ent.Definition && ent.Definition.ArchetypeId == PrototypeCharacterRoster.GuardianEntId;
+
+        bool IsInfernalBrute => config.RealmTitle == DefenseHudConfig.Infernal.RealmTitle && ent && ent.Definition && ent.Definition.ArchetypeId == PrototypeCharacterRoster.InfernalBruteId;
+
+        bool HasThemedAbilityPresentation => IsSylvanGuardianEnt || IsInfernalBrute;
 
         bool IsTerminalResultActive => GameplayInput.TerminalState || defense != null && defense.IsFinished || resultPanel && resultPanel.activeSelf;
 
