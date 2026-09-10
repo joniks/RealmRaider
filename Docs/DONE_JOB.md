@@ -1892,3 +1892,30 @@ Completed on 2026-09-10.
 
 - Final-art/device-performance approval, Infernal/Neutral textures, triplanar or
   terrain shaders, height/displacement/emission/masks and geometry/gameplay changes.
+
+## Module Pass MWS 10 — Sylvan Clearing Floor Production Candidate
+
+Completed on 2026-09-10 and accepted in the Modules submodule.
+
+### Delivered
+
+- Derived one distinct 1024×1024 RGB Sylvan clearing-floor albedo from the
+  project-owned MWS02 direction, plus exact 2048×2048 repeat evidence.
+- Used the accepted deterministic wrapped-edge tool at strength `0.35` to create
+  one restrained RGB tangent normal and exact 2×2 evidence.
+- Recorded the exact source path/hash, operation, tool command, output hashes,
+  dimensions and no-third-party-source truth in local provenance.
+
+### Verification
+
+- Declared and computed SHA-256 values match; all images have the declared RGB,
+  no-alpha dimensions and the provenance JSON plus whitespace checks are clean.
+- Full-frame review found no hard center-cross seam. Small foliage/pebble
+  periodicity remains an explicit Unity/device check rather than final approval.
+- Accepted in Modules commit `646ecde` (`art: prepare Sylvan clearing surface`).
+
+### Scope intentionally deferred
+
+- Unity import/material binding, Android compression, on-device lighting and
+  periodicity, runtime geometry/collision/gameplay, final-art approval and
+  Infernal clearing art.

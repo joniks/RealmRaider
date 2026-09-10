@@ -286,7 +286,57 @@ restrained and requires Unity import-orientation and device-lighting validation.
 
 ## Next Module gate
 
-No further generation is active. The next Module lease follows QA evidence from
-the named Sylvan boundary presentation gate; use that evidence for one concrete
-strength/orientation correction or move to the next explicitly accepted realm
-surface rather than producing speculative variants.
+QA accepted the 13.1 boundary import without a strength/orientation correction:
+no obvious seam, streak or gap was observed in Sylvan portrait or Defender
+landscape. Advance to MWS10 below rather than producing another boundary variant.
+
+## Accepted — Module Pass MWS 10: Sylvan Clearing Floor Production Candidate
+
+Owner: Module Developer / Technical Art
+
+Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Base: Modules commit `f3475ac`.
+
+Accepted Modules commit: `646ecde`.
+
+Reserved folder only:
+
+- `ArtPreviews/MWS10-SylvanClearingFloor/`
+
+### Outcome
+
+Turn the existing project-owned MWS02 Sylvan ground direction into one honestly
+reviewable circular-node/clearing surface for the next visual integration gate.
+
+### Required deliverables
+
+1. Start only from the accepted MWS02 Sylvan ground RGB source in the main project;
+   record its exact path/hash. No third-party source or new franchise reference.
+2. Produce one edge-hardened 1024×1024 RGB albedo with broad, mobile-readable
+   moss/soil/leaf forms that remain distinct from the MWS07 stone path and MWS08
+   living-root border. Avoid a central emblem, directional light or perspective.
+3. Produce exact 2048×2048 2×2 albedo repeat evidence and inspect its center cross.
+4. Use the accepted `Tools/surface_maps/derive_normal_map.py` with a restrained,
+   recorded strength to produce one 1024×1024 RGB tangent normal plus exact 2×2
+   repeat evidence. Do not edit the accepted tool in this lease.
+5. Add one provenance JSON with source/tool parameters, operations, dimensions,
+   all hashes, preview-only status and no-third-party-source truth.
+6. Verify RGB/no-alpha dimensions, deterministic normal regeneration, JSON and
+   whitespace; hand off exact visual caveats and recommended Unity tile scale.
+
+### Non-goals
+
+Unity or `.meta`, main checkout, runtime/material integration, colliders/gameplay,
+height/displacement/emission/masks, tool edits, Infernal art, commit or push.
+
+Acceptance: the 1024×1024 RGB albedo and restrained tangent normal, exact
+2048×2048 repeat evidence, source/output hashes and provenance were reviewed on
+2026-09-10. No hard center-cross seam is visible. Small leaf/pebble repetition
+and the recommended 3.5-world-unit tile scale remain explicit Unity/device gates.
+
+## Next Module gate
+
+Wait for Architect to name the next player-visible integration seam. Do not
+produce another generic validator or another surface variant without a concrete
+Core dependency; read-only preparation may inspect the accepted MWS10 contract.
