@@ -1,5 +1,6 @@
 using RealmRaiders.Combat;
 using RealmRaiders.Controllers;
+using RealmRaiders.Modules.CharacterProceduralMotion;
 using UnityEngine;
 
 namespace RealmRaiders.Characters
@@ -24,6 +25,7 @@ namespace RealmRaiders.Characters
         object dynamicsController;
         readonly CharacterMotionDynamics dynamics = new();
         CharacterJumpPresentationTimeline jumpPresentation;
+        CharacterProceduralMotionAdapter proceduralMotion;
         float hitReactionUntil;
         float seed;
         float possessionArrivalStartedAt;
@@ -162,7 +164,8 @@ namespace RealmRaiders.Characters
                 ObserveJumpPresentation(clock, isJumping, isGrounded, hasDirectControl));
         }
 
-        void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase, CharacterJumpPresentationSample jump, bool sampleDynamics = true)
+        void SamplePose(float clock, float unscaledClock, float deltaTime, Vector3 horizontalVelocity, CombatActionPhase phase, CharacterJumpPresentationSample jump, bool sampleDynamics = true,
+            bool useCombat = false, ProceduralHumanoidCombatPoseSample combat = default)
         {
             if (!presentationPivot || float.IsNaN(horizontalVelocity.x) || float.IsNaN(horizontalVelocity.z)) return;
             if (defeatActive)
@@ -184,10 +187,28 @@ namespace RealmRaiders.Characters
             var bob = Mathf.Sin(dynamics.Phase * 2f) * .032f * movement;
             var lean = locomotionVisible ? dynamics.TurnLean : 0f;
             var pitch = locomotionVisible ? dynamics.ForwardSpeed * 2f + dynamics.WeightPitch : 0f;
-            if (phase == CombatActionPhase.Windup) pitch += 7f;
-            else if (phase == CombatActionPhase.Impact) pitch -= 5f;
-            else if (phase == CombatActionPhase.Recovery) pitch -= 2f;
-            if (Time.time < hitReactionUntil) lean += 5f;
+            if (useCombat)
+            {
+                if (combat.HitWeight > 0)
+                {
+                    pitch -= 4f * combat.HitWeight;
+                    lean += 5f * combat.SignedRecoilDirection * combat.HitWeight;
+                }
+                else if (combat.AttackBlend > 0)
+                {
+                    var p = combat.AttackProgress;
+                    pitch += combat.AttackStage == ProceduralHumanoidAttackStage.Windup ? 7f * p :
+                        combat.AttackStage == ProceduralHumanoidAttackStage.Impact ? Mathf.Lerp(7f, -5f, p) :
+                        p <= .5f ? Mathf.Lerp(-5f, -2f, p * 2f) : Mathf.Lerp(-2f, 0, p * 2f - 1f);
+                }
+            }
+            else
+            {
+                if (phase == CombatActionPhase.Windup) pitch += 7f;
+                else if (phase == CombatActionPhase.Impact) pitch -= 5f;
+                else if (phase == CombatActionPhase.Recovery) pitch -= 2f;
+                if (Time.time < hitReactionUntil) lean += 5f;
+            }
 
             var position = basePosition + new Vector3(sway, breath + bob, 0);
             var rotation = baseRotation * Quaternion.Euler(pitch, 0, lean);
@@ -336,9 +357,13 @@ namespace RealmRaiders.Characters
         /// <summary>Explicit clocks keep the real transform-to-pivot path deterministically testable.</summary>
         public void SampleFactualPose(float clock, float unscaledClock, float deltaTime)
         {
+            if (!proceduralMotion) proceduralMotion = GetComponent<CharacterProceduralMotionAdapter>();
+            var useCombat = proceduralMotion && proceduralMotion.IsBound;
+            var combat = useCombat ? proceduralMotion.ObserveCombat(clock, unscaledClock) : default;
             var jump = ObserveJumpPresentation(unscaledClock, entity && entity.IsJumping, entity && entity.IsGrounded, CharacterJumpPresentationTimeline.HasFactualDirectControl(entity));
             SampleFactualDynamics(unscaledClock, deltaTime, HasMotionAuthority(entity), jump);
-            SamplePose(clock, unscaledClock, deltaTime, Vector3.zero, entity ? entity.ActionPhase : CombatActionPhase.Idle, jump, false);
+            if (useCombat && proceduralMotion.HasCombatPresentation) jump = CharacterJumpPresentationSample.None;
+            SamplePose(clock, unscaledClock, deltaTime, Vector3.zero, entity ? entity.ActionPhase : CombatActionPhase.Idle, jump, false, useCombat, combat);
         }
 
         void LateUpdate() => SampleFactualPose(Time.time, Time.unscaledTime, Time.deltaTime);

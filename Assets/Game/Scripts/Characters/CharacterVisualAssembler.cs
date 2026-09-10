@@ -25,7 +25,7 @@ namespace RealmRaiders.Characters
             var motion = GetComponent<CharacterVisualMotion>() ?? gameObject.AddComponent<CharacterVisualMotion>(); motion.Bind(presentationPivot);
             var baseBody = BuildBase(recipe);
             var proceduralMotion = GetComponent<CharacterProceduralMotionAdapter>() ?? gameObject.AddComponent<CharacterProceduralMotionAdapter>();
-            proceduralMotion.Bind(baseBody);
+            proceduralMotion.Bind(baseBody, presentationPivot);
             BuildSlot("Head", recipe.Head, recipe.HeadPrefab, new Vector3(0, BodyHeight(recipe) * .55f, 0), recipe.AccentColor);
             BuildSlot("Back", recipe.Back, recipe.BackPrefab, new Vector3(0, .35f, -.28f), recipe.Secondary);
             BuildSlot("Arms", recipe.Arms, recipe.ArmsPrefab, new Vector3(0, .05f, .1f), recipe.Secondary);

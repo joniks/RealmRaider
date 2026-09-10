@@ -27,6 +27,13 @@ namespace RealmRaiders.Characters
         readonly List<AbilityRuntime> abilities = new();
         readonly CombatActionState action = new();
         readonly CharacterJumpState jump = new();
+        public event System.Action<CombatPresentationFact> PresentationChanged;
+        long presentationActionId;
+        Vector3 presentationDirection;
+        Quaternion presentationFacing;
+        AbilityDefinition presentationAbility;
+        float presentationWindup;
+        bool presentationTerminal;
         IEntityController[] controllers;
         CombatFeedback feedback;
         Coroutine actionRoutine;
@@ -91,7 +98,7 @@ namespace RealmRaiders.Characters
         public void SetController(IEntityController next)
         {
             if (controllers == null) controllers = GetComponents<IEntityController>();
-            if (ActiveController != null && ActiveController != next) { CancelActionPresentation(); CancelDodge(); CancelJump(); }
+            if (ActiveController != null && ActiveController != next) { CancelActionPresentation(CombatPresentationEnd.ControllerChanged); CancelDodge(); CancelJump(); }
             foreach (var controller in controllers) controller.SetControl(controller == next);
             ActiveController = next;
         }
@@ -107,6 +114,8 @@ namespace RealmRaiders.Characters
 
         void Update()
         {
+            if (GameplayInput.TerminalState && !presentationTerminal) PublishPresentation(CombatPresentationEnd.Terminal);
+            presentationTerminal = GameplayInput.TerminalState;
             if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
             if (GameplayInput.TerminalState || !Motor || !Motor.enabled) CancelJump();
             if (!Health.IsDead) ActiveController?.Tick();
@@ -125,12 +134,19 @@ namespace RealmRaiders.Characters
 
         IEnumerator Execute(AbilityDefinition ability, Vector3 direction)
         {
+            presentationActionId++;
+            presentationDirection = direction;
+            presentationFacing = transform.rotation;
+            presentationAbility = ability;
+            presentationWindup = ability.Windup;
             transform.rotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+            PublishPresentation();
             feedback.ShowTelegraph(ability, direction);
             yield return new WaitForSeconds(ability.Windup);
             feedback.ClearTelegraph();
-            if (Health.IsDead) { action.Complete(); yield break; }
+            if (Health.IsDead) { action.Complete(); PublishPresentation(CombatPresentationEnd.Death); yield break; }
             action.Impact();
+            PublishPresentation();
             if (ability.Kind == AbilityKind.Dash)
             {
                 float moved = 0;
@@ -157,8 +173,10 @@ namespace RealmRaiders.Characters
             }
             if (connected) feedback.ShowImpact();
             action.Recover();
+            PublishPresentation();
             yield return new WaitForSecondsRealtime(.12f);
             action.Complete(); actionRoutine = null;
+            PublishPresentation(CombatPresentationEnd.Completed);
         }
 
         public bool TryDodge(Vector3 direction)
@@ -232,15 +250,22 @@ namespace RealmRaiders.Characters
 
         void OnDeath()
         {
-            rootedUntil = 0; CancelActionPresentation(); CancelDodge(); CancelJump();
+            rootedUntil = 0; CancelActionPresentation(CombatPresentationEnd.Death); CancelDodge(); CancelJump();
             Controller<PlayerController>()?.ResetEscapeState();
             GetComponent<CharacterVisualMotion>()?.StartDefeat();
             Motor.enabled = false;
         }
 
-        void CancelActionPresentation()
+        void CancelActionPresentation(CombatPresentationEnd reason)
         {
             action.Complete(); if (actionRoutine != null) StopCoroutine(actionRoutine); actionRoutine = null; feedback?.Cleanup();
+            PublishPresentation(reason);
+        }
+
+        void PublishPresentation(CombatPresentationEnd end = CombatPresentationEnd.None)
+        {
+            PresentationChanged?.Invoke(new CombatPresentationFact(presentationActionId, action.Phase, end,
+                presentationDirection, presentationFacing, presentationAbility, presentationWindup, Time.time, Time.unscaledTime));
         }
 
         void CancelDodge(bool clearImmunity = true)
@@ -284,9 +309,10 @@ namespace RealmRaiders.Characters
 
         void ClearPendingJump() => pendingJumpUntil = float.NegativeInfinity;
 
-        void OnDisable() { CancelDodge(); CancelJump(); }
+        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); CancelDodge(); CancelJump(); }
         void OnDestroy()
         {
+            PublishPresentation(CombatPresentationEnd.Destroyed);
             if (Health != null) Health.Died -= OnDeath;
             CancelDodge();
             CancelJump();

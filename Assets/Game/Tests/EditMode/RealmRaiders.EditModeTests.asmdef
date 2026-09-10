@@ -1,6 +1,6 @@
 {
   "name": "RealmRaiders.EditModeTests",
-  "references": ["RealmRaiders.Runtime"],
+  "references": ["RealmRaiders.Runtime", "RealmRaiders.CharacterProceduralMotion"],
   "optionalUnityReferences": ["TestAssemblies"],
   "includePlatforms": ["Editor"]
 }

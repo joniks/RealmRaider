@@ -1,5 +1,5 @@
 {
   "name": "RealmRaiders.PlayModeTests",
-  "references": ["RealmRaiders.Runtime"],
+  "references": ["RealmRaiders.Runtime", "RealmRaiders.CharacterProceduralMotion"],
   "optionalUnityReferences": ["TestAssemblies"]
 }

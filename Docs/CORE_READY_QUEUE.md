@@ -532,12 +532,25 @@ jump-test stabilization, focused motion and real-jump checks passed. QA final ga
 passed EditMode `255/255` and PlayMode `92/92`, with no post-gate errors or
 exceptions. No Android export or manual smoke was performed.
 
-## Active next — Diamond Pass 15.13: Directional Attack and Hit-Reaction Motion
+## Accepted — Diamond Pass 15.13: Sagittal Stride and Directional Combat Motion
 
-First freeze the smallest backward-compatible Modules contract for continuous
-attack/hit pose progress and direction. Core then maps accepted factual combat
-phase notifications and `DamageInfo` direction into bounded windup, impact,
-follow-through and directional flinch/recovery presentation. Preserve exact
-priority and cleanup, and never change combat timing, damage, targeting, entity
-root, `CharacterController`, input or camera authority. Full lease:
-`Docs/NEXT_JOB.md`.
+Modules commit `7aae5d6` supplies a backward-compatible continuous combat-pose
+sample and six character-oriented semantic hinges. Core explicitly binds the
+actual Base Body to its owned Presentation Pivot, snapshots accepted action and
+damage facts, and drives continuous windup, impact, follow-through and hit recoil.
+No gameplay root, CharacterController, movement, camera, input, targeting, damage,
+cooldown or combat-phase timing authority moved into presentation.
+
+Acceptance: focused QA passed combat presentation `10/10`, adapter `9/9` and the
+actual imported Blood Knight Play path `1/1`. Final native gates passed EditMode
+`276/276` and PlayMode `92/92`, with no Console/Editor-log errors or exceptions.
+The user's Game-view check remains authoritative for knee, weapon-side and stride
+feel.
+
+## Ready next — Diamond Pass 15.14: Exact Rig Extension Decision
+
+Inspect the imported Blood Knight's exact hierarchy and the user's Game-view
+evidence before choosing the smallest next visual-motion extension. Prefer a
+measured spine/pelvis contribution only if existing bones and bind orientation are
+unambiguous. Do not claim foot planting or IK from the six-bone map, and do not
+change gameplay physics, root, CharacterController, camera, input or combat.

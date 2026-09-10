@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
@@ -32,6 +33,7 @@ namespace RealmRaiders.Tests
                 recipe.Primary = Color.red;
                 recipe.Secondary = Color.black;
                 recipe.AccentColor = Color.yellow;
+                recipe.BaseBodyLocalEulerAngles = new Vector3(0, 180, 0);
                 recipe.BaseBodyPrefab = Resources.Load<GameObject>("Characters/BloodKnightHero");
                 Assert.That(recipe.BaseBodyPrefab, Is.Not.Null);
                 ability.Kind = AbilityKind.Melee;
@@ -76,29 +78,64 @@ namespace RealmRaiders.Tests
                 Assert.That(controller.center, Is.EqualTo(controllerCenter));
                 Assert.That(Vector3.Distance(host.transform.position, rootPosition + Vector3.forward * .9f), Is.LessThan(.001f));
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
                 host.GetComponent<Health>().TakeDamage(new DamageInfo(1, null, host.transform.position), 0);
-                host.transform.position += Vector3.forward * .1f;
-                adapter.SamplePresentation(Time.unscaledTime, 500f, .05f, false, true, true);
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(14f).Within(.01f), "Hit presentation outranks a factual stride.");
-                yield return null;
-                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(14f).Within(.01f), "Only Health.Damaged may drive the hit pose.");
+                var hitClock = Time.unscaledTime;
+                adapter.SamplePresentation(hitClock, Time.time, .05f, false, true, true);
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.LessThan(.01f), "A factual hit begins continuously at zero, not a static pose.");
+                adapter.SamplePresentation(hitClock + CharacterCombatPresentationTimeline.HitRiseSeconds, Time.time, .05f, false, true, true);
+                Assert.That(RotationDelta(bones[0], baseline[0]), Is.EqualTo(16f).Within(.02f));
+                adapter.SamplePresentation(hitClock + .2f, Time.time, .05f, false, true, true);
+                adapter.SamplePresentation(hitClock + .25f, Time.time, .05f, false, true, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Hit recovery returns to the exact resting baseline.");
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
                 yield return new WaitForSecondsRealtime(.13f);
-                Assert.That(entity.TryUse(0, Vector3.forward), Is.True);
-                host.transform.position += Vector3.forward * .1f;
-                adapter.SamplePresentation(Time.unscaledTime, 500f, .05f, false, true, true);
-                Assert.That(RotationDelta(bones[1], baseline[1]), Is.EqualTo(30f).Within(.01f), "Action presentation outranks factual travel.");
-                yield return null;
-                Assert.That(entity.ActionPhase, Is.Not.EqualTo(CombatActionPhase.Idle));
-                Assert.That(RotationDelta(bones[1], baseline[1]), Is.EqualTo(30f).Within(.01f), "A non-idle action phase must map to generic primary attack after the hit window expires.");
-
-                yield return new WaitForSecondsRealtime(.15f);
+                var facts = new List<CombatPresentationFact>();
+                entity.PresentationChanged += facts.Add;
+                var beforeActionPosition = host.transform.position;
+                Assert.That(entity.TryUse(0, new Vector3(0, 17, 4)), Is.True);
+                Assert.That(facts.Count, Is.EqualTo(1), "Accepted Windup is synchronous with TryUse.");
+                var readyAt = entity.Abilities[0].ReadyAt;
+                Assert.That(entity.TryUse(0, Vector3.left), Is.False);
+                Assert.That(facts.Count, Is.EqualTo(1), "Rejected input must not publish an accepted action.");
+                var actionDeadline = Time.realtimeSinceStartup + 2f;
+                while (entity.ActionPhase != CombatActionPhase.Idle && Time.realtimeSinceStartup < actionDeadline) yield return null;
                 Assert.That(entity.ActionPhase, Is.EqualTo(CombatActionPhase.Idle));
-                Reset(adapter, baseBody);
+                entity.PresentationChanged -= facts.Add;
+                Assert.That(facts.Count, Is.EqualTo(4));
+                Assert.That(facts[0].Phase, Is.EqualTo(CombatActionPhase.Windup));
+                Assert.That(facts[1].Phase, Is.EqualTo(CombatActionPhase.Impact));
+                Assert.That(facts[2].Phase, Is.EqualTo(CombatActionPhase.Recovery));
+                Assert.That(facts[3].End, Is.EqualTo(CombatPresentationEnd.Completed));
+                Assert.That(facts[1].ScaledTime, Is.EqualTo(facts[2].ScaledTime));
+                Assert.That(facts[1].UnscaledTime, Is.EqualTo(facts[2].UnscaledTime), "Melee impact and recovery share one frame but both facts are retained.");
+                foreach (var fact in facts)
+                {
+                    Assert.That(fact.ActionId, Is.EqualTo(facts[0].ActionId));
+                    Assert.That(fact.ActionId, Is.GreaterThan(0));
+                    Assert.That(fact.WorldDirection, Is.EqualTo(Vector3.forward));
+                    Assert.That(fact.Ability, Is.SameAs(ability));
+                    Assert.That(fact.WindupSeconds, Is.Zero);
+                }
+                var impactClock = Mathf.Max(facts[1].UnscaledTime, facts[0].UnscaledTime + CharacterCombatPresentationTimeline.MinimumWindupSeconds);
+                var attackSample = adapter.ObserveCombat(facts[1].ScaledTime, impactClock + .04f);
+                Assert.That(attackSample.AttackStage, Is.EqualTo(RealmRaiders.Modules.CharacterProceduralMotion.ProceduralHumanoidAttackStage.Impact));
+                Assert.That(attackSample.AttackProgress, Is.EqualTo(.5f).Within(.001f));
+                adapter.SamplePresentation(impactClock + .04f, facts[1].ScaledTime, .016f, false, true, true);
+                adapter.SamplePresentation(impactClock + .08f, facts[1].ScaledTime, .016f, false, true, true);
+                Assert.That(AnyRotationChanged(bones, baseline), Is.True, "The real accepted action reaches a continuous semantic six-bone pose.");
+                Assert.That(host.transform.position, Is.EqualTo(beforeActionPosition));
+                Assert.That(entity.Abilities[0].ReadyAt, Is.EqualTo(readyAt));
+                Assert.That(Pose.Of(baseBody), Is.EqualTo(bodyPose));
+                Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
+                Assert.That(controller.height, Is.EqualTo(controllerHeight));
+                Assert.That(controller.radius, Is.EqualTo(controllerRadius));
+                Assert.That(controller.center, Is.EqualTo(controllerCenter));
+                Assert.That(entity.ActiveController, Is.Null);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
 
                 adapter.enabled = false;
@@ -109,7 +146,7 @@ namespace RealmRaiders.Tests
                 yield return null;
                 Assert.That(adapter.IsBound, Is.True, "The actual enable lifecycle must rebind the retained Base Body.");
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
                 var timeline = host.GetComponent<CharacterJumpPresentationTimeline>();
                 Assert.That(timeline.StraightenSeconds, Is.EqualTo(.30f).Within(.0001f));
@@ -132,7 +169,7 @@ namespace RealmRaiders.Tests
                 Assert.That(controller.radius, Is.EqualTo(controllerRadius));
                 Assert.That(controller.center, Is.EqualTo(controllerCenter));
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
                 adapter.SamplePresentation(0f, 0f, .016f, false, true, true);
                 adapter.SamplePresentation(0f, 0f, .016f, true, false, true);
@@ -164,7 +201,7 @@ namespace RealmRaiders.Tests
                 adapter.SamplePresentation(1.38f, 0f, 0f, true, false, false);
                 Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Controller loss clears jump presentation immediately.");
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
                 adapter.SamplePresentation(0f, 0f, .016f, false, true, true);
                 adapter.SamplePresentation(0f, 0f, .016f, true, false, true);
@@ -188,7 +225,7 @@ namespace RealmRaiders.Tests
                 }
                 Assert.That(entity.IsGrounded, Is.True, "The factual PlayerController jump path requires a grounded CharacterController.");
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 yield return null;
                 baseline = Snapshot(bones);
                 var factualRootPosition = host.transform.position;
@@ -238,7 +275,7 @@ namespace RealmRaiders.Tests
 
                 // Exercise the shared factual yaw/displacement path under the same real PlayerController.
                 var visualMotion = host.GetComponent<CharacterVisualMotion>();
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
                 host.transform.position += Vector3.forward * .2f;
                 host.transform.rotation = Quaternion.Euler(0, 30f, 0);
@@ -277,7 +314,7 @@ namespace RealmRaiders.Tests
                 var beforeHitRotation = pivot.localRotation;
                 visualMotion.ShowHitReaction();
                 host.transform.rotation = Quaternion.Euler(0, 90f, 0);
-                visualMotion.SampleFactualPose(12.55f, 12.55f, .05f);
+                visualMotion.Sample(12.55f, 12.55f, .05f, Vector3.zero, CombatActionPhase.Idle);
                 var hitRotation = Quaternion.Slerp(beforeHitRotation, pivotPose.Rotation * Quaternion.Euler(0, 0, 5f), 1f - Mathf.Exp(-.05f * 14f));
                 Assert.That(Quaternion.Angle(pivot.localRotation, hitRotation), Is.LessThan(.01f), "Turn/weight accents cannot cancel the factual hit response.");
                 visualMotion.ClearTransientReaction();
@@ -291,7 +328,7 @@ namespace RealmRaiders.Tests
                 Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose), "Controller loss restores the pivot exactly.");
                 entity.SetController(player);
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 host.transform.position += Vector3.forward * .2f;
                 adapter.SamplePresentation(14f, 2000f, .1f, false, true, true);
                 Assert.That(sharedDynamics.Speed, Is.GreaterThan(0));
@@ -309,7 +346,7 @@ namespace RealmRaiders.Tests
                 Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Terminal state clears an active gait.");
                 GameplayInput.SetTerminalState(false);
 
-                Reset(adapter, baseBody);
+                Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
                 host.transform.position += Vector3.forward * .2f;
                 adapter.SamplePresentation(16f, 2004f, .1f, false, true, true);
@@ -391,7 +428,7 @@ namespace RealmRaiders.Tests
 
         private static void AssertLocalRotation(Transform bone, Pose baseline, Vector3 axis, float degrees, string message = null)
         {
-            var expected = baseline.Rotation * Quaternion.AngleAxis(degrees, axis);
+            var expected = baseline.Rotation * Quaternion.AngleAxis(degrees, baseline.SemanticAxis);
             Assert.That(Quaternion.Angle(bone.localRotation, expected), Is.LessThan(.01f), message);
         }
 
@@ -401,19 +438,24 @@ namespace RealmRaiders.Tests
                 Assert.That(Quaternion.Angle(bones[index].localRotation, before[index].Rotation), Is.LessThan(.05f), message);
         }
 
-        private static void Reset(CharacterProceduralMotionAdapter adapter, Transform baseBody)
+        private static void Reset(CharacterProceduralMotionAdapter adapter, Transform baseBody, Transform pivot)
         {
             adapter.Clear();
-            Assert.That(adapter.Bind(baseBody), Is.True);
+            Assert.That(adapter.Bind(baseBody, pivot), Is.True);
         }
 
         private readonly struct Pose : System.IEquatable<Pose>
         {
-            public Pose(Vector3 position, Quaternion rotation, Vector3 scale) { Position = position; Rotation = rotation; Scale = scale; }
+            public Pose(Vector3 position, Quaternion rotation, Vector3 scale, Vector3 semanticAxis) { Position = position; Rotation = rotation; Scale = scale; SemanticAxis = semanticAxis; }
+            public Vector3 SemanticAxis { get; }
             public Vector3 Position { get; }
             public Quaternion Rotation { get; }
             public Vector3 Scale { get; }
-            public static Pose Of(Transform target) => new(target.localPosition, target.localRotation, target.localScale);
+            public static Pose Of(Transform target)
+            {
+                var reference = target.GetComponentInParent<CharacterVisualAssembler>().PresentationPivot;
+                return new(target.localPosition, target.localRotation, target.localScale, Quaternion.Inverse(target.rotation) * reference.right);
+            }
             public bool Equals(Pose other) => Position == other.Position && Rotation == other.Rotation && Scale == other.Scale;
             public override bool Equals(object value) => value is Pose other && Equals(other);
             public override int GetHashCode() => Position.GetHashCode() ^ Rotation.GetHashCode() ^ Scale.GetHashCode();

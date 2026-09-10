@@ -3026,3 +3026,45 @@ Completed on 2026-09-10.
 
 - Continuous directional attack and damage-reaction timelines, additional
   spine/pelvis/foot bindings, clip-driven animation, IK, root motion and ragdoll.
+
+## Diamond Pass 15.13 — Sagittal Stride and Directional Combat Motion
+
+Completed on 2026-09-11.
+
+### Delivered
+
+- Modules commit `7aae5d6` replaces Blood Knight's fragile FBX-local motion axis
+  with six cached semantic hinges derived from the owned Presentation Pivot.
+  Arms and legs now move in the character's forward/back sagittal plane, with
+  opposing left/right gait signs; the same plane is used by jump and combat poses.
+- Legacy/default/custom module callers retain their exact local-axis behavior.
+  Missing, degenerate, mirrored or foreign semantic bindings fail closed and
+  restore the exact cached bone baselines.
+- Accepted actions publish passive, immutable presentation facts without changing
+  cooldowns, damage, targeting or combat phase timing. A per-entity visual clock
+  preserves same-frame Impact/Recovery and supplies bounded windup, impact and
+  follow-through poses.
+- Factual damage produces a short directional hit response from a source snapshot,
+  then point fallback, then neutral fallback. Presentation priority remains
+  `Death > Hit > Attack > Jump > Locomotion > Idle` and clears across controller,
+  possession, terminal, death, disable, rebind and teardown boundaries.
+- Only the six exact descendant bones and existing Presentation Pivot receive
+  bounded visual motion; the gameplay root, CharacterController, Base Body,
+  movement, camera, input and combat authority remain unchanged.
+
+### Verification
+
+- Independent static review found no blocker; `git diff --check` is clean in both
+  repositories.
+- Focused QA passed `CharacterCombatPresentationTests` `10/10`, corrected
+  `CharacterProceduralMotionAdapterTests` `9/9`, and the actual imported Blood
+  Knight PlayMode path `1/1`.
+- Final QA gates passed EditMode `276/276` in 0.909 seconds and PlayMode `92/92`
+  in 73.663 seconds, with no Console or Editor-log errors/exceptions.
+- Android export was intentionally omitted. Actual knee bend, weapon-side motion
+  and overall stride feel remain the user's direct Unity Game-view acceptance.
+
+### Scope intentionally deferred
+
+- Spine, pelvis and foot bindings; foot planting/IK; Animator clips, root motion,
+  ragdoll/Rigidbody physics and broad skeleton retargeting.

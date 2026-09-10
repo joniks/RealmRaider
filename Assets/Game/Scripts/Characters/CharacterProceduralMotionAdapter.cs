@@ -13,7 +13,7 @@ namespace RealmRaiders.Characters
     [DisallowMultipleComponent]
     public sealed class CharacterProceduralMotionAdapter : MonoBehaviour
     {
-        const float HitResponseSeconds = .12f;
+        public const float CombatCrossfadeSeconds = .04f;
 
         static readonly HumanoidBoneNameMap BloodKnightBones = new(
             "Bip01 L UpperArm", "Bip01 R UpperArm", "Bip01 L Thigh",
@@ -23,12 +23,22 @@ namespace RealmRaiders.Characters
         CombatEntity entity;
         Health health;
         Transform baseBody;
+        Transform orientationReference;
         CharacterVisualMotion visualMotion;
         CharacterJumpPresentationTimeline jumpPresentation;
-        float hitResponseUntil;
+        readonly CharacterCombatPresentationTimeline combat = new();
+        readonly Transform[] bones = new Transform[6];
+        readonly Quaternion[] lastPose = new Quaternion[6];
+        readonly Quaternion[] blendFrom = new Quaternion[6];
+        object sampledController;
+        float blendStarted;
+        bool blending, hasPose;
+        int lastPriority;
+        long lastActionId;
         bool subscribed;
 
         public bool IsBound => driver.IsBound;
+        public bool HasCombatPresentation => combat.HasHit || combat.HasAttack;
 
         void Awake()
         {
@@ -37,24 +47,30 @@ namespace RealmRaiders.Characters
         }
 
         /// <summary>Binds the exact Blood Knight bones. Missing or duplicate names leave visuals untouched.</summary>
-        public bool Bind(Transform visualBaseBody)
+        public bool Bind(Transform visualBaseBody, Transform presentationPivot)
         {
             Clear();
-            baseBody = visualBaseBody;
             if (!entity) entity = GetComponent<CombatEntity>();
             if (!health) health = GetComponent<Health>();
-            if (!baseBody || !entity || !health || !driver.Bind(baseBody, BloodKnightBones))
+            visualMotion = GetComponent<CharacterVisualMotion>();
+            var assembler = GetComponent<CharacterVisualAssembler>();
+            if (!visualBaseBody || !presentationPivot || !entity || !health || !visualMotion || !assembler ||
+                assembler.PresentationPivot != presentationPivot || visualMotion.PresentationPivot != presentationPivot ||
+                !presentationPivot.IsChildOf(transform) || visualBaseBody.parent != presentationPivot ||
+                !driver.Bind(visualBaseBody, presentationPivot, BloodKnightBones, ProceduralHumanoidAxisPolicy.CharacterSagittalPlane))
             {
-                baseBody = null;
+                Clear();
                 return false;
             }
-
+            baseBody = visualBaseBody;
+            orientationReference = presentationPivot;
+            CacheBones();
             jumpPresentation = GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
             jumpPresentation.Configure(driver.Tuning.JumpPresentationDurationMultiplier, driver.Tuning.TakeoffStraightenDurationMultiplier);
-            visualMotion = GetComponent<CharacterVisualMotion>();
-            if (!visualMotion) { driver.Clear(); baseBody = null; return false; }
             visualMotion.ResetDynamics();
             health.Damaged += OnDamaged;
+            entity.PresentationChanged += OnAction;
+            sampledController = entity.ActiveController;
             subscribed = true;
             return true;
         }
@@ -65,7 +81,10 @@ namespace RealmRaiders.Characters
             Unsubscribe();
             driver.Clear();
             baseBody = null;
-            hitResponseUntil = 0;
+            orientationReference = null;
+            sampledController = null;
+            ClearCombat();
+            for (var i = 0; i < bones.Length; i++) bones[i] = null;
             if (visualMotion) visualMotion.ResetDynamics();
             jumpPresentation?.ResetTimeline();
         }
@@ -76,6 +95,10 @@ namespace RealmRaiders.Characters
         public void SamplePresentation(float unscaledClock, float presentationClock, float deltaTime, bool isJumping, bool isGrounded, bool hasDirectControl)
         {
             if (!driver.IsBound || !entity || !health || !visualMotion) return;
+            if (!baseBody || !orientationReference) { Clear(); return; }
+            if (!CharacterCombatPresentationTimeline.Finite(unscaledClock) || !CharacterCombatPresentationTimeline.Finite(presentationClock)) { ClearCombat(); return; }
+
+            var sample = ObserveCombat(presentationClock, unscaledClock);
 
             jumpPresentation ??= GetComponent<CharacterJumpPresentationTimeline>() ?? gameObject.AddComponent<CharacterJumpPresentationTimeline>();
             var jump = jumpPresentation.Observe(unscaledClock, isJumping, isGrounded, hasDirectControl);
@@ -83,13 +106,42 @@ namespace RealmRaiders.Characters
                 (hasDirectControl || CharacterVisualMotion.HasMotionAuthority(entity)) && !health.IsDead && !GameplayInput.TerminalState, jump);
 
             var input = new CharacterMotionPresentationInput(
-                health.IsDead ? MotionPresentationReaction.Death : unscaledClock < hitResponseUntil ? MotionPresentationReaction.Hit : MotionPresentationReaction.None,
-                entity.ActionPhase == CombatActionPhase.Idle ? MotionPresentationAttack.None : MotionPresentationAttack.Primary,
+                health.IsDead ? MotionPresentationReaction.Death : combat.HasHit ? MotionPresentationReaction.Hit : MotionPresentationReaction.None,
+                combat.HasAttack ? MotionPresentationAttack.Primary : MotionPresentationAttack.None,
                 ResolveJumpPhase(jump.Phase),
                 dynamics.Speed > 0);
             // The module evaluates sin((clock + dt) * cadence). Supply distance phase and zero time advance.
             var gaitClock = dynamics.Speed > 0 ? dynamics.Phase / driver.Tuning.SwingCadenceRadiansPerSecond : 0f;
-            driver.Sample(input, dynamics.Speed, gaitClock, 0f, jump.Progress);
+            var priority = health.IsDead ? 3 : combat.HasHit ? 2 : combat.HasAttack ? 1 : 0;
+            if (priority != 3 && hasPose && (priority != lastPriority && (priority > 0 || lastPriority > 0) || priority == 1 && lastActionId != combat.ActionId))
+            {
+                for (var i = 0; i < bones.Length; i++) blendFrom[i] = lastPose[i];
+                blendStarted = priority == 2 ? combat.HitStartedAt : lastPriority == 2 ? combat.HitEndsAt :
+                    priority == 1 ? combat.AttackStartedAt : combat.AttackEndsAt;
+                blending = true;
+            }
+            lastPriority = priority; lastActionId = combat.ActionId;
+            driver.Sample(input, dynamics.Speed, gaitClock, 0f, jump.Progress, sample);
+            var blend = Mathf.SmoothStep(0, 1, (unscaledClock - blendStarted) / CombatCrossfadeSeconds);
+            for (var i = 0; i < bones.Length; i++)
+            {
+                if (blending && priority != 3) bones[i].localRotation = Quaternion.Slerp(blendFrom[i], bones[i].localRotation, blend);
+                lastPose[i] = bones[i].localRotation;
+            }
+            if (blend >= 1 || priority == 3) blending = false;
+            hasPose = true;
+        }
+
+        /// <summary>Shared pure-clock combat sample; pivot and bones consume the same event snapshot.</summary>
+        public ProceduralHumanoidCombatPoseSample ObserveCombat(float scaledClock, float unscaledClock)
+        {
+            if (!driver.IsBound || !entity || !health) return default;
+            if (!ReferenceEquals(sampledController, entity.ActiveController) || !entity.isActiveAndEnabled ||
+                (entity.ActiveController != null && !entity.ActiveController.IsActive) || GameplayInput.TerminalState || health.IsDead)
+            {
+                ClearCombat(); sampledController = entity.ActiveController;
+            }
+            return combat.Observe(scaledClock, unscaledClock);
         }
 
         static MotionPresentationJumpPhase ResolveJumpPhase(CharacterJumpPresentationPhase phase)
@@ -99,14 +151,53 @@ namespace RealmRaiders.Characters
                 phase == CharacterJumpPresentationPhase.Landing ? MotionPresentationJumpPhase.Landing : MotionPresentationJumpPhase.None;
         }
 
-        void OnDamaged(DamageInfo _)
+        void OnDamaged(DamageInfo hit)
         {
-            if (health && !health.IsDead) hitResponseUntil = Mathf.Max(hitResponseUntil, Time.unscaledTime + HitResponseSeconds);
+            if (!health || health.IsDead || !entity.isActiveAndEnabled || GameplayInput.TerminalState) { ClearCombat(); return; }
+            if (hit.Amount <= 0 || !CharacterCombatPresentationTimeline.Finite(hit.Amount)) return;
+            SynchronizeController();
+            combat.OnHit(Time.unscaledTime, CharacterCombatPresentationTimeline.RecoilDirection(hit, transform.position, transform.rotation));
+        }
+
+        void OnAction(CombatPresentationFact fact)
+        {
+            if (GameplayInput.TerminalState || !health || health.IsDead || !entity.isActiveAndEnabled || fact.End != CombatPresentationEnd.None && fact.End != CombatPresentationEnd.Completed)
+            {
+                ClearCombat();
+                visualMotion?.ClearTransientReaction();
+                if (driver.IsBound) driver.Sample(new CharacterMotionPresentationInput(health && health.IsDead ? MotionPresentationReaction.Death : MotionPresentationReaction.None,
+                    MotionPresentationAttack.None, MotionPresentationJumpPhase.None, false), 0, 0, 0, 0, default);
+            }
+            else { SynchronizeController(); combat.OnAction(fact); }
+        }
+
+        void SynchronizeController()
+        {
+            if (!ReferenceEquals(sampledController, entity.ActiveController)) { ClearCombat(); sampledController = entity.ActiveController; }
+        }
+
+        void ClearCombat()
+        {
+            combat.Clear(); blending = hasPose = false; lastPriority = 0; lastActionId = 0;
+        }
+
+        void CacheBones()
+        {
+            foreach (var candidate in baseBody.GetComponentsInChildren<Transform>(true))
+            {
+                var index = candidate.name switch
+                {
+                    "Bip01 L UpperArm" => 0, "Bip01 R UpperArm" => 1, "Bip01 L Thigh" => 2,
+                    "Bip01 R Thigh" => 3, "Bip01 L Calf" => 4, "Bip01 R Calf" => 5, _ => -1
+                };
+                if (candidate != baseBody && index >= 0) bones[index] = candidate;
+            }
         }
 
         void Unsubscribe()
         {
             if (subscribed && health) health.Damaged -= OnDamaged;
+            if (subscribed && entity) entity.PresentationChanged -= OnAction;
             subscribed = false;
         }
 
@@ -114,14 +205,15 @@ namespace RealmRaiders.Characters
         {
             Unsubscribe();
             driver.Clear();
-            hitResponseUntil = 0;
-            if (visualMotion) visualMotion.ResetDynamics();
+            ClearCombat();
+            sampledController = null;
+            if (visualMotion) { visualMotion.ClearTransientReaction(); visualMotion.ResetDynamics(); }
             jumpPresentation?.ResetTimeline();
         }
 
         void OnEnable()
         {
-            if (baseBody && !driver.IsBound) Bind(baseBody);
+            if (baseBody && orientationReference && !driver.IsBound) Bind(baseBody, orientationReference);
         }
 
         void OnDestroy() => Clear();

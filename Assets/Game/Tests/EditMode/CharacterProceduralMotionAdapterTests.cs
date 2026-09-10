@@ -8,6 +8,84 @@ namespace RealmRaiders.Tests
     public sealed class CharacterProceduralMotionAdapterTests
     {
         [Test]
+        public void Adapter_HitOverridesAttackAndJumpIsIdempotentAndTerminalDeathClearTransientMotion()
+        {
+            var fixture = CreateFixture();
+            var terminal = RealmRaiders.Controllers.GameplayInput.TerminalState;
+            try
+            {
+                RealmRaiders.Controllers.GameplayInput.SetTerminalState(false);
+                var pivot = fixture.Host.GetComponent<CharacterVisualAssembler>().PresentationPivot;
+                var body = CreateBody(pivot, true, out var bones);
+                var baseline = Snapshot(bones);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
+                var clock = Time.unscaledTime;
+                InvokeAdapter(fixture.Adapter, "OnAction", new CombatPresentationFact(1, CombatActionPhase.Windup, CombatPresentationEnd.None,
+                    Vector3.forward, Quaternion.identity, null, .2f, Time.time, clock));
+                fixture.Adapter.SamplePresentation(clock, Time.time, .016f, false, true, true);
+                fixture.Health.TakeDamage(new DamageInfo(1, null, fixture.Host.transform.position), 0);
+                fixture.Adapter.SamplePresentation(clock + .06f, Time.time + .06f, .016f, true, false, true);
+                AssertBoneAngle(bones[0], baseline[0], 16f);
+                var hitPose = Snapshot(bones);
+                fixture.Adapter.SamplePresentation(clock + .06f, Time.time + .06f, .016f, true, false, true);
+                Assert.That(Snapshot(bones), Is.EqualTo(hitPose));
+                RealmRaiders.Controllers.GameplayInput.SetTerminalState(true);
+                fixture.Adapter.SamplePresentation(clock + .07f, Time.time + .07f, .016f, false, true, false);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+                RealmRaiders.Controllers.GameplayInput.SetTerminalState(false);
+                Assert.That(fixture.Adapter.ObserveCombat(Time.time + .08f, clock + .08f).AttackBlend, Is.Zero);
+                fixture.Health.TakeDamage(new DamageInfo(10000, null, fixture.Host.transform.position), 0);
+                fixture.Adapter.SamplePresentation(clock + .09f, Time.time + .09f, .016f, true, false, true);
+                Assert.That(Quaternion.Angle(bones[0].localRotation, baseline[0].Rotation), Is.EqualTo(16).Within(.01f));
+                fixture.Adapter.Clear();
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+            }
+            finally { RealmRaiders.Controllers.GameplayInput.SetTerminalState(terminal); fixture.Dispose(); }
+        }
+
+        [TestCase(0f)]
+        [TestCase(73f)]
+        public void Adapter_SagittalReferenceSurvivesYaw180BodyAndRejectsForeignOrNullReference(float yaw)
+        {
+            var fixture = CreateFixture();
+            var foreign = new GameObject("Foreign Reference");
+            try
+            {
+                var assembler = fixture.Host.GetComponent<CharacterVisualAssembler>();
+                var pivot = assembler.PresentationPivot;
+                pivot.localRotation = Quaternion.Euler(0, yaw, 0);
+                var body = CreateBody(pivot, true, out var bones);
+                body.localRotation = Quaternion.Euler(0, 180, 0);
+                var baseline = Snapshot(bones);
+                var rootPose = Pose.Of(fixture.Host.transform);
+                var pivotPose = Pose.Of(pivot); var bodyPose = Pose.Of(body);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
+                fixture.Host.transform.position += Vector3.forward * .2f;
+                fixture.Adapter.SamplePresentation(1, 1, .05f, false, true, true);
+                var dynamics = fixture.Host.GetComponent<CharacterVisualMotion>().SampleFactualDynamics(1, .05f, true, CharacterJumpPresentationSample.None);
+                var swing = Mathf.Sin(dynamics.Phase) * dynamics.Speed;
+                AssertBoneAngle(bones[2], baseline[2], -50 * swing);
+                AssertBoneAngle(bones[3], baseline[3], 50 * swing);
+                Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
+                Assert.That(Pose.Of(body), Is.EqualTo(bodyPose));
+                Assert.That(fixture.Host.transform.rotation, Is.EqualTo(rootPose.Rotation));
+
+                Assert.That(fixture.Adapter.Bind(body, foreign.transform), Is.False);
+                Assert.That(Snapshot(bones), Is.EqualTo(baseline));
+                Assert.That(fixture.Adapter.IsBound, Is.False);
+                Assert.That(assembler.VisualRoot.gameObject.activeSelf, Is.True);
+                Assert.That(pivot.GetComponentsInChildren<Renderer>().Length, Is.GreaterThan(0), "Failure leaves the assembled fallback present.");
+                Assert.That(fixture.Adapter.Bind(body, null), Is.False);
+                Assert.That(fixture.Adapter.Bind(null, pivot), Is.False);
+                Assert.That(fixture.Adapter.Bind(body, body), Is.False);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
+                fixture.Adapter.Clear();
+                InvokeAdapter(fixture.Adapter, "OnEnable");
+                Assert.That(fixture.Adapter.IsBound, Is.False, "Clear drops both references and cannot resurrect a binding.");
+            }
+            finally { Object.DestroyImmediate(foreign); fixture.Dispose(); }
+        }
+        [Test]
         public void VisualMotion_BreathingCannotOverrideProgressiveJumpScale()
         {
             var fixture = CreateFixture();
@@ -120,7 +198,7 @@ namespace RealmRaiders.Tests
                 var bodyPose = Pose.Of(body);
                 var motor = fixture.Host.GetComponent<CharacterController>();
                 var center = motor.center; var height = motor.height; var radius = motor.radius;
-                Assert.That(fixture.Adapter.Bind(body), Is.True);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
                 fixture.Host.transform.position += Vector3.forward * .2f;
                 fixture.Adapter.SamplePresentation(1f, 999f, .05f, false, true, true);
                 var first = Snapshot(bones);
@@ -159,7 +237,7 @@ namespace RealmRaiders.Tests
                 Assert.That(Snapshot(bones), Is.EqualTo(baseline));
                 Assert.That(shared.Speed, Is.Zero);
                 Assert.That(shared.Phase, Is.Zero);
-                Assert.That(fixture.Adapter.Bind(body), Is.True);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
                 fixture.Adapter.SamplePresentation(7f, 126f, .05f, false, true, true);
                 Assert.That(Snapshot(bones), Is.EqualTo(baseline), "Rebinding cannot resume stale gait travel.");
             }
@@ -168,7 +246,7 @@ namespace RealmRaiders.Tests
 
         static void AssertBoneAngle(Transform bone, Pose baseline, float angle)
         {
-            Assert.That(Quaternion.Angle(bone.localRotation, baseline.Rotation * Quaternion.AngleAxis(angle, Vector3.forward)), Is.LessThan(.01f));
+            Assert.That(Quaternion.Angle(bone.localRotation, baseline.Rotation * Quaternion.AngleAxis(angle, baseline.SemanticAxis)), Is.LessThan(.01f));
         }
 
         [Test]
@@ -177,8 +255,7 @@ namespace RealmRaiders.Tests
             var fixture = CreateFixture();
             try
             {
-                var pivot = new GameObject("Adapter Pivot").transform;
-                pivot.SetParent(fixture.Host.transform, false);
+                var pivot = fixture.Host.GetComponent<CharacterVisualAssembler>().PresentationPivot;
                 var body = CreateBody(pivot, true, out var bones);
                 var rootPosition = fixture.Host.transform.position;
                 var pivotPose = Pose.Of(pivot);
@@ -186,7 +263,7 @@ namespace RealmRaiders.Tests
                 var baseline = Snapshot(bones);
                 var collidersBefore = body.GetComponentsInChildren<Collider>(true).Length;
 
-                Assert.That(fixture.Adapter.Bind(body), Is.True);
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True);
                 Assert.That(fixture.Host.transform.position, Is.EqualTo(rootPosition));
                 Assert.That(Pose.Of(pivot), Is.EqualTo(pivotPose));
                 Assert.That(Pose.Of(body), Is.EqualTo(bodyPose));
@@ -195,7 +272,7 @@ namespace RealmRaiders.Tests
                 fixture.Adapter.Clear();
                 Assert.That(fixture.Adapter.IsBound, Is.False);
                 Assert.That(Snapshot(bones), Is.EqualTo(baseline));
-                Assert.That(fixture.Adapter.Bind(body), Is.True, "An explicit rebind must restore the same exact binding without a hierarchy scan.");
+                Assert.That(fixture.Adapter.Bind(body, pivot), Is.True, "An explicit rebind must restore the same exact binding without a hierarchy scan.");
 
                 fixture.Adapter.Clear();
                 Assert.That(fixture.Adapter.IsBound, Is.False);
@@ -203,7 +280,7 @@ namespace RealmRaiders.Tests
 
                 var incomplete = CreateBody(pivot, false, out var incompleteBones);
                 var incompleteBaseline = Snapshot(incompleteBones);
-                Assert.That(fixture.Adapter.Bind(incomplete), Is.False);
+                Assert.That(fixture.Adapter.Bind(incomplete, pivot), Is.False);
                 Assert.That(Snapshot(incompleteBones), Is.EqualTo(incompleteBaseline));
             }
             finally { fixture.Dispose(); }
@@ -264,6 +341,16 @@ namespace RealmRaiders.Tests
             Assert.That(actual.Progress, Is.EqualTo(progress).Within(.0001f));
         }
 
+        // EditMode does not run this ordinary MonoBehaviour through Unity's SendMessage dispatch.
+        // Invoke only the named presentation handler; real lifecycle dispatch remains PlayMode-covered.
+        static void InvokeAdapter(CharacterProceduralMotionAdapter adapter, string method, params object[] arguments)
+        {
+            var handler = typeof(CharacterProceduralMotionAdapter).GetMethod(method,
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            Assert.That(handler, Is.Not.Null, method);
+            handler.Invoke(adapter, arguments);
+        }
+
         private static Fixture CreateFixture()
         {
             var host = new GameObject("Procedural Motion Adapter Edit Host");
@@ -311,11 +398,16 @@ namespace RealmRaiders.Tests
 
         private readonly struct Pose : System.IEquatable<Pose>
         {
-            public Pose(Vector3 position, Quaternion rotation, Vector3 scale) { Position = position; Rotation = rotation; Scale = scale; }
+            public Pose(Vector3 position, Quaternion rotation, Vector3 scale, Vector3 semanticAxis) { Position = position; Rotation = rotation; Scale = scale; SemanticAxis = semanticAxis; }
+            public Vector3 SemanticAxis { get; }
             public Vector3 Position { get; }
             public Quaternion Rotation { get; }
             public Vector3 Scale { get; }
-            public static Pose Of(Transform target) => new(target.localPosition, target.localRotation, target.localScale);
+            public static Pose Of(Transform target)
+            {
+                var reference = target.GetComponentInParent<CharacterVisualAssembler>().PresentationPivot;
+                return new(target.localPosition, target.localRotation, target.localScale, Quaternion.Inverse(target.rotation) * reference.right);
+            }
             public bool Equals(Pose other) => Position == other.Position && Rotation == other.Rotation && Scale == other.Scale;
             public override bool Equals(object value) => value is Pose other && Equals(other);
             public override int GetHashCode() => Position.GetHashCode() ^ Rotation.GetHashCode() ^ Scale.GetHashCode();
