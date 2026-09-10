@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using RealmRaiders.CameraSystem;
 using RealmRaiders.Characters;
@@ -41,6 +42,7 @@ namespace RealmRaiders.Tests
                     Assert.That(selector.SelectorButton.targetGraphic.raycastTarget, Is.True, sceneName);
                     Assert.That(selector.SelectorLabel.transform.parent, Is.EqualTo(selector.SelectorButton.transform), sceneName);
                     Assert.That(selector.SelectorLabel.raycastTarget, Is.False, sceneName);
+                    AssertControlStyleIcon(selector, InRunControlStyleSelector.Contextual, true);
                     Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(1), sceneName);
                     Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1), sceneName);
                     AssertResponsiveLiveLayout(root, selector, PrototypeOrientation.Portrait);
@@ -86,6 +88,8 @@ namespace RealmRaiders.Tests
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Contextual));
                 Assert.That(selector.EffectiveStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(selector.SelectorLabel.text, Is.EqualTo(InRunControlStyleSelector.AutoCopy));
+                var controlIcon = selector.SelectorButton.transform.Find(HudPresentation.ControlStyleIconName);
+                AssertControlStyleIcon(selector, InRunControlStyleSelector.Contextual, true);
                 Assert.That(root.JoystickVisible, Is.False);
                 Assert.That(hud.JumpButtonVisible, Is.False);
                 Assert.That(hud.ControlHintText, Does.Contain("DOUBLE-TAP GROUND: JUMP"));
@@ -109,6 +113,8 @@ namespace RealmRaiders.Tests
                 RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
                 Assert.That(selector.SelectorLabel.text, Is.EqualTo(InRunControlStyleSelector.TapCopy));
+                AssertControlStyleIcon(selector, InRunControlStyleSelector.Fingertap, true);
+                Assert.That(selector.SelectorButton.transform.Find(HudPresentation.ControlStyleIconName), Is.SameAs(controlIcon));
                 Assert.That(GameplayInput.Movement, Is.EqualTo(Vector2.zero));
                 Assert.That(GameplayInput.HasUiOwnership, Is.False);
                 Assert.That(GameplayInput.InteractionRevision, Is.GreaterThan(revision));
@@ -120,6 +126,8 @@ namespace RealmRaiders.Tests
                 RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Joystick));
                 Assert.That(selector.SelectorLabel.text, Is.EqualTo(InRunControlStyleSelector.StickCopy));
+                AssertControlStyleIcon(selector, InRunControlStyleSelector.Joystick, true);
+                Assert.That(selector.SelectorButton.transform.Find(HudPresentation.ControlStyleIconName), Is.SameAs(controlIcon));
                 Assert.That(root.JoystickVisible, Is.True);
                 Assert.That(hud.JumpButtonVisible, Is.True);
                 Assert.That(hud.ControlHintText, Does.Contain("DRAG WORLD: LOOK").And.Contain("JUMP: LEAP"));
@@ -129,6 +137,7 @@ namespace RealmRaiders.Tests
                 RefreshControlPresentation(hud);
                 Assert.That(selector.SavedStyle, Is.EqualTo(InRunControlStyleSelector.Contextual));
                 Assert.That(selector.EffectiveStyle, Is.EqualTo(InRunControlStyleSelector.Fingertap));
+                AssertControlStyleIcon(selector, InRunControlStyleSelector.Contextual, true);
                 Assert.That(root.JoystickVisible, Is.False);
                 Assert.That(hud.JumpButtonVisible, Is.False);
                 selector.Cycle();
@@ -215,6 +224,7 @@ namespace RealmRaiders.Tests
                 selector.RefreshNow();
                 RefreshControlPresentation(hud);
                 Assert.That(selector.Visible, Is.False);
+                AssertControlStyleIcon(selector, InRunControlStyleSelector.Joystick, false);
                 Assert.That(root.JoystickVisible, Is.False);
                 Assert.That(hud.JumpButtonVisible, Is.False);
                 Assert.That(GameplayInput.HasUiOwnership, Is.False);
@@ -228,6 +238,7 @@ namespace RealmRaiders.Tests
                 selector.RefreshNow();
                 RefreshControlPresentation(hud);
                 Assert.That(selector.Visible, Is.True);
+                AssertControlStyleIcon(selector, InRunControlStyleSelector.Joystick, true);
                 Assert.That(root.JoystickVisible, Is.True);
                 Assert.That(hud.JumpButtonVisible, Is.True);
                 AssertPossessionContinuity(hud, possession, defender, player, entityId, position, health, cooldownReadyAt, remainingEnergy, sceneHandle);
@@ -317,6 +328,22 @@ namespace RealmRaiders.Tests
             Assert.That(GameplayInput.IsUiOwned(pointer.pointerId), Is.True);
             ownership.OnCancel(pointer);
             Assert.That(GameplayInput.IsUiOwned(pointer.pointerId), Is.False);
+        }
+
+        static void AssertControlStyleIcon(InRunControlStyleSelector selector, string savedStyle, bool visibleInHierarchy)
+        {
+            var children = selector.SelectorButton.transform.Cast<Transform>()
+                .Where(child => child.name == HudPresentation.ControlStyleIconName).ToArray();
+            Assert.That(children, Has.Length.EqualTo(1), savedStyle);
+            var icon = children[0].GetComponent<Image>();
+            Assert.That(icon, Is.Not.Null, savedStyle);
+            Assert.That(icon.sprite, Is.SameAs(Resources.Load<Sprite>(HudPresentation.ControlStyleIconResourceFor(savedStyle))), savedStyle);
+            Assert.That(icon.rectTransform.sizeDelta, Is.EqualTo(new Vector2(32, 32)), savedStyle);
+            Assert.That(icon.preserveAspect, Is.True, savedStyle);
+            Assert.That(icon.raycastTarget, Is.False, savedStyle);
+            Assert.That(icon.gameObject.activeInHierarchy, Is.EqualTo(visibleInHierarchy), savedStyle);
+            Assert.That(selector.SelectorLabel.text, Is.EqualTo(InRunControlStyleSelector.CopyFor(savedStyle)), savedStyle);
+            Assert.That(selector.SelectorButton.GetComponent<UiPointerOwnership>(), Is.Not.Null, savedStyle);
         }
 
         static Rect DesignRect(RectTransform rect, Vector2 parentSize)

@@ -16,8 +16,10 @@ namespace RealmRaiders.UI
         public const string StickCopy = "CONTROL: STICK";
 
         ResponsiveHudRoot responsive;
+        HudPresentation presentation;
         Button button;
         Text label;
+        string displayedStyle;
         bool hasLiveState;
         bool displayedLive;
 
@@ -93,8 +95,14 @@ namespace RealmRaiders.UI
             button.interactable = live;
             if (live)
             {
-                var copy = CopyFor(PrototypeSave.ControlStylePreference);
+                var savedStyle = NormalizePreference(PrototypeSave.ControlStylePreference);
+                var copy = CopyFor(savedStyle);
                 if (label.text != copy) label.text = copy;
+                if (displayedStyle != savedStyle)
+                {
+                    displayedStyle = savedStyle;
+                    presentation?.DecorateControlStyleButton(button, savedStyle);
+                }
             }
             responsive?.RefreshControlPresentation();
         }
@@ -102,6 +110,7 @@ namespace RealmRaiders.UI
         void Initialize(ResponsiveHudRoot root, HudPresentation presentation)
         {
             responsive = root;
+            this.presentation = presentation;
             var buttonObject = new GameObject("Control Style", typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership));
             buttonObject.transform.SetParent(transform, false);
             buttonObject.GetComponent<Image>().color = new Color(.08f, .22f, .13f, .94f);

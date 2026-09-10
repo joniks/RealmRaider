@@ -262,9 +262,34 @@ Acceptance: QA's fresh native gates passed EditMode `174/174` and PlayMode
 Manual Raid result remains unobserved because the first Game-view click failed
 externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-## Selecting Diamond Pass 14.4
+## Accepted — Diamond Pass 14.4: In-Run Control Style Mark
 
-The read-only post-Raid Defense audit found no further evidenced safe slice that
-was not a repeat of 13.9–14.3. Select the next player-visible implementation from
-the recorded prototype backlog or a new manual observation; do not invent another
-guide/copy change or broaden into navigation, rewards or progression.
+Owner: Core developer. Base: Architect's accepted 14.3 commit `b9a140b`. Full
+lease: `Docs/NEXT_JOB.md`.
+
+Import only the three accepted original MUI06 control-style marks with exact
+provenance/mobile settings. Add one cached, non-raycast 32 px mark to the existing
+in-run selector, synchronized with saved AUTO/TAP/STICK while retaining exact
+text, control semantics, footprint and a complete text-only fallback.
+
+Acceptance: QA's fresh native gates passed EditMode `178/178` and PlayMode
+`82/82`, both with zero failed/skipped/inconclusive tests; Console was `0/0/0`.
+Landscape manual smoke observed synchronized AUTO/TAP/STICK marks in Raid and
+Defender and terminal hiding; portrait and possessed-Defender entry remain
+unobserved because the UI state did not settle for those steps.
+
+## Now — Diamond Pass 14.5: Hub Control Choice Marks
+
+Owner: Core developer. Base: Architect's accepted 14.4 commit. Full lease:
+`Docs/NEXT_JOB.md`.
+
+Reuse the accepted 14.4 sprites so the existing Hub CONTEXTUAL, FINGERTAP and
+JOYSTICK buttons each carry their explicit non-raycast mark beside unchanged
+text. Preserve button footprints, selection truth, actions and independent
+text-only fallback; do not add a selected-state highlight.
+
+## Ready after 14.5
+
+Use QA's observation to accept or make one bounded per-button layout correction.
+The visual-profile integration remains blocked until a fresh Module role supplies
+reviewed non-no-op transform intent; Core must not invent transform values.

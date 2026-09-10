@@ -2416,3 +2416,36 @@ Completed on 2026-09-10.
 
 - General result redesign/localization, navigation, reward/progression changes,
   gameplay/balance work and device final polish.
+
+## Diamond Pass 14.4 — In-Run Control Style Mark
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Imported only the three accepted original MUI06 Contextual, Fingertap and
+  Joystick sprites with byte-exact hashes, local provenance and explicit mobile
+  Single-Sprite settings.
+- The existing in-run selector now reuses one cached, 32 px non-raycast mark that
+  switches with saved AUTO/TAP/STICK while exact text remains visible.
+- Missing or throwing resources hide stale art and restore the captured centered
+  text layout without changing selector footprint, click, persistence, effective
+  orientation or input authority.
+- EditMode covers bytes/provenance/import, mapping/cache/one-child and mixed
+  fallback; PlayMode covers live cycling, ownership, terminal lifecycle and
+  Hub/Build absence.
+
+### Verification
+
+- Architect confirmed source hashes against Modules `04b8861`, provenance,
+  cached mapping, noninteraction, fallback geometry and scoped import settings.
+- QA native gates passed EditMode `178/178` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Landscape smoke observed synchronized AUTO/TAP/STICK marks in Raid and
+  Defender plus terminal hiding. Portrait and possessed-Defender entry were not
+  observed because the UI state did not settle for those steps.
+
+### Scope intentionally deferred
+
+- Hub button decoration, selected-state art, control behavior, animation/audio,
+  final-art approval and physical-device validation.

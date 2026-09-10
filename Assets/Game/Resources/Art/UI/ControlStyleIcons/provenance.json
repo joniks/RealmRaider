@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "candidateSetId": "realmraiders.preview.control-styles.mui06.v1",
+  "createdOn": "2026-09-10",
+  "status": "accepted-runtime-preview-not-final-art",
+  "creation": "original-generated",
+  "thirdPartySources": false,
+  "generationTool": "OpenAI built-in image generation",
+  "generationModel": "not separately specified by built-in tool",
+  "modulesCommit": "04b8861",
+  "sourcePaths": {
+    "contextual": "Modules/RealmRaider.Modules/ArtPreviews/MUI06-ControlStyleIcons/contextual-rgba-candidate.png",
+    "fingertap": "Modules/RealmRaider.Modules/ArtPreviews/MUI06-ControlStyleIcons/fingertap-rgba-candidate.png",
+    "joystick": "Modules/RealmRaider.Modules/ArtPreviews/MUI06-ControlStyleIcons/joystick-rgba-candidate.png"
+  },
+  "intendedMapping": {
+    "contextual": "automatic contextual choice without AI claim",
+    "fingertap": "touch-point gesture",
+    "joystick": "virtual stick"
+  },
+  "generationPrompts": {
+    "contextual": "Original 512-square RGBA transparent mobile UI icon, Contextual input mode: one calm central touch-point orb with two small curved choice arcs, suggests automatic context choice but no gear, robot, AI or text. Neutral charcoal, muted Sylvan teal, pale-gold accent; bold 32–48px silhouette; no hand anatomy, device, frame, logo, watermark or franchise design.",
+    "fingertap": "Original 512-square RGBA transparent mobile UI icon, Fingertap mode: one simple abstract touch-point ripple with a short downward gesture stroke, no detailed hand anatomy or device. Neutral charcoal, muted Sylvan teal, pale-gold accent; bold distinct 32–48px silhouette. No letters, text, numerals, frame, logo, watermark, AI/robot claim or franchise design.",
+    "joystick": "Original 512-square RGBA transparent mobile UI icon, Joystick mode: one clear virtual thumb stick with a circular base, short upright stick and tiny directional nubs. Neutral charcoal, muted Sylvan teal, pale-gold accent; bold distinct 32–48px silhouette. No letters, text, numerals, device brand, hand anatomy, frame, logo, watermark, AI/robot claim or franchise design."
+  },
+  "outputs": [
+    {
+      "file": "contextual-rgba-candidate.png",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sourceSha256": "5eb4ce8861e123f6a12b5538e26210cbee664348016507f7766929963b5d6519",
+      "copiedSha256": "5eb4ce8861e123f6a12b5538e26210cbee664348016507f7766929963b5d6519"
+    },
+    {
+      "file": "fingertap-rgba-candidate.png",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sourceSha256": "3cb7454bac3f4769dd29dce94f7f218524b87b85ad9b199d100407963a570a30",
+      "copiedSha256": "3cb7454bac3f4769dd29dce94f7f218524b87b85ad9b199d100407963a570a30"
+    },
+    {
+      "file": "joystick-rgba-candidate.png",
+      "dimensions": [512, 512],
+      "colorFormat": "RGBA",
+      "alphaStatus": "transparent-background",
+      "sourceSha256": "19a68cf9b103811291cc633c31baf7c6a8853e9f3bcbf5cc9bc505cfcedd485e",
+      "copiedSha256": "19a68cf9b103811291cc633c31baf7c6a8853e9f3bcbf5cc9bc505cfcedd485e"
+    }
+  ],
+  "evidenceOperations": "32px and 48px contact sheets alpha-composite unchanged candidate pixels for review; sheets remain non-runtime evidence in Modules.",
+  "readabilityGates": [
+    "All three marks require in-context 32px portrait and landscape review; this is not final-art approval."
+  ],
+  "nonGoals": [
+    "Hub control-button decoration",
+    "replacing or removing control text",
+    "control behavior, order, persistence or orientation changes",
+    "animation, audio, haptics or final-art approval"
+  ]
+}

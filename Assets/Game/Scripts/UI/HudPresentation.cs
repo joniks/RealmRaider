@@ -28,12 +28,17 @@ namespace RealmRaiders.UI
         public const string RealmIdentityIconName = "Realm Identity Mark";
         public const string SylvanRealmIdentityIconResource = "Art/UI/RealmIdentityIcons/sylvan-realm-rgba-candidate";
         public const string InfernalRealmIdentityIconResource = "Art/UI/RealmIdentityIcons/infernal-realm-rgba-candidate";
+        public const string ControlStyleIconName = "Control Style Icon";
+        public const string ContextualControlStyleIconResource = "Art/UI/ControlStyleIcons/contextual-rgba-candidate";
+        public const string FingertapControlStyleIconResource = "Art/UI/ControlStyleIcons/fingertap-rgba-candidate";
+        public const string JoystickControlStyleIconResource = "Art/UI/ControlStyleIcons/joystick-rgba-candidate";
         Sprite buttonSprite;
         Sprite jumpIconSprite;
         Sprite basicSlashIconSprite, bloodRushIconSprite, heavyCleaveIconSprite;
         Sprite guardianEntSmashIconSprite, guardianEntChargeIconSprite, guardianEntGroundSlamIconSprite;
         Sprite infernalBruteSmashIconSprite, infernalBruteChargeIconSprite, infernalBruteGroundSlamIconSprite;
         Sprite sylvanRealmIdentityIconSprite, infernalRealmIdentityIconSprite;
+        Sprite contextualControlStyleIconSprite, fingertapControlStyleIconSprite, joystickControlStyleIconSprite;
         AudioClip click, confirm, result;
         AudioSource source;
         bool resultPlayed;
@@ -43,12 +48,17 @@ namespace RealmRaiders.UI
         bool guardianEntSmashIconResolved, guardianEntChargeIconResolved, guardianEntGroundSlamIconResolved;
         bool infernalBruteSmashIconResolved, infernalBruteChargeIconResolved, infernalBruteGroundSlamIconResolved;
         bool sylvanRealmIdentityIconResolved, infernalRealmIdentityIconResolved;
+        bool contextualControlStyleIconResolved, fingertapControlStyleIconResolved, joystickControlStyleIconResolved;
+        Text controlStyleLabel;
+        Vector2 controlStyleLabelOffsetMin, controlStyleLabelOffsetMax;
+        bool controlStyleLabelLayoutCaptured;
         bool initialized;
         System.Func<string, Sprite> jumpIconLoader = LoadJumpIcon;
         System.Func<string, Sprite> abilityIconLoader = LoadAbilityIcon;
         System.Func<string, Sprite> guardianEntAbilityIconLoader = LoadGuardianEntAbilityIcon;
         System.Func<string, Sprite> infernalBruteAbilityIconLoader = LoadInfernalBruteAbilityIcon;
         System.Func<string, Sprite> realmIdentityIconLoader = LoadRealmIdentityIcon;
+        System.Func<string, Sprite> controlStyleIconLoader = LoadControlStyleIcon;
 
         public bool ResultCuePlayed => resultPlayed;
 
@@ -143,6 +153,76 @@ namespace RealmRaiders.UI
             InfernalRealmIdentity => InfernalRealmIdentityIconResource,
             _ => string.Empty
         };
+
+        public Image DecorateControlStyleButton(Button button, string savedStyle)
+        {
+            if (!button) return null;
+            var label = button.GetComponentInChildren<Text>(true);
+            CaptureControlStyleLabelLayout(label);
+            var existing = button.transform.Find(ControlStyleIconName);
+            var resourcePath = ControlStyleIconResourceFor(savedStyle);
+            var sprite = string.IsNullOrEmpty(resourcePath) ? null : ResolveControlStyleIcon(savedStyle, resourcePath);
+            if (!sprite)
+            {
+                if (existing) existing.gameObject.SetActive(false);
+                RestoreControlStyleLabelLayout(label);
+                return null;
+            }
+
+            Image icon;
+            if (existing)
+            {
+                icon = existing.GetComponent<Image>();
+                if (!icon) { existing.gameObject.SetActive(false); RestoreControlStyleLabelLayout(label); return null; }
+            }
+            else
+            {
+                var iconObject = new GameObject(ControlStyleIconName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                iconObject.transform.SetParent(button.transform, false);
+                icon = iconObject.GetComponent<Image>();
+            }
+
+            var iconRect = icon.rectTransform;
+            iconRect.anchorMin = iconRect.anchorMax = new Vector2(0, .5f);
+            iconRect.pivot = new Vector2(0, .5f);
+            iconRect.anchoredPosition = new Vector2(12, 0);
+            iconRect.sizeDelta = new Vector2(32, 32);
+            icon.sprite = sprite;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            icon.gameObject.SetActive(true);
+            if (label)
+            {
+                var rect = label.rectTransform;
+                rect.offsetMin = new Vector2(Mathf.Max(controlStyleLabelOffsetMin.x, 52), controlStyleLabelOffsetMin.y);
+                rect.offsetMax = controlStyleLabelOffsetMax;
+            }
+            return icon;
+        }
+
+        public static string ControlStyleIconResourceFor(string savedStyle) => savedStyle switch
+        {
+            InRunControlStyleSelector.Contextual => ContextualControlStyleIconResource,
+            InRunControlStyleSelector.Fingertap => FingertapControlStyleIconResource,
+            InRunControlStyleSelector.Joystick => JoystickControlStyleIconResource,
+            _ => string.Empty
+        };
+
+        void CaptureControlStyleLabelLayout(Text label)
+        {
+            if (!label || controlStyleLabelLayoutCaptured && controlStyleLabel == label) return;
+            controlStyleLabel = label;
+            controlStyleLabelOffsetMin = label.rectTransform.offsetMin;
+            controlStyleLabelOffsetMax = label.rectTransform.offsetMax;
+            controlStyleLabelLayoutCaptured = true;
+        }
+
+        void RestoreControlStyleLabelLayout(Text label)
+        {
+            if (!label || !controlStyleLabelLayoutCaptured || controlStyleLabel != label) return;
+            label.rectTransform.offsetMin = controlStyleLabelOffsetMin;
+            label.rectTransform.offsetMax = controlStyleLabelOffsetMax;
+        }
 
         public Image DecorateJumpButton(Button button)
         {
@@ -455,6 +535,32 @@ namespace RealmRaiders.UI
             realmIdentityIconLoader = loader ?? (_ => null);
             sylvanRealmIdentityIconSprite = infernalRealmIdentityIconSprite = null;
             sylvanRealmIdentityIconResolved = infernalRealmIdentityIconResolved = false;
+        }
+
+        Sprite ResolveControlStyleIcon(string savedStyle, string resourcePath) => savedStyle switch
+        {
+            InRunControlStyleSelector.Contextual => ResolveControlStyleSprite(ref contextualControlStyleIconSprite, ref contextualControlStyleIconResolved, resourcePath),
+            InRunControlStyleSelector.Fingertap => ResolveControlStyleSprite(ref fingertapControlStyleIconSprite, ref fingertapControlStyleIconResolved, resourcePath),
+            InRunControlStyleSelector.Joystick => ResolveControlStyleSprite(ref joystickControlStyleIconSprite, ref joystickControlStyleIconResolved, resourcePath),
+            _ => null
+        };
+
+        Sprite ResolveControlStyleSprite(ref Sprite sprite, ref bool resolved, string resourcePath)
+        {
+            if (resolved) return sprite;
+            resolved = true;
+            try { sprite = controlStyleIconLoader?.Invoke(resourcePath); }
+            catch (System.Exception) { sprite = null; }
+            return sprite;
+        }
+
+        static Sprite LoadControlStyleIcon(string resourcePath) => Resources.Load<Sprite>(resourcePath);
+
+        public void ConfigureControlStyleIconLoaderForTests(System.Func<string, Sprite> loader)
+        {
+            controlStyleIconLoader = loader ?? (_ => null);
+            contextualControlStyleIconSprite = fingertapControlStyleIconSprite = joystickControlStyleIconSprite = null;
+            contextualControlStyleIconResolved = fingertapControlStyleIconResolved = joystickControlStyleIconResolved = false;
         }
 
         public void PlayClick() { EnsureInitialized(); Play(click); }
