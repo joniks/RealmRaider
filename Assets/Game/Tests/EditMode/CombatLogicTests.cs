@@ -279,6 +279,53 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void VisualMotion_JumpTransitionsStayBoundedComposeAndResetExactly()
+        {
+            var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.Humanoid; recipe.Primary = Color.red; recipe.Secondary = Color.black; recipe.AccentColor = Color.yellow;
+            var host = GameObject.CreatePrimitive(PrimitiveType.Capsule); host.transform.position = new Vector3(4, 2, 1); host.transform.localScale = new Vector3(1.2f, .9f, 1.1f);
+            try
+            {
+                var assembler = host.AddComponent<CharacterVisualAssembler>(); Assert.That(assembler.Assemble(recipe), Is.True);
+                var motion = host.GetComponent<CharacterVisualMotion>(); var pivot = motion.PresentationPivot; var rootPosition = host.transform.position; var rootScale = host.transform.localScale;
+
+                motion.Sample(0, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                motion.Sample(.01f, .01f, Vector3.zero, CombatActionPhase.Windup, true, false, true);
+                Assert.That(pivot.localScale.y, Is.GreaterThan(motion.BaseScale.y), "One inactive-to-jumping transition produces a takeoff stretch.");
+                Assert.That(Quaternion.Angle(pivot.localRotation, motion.BaseRotation), Is.GreaterThan(.1f), "Action and takeoff presentation compose on the pivot.");
+                AssertVisualMotionBounds(motion);
+                Assert.That(host.transform.position, Is.EqualTo(rootPosition)); Assert.That(host.transform.localScale, Is.EqualTo(rootScale));
+
+                motion.Sample(.20f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                motion.Sample(.21f, .01f, Vector3.zero, CombatActionPhase.Recovery, false, true, true);
+                Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y), "Only a factual observed grounded jump end produces the landing settle.");
+                AssertVisualMotionBounds(motion);
+                motion.Sample(.40f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                Assert.That(pivot.localScale.y, Is.EqualTo(motion.BaseScale.y).Within(.01f), "The landing pulse does not repeat during ordinary grounded motion.");
+
+                motion.ShowHitReaction();
+                motion.Sample(Time.time, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                Assert.That(Quaternion.Angle(pivot.localRotation, motion.BaseRotation), Is.GreaterThan(.1f), "Hit reaction remains composable with jump presentation.");
+                motion.ClearTransientReaction();
+                Assert.That(pivot.localPosition, Is.EqualTo(motion.BasePosition)); Assert.That(pivot.localRotation, Is.EqualTo(motion.BaseRotation)); Assert.That(pivot.localScale, Is.EqualTo(motion.BaseScale));
+
+                motion.Sample(.5f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                motion.Sample(.51f, .01f, Vector3.zero, CombatActionPhase.Idle, true, false, true);
+                motion.Sample(.52f, .01f, Vector3.zero, CombatActionPhase.Idle, false, false, true);
+                motion.Sample(.53f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                Assert.That(pivot.localScale.y, Is.GreaterThan(motion.BaseScale.y * .97f), "An airborne cancellation followed by ordinary grounding cannot create a delayed landing settle.");
+
+                var replacement = new GameObject("Replacement Presentation Pivot").transform; replacement.SetParent(host.transform, false);
+                motion.Bind(replacement);
+                Assert.That(pivot.localPosition, Is.EqualTo(motion.BasePosition), "Rebinding restores the old pivot before replacing it.");
+                Assert.That(replacement.localPosition, Is.EqualTo(Vector3.zero)); Assert.That(replacement.localRotation, Is.EqualTo(Quaternion.identity)); Assert.That(replacement.localScale, Is.EqualTo(Vector3.one));
+                motion.Sample(.6f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
+                Assert.That(replacement.localScale.y, Is.GreaterThan(motion.BaseScale.y * .97f), "A new binding cannot receive a delayed landing settle.");
+                AssertVisualMotionBounds(motion);
+            }
+            finally { Object.DestroyImmediate(recipe); Object.DestroyImmediate(host); }
+        }
+
+        [Test]
         public void GuardianEntGrowth_BuildsRanksUnderThePresentationPivotAndCleansSafely()
         {
             var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = CharacterVisualFamily.LargeCreature; recipe.Primary = new Color(.18f, .43f, .14f); recipe.AccentColor = new Color(.4f, .8f, .3f);
@@ -350,6 +397,15 @@ namespace RealmRaiders.Tests
             var root = entity.Find("Character Visual Modules/Presentation Pivot"); var names = new string[root.childCount];
             for (int i = 0; i < root.childCount; i++) names[i] = root.GetChild(i).name;
             return names;
+        }
+
+        static void AssertVisualMotionBounds(CharacterVisualMotion motion)
+        {
+            var offset = motion.PresentationPivot.localPosition - motion.BasePosition;
+            Assert.That(offset.magnitude, Is.LessThanOrEqualTo(.080001f));
+            Assert.That(motion.PresentationPivot.localScale.x / motion.BaseScale.x, Is.InRange(.90f, 1.10f));
+            Assert.That(motion.PresentationPivot.localScale.y / motion.BaseScale.y, Is.InRange(.90f, 1.10f));
+            Assert.That(motion.PresentationPivot.localScale.z / motion.BaseScale.z, Is.InRange(.90f, 1.10f));
         }
     }
 }

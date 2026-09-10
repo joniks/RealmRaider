@@ -312,10 +312,29 @@ correctly reported that no ownership was active. Editor log tail showed no
 error/exception entries; a manual ledge smoke is not claimed because Game view
 was not safely operable through the QA automation surface.
 
-## Ready — Diamond Pass 14.7: Jump Takeoff and Landing Readability
+## Accepted — Diamond Pass 14.7: Jump Takeoff and Landing Readability
 
 Add one bounded presentation-only takeoff stretch and landing settle under the
 existing `Presentation Pivot`, driven by factual jump-state transitions. Gameplay
 root, CharacterController, jump timing, input semantics and combat authority must
 remain unchanged. Core may prepare this lease only after the 14.6 commit; input
 buffering and visual-profile integration remain separate later gates.
+
+Acceptance: QA's final native gates passed EditMode `179/179` and PlayMode
+`84/84`, both with zero failed/skipped/inconclusive tests. Editor log tail showed
+no error/exception entries. Manual Sylvan/Defender visual readability is not
+claimed because the Game view was not safely operable through QA automation.
+
+## Now — Diamond Pass 14.8: One Falling Jump Buffer
+
+Allow exactly one short pre-landing jump request only while a direct player's
+existing active jump is factually descending. Preserve immediate grounded/coyote
+jump, reject repeated presses without refreshing expiry and clear the request on
+every existing jump lifecycle boundary. Visual-profile integration still requires
+approved non-no-op Module data rather than invented Core values.
+
+## Ready after 14.8
+
+Use QA's factual timing/cleanup result to accept or return one bounded correction.
+Then select a separate player-visible combat/realm slice; do not extend the jump
+mechanic into double, wall, charged or general airborne actions.

@@ -133,6 +133,66 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator JumpVisualMotion_AccentsOnlyThePivotAndCancelsWithoutDelayedLanding()
+        {
+            GameplayInput.ResetForTests();
+            var cameraObject = MainCamera();
+            var ground = CreateGround("Jump Motion Ground", Vector3.zero, new Vector3(20, .5f, 20));
+            var fixture = new EntityFixture(new Vector3(0, 1, 0), false);
+            try
+            {
+                fixture.Entity.SetController(fixture.Player);
+                yield return Settle(fixture);
+                var motion = fixture.Root.GetComponent<CharacterVisualMotion>(); var pivot = motion.PresentationPivot;
+                var rootScale = fixture.Root.transform.localScale; var motorHeight = fixture.Entity.Motor.height; var motorRadius = fixture.Entity.Motor.radius; var motorCenter = fixture.Entity.Motor.center;
+
+                Assert.That(fixture.Player.Jump(), Is.True);
+                yield return null;
+                Assert.That(pivot.localScale.y, Is.GreaterThan(motion.BaseScale.y), "Real takeoff stretches only the assembled presentation pivot.");
+                Assert.That(fixture.Root.transform.localScale, Is.EqualTo(rootScale));
+                Assert.That(fixture.Entity.Motor.height, Is.EqualTo(motorHeight)); Assert.That(fixture.Entity.Motor.radius, Is.EqualTo(motorRadius)); Assert.That(fixture.Entity.Motor.center, Is.EqualTo(motorCenter));
+                AssertPivotBounds(motion);
+
+                yield return WaitForGrounded(fixture.Entity);
+                yield return null;
+                Assert.That(fixture.Entity.IsJumping, Is.False);
+                Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y), "Only the factual grounded end of a real jump settles the pivot.");
+                Assert.That(fixture.Root.transform.localScale, Is.EqualTo(rootScale));
+                AssertPivotBounds(motion);
+
+                yield return Settle(fixture);
+                Assert.That(fixture.Player.Jump(), Is.True);
+                GameplayInput.SetTerminalState(true);
+                yield return null;
+                GameplayInput.SetTerminalState(false);
+                yield return null;
+                AssertNoLandingSettle(motion);
+
+                yield return Settle(fixture);
+                Assert.That(fixture.Player.Jump(), Is.True);
+                fixture.Entity.SetController(fixture.Ai);
+                yield return null;
+                AssertNoLandingSettle(motion);
+
+                fixture.Entity.SetController(fixture.Player);
+                yield return Settle(fixture);
+                Assert.That(fixture.Player.Jump(), Is.True);
+                fixture.Entity.Motor.enabled = false;
+                yield return null;
+                fixture.Entity.Motor.enabled = true;
+                yield return null;
+                AssertNoLandingSettle(motion);
+            }
+            finally
+            {
+                GameplayInput.ResetForTests();
+                fixture.Dispose();
+                Object.Destroy(ground);
+                Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator JumpGate_RejectsRootActionDodgeTerminalReleaseDisableAirborneAndDeath()
         {
             GameplayInput.ResetForTests();
@@ -489,6 +549,21 @@ namespace RealmRaiders.Tests
             yield return null;
         }
 
+        static void AssertPivotBounds(CharacterVisualMotion motion)
+        {
+            var offset = motion.PresentationPivot.localPosition - motion.BasePosition;
+            Assert.That(offset.magnitude, Is.LessThanOrEqualTo(.080001f));
+            Assert.That(motion.PresentationPivot.localScale.x / motion.BaseScale.x, Is.InRange(.90f, 1.10f));
+            Assert.That(motion.PresentationPivot.localScale.y / motion.BaseScale.y, Is.InRange(.90f, 1.10f));
+            Assert.That(motion.PresentationPivot.localScale.z / motion.BaseScale.z, Is.InRange(.90f, 1.10f));
+        }
+
+        static void AssertNoLandingSettle(CharacterVisualMotion motion)
+        {
+            Assert.That(motion.PresentationPivot.localScale.y, Is.GreaterThan(motion.BaseScale.y * .97f), "Cancelled jumps cannot schedule a delayed landing squash.");
+            AssertPivotBounds(motion);
+        }
+
         static IEnumerator WaitForAirborne(EntityFixture fixture)
         {
             var timeout = Time.realtimeSinceStartup + .25f;
@@ -561,6 +636,7 @@ namespace RealmRaiders.Tests
             public readonly CreatureBrain Ai;
             readonly CharacterDefinition definition;
             readonly AbilityDefinition ability;
+            readonly CharacterVisualRecipe visualRecipe;
 
             public EntityFixture(Vector3 position, bool withAbility)
             {
@@ -575,6 +651,12 @@ namespace RealmRaiders.Tests
                 definition.DisplayName = "Jump Test Entity";
                 definition.Possessable = true;
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 4, AttackSpeed = 1 };
+                visualRecipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>();
+                visualRecipe.Family = CharacterVisualFamily.Humanoid;
+                visualRecipe.Primary = Color.red;
+                visualRecipe.Secondary = Color.black;
+                visualRecipe.AccentColor = Color.yellow;
+                definition.VisualRecipe = visualRecipe;
                 if (withAbility)
                 {
                     ability = ScriptableObject.CreateInstance<AbilityDefinition>();
@@ -593,6 +675,7 @@ namespace RealmRaiders.Tests
             {
                 Object.Destroy(Root);
                 Object.Destroy(definition);
+                Object.Destroy(visualRecipe);
                 if (ability) Object.Destroy(ability);
             }
         }

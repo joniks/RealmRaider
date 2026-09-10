@@ -2511,3 +2511,37 @@ Completed on 2026-09-10.
 
 - Jump input buffering, double/wall/charged/air jump, AI jump, jump tuning,
   animation/VFX/audio/haptics, device validation and broader movement changes.
+
+## Diamond Pass 14.7 — Jump Takeoff and Landing Readability
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- A factual direct jump now gives the existing Presentation Pivot one short
+  takeoff stretch and one grounded landing settle, composed with idle, movement,
+  action and hit presentation.
+- Every local offset remains within 0.08 m and every scale axis within 0.90–1.10
+  of the captured base pose; the gameplay root, CharacterController and camera
+  retain unchanged authority.
+- Initialization, ordinary grounded motion, release/controller swap, root,
+  terminal, death, disabled Motor, component disable/destroy and rebind cleanup
+  cannot synthesize a delayed landing response.
+- Deterministic EditMode coverage proves transition, composition, bounds, restore
+  and rebind behavior; PlayMode proves real jump pivot isolation and cleanup.
+
+### Verification
+
+- Architect confirmed pivot-only ownership, strict bounds, factual transition
+  gating, exact restore behavior and unchanged jump/input/gameplay authority;
+  `git diff --check` is clean.
+- QA final gates passed EditMode `179/179` and PlayMode `84/84`, both with zero
+  failed/skipped/inconclusive tests; Editor log tail showed no error/exception.
+- Manual Sylvan/possessed-Defender readability is not claimed because QA could
+  not safely operate the Game view through its automation surface.
+
+### Scope intentionally deferred
+
+- Animator/rig/clip/root-motion integration, input buffering, jump physics,
+  double/wall/charged/air jump, gameplay VFX/audio/haptics, camera/UI changes and
+  physical-device performance validation.
