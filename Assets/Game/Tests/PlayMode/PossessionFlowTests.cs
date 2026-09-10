@@ -99,6 +99,7 @@ namespace RealmRaiders.Tests
                     GameObject[] trackedAbilityIcons = System.Array.Empty<GameObject>();
                     GameObject trackedChargeAffordance = null;
                     GameObject trackedRealmMark = null;
+                    GameObject trackedEnergyMeter = null;
                     try
                     {
                         var guardian = config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle;
@@ -117,6 +118,15 @@ namespace RealmRaiders.Tests
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  30.0/30s"));
                         Assert.That(CountNamed(fixture.Hud.transform, "Possession Energy Meter"), Is.EqualTo(1));
+                        var meter = fixture.Hud.PossessionEnergyMeterRect;
+                        trackedEnergyMeter = meter.gameObject;
+                        var meterAnchorMin = meter.anchorMin;
+                        var meterAnchorMax = meter.anchorMax;
+                        var meterPivot = meter.pivot;
+                        var meterPosition = meter.anchoredPosition;
+                        var meterSize = meter.sizeDelta;
+                        Assert.That(meter.childCount, Is.EqualTo(1));
+                        Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one));
 
                         fixture.Possession.Select(fixture.Defender);
                         Assert.That(fixture.Possession.PossessSelected(), Is.True);
@@ -178,6 +188,7 @@ namespace RealmRaiders.Tests
                         fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  2.0/30s"));
+                        Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one));
                         Assert.That(fixture.Hud.ChargeAffordanceVisible, Is.False);
                         Assert.That(AbilityIcons(fixture.Hud.transform, false, familyPrefix), Is.Empty, "Release hides all direct-control themed icons.");
 
@@ -191,10 +202,16 @@ namespace RealmRaiders.Tests
                         responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
                         Assert.That(fixture.Energy.Remaining, Is.EqualTo(2));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("RETURN TO KEEPER  2.0s"));
+                        Assert.That(meter.anchorMin, Is.EqualTo(meterAnchorMin));
+                        Assert.That(meter.anchorMax, Is.EqualTo(meterAnchorMax));
+                        Assert.That(meter.pivot, Is.EqualTo(meterPivot));
+                        Assert.That(meter.anchoredPosition, Is.EqualTo(meterPosition));
+                        Assert.That(meter.sizeDelta, Is.EqualTo(meterSize));
 
                         fixture.Defender.SetController(fixture.Defender.Controller<CreatureBrain>());
                         fixture.Hud.SendMessage("RefreshPossessionEnergy", SendMessageOptions.RequireReceiver);
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal), "A controller swap must clear possession urgency.");
+                        Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one));
                         fixture.Defender.SetController(fixture.Defender.Controller<PlayerController>());
                         fixture.Hud.SendMessage("RefreshPossessionEnergy", SendMessageOptions.RequireReceiver);
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Critical));
@@ -207,6 +224,7 @@ namespace RealmRaiders.Tests
                         Assert.That(moment, Is.EqualTo("POSSESSION ENERGY DEPLETED — RETURNING TO KEEPER"));
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  0.0/30s"));
+                        Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one));
 
                         fixture.Energy.Refill();
                         fixture.Possession.Select(fixture.Defender);
@@ -218,6 +236,7 @@ namespace RealmRaiders.Tests
                         Assert.That(fixture.Possession.Possessed, Is.Null);
                         Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Normal));
                         Assert.That(fixture.Hud.PossessionEnergyText, Is.EqualTo("Possession energy  5.0/30s"));
+                        Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one));
                         Assert.That(fixture.Hud.ChargeAffordanceVisible, Is.False);
                         Assert.That(AbilityIcons(fixture.Hud.transform, false, familyPrefix), Is.Empty, "Terminal result hides all direct-control themed icon presentation.");
                         Assert.That(AssertDefenseRealmIdentityPresentation(fixture.Hud, guardian, "DEFENSE COMPLETE").gameObject, Is.SameAs(trackedRealmMark), "Terminal state must preserve the canonical realm title mark.");
@@ -231,6 +250,7 @@ namespace RealmRaiders.Tests
                     foreach (var icon in trackedAbilityIcons) Assert.That(icon == null, Is.True, "HUD teardown must destroy themed ability icon children.");
                     Assert.That(trackedChargeAffordance == null, Is.True, "HUD teardown must destroy the Charge affordance root.");
                     Assert.That(trackedRealmMark == null, Is.True, "HUD teardown must destroy the realm identity mark with its canonical title.");
+                    Assert.That(trackedEnergyMeter == null, Is.True, "HUD teardown must destroy the reused energy meter with no orphan presentation.");
                 }
             }
             finally
@@ -239,6 +259,113 @@ namespace RealmRaiders.Tests
                 if (hadGuide) PlayerPrefs.SetString(FirstPlayableMinute.KeyForTests, previousGuide); else PlayerPrefs.DeleteKey(FirstPlayableMinute.KeyForTests);
                 PrototypeSave.SetControlStyle(previousControlStyle);
                 PlayerPrefs.Save();
+                GameplayInput.ResetForTests();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator PossessionEnergyReadability_PulsesOnlyOnUrgencyTransitionsAndRestoresEveryReturn()
+        {
+            GameplayInput.ResetForTests();
+            var fixture = EnergyHudFixture.Create(DefenseHudConfig.Infernal);
+            try
+            {
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                fixture.Energy.Consume(25);
+                Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Warning));
+                yield return new WaitForSecondsRealtime(.06f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale.x, Is.GreaterThan(1.02f), "Entering Warning starts one bounded pulse.");
+
+                fixture.Energy.Consume(.1f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale.x, Is.GreaterThan(1.02f), "Same-level tenth and fill updates cannot restart the Warning pulse.");
+                yield return new WaitForSecondsRealtime(PossessionEnergyReadability.UrgencyPulseDuration - .06f + .01f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "The original Warning deadline must end the pulse before a same-level refresh could have ended a restarted pulse.");
+
+                fixture.Energy.Consume(3);
+                Assert.That(fixture.Hud.PossessionEnergyLevel, Is.EqualTo(PossessionEnergyReadabilityLevel.Critical));
+                yield return new WaitForSecondsRealtime(.06f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale.x, Is.GreaterThan(1.02f), "Entering Critical starts one new bounded pulse.");
+                yield return new WaitForSecondsRealtime(.20f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "The 0.24 second pulse ends at exact identity scale.");
+
+                fixture.Possession.Release();
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one));
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                yield return new WaitForSecondsRealtime(.06f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale.x, Is.GreaterThan(1.02f), "Low-energy re-possession receives one fresh, not delayed, Critical pulse.");
+
+                fixture.Defender.SetController(fixture.Defender.Controller<CreatureBrain>());
+                fixture.Hud.SendMessage("RefreshPossessionEnergy", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "Controller loss clears the meter immediately.");
+                fixture.Defender.SetController(fixture.Defender.Controller<PlayerController>());
+                fixture.Hud.SendMessage("RefreshPossessionEnergy", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "Ordinary PlayerController restoration is not a new possession or urgency transition.");
+                fixture.Energy.Consume(5);
+                fixture.Possession.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Possession.Possessed, Is.Null, "Depletion forces the existing return flow.");
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one));
+
+                fixture.Energy.Refill();
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                fixture.Energy.Consume(25);
+                yield return new WaitForSecondsRealtime(.06f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale.x, Is.GreaterThan(1.02f));
+                fixture.Invader.Health.TakeDamage(new DamageInfo(1000, null, fixture.Invader.transform.position), 0);
+                Assert.That(fixture.Defense.State, Is.EqualTo(DefenseState.DefenderVictory));
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "Terminal result clears a live urgency pulse.");
+            }
+            finally
+            {
+                fixture.Destroy();
+                GameplayInput.ResetForTests();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator PossessionEnergyReadability_DeathAndComponentDisableImmediatelyRestoreMeterScale()
+        {
+            GameplayInput.ResetForTests();
+            var fixture = EnergyHudFixture.Create(DefenseHudConfig.Sylvan);
+            try
+            {
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                fixture.Energy.Consume(25);
+                yield return new WaitForSecondsRealtime(.06f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale.x, Is.GreaterThan(1.02f));
+
+                fixture.HudObject.SetActive(false);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "Disabling the HUD cannot preserve a partial pulse scale.");
+                fixture.HudObject.SetActive(true);
+                yield return null;
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "An ordinary refresh after re-enable cannot replay a stale pulse.");
+
+                fixture.Energy.Refill();
+                fixture.Energy.Consume(25);
+                yield return new WaitForSecondsRealtime(.06f);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale.x, Is.GreaterThan(1.02f));
+                fixture.Defender.Health.TakeDamage(new DamageInfo(1000, null, fixture.Defender.transform.position), 0);
+                yield return null;
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Possession.Possessed, Is.Null);
+                Assert.That(fixture.Hud.PossessionEnergyMeterScale, Is.EqualTo(Vector3.one), "A possessed defender death immediately clears pulse presentation.");
+            }
+            finally
+            {
+                fixture.Destroy();
                 GameplayInput.ResetForTests();
             }
         }

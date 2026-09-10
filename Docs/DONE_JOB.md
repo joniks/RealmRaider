@@ -2579,3 +2579,36 @@ Completed on 2026-09-10.
 - Double/wall/charged/air jump, hold-to-bunny-hop, buffer refresh, physics/coyote
   tuning, AI jump, action/dodge buffering, animation/VFX/audio/haptics, camera/UI
   changes and physical-device performance validation.
+
+## Diamond Pass 15.0 — Possession Energy Urgency Pulse
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- The existing possession-energy meter now gives one smooth 0.24-second
+  horizontal pulse between exact 1.00 and 1.06 scale on factual Warning entry and
+  one new pulse on Critical entry.
+- Timer tenths and fill updates within one urgency level never restart the pulse;
+  explicit low-energy possession may pulse once, while ordinary controller restore
+  or component re-enable cannot synthesize a new alert.
+- Release, controller loss, forced depletion, death, terminal/result, disable,
+  destroy and initialization restore exact identity scale and clear history.
+- Existing text, thresholds, colour, fill, anchors, offsets, size, raycast/input,
+  possession timing and gameplay authority remain unchanged for both realms.
+
+### Verification
+
+- Architect closed an exact float-duration boundary and separated true possession
+  entry from ordinary controller restoration; strict same-level nonrestart and
+  lifecycle assertions remain intact; `git diff --check` is clean.
+- QA final gates passed EditMode `180/180` and PlayMode `87/87`, both with zero
+  failed/skipped/inconclusive tests; Editor log tail showed no error/exception.
+- Manual Sylvan/Infernal Warning-to-Critical readability is not claimed because
+  QA could not safely operate the Game view.
+
+### Scope intentionally deferred
+
+- Energy balance/thresholds/duration/release behavior, repeating alerts, camera,
+  controls, audio/haptics/gameplay VFX/new art, general HUD redesign, navigation,
+  progression and physical-device performance validation.

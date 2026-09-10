@@ -61,6 +61,7 @@ namespace RealmRaiders.UI
     {
         Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel, jumpLabel;
         Image energyFill;
+        RectTransform energyMeter;
         Button possess, release, smash, slam, activateTrap, dodge, jump, retry, nextAction, realmHub;
         RectTransform chargeAffordance;
         Text chargeAffordanceLabel;
@@ -89,6 +90,10 @@ namespace RealmRaiders.UI
         int displayedDodgeCooldownTenths = -1;
         PossessionEnergyReadabilityState displayedEnergy;
         bool hasDisplayedEnergy;
+        bool hasDirectEnergyState;
+        PossessionEnergyReadabilityLevel directEnergyLevel;
+        float energyPulseStartedAt = float.NegativeInfinity;
+        bool possessionEntryPulseArmed;
         int journeyToken;
         bool journeyHandoff;
         bool journeyCompletedForResult;
@@ -121,6 +126,8 @@ namespace RealmRaiders.UI
         public string PossessionEnergyText => energyText ? energyText.text : string.Empty;
         public PossessionEnergyReadabilityLevel PossessionEnergyLevel => hasDisplayedEnergy ? displayedEnergy.Level : PossessionEnergyReadabilityLevel.Normal;
         public float PossessionEnergyFill => energyFill ? energyFill.rectTransform.anchorMax.x : 0;
+        public RectTransform PossessionEnergyMeterRect => energyMeter;
+        public Vector3 PossessionEnergyMeterScale => energyMeter ? energyMeter.localScale : Vector3.one;
         public string ResultPrimaryActionText => nextAction ? nextAction.GetComponentInChildren<Text>().text : string.Empty;
         public bool JourneyCompletedForResult => journeyCompletedForResult;
         public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
@@ -133,6 +140,8 @@ namespace RealmRaiders.UI
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig, DefenseDeploymentReceiptData deployment = null)
         {
+            ClearEnergyPulse();
+            hasDisplayedEnergy = false;
             if (hudConfig.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && PrototypeJourney.Stage == PrototypeJourneyStage.Defense) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             defense = defenseManager; possessionManager = manager; energy = possessionEnergy; invader = raidInvader; ent = defender; trap = rootTrap; config = hudConfig; guardianEntGrowth = defender ? defender.GetComponent<GuardianEntGrowthPresentation>() : null;
@@ -163,7 +172,7 @@ namespace RealmRaiders.UI
             presentation.DecorateRealmLabel(state, ConfiguredRealmIdentity);
             state.name = "Defense State";
             invaderHealth = Label("", new Vector2(35, -105), 27, TextAnchor.UpperLeft); invaderHealth.name = "Invader Health"; entHealth = Label("", new Vector2(35, -145), 27, TextAnchor.UpperLeft); ConstrainDefenderHealthLabel(); guardianEntVitality = GuardianEntVitalityLabel(); energyText = Label("", new Vector2(35, -185), 27, TextAnchor.UpperLeft); energyText.name = "Possession Energy";
-            var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); var meterRect = (RectTransform)meter.transform; meterRect.anchorMin = meterRect.anchorMax = new Vector2(0, 1); meterRect.pivot = new Vector2(0, 1); meterRect.anchoredPosition = new Vector2(35, -225); meterRect.sizeDelta = new Vector2(300, 18); meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
+            var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); energyMeter = (RectTransform)meter.transform; energyMeter.anchorMin = energyMeter.anchorMax = new Vector2(0, 1); energyMeter.pivot = new Vector2(0, 1); energyMeter.anchoredPosition = new Vector2(35, -225); energyMeter.sizeDelta = new Vector2(300, 18); energyMeter.localScale = Vector3.one; meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
             coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); routeStatus = Label("", new Vector2(0, -445), 24, TextAnchor.UpperCenter); routeStatus.name = "Invader Route Status"; routeStatus.raycastTarget = false; routeStatus.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true); trapText.raycastTarget = false;
             coreText.name = "Core Danger"; selection.name = "Defense Selection"; trapText.name = "Trap Status";
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
@@ -362,10 +371,10 @@ namespace RealmRaiders.UI
         }
         void OnPossession(CombatEntity value)
         {
-            if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
+            if (IsTerminalResultActive) { ClearEnergyPulse(); HideAndDisableLiveActions(); return; }
             bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active); jump.gameObject.SetActive(active);
-            if (active) { openingCueDismissed = true; SetOpeningCueVisible(false); SetDeploymentReceiptVisible(false); }
-            if (!active) possess.gameObject.SetActive(false);
+            if (active) { ArmPossessionEntryPulse(); openingCueDismissed = true; SetOpeningCueVisible(false); SetDeploymentReceiptVisible(false); }
+            if (!active) { possess.gameObject.SetActive(false); ClearEnergyPulse(); }
             selection.text = active ? ControlledSelectionCopy() : $"Tap the {config.DefenderName} to select it";
             RefreshJumpButton();
             RefreshPossessionEnergy();
@@ -373,7 +382,8 @@ namespace RealmRaiders.UI
         }
         void OnReleased(bool forced)
         {
-            if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
+            if (IsTerminalResultActive) { ClearEnergyPulse(); HideAndDisableLiveActions(); return; }
+            ClearEnergyPulse();
             RefreshPossessionEnergy(); RefreshJumpButton(); RefreshChargeAffordance();
         }
 
@@ -388,6 +398,7 @@ namespace RealmRaiders.UI
 
         void OnDestroy()
         {
+            ClearEnergyPulse();
             SetDeploymentReceiptVisible(false);
             firstMinuteGuide?.Shutdown();
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
@@ -397,6 +408,7 @@ namespace RealmRaiders.UI
         }
         void OnDisable()
         {
+            ClearEnergyPulse();
             SetDeploymentReceiptVisible(false);
             if (chargeAffordance) chargeAffordance.gameObject.SetActive(false);
         }
@@ -410,6 +422,7 @@ namespace RealmRaiders.UI
         void OnDefenseState(DefenseState value)
         {
             var terminal = value is DefenseState.DefenderVictory or DefenseState.RealmLost;
+            if (terminal) ClearEnergyPulse();
             GameplayInput.SetTerminalState(terminal);
             controlStyleSelector?.RefreshNow();
             RefreshDodgeButton();
@@ -522,6 +535,7 @@ namespace RealmRaiders.UI
 
             var fillRect = energyFill.rectTransform;
             if (!Mathf.Approximately(fillRect.anchorMax.x, next.NormalizedRemaining)) fillRect.anchorMax = new Vector2(next.NormalizedRemaining, 1);
+            RefreshEnergyPulse(direct, next.Level);
             if (hasDisplayedEnergy && displayedEnergy.HasSameSemanticValue(next)) return;
 
             energyText.text = next.Copy;
@@ -533,6 +547,49 @@ namespace RealmRaiders.UI
             };
             displayedEnergy = next;
             hasDisplayedEnergy = true;
+        }
+
+        void RefreshEnergyPulse(bool direct, PossessionEnergyReadabilityLevel level)
+        {
+            if (!direct)
+            {
+                ClearEnergyPulse();
+                return;
+            }
+
+            if (!hasDirectEnergyState)
+            {
+                hasDirectEnergyState = true;
+                directEnergyLevel = level;
+                if (possessionEntryPulseArmed && (level is PossessionEnergyReadabilityLevel.Warning or PossessionEnergyReadabilityLevel.Critical))
+                    energyPulseStartedAt = Time.unscaledTime;
+                possessionEntryPulseArmed = false;
+            }
+            else if (level != directEnergyLevel)
+            {
+                directEnergyLevel = level;
+                energyPulseStartedAt = level is PossessionEnergyReadabilityLevel.Warning or PossessionEnergyReadabilityLevel.Critical
+                    ? Time.unscaledTime
+                    : float.NegativeInfinity;
+            }
+
+            if (!energyMeter) return;
+            energyMeter.localScale = new Vector3(PossessionEnergyReadability.UrgencyPulseScaleAt(energyPulseStartedAt, Time.unscaledTime), 1, 1);
+        }
+
+        void ArmPossessionEntryPulse()
+        {
+            ClearEnergyPulse();
+            possessionEntryPulseArmed = true;
+        }
+
+        void ClearEnergyPulse()
+        {
+            if (energyMeter) energyMeter.localScale = Vector3.one;
+            hasDirectEnergyState = false;
+            directEnergyLevel = PossessionEnergyReadabilityLevel.Normal;
+            energyPulseStartedAt = float.NegativeInfinity;
+            possessionEntryPulseArmed = false;
         }
 
         void RefreshAbilityButtons()

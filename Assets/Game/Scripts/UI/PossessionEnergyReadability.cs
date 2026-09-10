@@ -50,6 +50,9 @@ namespace RealmRaiders.UI
 
     public static class PossessionEnergyReadability
     {
+        public static float UrgencyPulseDuration => .24f;
+        public static float UrgencyPulseMaximumScale => 1.06f;
+
         public static PossessionEnergyReadabilityState Map(bool isPossessing, float remaining, float maximum)
         {
             maximum = IsFinite(maximum) && maximum > 0 ? maximum : 0;
@@ -63,6 +66,20 @@ namespace RealmRaiders.UI
             var displayedTenths = (int)Math.Round(remaining * 10d, MidpointRounding.AwayFromZero);
             var normalized = maximum > 0 ? remaining / maximum : 0;
             return new PossessionEnergyReadabilityState(level, displayedTenths, maximum, normalized);
+        }
+
+        /// <summary>Pure unscaled presentation sample for one bounded urgency pulse.</summary>
+        public static float UrgencyPulseScaleAt(float startedAt, float currentTime)
+        {
+            if (!IsFinite(startedAt) || !IsFinite(currentTime)) return 1;
+            if (currentTime < startedAt) return 1;
+            var endAt = startedAt + UrgencyPulseDuration;
+            if (currentTime >= endAt) return 1;
+            var elapsed = currentTime - startedAt;
+            var phase = elapsed / UrgencyPulseDuration;
+            var amount = (float)Math.Sin(Math.PI * phase);
+            var clamped = Math.Max(0d, Math.Min(1d, amount));
+            return (float)(1 + (UrgencyPulseMaximumScale - 1) * clamped);
         }
 
         static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);

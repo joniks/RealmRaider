@@ -339,15 +339,29 @@ without a restart, QA's final native gates passed EditMode `179/179` and PlayMod
 no error/exception entries. Manual pre-landing behavior is not claimed because
 the Game view was not safely operable through QA automation.
 
-## Now — Diamond Pass 15.0: Possession Energy Urgency Pulse
+## Accepted — Diamond Pass 15.0: Possession Energy Urgency Pulse
 
 Make the existing warning and critical possession-energy states harder to miss on
 a phone through one bounded, noninteractive pulse on the existing energy meter.
 Preserve current text, colour, timer, release authority, responsive layout and
 all gameplay timing; do not add a Canvas, object, sound or repeated alarm.
 
-## Ready after 15.0
+Acceptance: after one exact float-boundary correction and one explicit
+possession-entry lifecycle correction, QA's final native gates passed EditMode
+`180/180` and PlayMode `87/87`, both with zero failed/skipped/inconclusive tests.
+Editor log tail showed no error/exception entries. Manual Sylvan/Infernal pulse
+readability is not claimed because Game view was not safely operable.
 
-Use QA's factual threshold/lifecycle result to accept or return one bounded
-presentation correction. Then select a separate combat-contact or realm-identity
-slice from a concrete manual/device observation rather than speculative systems.
+## Now — Diamond Pass 15.1: Infernal Seam-Hardened Path Surface
+
+Replace only the legacy MWS03 Infernal route albedo binding with the accepted
+original-generated, seam-hardened MWS07 basalt candidate. Preserve all geometry,
+collision, materials/fallback authority, Sylvan binding and gameplay. Import as a
+reversible preview with exact provenance and mobile Repeat settings.
+
+## Ready after 15.1
+
+Use QA's factual Infernal/Sylvan rendering and periodicity observation to accept
+or return one bounded material/import correction. The MWS07 Infernal bright-junction
+period remains an explicit device caveat; do not hide it with gameplay or shader
+changes in this gate.

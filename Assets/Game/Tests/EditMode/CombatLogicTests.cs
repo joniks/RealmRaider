@@ -180,6 +180,22 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void PossessionEnergyReadability_UrgencyPulseIsBoundedDeterministicAndRejectsInvalidTime()
+        {
+            const float startedAt = 10;
+            Assert.That(PossessionEnergyReadability.UrgencyPulseDuration, Is.EqualTo(.24f));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseMaximumScale, Is.EqualTo(1.06f));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(startedAt, startedAt), Is.EqualTo(1));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(startedAt, startedAt + .06f), Is.GreaterThan(1).And.LessThan(1.06f));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(startedAt, startedAt + .12f), Is.EqualTo(1.06f).Within(.0001f));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(startedAt, startedAt + .18f), Is.GreaterThan(1).And.LessThan(1.06f));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(startedAt, startedAt + .24f), Is.EqualTo(1));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(startedAt, startedAt - .01f), Is.EqualTo(1));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(float.NaN, startedAt), Is.EqualTo(1));
+            Assert.That(PossessionEnergyReadability.UrgencyPulseScaleAt(startedAt, float.PositiveInfinity), Is.EqualTo(1));
+        }
+
+        [Test]
         public void PossessionEnergyReadability_IsCultureStableAndOwnsNoRuntimeAuthority()
         {
             var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
