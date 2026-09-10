@@ -2298,3 +2298,30 @@ Completed on 2026-09-10.
 
 - General objective/quest/target markers, camera focus, input changes, tutorial
   expansion, device final polish and gameplay content.
+
+## Diamond Pass 14.0 — Explain Premature Explicit Release
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Records only a real, unforced player RELEASE request made too early in the
+  active first-minute possession proof.
+- After factual Keeper return, Select shows `RELEASED EARLY — SELECT THE ENT TO
+  TRY AGAIN`; reselect clears it and the existing Ent marker remains reusable.
+- Forced release, energy depletion, death, terminal state, controller loss,
+  correct release, skip, shutdown and teardown never retain player-blaming copy.
+
+### Verification
+
+- Architect confirmed explicit-intent provenance, delayed factual copy timing,
+  forced-path exclusion, clearing lifecycle and unchanged release authority.
+- QA native gates passed EditMode `174/174` and PlayMode `82/82`, both with zero
+  failed/skipped/inconclusive tests; Console was 0 logs/warnings/errors.
+- Manual copy flow is not claimed because the first Game-view click failed
+  externally with `windowNotFoundAtPosition`; no runtime failure was observed.
+
+### Scope intentionally deferred
+
+- Disabling RELEASE, general onboarding/notifications, persistence, camera/input,
+  gameplay changes, content expansion and device final polish.

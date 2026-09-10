@@ -96,6 +96,7 @@ namespace RealmRaiders.Tests
                 Assert.That(first.Guide.Step, Is.EqualTo(DefenseGuideStep.Retry));
                 Assert.That(first.Guide.GuideText, Is.EqualTo("TRY THE CONTROL LOOP — DEFEND AGAIN"));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Active));
+                Assert.That(first.Guide.GuideText, Does.Not.Contain("RELEASED EARLY"), "A terminal manager callback cannot blame the player.");
                 AssertPossessableMarkerHidden(first.Guide);
                 AssertTerminalGameplayActionsHidden(first.Hud);
                 yield return ExerciseTerminalCallbacksWithoutReactivation(first);
@@ -114,19 +115,43 @@ namespace RealmRaiders.Tests
                 retry.Possession.Release(true); yield return null;
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Select), "Forced release restarts selection and never satisfies explicit Release.");
                 yield return new WaitForSecondsRealtime(.8f); yield return null; retry.Guide.RefreshForTests();
+                Assert.That(retry.Guide.GuideText, Is.EqualTo("SELECT — TAP THE ENT"), "A forced release must retain neutral Select guidance.");
                 Assert.That(AssertPossessableMarkerVisible(retry.Guide), Is.SameAs(retryMarker), "Forced Keeper return must reuse the existing guide marker.");
 
                 retry.Possession.Select(retry.Defender); GameObject.Find("POSSESS ENT").GetComponent<Button>().onClick.Invoke(); yield return null;
                 AssertPossessableMarkerHidden(retry.Guide);
+                Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Move));
+                GameObject.Find("RELEASE").GetComponent<Button>().onClick.Invoke(); yield return null;
+                Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Select), "A premature explicit release preserves the factual proof restart.");
+                Assert.That(retry.Guide.GuideText, Is.Not.EqualTo(FirstPlayableMinuteDefenseGuide.PrematureReleaseCopy), "The explanation waits for factual Keeper return.");
+                AssertPossessableMarkerHidden(retry.Guide);
+                yield return new WaitForSecondsRealtime(.8f); yield return null; retry.Guide.RefreshForTests();
+                retry.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; retry.Guide.RefreshForTests();
+                Assert.That(retry.Guide.GuideText, Is.EqualTo(FirstPlayableMinuteDefenseGuide.PrematureReleaseCopy));
+                Assert.That(AssertPossessableMarkerVisible(retry.Guide), Is.SameAs(retryMarker));
+                AssertGuideLayoutClear(retry.Guide);
+                retry.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; retry.Guide.RefreshForTests();
+                Assert.That(retry.Guide.GuideText, Is.EqualTo(FirstPlayableMinuteDefenseGuide.PrematureReleaseCopy), "Orientation cannot discard the factual explanation.");
+                Assert.That(AssertPossessableMarkerVisible(retry.Guide), Is.SameAs(retryMarker));
+                AssertGuideLayoutClear(retry.Guide);
+
+                retry.Possession.Select(retry.Defender);
+                Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Possess));
+                Assert.That(retry.Guide.GuideText, Is.EqualTo("TAKE CONTROL — TAP POSSESS ENT"), "Reselect immediately clears the early-release reason.");
+                GameObject.Find("POSSESS ENT").GetComponent<Button>().onClick.Invoke(); yield return null;
                 retry.Defender.SetController(retry.Defender.Controller<CreatureBrain>()); yield return null;
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Inactive));
                 retry.Possession.Release(true); yield return null;
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Select), "A later factual manager release permits a fresh attempt without proving Release.");
+                Assert.That(retry.Guide.GuideText, Is.Not.EqualTo(FirstPlayableMinuteDefenseGuide.PrematureReleaseCopy), "Controller loss and manager release cannot blame the player.");
+                yield return new WaitForSecondsRealtime(.8f); yield return null; retry.Guide.RefreshForTests();
+                Assert.That(retry.Guide.GuideText, Is.EqualTo("SELECT — TAP THE ENT"));
 
                 retry.Possession.Select(retry.Defender); GameObject.Find("POSSESS ENT").GetComponent<Button>().onClick.Invoke(); yield return null;
                 retry.Hud.DepletePossessionEnergyForTests(); yield return null;
                 Assert.That(retry.Possession.Possessed, Is.Null);
                 Assert.That(retry.Guide.Step, Is.EqualTo(DefenseGuideStep.Inactive), "Energy depletion cannot prove Release or advertise an impossible retry.");
+                Assert.That(retry.Guide.GuideText, Does.Not.Contain("RELEASED EARLY"), "Energy depletion cannot blame the player.");
 
                 var skip = GameObject.Find("SKIP GUIDE").GetComponent<Button>(); AssertOwnedGesture(skip, 2301); skip.onClick.Invoke();
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Skipped));
@@ -142,6 +167,7 @@ namespace RealmRaiders.Tests
                 AssertPossessableMarkerVisible(death.Guide);
                 death.Defender.Health.TakeDamage(new DamageInfo(1000, null, death.Defender.transform.position), 0); yield return null;
                 AssertPossessableMarkerHidden(death.Guide);
+                Assert.That(death.Guide.GuideText, Does.Not.Contain("RELEASED EARLY"), "Defender death cannot blame the player.");
                 SceneManager.LoadScene("PrototypeHub"); yield return null;
                 Assert.That(CountSceneObjectsNamed(FirstPlayableMinuteDefenseGuide.PossessableMarkerObjectName), Is.Zero, "Scene teardown must leave no guide marker orphan.");
             }
@@ -352,6 +378,7 @@ namespace RealmRaiders.Tests
 
             GameObject.Find("RELEASE").GetComponent<Button>().onClick.Invoke();
             Assert.That(scene.Possession.Possessed, Is.Null); Assert.That(scene.Guide.Step, Is.EqualTo(DefenseGuideStep.KeeperReturn));
+            Assert.That(scene.Guide.GuideText, Does.Not.Contain("RELEASED EARLY"), "The correctly ordered explicit release cannot show a warning.");
             yield return new WaitForSecondsRealtime(.8f); yield return null;
             Assert.That(scene.Guide.Step, Is.EqualTo(DefenseGuideStep.Result));
             Assert.That(scene.Guide.GuideText, Is.EqualTo("KEEPER VIEW — WATCH THE RESULT"));

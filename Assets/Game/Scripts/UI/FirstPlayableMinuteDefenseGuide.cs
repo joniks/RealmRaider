@@ -17,6 +17,7 @@ namespace RealmRaiders.UI
         const float RequiredMovement = .6f;
         public const string PossessableMarkerObjectName = "First Minute Possessable Ent Marker";
         public const string PossessableMarkerCopy = "▼  POSSESSABLE ENT";
+        public const string PrematureReleaseCopy = "RELEASED EARLY — SELECT THE ENT TO TRY AGAIN";
         static readonly Vector2 PossessableMarkerSize = new(300, 52);
 
         ResponsiveHudRoot responsive;
@@ -49,7 +50,9 @@ namespace RealmRaiders.UI
         RectTransform displayedTarget;
         bool selectionSuppressed;
         bool selectionWasActive;
+        bool explicitReleaseRequested;
         bool explicitReleasePending;
+        bool prematureReleaseExplanation;
         bool moveStartCaptured;
         bool resultGuideApplied;
         bool guideActionsActive = true;
@@ -142,7 +145,12 @@ namespace RealmRaiders.UI
 
         public void BeginExplicitRelease(CombatEntity actor)
         {
-            explicitReleasePending = !shutdown && proof.Step == DefenseGuideStep.Release && actor == defender && possession.Possessed == defender;
+            explicitReleaseRequested = false;
+            explicitReleasePending = false;
+            if (shutdown || proof == null || proof.TerminalOutcome != DefenseGuideTerminalOutcome.None || actor != defender
+                || possession.Possessed != defender || defender.Health == null || defender.Health.IsDead) return;
+            explicitReleaseRequested = proof.Step is DefenseGuideStep.Move or DefenseGuideStep.Attack or DefenseGuideStep.Dodge or DefenseGuideStep.Release;
+            explicitReleasePending = explicitReleaseRequested && proof.Step == DefenseGuideStep.Release;
         }
 
         public void PrepareRetry()
@@ -199,7 +207,7 @@ namespace RealmRaiders.UI
                 if (proof.TryPossess()) OnStepChanged();
                 return;
             }
-            if (explicitReleasePending) return;
+            if (explicitReleaseRequested) return;
             UnbindPlayer();
             if (proof.Interrupt(CanAttemptAgain())) OnStepChanged();
         }
@@ -207,14 +215,23 @@ namespace RealmRaiders.UI
         void OnReleased(bool forced)
         {
             if (shutdown || proof.TerminalOutcome != DefenseGuideTerminalOutcome.None) return;
-            var accepted = explicitReleasePending && !forced && proof.Step == DefenseGuideStep.Release;
+            var requested = explicitReleaseRequested;
+            var accepted = requested && explicitReleasePending && !forced && proof.Step == DefenseGuideStep.Release;
+            var prematureStep = proof.Step is DefenseGuideStep.Move or DefenseGuideStep.Attack or DefenseGuideStep.Dodge;
+            var explainPrematureRelease = requested && !explicitReleasePending && !forced && prematureStep;
+            explicitReleaseRequested = false;
             explicitReleasePending = false;
             UnbindPlayer();
             if (accepted)
             {
                 if (proof.TryRelease()) OnStepChanged();
             }
-            else if (proof.Interrupt(CanAttemptAgain())) OnStepChanged();
+            else
+            {
+                var canRetry = CanAttemptAgain();
+                if (proof.Interrupt(canRetry)) OnStepChanged(explainPrematureRelease && canRetry);
+                else prematureReleaseExplanation = false;
+            }
         }
 
         void OnLocomotionAccepted(PlayerController source, Vector3 displacement)
@@ -228,7 +245,9 @@ namespace RealmRaiders.UI
         void OnDefenderDied()
         {
             HidePossessableMarker();
+            explicitReleaseRequested = false;
             explicitReleasePending = false;
+            prematureReleaseExplanation = false;
             UnbindPlayer();
             if (!shutdown && proof.TerminalOutcome == DefenseGuideTerminalOutcome.None && proof.Interrupt(false)) OnStepChanged();
         }
@@ -237,7 +256,9 @@ namespace RealmRaiders.UI
         {
             if (shutdown || state is not (DefenseState.DefenderVictory or DefenseState.RealmLost)) return;
             HidePossessableMarker();
+            explicitReleaseRequested = false;
             explicitReleasePending = false;
+            prematureReleaseExplanation = false;
             UnbindPlayer();
             if (proof.Step == DefenseGuideStep.KeeperReturn && KeeperReturnReady()) proof.TryKeeperReturn();
             var outcome = proof.ReachTerminal();
@@ -266,11 +287,13 @@ namespace RealmRaiders.UI
         bool PossessionCameraSettled() => cameraRig && !cameraRig.IsTransitioning && cameraRig.Mode == CameraMode.PossessedCreature && possession.Possessed == defender;
         bool KeeperReturnReady() => cameraRig && !cameraRig.IsTransitioning && cameraRig.Mode == CameraMode.KeeperOverview && !possession.IsPossessing && defender && defender.Health != null && !defender.Health.IsDead && defender.gameObject.scene.IsValid() && defender.gameObject.scene.isLoaded;
 
-        void OnStepChanged()
+        void OnStepChanged(bool explainPrematureRelease = false)
         {
+            prematureReleaseExplanation = explainPrematureRelease;
             dismissedGroup = null;
             moveStartCaptured = false;
             acceptedMovement = Vector3.zero;
+            explicitReleaseRequested = false;
             explicitReleasePending = false;
             ApplyLayout(responsive.Orientation);
             RefreshPresentation(true);
@@ -318,7 +341,9 @@ namespace RealmRaiders.UI
             switch (proof.Step)
             {
                 case DefenseGuideStep.Select:
-                    copy = CanAttemptAgain() ? "SELECT — TAP THE ENT" : string.Empty;
+                    copy = !CanAttemptAgain() ? string.Empty
+                        : prematureReleaseExplanation ? KeeperReturnReady() ? PrematureReleaseCopy : string.Empty
+                        : "SELECT — TAP THE ENT";
                     break;
                 case DefenseGuideStep.Possess:
                     copy = possession.Selected == defender && CanAttemptAgain() ? "TAKE CONTROL — TAP POSSESS ENT" : string.Empty;
@@ -597,6 +622,9 @@ namespace RealmRaiders.UI
             if (line) line.gameObject.SetActive(false);
             if (emphasis) emphasis.gameObject.SetActive(false);
             HidePossessableMarker();
+            explicitReleaseRequested = false;
+            explicitReleasePending = false;
+            prematureReleaseExplanation = false;
             RestoreSelection();
             RestoreResultLane();
             displayedTarget = null;

@@ -197,7 +197,7 @@ both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
 marker readability remains unobserved because the first Game-view click failed
 externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-## Now — Diamond Pass 14.0: Explain Premature Explicit Release
+## Accepted — Diamond Pass 14.0: Explain Premature Explicit Release
 
 Owner: Core developer. Base: Architect's accepted 13.9 commit. Full lease:
 `Docs/NEXT_JOB.md`.
@@ -208,8 +208,14 @@ Release step, preserve the existing factual return to Select but explain it once
 release, energy depletion, death, terminal state or controller loss; clear the
 reason on reselect/progress/accepted release/skip/teardown.
 
-## Ready after 14.0
+Acceptance: QA's native gates passed EditMode `174/174` and PlayMode `82/82`,
+both with zero failed/skipped/inconclusive tests; Console was `0/0/0`. Manual
+possess/release/Keeper copy remains unobserved because the first Game-view click
+failed externally with `windowNotFoundAtPosition`; no runtime failure was recorded.
 
-Use QA's observation to accept or make one bounded copy/lifecycle correction.
-Then select the next smallest break in the canonical playable loop; do not expand
-this into a general notification or tutorial framework.
+## Selecting Diamond Pass 14.1
+
+Select the next smallest player-visible break in the canonical playable loop.
+Core prepares the exact authoritative seam read-only; Architect names the lease
+before source changes. Do not expand 14.0 into a general notification/tutorial
+framework.
