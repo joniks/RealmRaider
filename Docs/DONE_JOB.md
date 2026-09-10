@@ -2612,3 +2612,37 @@ Completed on 2026-09-10.
 - Energy balance/thresholds/duration/release behavior, repeating alerts, camera,
   controls, audio/haptics/gameplay VFX/new art, general HUD redesign, navigation,
   progression and physical-device performance validation.
+
+## Diamond Pass 15.1 — Infernal Seam-Hardened Path Surface
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Copied only the accepted original-generated MWS07 Infernal basalt RGB candidate
+  from Modules commit `6138f71`; source and destination share exact SHA-256
+  `c8df59807a4fe21c9a5cc27ce3f776f43f1be1a689aab0366c27fd245606da88`.
+- Added unique Unity metadata and local preview provenance with the explicit
+  bright-ember 1024-pixel device-periodicity caveat and no third-party source.
+- Infernal routes now bind the MWS07 resource with Repeat, mipmaps, Bilinear,
+  non-readable sRGB and Android 512 ASTC 6×6 import settings.
+- The legacy MWS03 asset remains present but unbound; Sylvan binding, material
+  cache/fallback, route geometry, renderer/collider and gameplay authority are
+  unchanged.
+
+### Verification
+
+- Architect confirmed byte equality, RGB dimensions, unique GUIDs, provenance,
+  exact resource/import mapping, independent Infernal null/throw fallback and
+  unchanged Sylvan/gameplay scope; `git diff --check` is clean.
+- QA Assets Refresh reported no C# or import errors; final gates passed EditMode
+  `182/182` and PlayMode `87/87`, both with zero failed/skipped/inconclusive tests;
+  Editor log tail showed no error/exception.
+- Manual Infernal/Sylvan seam and periodicity observation is not claimed because
+  QA could not safely operate the Game view.
+
+### Scope intentionally deferred
+
+- MWS03 deletion, boundary surfaces, normal/height/roughness/emission, shaders,
+  UV redesign, second-tile/macro variation, geometry/collision/gameplay, lighting,
+  camera/UI, production-art approval and device-performance claims.

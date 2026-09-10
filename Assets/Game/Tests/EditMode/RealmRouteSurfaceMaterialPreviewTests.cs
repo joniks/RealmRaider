@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using NUnit.Framework;
 using RealmRaiders.Core;
 using UnityEditor;
@@ -10,17 +12,20 @@ namespace RealmRaiders.Tests
     public sealed class RealmRouteSurfaceMaterialPreviewTests
     {
         const string SylvanAsset = "Assets/Game/Resources/Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate.png";
-        const string InfernalAsset = "Assets/Game/Resources/Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate.png";
+        const string InfernalAsset = "Assets/Game/Resources/Art/WorldSurfaces/MWS07-InfernalPath/infernal-basalt-path-edge-hardened-candidate.png";
+        const string LegacyInfernalAsset = "Assets/Game/Resources/Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate.png";
         const string SylvanResource = "Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate";
+        const string InfernalResource = "Art/WorldSurfaces/MWS07-InfernalPath/infernal-basalt-path-edge-hardened-candidate";
+        const string InfernalHash = "c8df59807a4fe21c9a5cc27ce3f776f43f1be1a689aab0366c27fd245606da88";
 
         [Test]
         public void ImportedPreviewProviderBindsAndCachesExactAlbedos()
         {
             Assert.That(RealmRoutePresentation.SylvanAlbedoResource, Is.EqualTo(SylvanResource));
-            Assert.That(RealmRoutePresentation.InfernalAlbedoResource,
-                Is.EqualTo("Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate"));
+            Assert.That(RealmRoutePresentation.InfernalAlbedoResource, Is.EqualTo(InfernalResource));
             var sylvanTexture = AssertSylvanPreviewImport();
-            var infernalTexture = AssertLegacyPreviewImport(InfernalAsset, "realmraiders.preview.infernal-ground-material.mws03.v1");
+            var infernalTexture = AssertInfernalPreviewImport();
+            Assert.That(AssetDatabase.LoadAssetAtPath<Texture2D>(LegacyInfernalAsset), Is.Not.Null, "MWS03 remains available as the unbound legacy preview.");
             var roots = new List<GameObject>();
             try
             {
@@ -93,6 +98,43 @@ namespace RealmRaiders.Tests
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void UnavailableInfernalPreviewPreservesExactCachedColorFallback(bool loaderThrows)
+        {
+            var roots = new List<GameObject>();
+            var loadCount = 0;
+            try
+            {
+                RealmRoutePresentation.ConfigureTextureLoaderForTests(path =>
+                {
+                    Assert.That(path, Is.EqualTo(InfernalResource));
+                    loadCount++;
+                    if (loaderThrows) throw new System.InvalidOperationException("Failed preview resource");
+                    return null;
+                });
+
+                var first = CreateRoute(roots);
+                var second = CreateRoute(roots);
+                var firstPresentation = RealmRoutePresentation.BuildDefenseLane(first.transform, RealmRouteStyle.InfernalFractured);
+                var secondPresentation = RealmRoutePresentation.BuildDefenseLane(second.transform, RealmRouteStyle.InfernalFractured);
+
+                Assert.That(loadCount, Is.EqualTo(1));
+                AssertFallback(first.GetComponent<Renderer>().sharedMaterial, new Color(.12f, .045f, .035f));
+                AssertFallback(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial, new Color(.27f, .23f, .2f));
+                Assert.That(second.GetComponent<Renderer>().sharedMaterial, Is.SameAs(first.GetComponent<Renderer>().sharedMaterial));
+                Assert.That(secondPresentation.GetComponentInChildren<Renderer>().sharedMaterial,
+                    Is.SameAs(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial));
+                Assert.That(firstPresentation.GetComponentInChildren<Renderer>().sharedMaterial,
+                    Is.Not.SameAs(first.GetComponent<Renderer>().sharedMaterial));
+            }
+            finally
+            {
+                DestroyRoots(roots);
+                RealmRoutePresentation.ResetTextureLoaderForTests();
+            }
+        }
+
         static Texture2D AssertSylvanPreviewImport()
         {
             AssertImportSettings(SylvanAsset, TextureWrapMode.Repeat);
@@ -116,16 +158,36 @@ namespace RealmRaiders.Tests
             return AssetDatabase.LoadAssetAtPath<Texture2D>(SylvanAsset);
         }
 
-        static Texture2D AssertLegacyPreviewImport(string assetPath, string candidateId)
+        static Texture2D AssertInfernalPreviewImport()
         {
-            AssertImportSettings(assetPath, TextureWrapMode.Clamp);
-            var provenancePath = assetPath.Substring(0, assetPath.LastIndexOf('/') + 1) + "provenance.json";
+            AssertImportSettings(InfernalAsset, TextureWrapMode.Repeat);
+            Assert.That(Sha256(InfernalAsset), Is.EqualTo(InfernalHash));
+            const string provenancePath = "Assets/Game/Resources/Art/WorldSurfaces/MWS07-InfernalPath/provenance.json";
             var provenance = AssetDatabase.LoadAssetAtPath<TextAsset>(provenancePath);
             Assert.That(provenance, Is.Not.Null, provenancePath);
-            Assert.That(provenance.text, Does.Contain(candidateId));
-            Assert.That(provenance.text, Does.Contain("preview-import-candidate-not-approved-for-runtime"));
-            Assert.That(provenance.text, Does.Contain("\"tileabilityVerified\": false"));
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            Assert.That(provenance.text, Does.Contain("realmraiders.preview.infernal-walkable-surface.mws07.v1"));
+            Assert.That(provenance.text, Does.Contain("original generation followed by MWS07 seam-hardening"));
+            Assert.That(provenance.text, Does.Contain("preview-only-not-production-approved"));
+            Assert.That(provenance.text, Does.Contain("\"modulesCommit\": \"6138f71\""));
+            Assert.That(provenance.text, Does.Contain(
+                "Modules/RealmRaider.Modules/ArtPreviews/MWS07-WalkableSurfaceSeamHardening/infernal-basalt-path-edge-hardened-candidate.png"));
+            Assert.That(provenance.text, Does.Contain(InfernalHash));
+            Assert.That(provenance.text, Does.Contain("\"thirdPartySources\": false"));
+            Assert.That(provenance.text, Does.Contain("Bright ember junctions make the 1024-pixel period easier to recognize on device"));
+
+            var folder = InfernalAsset.Substring(0, InfernalAsset.LastIndexOf('/'));
+            var images = AssetDatabase.FindAssets("", new[] { folder })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Where(path => path.EndsWith(".png"))
+                .ToArray();
+            CollectionAssert.AreEqual(new[] { InfernalAsset }, images, "Only the accepted RGB albedo belongs in this resource folder.");
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(InfernalAsset);
+        }
+
+        static string Sha256(string path)
+        {
+            using var hash = SHA256.Create();
+            return string.Concat(hash.ComputeHash(File.ReadAllBytes(path)).Select(value => value.ToString("x2")));
         }
 
         static void AssertImportSettings(string assetPath, TextureWrapMode wrapMode)

@@ -6,7 +6,7 @@ namespace RealmRaiders.Editor
     public sealed class PrototypeWorldSurfacePreviewImport : AssetPostprocessor
     {
         public const string SylvanAssetPath = "Assets/Game/Resources/Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate.png";
-        public const string InfernalAssetPath = "Assets/Game/Resources/Art/WorldSurfaces/MWS03-InfernalGroundMaterialCandidate/infernal-ground-albedo-rgb-candidate.png";
+        public const string InfernalAssetPath = "Assets/Game/Resources/Art/WorldSurfaces/MWS07-InfernalPath/infernal-basalt-path-edge-hardened-candidate.png";
 
         void OnPreprocessTexture()
         {
@@ -17,7 +17,7 @@ namespace RealmRaiders.Editor
             importer.sRGBTexture = true;
             importer.mipmapEnabled = true;
             importer.filterMode = FilterMode.Bilinear;
-            importer.wrapMode = assetPath == SylvanAssetPath ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+            importer.wrapMode = TextureWrapMode.Repeat;
             importer.isReadable = false;
 
             var android = importer.GetPlatformTextureSettings("Android");

@@ -96,7 +96,8 @@ Last reviewed: 2026-09-10
 - Diamond Pass 14.7 Jump Takeoff and Landing Readability is present: a factual direct jump adds one restrained pivot-only takeoff stretch and one grounded landing settle while the gameplay root, CharacterController, camera, timing and control authority remain unchanged.
 - Diamond Pass 14.8 One Falling Jump Buffer is present: exactly one 0.08-second request may be accepted during factual descent of an existing direct-player jump, cannot be refreshed or repeated in that jump, and consumes once only after factual grounding while every lifecycle boundary clears it.
 - Diamond Pass 15.0 Possession Energy Urgency Pulse is present: the existing meter gives one bounded 0.24-second noninteractive pulse on factual Warning and Critical entry, never restarts for timer tenths, and restores exact identity on every possession/controller/terminal/component return path without changing energy authority.
-- Current Unity Test Runner baseline: EditMode `180/180` and PlayMode `87/87` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Diamond Pass 15.1 Infernal Seam-Hardened Path Surface is present: Infernal route and defense-lane presentation now use the accepted original-generated MWS07 repeating basalt albedo with exact provenance/mobile import and cached solid fallback while MWS03 remains available but unbound and Sylvan/gameplay stay unchanged.
+- Current Unity Test Runner baseline: EditMode `182/182` and PlayMode `87/87` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -113,7 +114,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `180/180` and PlayMode `87/87` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `182/182` and PlayMode `87/87` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

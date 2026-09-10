@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.infernal-walkable-surface.mws07.v1",
+  "creation": "original generation followed by MWS07 seam-hardening",
+  "status": "preview-only-not-production-approved",
+  "modulesCommit": "6138f71",
+  "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS07-WalkableSurfaceSeamHardening/infernal-basalt-path-edge-hardened-candidate.png",
+  "sourceSha256": "c8df59807a4fe21c9a5cc27ce3f776f43f1be1a689aab0366c27fd245606da88",
+  "thirdPartySources": false,
+  "asset": {
+    "file": "infernal-basalt-path-edge-hardened-candidate.png",
+    "role": "seam-hardened RGB albedo preview",
+    "dimensions": [1024, 1024],
+    "colorFormat": "RGB"
+  },
+  "remainingCaveat": "Bright ember junctions make the 1024-pixel period easier to recognize on device; this preview does not provide macro variation or a separate emission map.",
+  "nonGoals": ["normal map", "height map", "roughness map", "emission map", "production approval"]
+}

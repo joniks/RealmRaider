@@ -352,16 +352,28 @@ possession-entry lifecycle correction, QA's final native gates passed EditMode
 Editor log tail showed no error/exception entries. Manual Sylvan/Infernal pulse
 readability is not claimed because Game view was not safely operable.
 
-## Now — Diamond Pass 15.1: Infernal Seam-Hardened Path Surface
+## Accepted — Diamond Pass 15.1: Infernal Seam-Hardened Path Surface
 
 Replace only the legacy MWS03 Infernal route albedo binding with the accepted
 original-generated, seam-hardened MWS07 basalt candidate. Preserve all geometry,
 collision, materials/fallback authority, Sylvan binding and gameplay. Import as a
 reversible preview with exact provenance and mobile Repeat settings.
 
-## Ready after 15.1
+Acceptance: QA Assets Refresh imported the new asset without C# or import errors;
+final native gates passed EditMode `182/182` and PlayMode `87/87`, both with zero
+failed/skipped/inconclusive tests. Editor log tail showed no error/exception.
+Manual seam/periodicity and Sylvan regression are not claimed because Game view
+was not safely operable through QA automation.
 
-Use QA's factual Infernal/Sylvan rendering and periodicity observation to accept
-or return one bounded material/import correction. The MWS07 Infernal bright-junction
-period remains an explicit device caveat; do not hide it with gameplay or shader
-changes in this gate.
+## Now — Diamond Pass 15.2: Infernal Boundary Surface Identity
+
+Apply the accepted original-generated, seam-hardened MWS08 forged black-iron and
+obsidian albedo to Infernal arena boundaries only. Preserve the complete boundary
+mesh/collider topology, Sylvan albedo+normal path, solid fallbacks and gameplay;
+record the crimson-network periodicity as an explicit device caveat.
+
+## Ready after 15.2
+
+Use QA's factual Infernal/Sylvan boundary rendering and periodicity observation to
+accept or return one bounded import/material correction. Normal/emission maps,
+shader redesign and macro variation remain separate, evidence-led gates.
