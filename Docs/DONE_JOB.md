@@ -1756,3 +1756,26 @@ Completed on 2026-09-10 and accepted in the Modules submodule.
 ### Scope intentionally deferred
 
 - Package installation, concrete motion profiles/clips, model/rig import, fallback selection, Core adapter/runtime animation authority and Unity integration.
+
+## Diamond Pass 12.9 — Possessed-Defense Invader Awareness
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- `RaidInvaderBrain` now publishes factual current hostile intent through an event-driven active-invader lifecycle without changing target selection, route timing, recovery or attacks.
+- A directly controlled possessed defender can receive the existing bounded camera focus, target plate and left/right edge cue before the first hit when its factual invader is alive and within the existing 14-metre eligibility range.
+- `ATTACKING` urgency is limited to accepted Windup/Impact phases. Retargeting, range exit, invader controller loss/death/destruction, possession release, terminal state, camera transition and teardown clear the presentation.
+- The implementation adds no scene scan, target lock, aim assist, new Canvas or gameplay authority.
+
+### Verification
+
+- Static review and scoped `git diff --check` passed for the three reserved implementation/test paths.
+- The focused test `CombatCameraAwareness_TracksRaidInvaderIntentDuringPossessedDefenseAndCleansUp` passed inside the final suite in `0.230860` seconds.
+- Final Unity GUI Test Runner: EditMode `137/137` and PlayMode `79/79`, both with `0` failures. PlayMode ran 2026-09-10 05:30:33Z–05:31:27Z; EditMode completed at 05:32:42Z.
+- A filtered PlayMode `Run Selected` first stalled in Test Runner staging before entering the test. It was cancelled; after clearing the filter, ordinary `Run All` completed normally. No Mac or Unity restart was required.
+- No manual Game-view or physical-device smoke is claimed for this pass; device noticeability remains user-owned.
+
+### Scope intentionally deferred
+
+- Target lock, aim assist, AI changes, combat tuning, new HUD/camera systems, animation/VFX/audio/haptics and physical-device readability tuning.

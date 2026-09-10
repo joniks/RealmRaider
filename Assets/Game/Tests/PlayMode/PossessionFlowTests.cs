@@ -565,6 +565,142 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator CombatCameraAwareness_TracksRaidInvaderIntentDuringPossessedDefenseAndCleansUp()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
+            var defenderObject = new GameObject("Possessed Defender", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
+            var alternateObject = new GameObject("Alternate Defender", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var invaderObject = new GameObject("Raid Invader", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(RaidInvaderBrain));
+            var managerObject = new GameObject("Possession Manager", typeof(PossessionManager));
+            var hudObject = new GameObject("Possessed Defense HUD", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(ResponsiveHudRoot));
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cube); ground.name = "Possessed Defense Ground";
+            var defenderDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var alternateDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var invaderDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var attack = ScriptableObject.CreateInstance<AbilityDefinition>();
+            try
+            {
+                GameplayInput.ResetForTests();
+                defenderDefinition.DisplayName = "Guardian Ent"; defenderDefinition.Possessable = true; defenderDefinition.Stats = new CombatStats { MaxHealth = 120, MoveSpeed = 3 };
+                alternateDefinition.DisplayName = "Realm Wolf"; alternateDefinition.Stats = new CombatStats { MaxHealth = 80, MoveSpeed = 3 };
+                attack.DisplayName = "Invader Rush"; attack.Kind = AbilityKind.Dash; attack.Damage = 12; attack.Range = 1; attack.Radius = .1f; attack.Windup = .1f; attack.Cooldown = 0; attack.DashDistance = .3f;
+                invaderDefinition.DisplayName = "Blood Knight"; invaderDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 0 }; invaderDefinition.Abilities = new[] { attack };
+
+                defenderObject.transform.position = new Vector3(0, 1, 0);
+                alternateObject.transform.position = new Vector3(40, 1, 0);
+                invaderObject.transform.position = new Vector3(0, 1, 5);
+                ground.transform.position = new Vector3(0, -.25f, 0); ground.transform.localScale = new Vector3(80, .5f, 80);
+                var defender = defenderObject.GetComponent<CombatEntity>(); defender.Initialize(defenderDefinition); defender.SetController(defender.Controller<CreatureBrain>());
+                var alternate = alternateObject.GetComponent<CombatEntity>(); alternate.Initialize(alternateDefinition);
+                var invader = invaderObject.GetComponent<CombatEntity>(); invader.Initialize(invaderDefinition);
+
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapToOverview();
+                var canvas = hudObject.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                var responsive = hudObject.GetComponent<ResponsiveHudRoot>(); responsive.Initialize(false);
+                var awareness = rig.BindCombatHud(responsive);
+                var brain = invaderObject.GetComponent<RaidInvaderBrain>(); brain.Configure(System.Array.Empty<Vector3>(), new[] { defender, alternate }, 0); invader.SetController(brain); brain.Tick();
+                Assert.That(brain.CurrentTarget, Is.SameAs(defender), "The factual invader intent exists before the camera subscribes to a controlled defender.");
+
+                var possession = managerObject.GetComponent<PossessionManager>(); possession.Initialize(rig); possession.Register(defender); possession.Select(defender);
+                Assert.That(possession.PossessSelected(), Is.True);
+                // Possession transition/slow-beat timing is covered elsewhere; this fixture isolates the resulting factual controller/camera state.
+                possession.StopAllCoroutines();
+                rig.StopAllCoroutines();
+                Time.timeScale = 1; Time.fixedDeltaTime = .02f;
+                rig.SnapTo(defender, CameraMode.PossessedCreature);
+                Assert.That(rig.Mode, Is.EqualTo(CameraMode.PossessedCreature));
+
+                var view = cameraObject.GetComponent<Camera>();
+                rig.enabled = false;
+                view.transform.SetPositionAndRotation(new Vector3(0, 3, -5), Quaternion.LookRotation(Vector3.forward));
+                view.fieldOfView = 60; view.aspect = 1;
+                invaderObject.transform.position = defenderObject.transform.position + Vector3.forward * 5;
+                Physics.SyncTransforms(); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(defender.Health.Current, Is.EqualTo(defender.Health.Maximum), "Pre-damage intent must be sufficient for awareness.");
+                Assert.That(awareness.HasEligibleThreat, Is.True);
+                Assert.That(awareness.TargetPlateVisible, Is.True);
+                Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateText, Is.EqualTo("ATTACKER  BLOOD KNIGHT  100/100 HP"));
+                Assert.That(rig.HasRequestedCombatFocus, Is.True);
+
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait); RefreshAwareness(awareness);
+                Assert.That(awareness.TargetPlateRect.sizeDelta, Is.EqualTo(new Vector2(380, 64)));
+                var behind = view.transform.position - view.transform.forward;
+                behind.y = defenderObject.transform.position.y;
+                invaderObject.transform.position = behind + view.transform.right * 3; Physics.SyncTransforms(); brain.Tick();
+                var rightViewport = view.WorldToViewportPoint(invaderObject.transform.position + Vector3.up);
+                Assert.That(rightViewport.z, Is.LessThanOrEqualTo(0), "The fixed fixture must place the raid invader behind the camera before cue refresh.");
+                Assert.That(CombatCameraAwareness.ShouldUseEdge(rightViewport, false), Is.True);
+                RefreshAwareness(awareness);
+                Assert.That(awareness.IndicatorVisible, Is.True);
+                Assert.That(awareness.IndicatorDirection, Is.EqualTo(1));
+                Assert.That(awareness.IndicatorText, Is.EqualTo("ATTACKER  ▶"));
+                Assert.That(awareness.IndicatorRect.sizeDelta, Is.EqualTo(new Vector2(300, 80)));
+
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                invaderObject.transform.position = behind - view.transform.right * 3; Physics.SyncTransforms(); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(awareness.IndicatorVisible, Is.True);
+                Assert.That(awareness.IndicatorDirection, Is.EqualTo(-1));
+                Assert.That(awareness.IndicatorText, Is.EqualTo("◀  ATTACKER"));
+                Assert.That(awareness.IndicatorRect.sizeDelta, Is.EqualTo(new Vector2(260, 68)));
+
+                invaderObject.transform.position = defenderObject.transform.position + Vector3.forward * 15; Physics.SyncTransforms(); RefreshAwareness(awareness);
+                Assert.That(awareness.HasEligibleThreat, Is.False, "The existing 14 m bound must clear tracked raid intent.");
+                Assert.That(awareness.IndicatorVisible, Is.False); Assert.That(awareness.TargetPlateVisible, Is.False);
+                brain.Tick();
+                Assert.That(brain.CurrentTarget, Is.Null);
+                invaderObject.transform.position = defenderObject.transform.position + Vector3.forward * 5; Physics.SyncTransforms(); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(awareness.HasEligibleThreat, Is.True, "A factual nearby target event must restore intent without a scene scan.");
+
+                defender.Motor.enabled = false;
+                view.transform.rotation = Quaternion.LookRotation(Vector3.back);
+                invaderObject.transform.position = defenderObject.transform.position + Vector3.right * 2; Physics.SyncTransforms(); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(invader.ActionPhase, Is.EqualTo(CombatActionPhase.Windup));
+                Assert.That(awareness.IndicatorVisible, Is.True);
+                Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking));
+                Assert.That(awareness.IndicatorText, Does.Contain("ATTACKING"));
+                yield return WaitForActionPhase(invader, CombatActionPhase.Impact);
+                RefreshAwareness(awareness);
+                Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking), "Accepted Impact remains factual attacking urgency.");
+                yield return WaitForActionPhase(invader, CombatActionPhase.Recovery);
+                RefreshAwareness(awareness);
+                Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacker), "Recovery alone must not claim ATTACKING without recent damage.");
+
+                defenderObject.transform.position = new Vector3(30, 1, 0);
+                alternateObject.transform.position = invaderObject.transform.position + Vector3.forward;
+                Physics.SyncTransforms(); brain.Tick();
+                Assert.That(brain.CurrentTarget, Is.SameAs(alternate));
+                Assert.That(awareness.HasEligibleThreat, Is.False, "Factual retarget must clear the possessed defender's cue synchronously.");
+                Assert.That(awareness.IndicatorVisible, Is.False); Assert.That(awareness.TargetPlateVisible, Is.False); Assert.That(rig.HasCombatFocus, Is.False);
+
+                alternateObject.transform.position = new Vector3(40, 1, 0);
+                defenderObject.transform.position = invaderObject.transform.position + Vector3.forward * 5;
+                Physics.SyncTransforms(); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(brain.CurrentTarget, Is.SameAs(defender)); Assert.That(awareness.HasEligibleThreat, Is.True);
+                invader.SetController(null);
+                Assert.That(awareness.HasEligibleThreat, Is.False, "Invader control loss must clear intent synchronously.");
+                Assert.That(awareness.IndicatorVisible, Is.False); Assert.That(awareness.TargetPlateVisible, Is.False);
+
+                brain.Configure(System.Array.Empty<Vector3>(), new[] { defender }, 0); invader.SetController(brain); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(awareness.HasEligibleThreat, Is.True);
+                rig.enabled = true;
+                possession.Release();
+                rig.StopAllCoroutines(); rig.SnapToOverview();
+                Assert.That(possession.Possessed, Is.Null);
+                Assert.That(awareness.HasEligibleThreat, Is.False, "Possession/controller loss must clear awareness immediately.");
+                Assert.That(awareness.IndicatorVisible, Is.False); Assert.That(awareness.TargetPlateVisible, Is.False); Assert.That(rig.HasCombatFocus, Is.False);
+                invader.SetController(null); invader.SetController(brain); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(awareness.HasEligibleThreat, Is.False, "Later invader intent cannot reactivate after release without a direct-controlled defender.");
+            }
+            finally
+            {
+                GameplayInput.ResetForTests(); Time.timeScale = 1; Time.fixedDeltaTime = .02f;
+                Object.Destroy(hudObject); Object.Destroy(managerObject); Object.Destroy(cameraObject); Object.Destroy(defenderObject); Object.Destroy(alternateObject); Object.Destroy(invaderObject); Object.Destroy(ground);
+                Object.Destroy(defenderDefinition); Object.Destroy(alternateDefinition); Object.Destroy(invaderDefinition); Object.Destroy(attack);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator AbilityReadiness_RaidHudReflectsAuthoritativeCooldownAndActionState()
         {
             var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener)); cameraObject.tag = "MainCamera";
@@ -896,6 +1032,13 @@ namespace RealmRaiders.Tests
             var deadline = Time.realtimeSinceStartup + 2f;
             while (entity && entity.ActionPhase != phase && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.That(entity.ActionPhase, Is.EqualTo(phase), $"Timed out waiting for {phase}.");
+        }
+
+        static void RefreshAwareness(CombatCameraAwareness awareness)
+        {
+            var lateUpdate = typeof(CombatCameraAwareness).GetMethod("LateUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            Assert.That(lateUpdate, Is.Not.Null);
+            lateUpdate.Invoke(awareness, null);
         }
 
         static IEnumerator WaitForAbilityConsumption(AbilityRuntime ability, float previousReadyAt)

@@ -2,45 +2,49 @@
 
 This is the tracked continuation queue for the main Unity checkout. `NEXT_JOB.md` remains the full active lease; this file states what happens immediately after every intermediate result so a valid handoff cannot become silent idle time.
 
-## Accepted — Diamond Passes 12.7 and 12.8
+## Accepted — Diamond Passes 12.7–12.9
 
 - Diamond Pass 12.7 Build-to-Defense Deployment Receipt is accepted after the user's positive manual smoke and the final automated gates.
 - Diamond Pass 12.8 Camera-Relative Direct Attack Direction is accepted with deterministic legacy PlayMode gate repairs.
-- Final Unity GUI Test Runner: EditMode `137/137`, PlayMode `78/78`, `0` failures. PlayMode XML completed 2026-09-09 22:18:41Z; `git diff --check` is clean.
-- Architect records and commits only the accepted paths; user push is asynchronous publication and does not block 12.9.
+- Diamond Pass 12.9 Possessed-Defense Invader Awareness is accepted with factual event-driven invader intent, bounded existing awareness presentation and complete lifecycle cleanup.
+- Final Unity GUI Test Runner: EditMode `137/137`, PlayMode `79/79`, `0` failures. PlayMode XML completed 2026-09-10 05:31:27Z; scoped `git diff --check` is clean.
+- Architect records and commits only the accepted paths; user push is asynchronous publication and does not block 13.0.
 
-## Now — Diamond Pass 12.9: Possessed-Defense Invader Awareness
+## Now — Diamond Pass 13.0: Sylvan Seam-Hardened Path Integration
 
 Owner: Core developer
 
 Workspace: main checkout; source only, no Unity.
 
-Base: Architect's accepted local 12.7/12.8 commit.
+Base: Architect's accepted local 12.9 commit.
 
 Reserved paths:
 
-- `Assets/Game/Scripts/AI/RaidInvaderBrain.cs`
-- `Assets/Game/Scripts/Camera/CombatCameraAwareness.cs`
-- `Assets/Game/Tests/PlayMode/PossessionFlowTests.cs`
+- `Assets/Game/Resources/Art/WorldSurfaces/MWS07-SylvanPath/`
+- `Assets/Game/Editor/PrototypeWorldSurfacePreviewImport.cs`
+- `Assets/Game/Scripts/Core/RealmRoutePresentation.cs`
+- `Assets/Game/Tests/EditMode/RealmRouteSurfaceMaterialPreviewTests.cs`
+- `Assets/Game/Tests/PlayMode/RealmRouteSurfaceScenePreviewTests.cs`
 
 Handoff: frozen scoped diff, `git diff --check`, six-line Core report; no stage, commit, push or Unity.
 
 ### Outcome
 
-During the signature possessed-defense fight, factual `RaidInvaderBrain` target intent feeds the existing bounded camera-awareness presentation before the first hit. A nearby Blood Knight targeting the possessed defender can show the existing plate or left/right edge cue without gaining targeting, combat or camera authority.
+Replace only the current provisional Sylvan walkable-path albedo with the accepted seam-hardened MWS07 Sylvan stone candidate so the first realm reads as intentional fantasy terrain at gameplay scale. Preserve exact geometry, collision, route ownership and fallback behavior.
 
 ### Guardrails
 
-- Event-driven intent only; no scene scan or new per-frame global search.
-- Reuse the existing focus/plate/edge-cue system, 14 m eligibility and current text/layout roots.
-- `ATTACKING` urgency is factual only during accepted Windup/Impact; existing damage recency remains unchanged.
-- Clear immediately on retarget/range exit, invader control loss/death/destroy, possession/controller loss, terminal state, camera transition and teardown.
-- Do not change AI target selection, route/opening/recovery timing, damage, abilities, player input, `CombatEntity`, HUD, bootstraps, scenes, persistence or art.
+- Copy only `Modules/RealmRaider.Modules/ArtPreviews/MWS07-WalkableSurfaceSeamHardening/sylvan-stone-path-edge-hardened-candidate.png` plus a concise local provenance record into the reserved main-project resource folder; the Modules source stays read-only.
+- Import as mobile albedo: sRGB, mipmaps, bilinear, Repeat, non-readable, Android ASTC 6×6 and maximum 512. Do not import the 2×2 evidence image.
+- Keep one lazily shared material per existing Sylvan role; no per-frame allocations, new shader/package, runtime file access or scene scan.
+- Preserve the exact solid-colour fallback when the resource is absent or loading throws.
+- Prove exact resource/provenance binding, import settings, material caching, Repeat wrap, no colliders on presentation children and unchanged authoritative transform/mesh/collider.
+- Do not change Infernal art, gameplay/collision, bootstraps/scenes, camera, UI, input, AI, persistence, lighting or boundary material.
 
 ## Next gate — Architect verification
 
-After Core freezes 12.9, Architect performs static preflight, focused possessed-defense awareness coverage, then exactly one final EditMode and one final PlayMode run. A concrete failure returns to the same lease; green evidence advances immediately to acceptance records and commit.
+After Core freezes 13.0, Architect performs static/provenance preflight, focused surface import/binding coverage, then exactly one final EditMode and one final PlayMode run. A concrete failure returns to the same lease; green evidence advances immediately to acceptance records, commit and the mandatory Android export.
 
-## Ready after 12.9
+## Ready after 13.0
 
-Architect prepares the next player-visible slice read-only while 12.9 is verified. Core may inspect that queued scope but may not modify its files until Architect activates the lease.
+Prepare the matching Infernal walkable-path integration from the accepted MWS07 candidate, but do not modify its files until the Sylvan material has passed visual scale/readability and collision gates.

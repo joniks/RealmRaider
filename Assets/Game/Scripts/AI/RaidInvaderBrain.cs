@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
 using RealmRaiders.Controllers;
@@ -8,6 +10,12 @@ namespace RealmRaiders.AI
     [RequireComponent(typeof(CombatEntity))]
     public sealed class RaidInvaderBrain : MonoBehaviour, IEntityController
     {
+        static readonly List<RaidInvaderBrain> activeInvaders = new();
+
+        /// <summary>Presentation observers can react to factual target/control changes without scanning the scene.</summary>
+        public static event Action<RaidInvaderBrain> HostileIntentChanged;
+        public static IReadOnlyList<RaidInvaderBrain> ActiveInvaders => activeInvaders;
+
         public const float DefaultOpeningHoldDuration = 3f;
         public bool IsActive { get; private set; }
         public int WaypointIndex { get; private set; }
@@ -32,10 +40,12 @@ namespace RealmRaiders.AI
         {
             entity = GetComponent<CombatEntity>();
             health = GetComponent<Health>();
-            health.Died += ResetRecovery;
+            health.Died += OnDied;
+            activeInvaders.Add(this);
         }
         public void Configure(Vector3[] route, CombatEntity[] realmDefenders, float openingHoldDuration = DefaultOpeningHoldDuration)
         {
+            SetCurrentTarget(null);
             waypoints = route; defenders = realmDefenders; WaypointIndex = 0; pauseUntil = 0;
             routeStart = transform.position;
             openingEndsAt = 0; openingStarted = false; openingReleased = false;
@@ -47,7 +57,8 @@ namespace RealmRaiders.AI
 
         public void SetControl(bool active)
         {
-            IsActive = active; CurrentTarget = null;
+            IsActive = active;
+            ClearTargetAndPublishState();
             ResetRecovery();
             if (active && !openingStarted)
             {
@@ -59,11 +70,11 @@ namespace RealmRaiders.AI
         public void Tick()
         {
             if (!IsActive || !isActiveAndEnabled || !health || health.IsDead || GameplayInput.TerminalState)
-            { CurrentTarget = null; ResetRecovery(); return; }
-            if (IsOpeningHold) { CurrentTarget = null; ResetRecovery(); entity.Move(Vector3.zero); return; }
+            { SetCurrentTarget(null); ResetRecovery(); return; }
+            if (IsOpeningHold) { SetCurrentTarget(null); ResetRecovery(); entity.Move(Vector3.zero); return; }
             if (openingStarted && !openingReleased) openingReleased = true;
             if (Time.time < pauseUntil) { ResetRecovery(); entity.Move(Vector3.zero); return; }
-            CurrentTarget = ClosestDefender(7.5f);
+            SetCurrentTarget(ClosestDefender(7.5f));
             if (CurrentTarget)
             {
                 ResetRecovery();
@@ -95,10 +106,35 @@ namespace RealmRaiders.AI
             recovery.Reset(transform.position);
         }
 
-        void OnDisable() => ResetRecovery();
+        bool SetCurrentTarget(CombatEntity next)
+        {
+            if (CurrentTarget == next) return false;
+            CurrentTarget = next;
+            PublishIntent();
+            return true;
+        }
+
+        void PublishIntent() => HostileIntentChanged?.Invoke(this);
+
+        void ClearTargetAndPublishState()
+        {
+            if (!SetCurrentTarget(null)) PublishIntent();
+        }
+
+        void OnDied()
+        {
+            ClearTargetAndPublishState();
+            ResetRecovery();
+        }
+
+        void OnEnable() => PublishIntent();
+        void OnDisable() { ClearTargetAndPublishState(); ResetRecovery(); }
         void OnDestroy()
         {
-            if (health) health.Died -= ResetRecovery;
+            if (health) health.Died -= OnDied;
+            IsActive = false;
+            ClearTargetAndPublishState();
+            activeInvaders.Remove(this);
             ResetRecovery();
         }
 

@@ -33,6 +33,7 @@ namespace RealmRaiders.CameraSystem
         CombatEntity controlled;
         CombatEntity threat;
         CreatureBrain threatBrain;
+        RaidInvaderBrain threatInvaderBrain;
         CombatEntity lastDamageThreat;
         float threatReportedAt = float.NegativeInfinity;
         float threatDamageAt = float.NegativeInfinity;
@@ -87,6 +88,7 @@ namespace RealmRaiders.CameraSystem
         void OnEnable()
         {
             CreatureBrain.HostileIntentChanged += ObserveHostileIntent;
+            RaidInvaderBrain.HostileIntentChanged += ObserveRaidInvaderIntent;
             if (controlled) needsIntentReconcile = true;
         }
 
@@ -148,12 +150,40 @@ namespace RealmRaiders.CameraSystem
             if (!threat || threat == candidate || !HasFreshReport(threat) && !HasHostileIntent(threat)) TrackThreat(candidate, false);
         }
 
+        void ObserveRaidInvaderIntent(RaidInvaderBrain brain)
+        {
+            if (!brain) return;
+            var candidate = brain.GetComponent<CombatEntity>();
+            if (!candidate) return;
+            if (!controlled || !IsRaidInvaderIntent(brain))
+            {
+                if (threat == candidate && threatInvaderBrain == brain) ClearTrackedIntentAndReconcile();
+                return;
+            }
+            var delta = candidate.transform.position - controlled.transform.position; delta.y = 0;
+            if (delta.sqrMagnitude > NearbyDistance * NearbyDistance)
+            {
+                if (threat == candidate && threatInvaderBrain == brain) ClearTrackedIntentAndReconcile();
+                return;
+            }
+
+            if (!threat || threat == candidate || !HasFreshReport(threat) && !HasHostileIntent(threat)) TrackThreat(candidate, false);
+        }
+
+        void ClearTrackedIntentAndReconcile()
+        {
+            ClearThreat();
+            needsIntentReconcile = controlled && controlled.Health != null && !controlled.Health.IsDead;
+            ReconcileHostileIntent();
+        }
+
         void TrackThreat(CombatEntity candidate, bool explicitReport)
         {
             if (threat != candidate)
             {
                 threat = candidate;
                 threatBrain = candidate.GetComponent<CreatureBrain>();
+                threatInvaderBrain = candidate.GetComponent<RaidInvaderBrain>();
                 threatReportedAt = float.NegativeInfinity;
                 lastDamageThreat = null;
                 threatDamageAt = float.NegativeInfinity;
@@ -166,6 +196,7 @@ namespace RealmRaiders.CameraSystem
         void FindExistingHostileIntent()
         {
             foreach (var brain in CreatureBrain.ActiveBrains) ObserveHostileIntent(brain);
+            foreach (var brain in RaidInvaderBrain.ActiveInvaders) ObserveRaidInvaderIntent(brain);
         }
 
         void ReconcileHostileIntent()
@@ -223,16 +254,21 @@ namespace RealmRaiders.CameraSystem
         bool HasHostileIntent(CombatEntity candidate)
         {
             if (!candidate) return false;
-            return IsHostileIntent(candidate == threat ? threatBrain : candidate.GetComponent<CreatureBrain>());
+            if (candidate == threat) return IsHostileIntent(threatBrain) || IsRaidInvaderIntent(threatInvaderBrain);
+            return IsHostileIntent(candidate.GetComponent<CreatureBrain>()) || IsRaidInvaderIntent(candidate.GetComponent<RaidInvaderBrain>());
         }
 
         bool HasAttackIntent(CombatEntity candidate)
         {
-            var brain = candidate == threat ? threatBrain : (candidate ? candidate.GetComponent<CreatureBrain>() : null);
-            return brain && brain.IsActive && brain.Target == controlled && brain.State == BrainState.Attack;
+            if (!candidate) return false;
+            var brain = candidate == threat ? threatBrain : candidate.GetComponent<CreatureBrain>();
+            if (brain && brain.IsActive && brain.Target == controlled && brain.State == BrainState.Attack) return true;
+            var invaderBrain = candidate == threat ? threatInvaderBrain : candidate.GetComponent<RaidInvaderBrain>();
+            return IsRaidInvaderIntent(invaderBrain) && candidate.ActionPhase is CombatActionPhase.Windup or CombatActionPhase.Impact;
         }
 
         bool IsHostileIntent(CreatureBrain brain) => brain && brain.IsActive && brain.Target == controlled && (brain.State == BrainState.Chase || brain.State == BrainState.Attack);
+        bool IsRaidInvaderIntent(RaidInvaderBrain brain) => brain && brain.isActiveAndEnabled && brain.IsActive && brain.CurrentTarget == controlled;
 
         void UpdateCue()
         {
@@ -430,6 +466,7 @@ namespace RealmRaiders.CameraSystem
         {
             threat = null;
             threatBrain = null;
+            threatInvaderBrain = null;
             lastDamageThreat = null;
             threatReportedAt = float.NegativeInfinity;
             threatDamageAt = float.NegativeInfinity;
@@ -469,12 +506,14 @@ namespace RealmRaiders.CameraSystem
         void OnDisable()
         {
             CreatureBrain.HostileIntentChanged -= ObserveHostileIntent;
+            RaidInvaderBrain.HostileIntentChanged -= ObserveRaidInvaderIntent;
             ClearThreat();
         }
 
         void OnDestroy()
         {
             CreatureBrain.HostileIntentChanged -= ObserveHostileIntent;
+            RaidInvaderBrain.HostileIntentChanged -= ObserveRaidInvaderIntent;
             if (controlled && controlled.Health != null) { controlled.Health.Damaged -= ObserveDamage; controlled.Health.Died -= Clear; }
             if (hud) hud.LayoutChanged -= ApplyLayout;
             if (rig) rig.ClearCombatFocus();
