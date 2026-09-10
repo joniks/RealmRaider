@@ -110,9 +110,12 @@ Hundreds of modular characters need a deterministic pre-Unity check that every e
 
 ## Next Module gate
 
-MMP 04 is accepted and committed. The next Module lease must be tied to either a named Core integration seam or a user-approved art source/provenance task; do not invent another generic validator merely to keep the lane busy.
+MMP 04 is accepted and committed. Art Pass MWS12 is active in the isolated Modules
+repo: derive a restrained normal pair and exact repeat evidence from the accepted,
+project-owned MWS07 Sylvan and Infernal route albedos. This is tied to the named
+future Core route-lighting integration seam; it grants no Unity/runtime authority.
 
-## Now — Art Pass MWS 11: Infernal Courtyard Floor Pair
+## Accepted — Art Pass MWS 11: Infernal Courtyard Floor Pair
 
 Owner: Module Developer / Technical Art
 Workspace: `Modules/RealmRaider.Modules` only; no main checkout or Unity.
@@ -160,6 +163,12 @@ hierarchy rather than reusing route or boundary texture everywhere.
 Main checkout, Unity or `.meta`, runtime/import/material integration, route/boundary
 replacement, emission/height/roughness/metallic maps, shader, gameplay, licence
 research, third-party download, final-art approval, commit or push.
+
+Acceptance: Architect inspected the 1024 albedo/normal candidates and both exact
+2×2 evidence images, confirmed the stated visible broad-slab/ember periodicity,
+validated all recorded hashes and reproduced the normal/evidence output exactly.
+The existing surface-map tests passed `5/5`. Accepted in Modules commit `2f5457f`;
+Unity/runtime integration remains solely the named Core 15.4 lease.
 
 ## Accepted — Art Pass MWS 06: Fantasy Surface Texture Pack
 

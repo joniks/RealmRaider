@@ -393,9 +393,31 @@ invariant correction, QA final native gates passed EditMode `186/186` and PlayMo
 `88/88`, both with zero failed/skipped/inconclusive tests. No files changed after
 the final suites. Manual silhouette readability remains unclaimed.
 
-## Ready after Module MWS11
+## Accepted — Diamond Pass 15.4: Infernal Courtyard Floor Surface
 
-If Architect accepts the isolated MWS11 Infernal courtyard-floor albedo/normal
-pair, integrate that exact pair through a separate Core lease so Infernal node
-floors, routes and boundaries have three distinct material roles matching Sylvan.
-Until MWS11 is accepted, Core remains read-only and does not invent substitute art.
+Integrate the accepted Modules `2f5457f` MWS11 Infernal courtyard-floor albedo and
+normal pair onto the factual `Volcanic Floor` only. Preserve MWS07 on the four
+causeway plates, MWS08 on boundaries, all Sylvan paths and every gameplay/collider
+contract. The implementation keeps one shared material but uses renderer-local
+property blocks for four-world-unit square tiling, so differently sized roots do
+not leak scale into one another.
+
+Acceptance: Architect confirmed exact assets/import/provenance, atomic fallback,
+surface isolation and unchanged authoritative geometry. After correcting one
+test-only production-collider trigger assumption, QA final gates passed EditMode
+`190/190` and PlayMode `89/89`, both with zero failures. Manual device appearance
+remains unclaimed.
+
+## Now — Diamond Pass 15.5: Defeat Presentation Keeps Gameplay Root Authoritative
+
+Replace the current death-time `CombatEntity` root shrink with one bounded
+presentation-pivot defeat settle. The visual result must remain readable, but the
+entity root transform, CharacterController dimensions and gameplay geometry may
+never change. Preserve death callbacks, possession release, results, combat timing
+and all existing controller cleanup. Full lease is in `Docs/NEXT_JOB.md`.
+
+## Ready after 15.5
+
+Integrate the accepted MWS12 restrained route normal pair only after Architect
+accepts that isolated Module source. If MWS12 is not yet accepted, Core prepares
+the route-material seam read-only and does not invent substitute art.

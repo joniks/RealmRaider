@@ -99,7 +99,8 @@ Last reviewed: 2026-09-10
 - Diamond Pass 15.1 Infernal Seam-Hardened Path Surface is present: Infernal route and defense-lane presentation now use the accepted original-generated MWS07 repeating basalt albedo with exact provenance/mobile import and cached solid fallback while MWS03 remains available but unbound and Sylvan/gameplay stay unchanged.
 - Diamond Pass 15.2 Infernal Boundary Surface Identity is present: Infernal arena boundaries now use the accepted original-generated MWS08 repeating forged-iron and obsidian albedo with exact provenance/mobile import and cached solid fallback while Neutral, Sylvan, geometry, collision and gameplay remain unchanged.
 - Diamond Pass 15.3 Possession Arrival Impact is present: every factual successful takeover adds one bounded 0.22-second unscaled squash/rebound/settle on the same creature's presentation pivot, with complete release/death/terminal/controller/visual cleanup and no gameplay-root or possession-authority change.
-- Current Unity Test Runner baseline: EditMode `186/186` and PlayMode `88/88` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Diamond Pass 15.4 Infernal Courtyard Floor Surface is present: the factual Volcanic Floor uses the accepted original-generated MWS11 albedo/normal pair with renderer-local square world tiling, while MWS07 causeways, MWS08 boundaries, all Sylvan presentation and gameplay remain unchanged.
+- Current Unity Test Runner baseline: EditMode `190/190` and PlayMode `89/89` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -116,7 +117,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `186/186` and PlayMode `88/88` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `190/190` and PlayMode `89/89` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

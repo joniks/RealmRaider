@@ -2719,3 +2719,44 @@ Completed on 2026-09-10.
 - Pose amplitude tuning without device evidence, new animation clips/Animator or
   root motion, changes to pulse/slow beat/camera/audio/haptic, new VFX/assets,
   gameplay timing/authority and physical-device performance claims.
+
+## Diamond Pass 15.4 — Infernal Courtyard Floor Surface
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Copied only the accepted original-generated MWS11 Infernal courtyard albedo and
+  restrained normal from Modules commit `2f5457f`; destination SHA-256 values are
+  `666ce002ccf7dc577264eef1062e0d100fab2cb5195058398186427e2269a52c`
+  and `731339751ae4c004379cbba1c424e87efc33f390e9ef5708071b5e1076bc46f7`.
+- The factual `Volcanic Floor` now uses the pair atomically at normal strength
+  `0.30`, while all four `Basalt Causeway Plate` children retain MWS07 and the
+  Infernal boundary retains MWS08.
+- One shared floor material is retained, with renderer-local property blocks
+  providing square world-space tiling at four world units per tile so differently
+  sized Infernal roots cannot overwrite each other's scale.
+- Missing or throwing albedo/normal loads preserve and cache the exact existing
+  solid floor fallback; Sylvan surfaces, geometry, colliders, hierarchy, AI, fog
+  and gameplay authority remain unchanged.
+
+### Verification
+
+- Architect confirmed byte identity, 1024×1024 RGB dimensions, unique GUIDs,
+  valid provenance, exactly two runtime PNGs, Android 512 ASTC 6×6 import, atomic
+  cache/fallback and route/floor isolation; `git diff --check` is clean.
+- Static review caught and closed shared-material tiling leakage before QA. QA then
+  exposed one test-only trigger assumption; the corrected test preserves each
+  collider's factual original trigger state.
+- Final QA gates passed EditMode `190/190` in 0.758 seconds and PlayMode `89/89`
+  in 70.132 seconds, with zero failed/skipped/inconclusive tests and no Editor-log
+  errors or exceptions after the frozen candidate.
+- Manual Infernal portrait/landscape appearance is not claimed because QA could
+  not safely observe the Game view; physical-device scale, repetition and contrast
+  remain user-owned review.
+
+### Scope intentionally deferred
+
+- Emission, height, roughness, metallic, macro variation, second tiles, shaders,
+  lighting redesign, route/boundary replacement, geometry/collider/gameplay
+  changes, production-art approval and physical-device performance claims.

@@ -16,6 +16,10 @@ namespace RealmRaiders.Core
         public const int DefenseRendererCeiling = 4;
         public const string SylvanAlbedoResource = "Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate";
         public const string InfernalAlbedoResource = "Art/WorldSurfaces/MWS07-InfernalPath/infernal-basalt-path-edge-hardened-candidate";
+        public const string InfernalCourtyardAlbedoResource = "Art/WorldSurfaces/MWS11-InfernalCourtyardFloor/infernal-courtyard-floor-albedo-rgb-candidate";
+        public const string InfernalCourtyardNormalResource = "Art/WorldSurfaces/MWS11-InfernalCourtyardFloor/infernal-courtyard-floor-mobile-normal-rgb-candidate";
+        public const float InfernalCourtyardNormalStrength = .30f;
+        public const float InfernalCourtyardWorldUnitsPerTile = 4f;
 
         static Material sylvanFloor;
         static Material sylvanRoute;
@@ -23,8 +27,11 @@ namespace RealmRaiders.Core
         static Material infernalRoute;
         static Texture2D sylvanAlbedo;
         static Texture2D infernalAlbedo;
+        static Texture2D infernalCourtyardAlbedo;
+        static Texture2D infernalCourtyardNormal;
         static bool sylvanAlbedoResolved;
         static bool infernalAlbedoResolved;
+        static bool infernalCourtyardSurfaceResolved;
         static System.Func<string, Texture2D> textureLoader = LoadTexture;
 
         public static Transform BuildSegment(Transform authoritativeRoot, RealmRouteStyle style)
@@ -50,7 +57,11 @@ namespace RealmRaiders.Core
             presentation.localRotation = Quaternion.identity;
             presentation.localScale = Reciprocal(authoritativeRoot.lossyScale);
 
-            SetRootMaterial(authoritativeRoot, style == RealmRouteStyle.SylvanOrganic ? SylvanFloor : InfernalFloor);
+            var floorMaterial = style == RealmRouteStyle.SylvanOrganic ? SylvanFloor : InfernalFloor;
+            SetRootMaterial(authoritativeRoot, floorMaterial,
+                style == RealmRouteStyle.InfernalFractured && InfernalCourtyardSurfaceAvailable
+                    ? new Vector2(dimensions.x / InfernalCourtyardWorldUnitsPerTile, dimensions.z / InfernalCourtyardWorldUnitsPerTile)
+                    : (Vector2?)null);
             if (singleSegment)
             {
                 BuildCoveredSegment(presentation, style, dimensions);
@@ -64,10 +75,11 @@ namespace RealmRaiders.Core
 
         static Material SylvanFloor => Shared(ref sylvanFloor, new Color(.08f, .24f, .1f), SylvanTexture);
         static Material SylvanRoute => Shared(ref sylvanRoute, new Color(.25f, .36f, .22f), SylvanTexture);
-        static Material InfernalFloor => Shared(ref infernalFloor, new Color(.12f, .045f, .035f), InfernalTexture);
+        static Material InfernalFloor => SharedInfernalCourtyardFloor();
         static Material InfernalRoute => Shared(ref infernalRoute, new Color(.27f, .23f, .2f), InfernalTexture);
         static Texture2D SylvanTexture => ResolveTexture(ref sylvanAlbedo, ref sylvanAlbedoResolved, SylvanAlbedoResource);
         static Texture2D InfernalTexture => ResolveTexture(ref infernalAlbedo, ref infernalAlbedoResolved, InfernalAlbedoResource);
+        static bool InfernalCourtyardSurfaceAvailable => ResolveInfernalCourtyardSurface();
 
         static Material Shared(ref Material material, Color fallbackColor, Texture2D albedo)
         {
@@ -77,6 +89,22 @@ namespace RealmRaiders.Core
             return material;
         }
 
+        static Material SharedInfernalCourtyardFloor()
+        {
+            if (infernalFloor) return infernalFloor;
+            infernalFloor = PrototypeRuntimeFactory.Material(new Color(.12f, .045f, .035f));
+            if (!ResolveInfernalCourtyardSurface()) return infernalFloor;
+            infernalFloor.color = Color.white;
+            infernalFloor.mainTexture = infernalCourtyardAlbedo;
+            if (infernalFloor.HasProperty("_BumpMap"))
+            {
+                infernalFloor.SetTexture("_BumpMap", infernalCourtyardNormal);
+                if (infernalFloor.HasProperty("_BumpScale")) infernalFloor.SetFloat("_BumpScale", InfernalCourtyardNormalStrength);
+                infernalFloor.EnableKeyword("_NORMALMAP");
+            }
+            return infernalFloor;
+        }
+
         static Texture2D ResolveTexture(ref Texture2D texture, ref bool resolved, string resourcePath)
         {
             if (resolved) return texture;
@@ -84,6 +112,26 @@ namespace RealmRaiders.Core
             try { texture = textureLoader?.Invoke(resourcePath); }
             catch (System.Exception) { texture = null; }
             return texture;
+        }
+
+        static bool ResolveInfernalCourtyardSurface()
+        {
+            if (infernalCourtyardSurfaceResolved) return infernalCourtyardAlbedo && infernalCourtyardNormal;
+            infernalCourtyardSurfaceResolved = true;
+            try
+            {
+                infernalCourtyardAlbedo = textureLoader?.Invoke(InfernalCourtyardAlbedoResource);
+                if (infernalCourtyardAlbedo) infernalCourtyardNormal = textureLoader?.Invoke(InfernalCourtyardNormalResource);
+            }
+            catch (System.Exception)
+            {
+                infernalCourtyardAlbedo = null;
+                infernalCourtyardNormal = null;
+            }
+            if (infernalCourtyardAlbedo && infernalCourtyardNormal) return true;
+            infernalCourtyardAlbedo = null;
+            infernalCourtyardNormal = null;
+            return false;
         }
 
         static Texture2D LoadTexture(string resourcePath) => Resources.Load<Texture2D>(resourcePath);
@@ -106,8 +154,8 @@ namespace RealmRaiders.Core
             DestroyMaterial(ref sylvanRoute);
             DestroyMaterial(ref infernalFloor);
             DestroyMaterial(ref infernalRoute);
-            sylvanAlbedo = infernalAlbedo = null;
-            sylvanAlbedoResolved = infernalAlbedoResolved = false;
+            sylvanAlbedo = infernalAlbedo = infernalCourtyardAlbedo = infernalCourtyardNormal = null;
+            sylvanAlbedoResolved = infernalAlbedoResolved = infernalCourtyardSurfaceResolved = false;
         }
 
         static void DestroyMaterial(ref Material material)
@@ -158,10 +206,19 @@ namespace RealmRaiders.Core
             }
         }
 
-        static void SetRootMaterial(Transform root, Material material)
+        static void SetRootMaterial(Transform root, Material material, Vector2? textureTiling = null)
         {
             var renderer = root.GetComponent<Renderer>();
-            if (renderer) renderer.sharedMaterial = material;
+            if (!renderer) return;
+            renderer.sharedMaterial = material;
+            if (!textureTiling.HasValue) return;
+            var properties = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(properties);
+            var scaleOffset = new Vector4(textureTiling.Value.x, textureTiling.Value.y, 0, 0);
+            if (material.HasProperty("_BaseMap")) properties.SetVector("_BaseMap_ST", scaleOffset);
+            if (material.HasProperty("_MainTex")) properties.SetVector("_MainTex_ST", scaleOffset);
+            if (material.HasProperty("_BumpMap")) properties.SetVector("_BumpMap_ST", scaleOffset);
+            renderer.SetPropertyBlock(properties);
         }
 
         static Transform Part(Transform parent, string name, PrimitiveType type, Vector3 position, Vector3 scale, Quaternion rotation, Material material)

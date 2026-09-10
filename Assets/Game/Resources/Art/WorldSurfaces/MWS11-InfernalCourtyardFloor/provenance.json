@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.infernal-courtyard-floor.mws11.v1",
+  "creation": "original-generated-derived-from-project-owned-reference; no third-party source",
+  "status": "preview-import-candidate-not-final-art",
+  "licence": "original generated project asset; no third-party licence or attribution required",
+  "modulesCommit": "2f5457f",
+  "sources": [
+    {
+      "role": "RGB albedo preview",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS11-InfernalCourtyardFloor/infernal-courtyard-floor-albedo-rgb-candidate.png",
+      "sourceSha256": "666ce002ccf7dc577264eef1062e0d100fab2cb5195058398186427e2269a52c",
+      "file": "infernal-courtyard-floor-albedo-rgb-candidate.png",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB"
+    },
+    {
+      "role": "restrained RGB tangent-space normal preview",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS11-InfernalCourtyardFloor/infernal-courtyard-floor-mobile-normal-rgb-candidate.png",
+      "sourceSha256": "731339751ae4c004379cbba1c424e87efc33f390e9ef5708071b5e1076bc46f7",
+      "file": "infernal-courtyard-floor-mobile-normal-rgb-candidate.png",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "derivation": "Tools/surface_maps/derive_normal_map.py --strength 0.30"
+    }
+  ],
+  "normalStrength": 0.30,
+  "recommendedInitialUnityTileScale": "4.0 world units per 1024 px tile; preview tuning only, not final device approval",
+  "repeatEvidenceInspected": true,
+  "tileabilityVerified": false,
+  "remainingCaveat": "Broad cooled slabs and sparse ember fissures have visible 1024-pixel repeat periodicity; judge material scale, character contrast and repetition on device.",
+  "nonGoals": ["final-art approval", "route replacement", "boundary replacement", "emission", "height", "roughness", "metallic", "third-party attribution"]
+}
