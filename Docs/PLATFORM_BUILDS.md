@@ -87,8 +87,9 @@ Tools/realmraider-unity-cli.sh export-ios-simulator
 
 Never run the wrapper while this project is open in Unity. Unity Hub must remain
 open and signed in so the Personal licence can be passed to the command-driven
-Editor. Architect warns the user before the Editor is closed and again before
-it may be reopened. Android
-export is a mandatory QA gate after every accepted Core commit; the evidence is
-the commit SHA, zero process exit code, successful completion line in the saved
-log, and refreshed `Builds/AndroidStudio` output.
+Editor. The wrapper is a fallback for an already-closed, user-approved boundary.
+When the Editor is healthy and open, the normal post-commit gate is **Realm
+Raiders → Build → Export Android Studio Project**; do not close or restart Unity
+just to export. Evidence is the commit SHA and refreshed `Builds/AndroidStudio`
+output. A CLI fallback additionally requires exit code `0` and the successful
+completion line in its saved log.

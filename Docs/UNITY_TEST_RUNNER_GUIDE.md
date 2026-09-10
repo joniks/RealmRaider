@@ -87,11 +87,12 @@ Eksporta komanda lieto `-batchmode`, Hub licences IPC, fiksētu `-buildTarget`,
 `BuildPipeline.BuildPlayer` ir pabeigts pirms `executeMethod` atgriežas.
 
 Pēc katra pieņemta un Architect iecommitota Core izstrādes soļa, kad vairs nav
-vēlāku gameplay/build izmaiņu, QA vārti palaiž `export-android`. Eksports ir
-pieņemts tikai tad, ja komanda beidzas ar kodu `0`, logs satur veiksmīgu
-`Realm Raiders Android export completed` ierakstu un `Builds/AndroidStudio`
-ir atjaunots. Lietotājs pēc tam drīkst atvērt Unity tikai pēc Architect
-brīdinājuma, ka CLI process ir pilnībā beidzies.
+vēlāku gameplay/build izmaiņu, veselā atvērtā Unity GUI lieto **Realm Raiders →
+Build → Export Android Studio Project**. Editoru šim nolūkam neaizver un
+nerestartē. `export-android` CLI lieto tikai tad, ja Editors jau ir aizvērts
+iepriekš saskaņotā robežā. Tad eksports ir pieņemts tikai ar kodu `0`, veiksmīgu
+`Realm Raiders Android export completed` ierakstu un atjaunotu
+`Builds/AndroidStudio`.
 
 ## Nepārtraukta QA kārtība
 
@@ -157,7 +158,7 @@ Review: accepted | rejected with <concrete blocker>
 Focused: <result>
 Final EditMode / PlayMode: <totals vai not yet run>
 Manual smoke: <novērotais rezultāts vai user-owned/not run>
-Android CLI export: <commit SHA + success/log path vai not required/not run>
+Android export: <GUI commit SHA + success vai CLI commit SHA + log path; not run>
 Changed after final suite: yes | no
 Commit/push: not performed
 ```

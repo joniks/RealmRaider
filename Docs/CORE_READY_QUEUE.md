@@ -43,7 +43,7 @@ Replace only the current provisional Sylvan walkable-path albedo with the accept
 
 ## Next gate — Architect verification
 
-After Core freezes 13.0, Architect performs static/provenance preflight, focused surface import/binding coverage, then exactly one final EditMode and one final PlayMode run. A concrete failure returns to the same lease; green evidence advances immediately to acceptance records, commit and the mandatory Android export.
+After Core freezes 13.0, Architect performs static/provenance preflight, focused surface import/binding coverage, then exactly one final EditMode and one final PlayMode run. A concrete failure returns to the same lease; green evidence advances immediately to acceptance records, commit and the Android GUI export without restarting a healthy Editor.
 
 ## Ready after 13.0
 

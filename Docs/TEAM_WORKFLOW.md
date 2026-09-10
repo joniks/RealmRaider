@@ -80,7 +80,7 @@ One owner at a time may write a reserved path. A task is released only after Arc
 ## Verification discipline
 
 - Core developer does not launch, close, restart, or control Unity, and does not run tests. It communicates test impact and expected outcomes to Architect with each frozen handoff.
-- Architect uses the Unity Editor Test Runner GUI for tests. The repository CLI wrapper is authorized for platform exports only after the user is warned, Unity is fully closed, Unity Hub remains open and signed in, and Architect confirms there is no competing Unity process. The wrapper passes Hub's licence IPC channel to headless Unity. Tests and exports never run concurrently against this checkout.
+- Architect uses the Unity Editor Test Runner GUI for tests and the existing **Realm Raiders → Build** menu for platform export while a healthy Editor is open. Do not close or restart that Editor merely to export. The repository CLI wrapper is a fallback only when the user-approved boundary already has Unity fully closed, Unity Hub remains open and signed in, and no competing Unity process exists.
 - Architect runs a focused check after a new frozen candidate or concrete fix.
 - Architect runs full EditMode once and full PlayMode once only after the final code/test change. A green suite is rerun only if the candidate changes afterwards or a concrete reason exists.
 - Manual device checks belong to the user; reports must say exactly what was observed and never invent a smoke result.
@@ -95,7 +95,7 @@ When Architect performs QA and the Unity Test Runner appears stale, filtered, or
 4. If the UI evidence is incomplete, wait once more and refresh the visible state; then report the exact limitation. A user-run green suite may be recorded as user evidence, but its total must remain unspecified unless Architect actually saw it.
 5. Run only the gate required by the current candidate; do not restart a broad suite merely to recreate evidence.
 
-An ordinary Unity restart is **not** a Test Runner recovery step. Architect may launch, close or restart Unity only when the user explicitly asks, or after an undeniable editor crash/hang and confirmation. CLI is not a Test Runner shortcut: the 2026-09-10 licensed `-runTests` pilot loaded the project but never started its focused test, so tests remain GUI-owned. Headless CLI is reserved for the post-commit platform export gate. Never use blind coordinate clicks, `Reimport All`, Library deletion, or a broad cache reset. In this Unity version, a Project-window action labelled **Assets → Reimport** may trigger the broad reimport warning; treat it as `Reimport All` and cancel it.
+An ordinary Unity restart is **not** a Test Runner or export step. Architect may launch, close or restart Unity only when the user explicitly asks, or after an undeniable editor crash/hang and confirmation. CLI is not a Test Runner shortcut: the 2026-09-10 licensed `-runTests` pilot loaded the project but never started its focused test, so tests remain GUI-owned. Headless CLI remains an optional closed-Editor export fallback. Never use blind coordinate clicks, `Reimport All`, Library deletion, or a broad cache reset. In this Unity version, a Project-window action labelled **Assets → Reimport** may trigger the broad reimport warning; treat it as `Reimport All` and cancel it.
 
 ## Continuous, compact operating rhythm
 
@@ -112,7 +112,7 @@ An ordinary Unity restart is **not** a Test Runner recovery step. Architect may 
 
 - Until the user restores the separate QA role, only Architect may launch or control Unity for a frozen Core candidate. Core and Module Developer / Technical Art never use Unity UI or Unity processes.
 - Architect owns Unity compilation, Test Runner/manual-smoke execution, export verification and test evidence while this temporary role assignment is active.
-- After every accepted Core commit, Architect keeps Unity closed and runs `Tools/realmraider-unity-cli.sh export-android`. It records the commit SHA and log path, confirms the Android Studio export completed, and warns the user before Unity is opened again.
+- After every accepted Core commit, Architect uses the existing Unity GUI build menu to refresh `Builds/AndroidStudio` while keeping a healthy Editor open. It records the commit SHA and confirms the export completed. Use `Tools/realmraider-unity-cli.sh export-android` only when Unity is already closed under an approved boundary.
 - Module Developer / Technical Art uses a separate worktree and does not touch shared `Library`, `ProjectSettings`, scenes or bootstraps.
 - Third-party assets remain research-only until licence, source, import plan, and provenance record are accepted. Original generated art is a mood reference until converted into an explicitly reviewed game asset.
 
