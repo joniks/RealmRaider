@@ -27,9 +27,9 @@ namespace RealmRaiders.Tests
                 motion.Sample(0, startedAt, .016f, Vector3.zero, CombatActionPhase.Idle);
                 Assert.That(motion.IsDefeatActive, Is.True);
                 Assert.That(motion.IsDefeatSettled, Is.False);
-                Assert.That(pivot.localPosition, Is.EqualTo(motion.BasePosition));
-                Assert.That(pivot.localRotation, Is.EqualTo(motion.BaseRotation));
-                Assert.That(pivot.localScale, Is.EqualTo(motion.BaseScale));
+                Assert.That(Vector3.Distance(pivot.localPosition, motion.BasePosition), Is.LessThanOrEqualTo(.00001f));
+                Assert.That(Quaternion.Angle(pivot.localRotation, motion.BaseRotation), Is.LessThanOrEqualTo(.001f));
+                Assert.That(Vector3.Distance(pivot.localScale, motion.BaseScale), Is.LessThanOrEqualTo(.00001f));
 
                 motion.Sample(0, startedAt + CharacterVisualMotion.DefeatSettleDuration * .5f, .016f, Vector3.zero, CombatActionPhase.Windup);
                 Assert.That(pivot.localPosition.y, Is.LessThan(motion.BasePosition.y));

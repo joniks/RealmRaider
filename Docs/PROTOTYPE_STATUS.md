@@ -102,7 +102,9 @@ Last reviewed: 2026-09-10
 - Diamond Pass 15.4 Infernal Courtyard Floor Surface is present: the factual Volcanic Floor uses the accepted original-generated MWS11 albedo/normal pair with renderer-local square world tiling, while MWS07 causeways, MWS08 boundaries, all Sylvan presentation and gameplay remain unchanged.
 - Diamond Pass 15.5 Defeat Presentation Keeps Gameplay Root Authoritative is present: factual death now settles only the visual Presentation Pivot while the entity root and CharacterController geometry remain exact and all existing death/possession/result authority is preserved.
 - Module Art Pass MWS12 is accepted in the pinned Modules submodule: restrained deterministic Sylvan and Infernal route normal candidates and exact repeat evidence are ready for a named Unity lighting integration gate.
-- Current Unity Test Runner baseline: EditMode `192/192` and PlayMode `89/89` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Diamond Pass 15.6 Restrained Route Normal Pair Integration is present: Sylvan and Infernal MWS07 routes now use their own restrained MWS12 normal at strength `0.20`, with atomic realm-local fallback and no floor, boundary, geometry, collision or gameplay leakage.
+- Module Research Pass MMP05 is accepted in the pinned Modules submodule: the official CC0 Quaternius UAL2 route, seven-slot motion pilot intake and conservative archive-evidence gate are frozen without downloading or importing third-party binaries.
+- Current Unity Test Runner baseline: EditMode `197/197` and PlayMode `90/90` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -119,7 +121,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `192/192` and PlayMode `89/89` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `197/197` and PlayMode `90/90` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -138,7 +140,7 @@ Last reviewed: 2026-09-10
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.
 - The starter-character-catalogue package is installed and explicitly hosted as the five-entry prototype identity roster; authoritative stats, abilities, roles and scene construction intentionally remain in Core bootstraps.
 - The modular-character-recipes package now includes deterministic explicit-provider catalogue construction in the Modules submodule but remains uninstalled; no approved module library or starter recipe instances exist yet.
-- The character-motion-profiles package now includes deterministic explicit-provider catalogue construction, compatibility evaluation and explicit binding-batch evidence but remains uninstalled; its isolated package tests are authored but not yet run, and no approved shared rigs, clips, concrete motion providers or Core presentation adapter exist yet.
+- The character-motion-profiles package now includes deterministic explicit-provider catalogue construction, compatibility evaluation and explicit binding-batch evidence but remains uninstalled; its isolated package tests are authored but not yet run. MMP05 freezes a CC0 UAL2 pilot intake, but no archive, approved shared rig, clip binding, concrete motion provider or Core presentation adapter exists yet.
 - The character-art-manifests package now includes deterministic evidence validation, hashing, explicit-provider catalogue construction, an adapter-neutral measurement gate and immutable batch reporting but remains uninstalled; its isolated package tests are authored but not yet run, and no concrete source manifest, measurement adapter or Unity importer is approved.
 - The character production pipeline is accepted, but Guardian Ent still needs an approved owned/licensed source, gameplay-envelope capture, neutral-gray LOD0 and a frozen LargeCreature rig/bind/anchor manifest before animation or Unity integration.
 - Guardian Ent and Sylvan environment production directions are accepted, but remain design-only until their source, licence and human art gates pass.
@@ -147,10 +149,10 @@ Last reviewed: 2026-09-10
 - Prototype arena boundaries are implemented and automated collision/AI coverage is green; the P0 factual Portal → Crossroads movement/dash regression is also green. Full physical-device edge/action, encounter-completion and portrait-to-landscape feel remain user-owned.
 - The 12.1 automated proof now confirms ordinary Portal → Crossroads traversal through the first large node and preserved outer-boundary containment. QA confirmed the recovered Sylvan landscape Game View renders, but its automation surface could not safely inject the direct walk or outer-edge input; those manual/device observations remain user-owned.
 - Infernal environment production is design-only: the Ironbound Rift Causeway kit still needs a human-approved source/provenance route and neutral-gray production proof before Unity integration.
-- The Hub notice panel presents the release-cleared 3DRT and Kenney records; Quaternius remains excluded from its runtime catalogue until the acquisition-licence conflict receives a human decision and evidence record.
+- The Hub notice panel presents the release-cleared 3DRT and Kenney records. The specifically CC0-labelled Quaternius UAL2 pack is accepted only as a future motion-source candidate; it remains absent from runtime and notices until an official archive is acquired, its embedded terms/hashes are recorded and actual files are integrated.
 - The first-playable-minute proof and canonical Sylvan `BUILD → RAID → DEFEND → BUILD` journey are implemented through real results; physical-device noticeability, wider onboarding and optional replay/settings remain unfinished.
 - Realm landmarks, central routes and continuous arena boundaries now have distinct organic versus angular primitive blockouts, but terrain, final materials/textures, environment assets and physical-device portrait review remain unfinished.
-- The first imported realm surfaces are intentionally reversible preview art with local original-generated provenance. Their normal candidates, seam/tileability proof, final-art approval and device-performance measurements remain unfinished.
+- The first imported realm surfaces are intentionally reversible preview art with local original-generated provenance. Route and selected floor/boundary normals now exist, but their physical-device strength/periodicity, second-tile or macro variation, final-art approval and performance measurements remain unfinished.
 - The Jump icon is an original-generated preview with local provenance, not final approved UI art. Its focused automated behavior is green, but its planned Defender/Sylvan Game View and physical-device readability checks remain pending.
 - The 12.6 Build Plan preview was manually readable in portrait. Its manual Game-view slot-cycle and `1280×720` landscape smoke were not observed because pointer input was unavailable during the check; the focused PlayMode flow test covers those behaviors.
 

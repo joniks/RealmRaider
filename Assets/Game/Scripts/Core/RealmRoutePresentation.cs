@@ -16,6 +16,9 @@ namespace RealmRaiders.Core
         public const int DefenseRendererCeiling = 4;
         public const string SylvanAlbedoResource = "Art/WorldSurfaces/MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate";
         public const string InfernalAlbedoResource = "Art/WorldSurfaces/MWS07-InfernalPath/infernal-basalt-path-edge-hardened-candidate";
+        public const string SylvanRouteNormalResource = "Art/WorldSurfaces/MWS12-WalkableRouteNormalPair/sylvan-route-mobile-normal-rgb-candidate";
+        public const string InfernalRouteNormalResource = "Art/WorldSurfaces/MWS12-WalkableRouteNormalPair/infernal-route-mobile-normal-rgb-candidate";
+        public const float RouteNormalStrength = .20f;
         public const string InfernalCourtyardAlbedoResource = "Art/WorldSurfaces/MWS11-InfernalCourtyardFloor/infernal-courtyard-floor-albedo-rgb-candidate";
         public const string InfernalCourtyardNormalResource = "Art/WorldSurfaces/MWS11-InfernalCourtyardFloor/infernal-courtyard-floor-mobile-normal-rgb-candidate";
         public const float InfernalCourtyardNormalStrength = .30f;
@@ -27,10 +30,14 @@ namespace RealmRaiders.Core
         static Material infernalRoute;
         static Texture2D sylvanAlbedo;
         static Texture2D infernalAlbedo;
+        static Texture2D sylvanRouteNormal;
+        static Texture2D infernalRouteNormal;
         static Texture2D infernalCourtyardAlbedo;
         static Texture2D infernalCourtyardNormal;
         static bool sylvanAlbedoResolved;
         static bool infernalAlbedoResolved;
+        static bool sylvanRouteSurfaceResolved;
+        static bool infernalRouteSurfaceResolved;
         static bool infernalCourtyardSurfaceResolved;
         static System.Func<string, Texture2D> textureLoader = LoadTexture;
 
@@ -74,11 +81,10 @@ namespace RealmRaiders.Core
         }
 
         static Material SylvanFloor => Shared(ref sylvanFloor, new Color(.08f, .24f, .1f), SylvanTexture);
-        static Material SylvanRoute => Shared(ref sylvanRoute, new Color(.25f, .36f, .22f), SylvanTexture);
+        static Material SylvanRoute => SharedSylvanRoute();
         static Material InfernalFloor => SharedInfernalCourtyardFloor();
-        static Material InfernalRoute => Shared(ref infernalRoute, new Color(.27f, .23f, .2f), InfernalTexture);
+        static Material InfernalRoute => SharedInfernalRoute();
         static Texture2D SylvanTexture => ResolveTexture(ref sylvanAlbedo, ref sylvanAlbedoResolved, SylvanAlbedoResource);
-        static Texture2D InfernalTexture => ResolveTexture(ref infernalAlbedo, ref infernalAlbedoResolved, InfernalAlbedoResource);
         static bool InfernalCourtyardSurfaceAvailable => ResolveInfernalCourtyardSurface();
 
         static Material Shared(ref Material material, Color fallbackColor, Texture2D albedo)
@@ -96,13 +102,38 @@ namespace RealmRaiders.Core
             if (!ResolveInfernalCourtyardSurface()) return infernalFloor;
             infernalFloor.color = Color.white;
             infernalFloor.mainTexture = infernalCourtyardAlbedo;
-            if (infernalFloor.HasProperty("_BumpMap"))
-            {
-                infernalFloor.SetTexture("_BumpMap", infernalCourtyardNormal);
-                if (infernalFloor.HasProperty("_BumpScale")) infernalFloor.SetFloat("_BumpScale", InfernalCourtyardNormalStrength);
-                infernalFloor.EnableKeyword("_NORMALMAP");
-            }
+            ApplyNormal(infernalFloor, infernalCourtyardNormal, InfernalCourtyardNormalStrength);
             return infernalFloor;
+        }
+
+        static Material SharedSylvanRoute()
+        {
+            if (sylvanRoute) return sylvanRoute;
+            sylvanRoute = PrototypeRuntimeFactory.Material(new Color(.25f, .36f, .22f));
+            if (!ResolveSylvanRouteSurface()) return sylvanRoute;
+            sylvanRoute.color = Color.white;
+            sylvanRoute.mainTexture = sylvanAlbedo;
+            ApplyNormal(sylvanRoute, sylvanRouteNormal, RouteNormalStrength);
+            return sylvanRoute;
+        }
+
+        static Material SharedInfernalRoute()
+        {
+            if (infernalRoute) return infernalRoute;
+            infernalRoute = PrototypeRuntimeFactory.Material(new Color(.27f, .23f, .2f));
+            if (!ResolveInfernalRouteSurface()) return infernalRoute;
+            infernalRoute.color = Color.white;
+            infernalRoute.mainTexture = infernalAlbedo;
+            ApplyNormal(infernalRoute, infernalRouteNormal, RouteNormalStrength);
+            return infernalRoute;
+        }
+
+        static void ApplyNormal(Material material, Texture2D normal, float strength)
+        {
+            if (!material.HasProperty("_BumpMap")) return;
+            material.SetTexture("_BumpMap", normal);
+            if (material.HasProperty("_BumpScale")) material.SetFloat("_BumpScale", strength);
+            material.EnableKeyword("_NORMALMAP");
         }
 
         static Texture2D ResolveTexture(ref Texture2D texture, ref bool resolved, string resourcePath)
@@ -134,6 +165,29 @@ namespace RealmRaiders.Core
             return false;
         }
 
+        static bool ResolveSylvanRouteSurface()
+        {
+            return ResolveRouteSurface(ref sylvanAlbedo, ref sylvanAlbedoResolved, ref sylvanRouteNormal,
+                ref sylvanRouteSurfaceResolved, SylvanAlbedoResource, SylvanRouteNormalResource);
+        }
+
+        static bool ResolveInfernalRouteSurface()
+        {
+            return ResolveRouteSurface(ref infernalAlbedo, ref infernalAlbedoResolved, ref infernalRouteNormal,
+                ref infernalRouteSurfaceResolved, InfernalAlbedoResource, InfernalRouteNormalResource);
+        }
+
+        static bool ResolveRouteSurface(ref Texture2D albedo, ref bool albedoResolved, ref Texture2D normal,
+            ref bool surfaceResolved, string albedoResource, string normalResource)
+        {
+            if (surfaceResolved) return albedo && normal;
+            surfaceResolved = true;
+            if (!ResolveTexture(ref albedo, ref albedoResolved, albedoResource)) return false;
+            try { normal = textureLoader?.Invoke(normalResource); }
+            catch (System.Exception) { normal = null; }
+            return normal;
+        }
+
         static Texture2D LoadTexture(string resourcePath) => Resources.Load<Texture2D>(resourcePath);
 
         public static void ConfigureTextureLoaderForTests(System.Func<string, Texture2D> loader)
@@ -154,8 +208,8 @@ namespace RealmRaiders.Core
             DestroyMaterial(ref sylvanRoute);
             DestroyMaterial(ref infernalFloor);
             DestroyMaterial(ref infernalRoute);
-            sylvanAlbedo = infernalAlbedo = infernalCourtyardAlbedo = infernalCourtyardNormal = null;
-            sylvanAlbedoResolved = infernalAlbedoResolved = infernalCourtyardSurfaceResolved = false;
+            sylvanAlbedo = infernalAlbedo = sylvanRouteNormal = infernalRouteNormal = infernalCourtyardAlbedo = infernalCourtyardNormal = null;
+            sylvanAlbedoResolved = infernalAlbedoResolved = sylvanRouteSurfaceResolved = infernalRouteSurfaceResolved = infernalCourtyardSurfaceResolved = false;
         }
 
         static void DestroyMaterial(ref Material material)

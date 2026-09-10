@@ -678,3 +678,17 @@ identical dark/midtone evidence sheet). Per team protocol, start the next Module
 lease from a fresh compact role conversation that reads `Docs/TEAM_BRIEF.md` and
 receives one named reserved folder. Do not invent a generic validator or continue
 writing in the old lane merely to avoid idle time.
+
+## Accepted — Research Pass MMP05: Blood Knight Motion Pilot Intake
+
+Accepted Modules commit: `122f5f9`.
+
+The official Quaternius Universal Animation Library 2 pack page is recorded as a
+specific CC0 commercial-use source candidate, with a conservative requirement to
+retain dated official evidence and inspect the actual archive for contradictory
+terms before raw files enter Git. The manifest freezes seven semantic pilot slots:
+idle, one locomotion loop, jump takeoff/fall/land, one sword attack and death.
+
+No third-party binary, rig, clip, Animator, Unity import or runtime binding was
+created. Exact free-archive contents and the current 3DRT Generic rig compatibility
+remain the named Core/QA acquisition pilot rather than an assumed result.

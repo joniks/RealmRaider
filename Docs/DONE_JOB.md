@@ -2797,3 +2797,45 @@ Completed on 2026-09-10.
 - Revive/ragdoll/corpse lifetime, death VFX/audio/haptics/loot/camera/UI, balance,
   collider disabling, destruction, Animator/rig/clips/root motion, new assets and
   result-flow changes.
+
+## Diamond Pass 15.6 — Restrained Route Normal Pair Integration
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Copied only the accepted original-generated MWS12 Sylvan and Infernal RGB normal
+  candidates from Modules commit `e4d1358`; destination SHA-256 values are
+  `aec5888a187057ba19b5a41c98c79100719f01a50aec8c0a7eeb25d8ea514dae`
+  and `34a99a389b7ffa28b37b81e7b02460a5af7646358726b27d347280bcc23aa816`.
+- Each normal is paired only with its existing MWS07 realm route albedo at restrained
+  `_BumpScale` `0.20`; Sylvan floors/nodes, the MWS11 Infernal courtyard and both
+  MWS08 boundary families keep their own presentation.
+- Each realm resolves and caches its albedo+normal route pair atomically and
+  independently. A missing or throwing member preserves that route family's exact
+  prior solid-colour fallback without adding per-route material instances or
+  per-frame work.
+- Import settings are supplied linear NormalMap, Repeat, mipmaps, Bilinear,
+  non-readable and Android 512 ASTC 6×6; local provenance records the visible
+  periodicity device caveat and excludes the two evidence sheets from Resources.
+
+### Verification
+
+- Architect confirmed source/destination byte identity, exactly two runtime PNGs,
+  unique valid 32-hex GUIDs, import/provenance truth, cache/fallback independence,
+  surface isolation and unchanged geometry/collider/gameplay scope;
+  `git diff --check` is clean.
+- QA first exposed two malformed 31-character GUIDs, then two test-contract defects
+  (exact floating transform equality and a brittle provenance phrase). The final
+  frozen candidate corrects only those metadata/test defects.
+- Final QA gates passed EditMode `197/197` in 0.781 seconds and PlayMode `90/90`
+  in 70.62 seconds, with zero failed/skipped/inconclusive tests and no new log
+  errors or exceptions.
+- Manual route-relief readability is not claimed because the Game view was not
+  safely observable; physical-device strength and repetition remain user-owned.
+
+### Scope intentionally deferred
+
+- Albedo edits, floor/node/boundary replacement, height/roughness/metallic/emission,
+  shaders/lighting redesign, second tiles or macro variation, geometry/UV/collider/
+  gameplay changes, final-art approval and physical-device performance claims.

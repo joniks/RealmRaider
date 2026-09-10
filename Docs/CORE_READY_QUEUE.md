@@ -422,15 +422,29 @@ EditMode lifecycle-fixture correction, QA final gates passed EditMode `192/192`
 and PlayMode `89/89`, both with zero failures. Manual Game-view readability remains
 unclaimed.
 
-## Now — Diamond Pass 15.6: Restrained Route Normal Pair Integration
+## Accepted — Diamond Pass 15.6: Restrained Route Normal Pair Integration
 
 Integrate only the accepted Modules `e4d1358` MWS12 Sylvan and Infernal route
-normal candidates beside their existing MWS07 albedos. Preserve shared materials,
-route/floor/boundary separation and all geometry/collider/gameplay authority. Full
-details and exact hashes are in `Docs/NEXT_JOB.md`.
+normal candidates beside their existing MWS07 albedos. Each realm keeps one atomic,
+independently cached pair and exact solid fallback; MWS10/MWS11 floors, MWS08
+boundaries and every geometry/collider/gameplay contract remain isolated.
 
-## Ready after 15.6
+Acceptance: after correcting two malformed new GUIDs and two verification-only
+assertions, QA's final native gates passed EditMode `197/197` and PlayMode `90/90`,
+both with zero failed/skipped/inconclusive tests. Manual route relief remains
+unobserved; physical-device strength and periodicity are not claimed.
 
-Run the Blood Knight motion pilot only after an official redistribution-safe motion
-source and an exact current-model rig/retarget route are frozen. Keep gameplay
-movement authoritative and put Animator/clip output under Presentation Pivot only.
+## Now — Diamond Pass 15.7: Blood Knight Motion Source and Rig Pilot
+
+Use accepted Modules research `122f5f9` to prove the smallest legal and technical
+path from the current Generic 3DRT Blood Knight to one shared visual-only animation
+pipeline. Start with deterministic inventory of the current embedded take and one
+official UAL2 CC0 archive; do not grant Animator/root motion gameplay authority or
+silently replace the model. Full reserved paths and stop conditions are in
+`Docs/NEXT_JOB.md`.
+
+## Ready after 15.7
+
+If the rig pilot proves a safe binding route, implement a minimal in-place Blood
+Knight Animator slice: idle, locomotion, jump phases, one sword attack and death,
+all below Presentation Pivot and driven by existing factual gameplay state.

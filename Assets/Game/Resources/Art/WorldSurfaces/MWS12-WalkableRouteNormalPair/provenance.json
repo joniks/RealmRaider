@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "realmraiders.preview.walkable-route-normal-pair.mws12.v1",
+  "creation": "deterministic-derived-from-project-owned-route-albedos; no third-party source",
+  "status": "preview-import-candidate-not-final-art",
+  "thirdPartySources": false,
+  "licence": "original project asset; no third-party licence or attribution required",
+  "modulesCommit": "e4d1358",
+  "normalStrength": 0.20,
+  "sources": [
+    {
+      "role": "restrained RGB tangent-space normal preview for the Sylvan MWS07 route",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS12-WalkableRouteNormalPair/sylvan-route-mobile-normal-rgb-candidate.png",
+      "sourceSha256": "aec5888a187057ba19b5a41c98c79100719f01a50aec8c0a7eeb25d8ea514dae",
+      "file": "sylvan-route-mobile-normal-rgb-candidate.png",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "sourceAlbedo": "MWS07-SylvanPath/sylvan-stone-path-edge-hardened-candidate.png"
+    },
+    {
+      "role": "restrained RGB tangent-space normal preview for the Infernal MWS07 route",
+      "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/MWS12-WalkableRouteNormalPair/infernal-route-mobile-normal-rgb-candidate.png",
+      "sourceSha256": "34a99a389b7ffa28b37b81e7b02460a5af7646358726b27d347280bcc23aa816",
+      "file": "infernal-route-mobile-normal-rgb-candidate.png",
+      "dimensions": [1024, 1024],
+      "colorFormat": "RGB",
+      "sourceAlbedo": "MWS07-InfernalPath/infernal-basalt-path-edge-hardened-candidate.png"
+    }
+  ],
+  "import": "linear supplied NormalMap, Repeat, mipmaps, Bilinear, non-readable; Android 512 ASTC 6x6 compressed",
+  "repeatEvidence": "The 2x2 repeat evidence was inspected in Modules but is intentionally excluded from Resources; source-derived fine route detail and repeated route pattern retain visible periodicity that requires device review.",
+  "nonGoals": ["albedo edits", "floor/node/boundary normals", "emission", "height", "roughness", "metallic", "shader or lighting redesign", "final-art approval"]
+}

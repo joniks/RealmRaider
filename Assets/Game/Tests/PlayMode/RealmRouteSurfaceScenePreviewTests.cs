@@ -14,7 +14,9 @@ namespace RealmRaiders.Tests
         {
             RealmRoutePresentation.ResetTextureLoaderForTests();
             var sylvanTexture = Resources.Load<Texture2D>(RealmRoutePresentation.SylvanAlbedoResource);
+            var sylvanRouteNormal = Resources.Load<Texture2D>(RealmRoutePresentation.SylvanRouteNormalResource);
             var infernalRouteTexture = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalAlbedoResource);
+            var infernalRouteNormal = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalRouteNormalResource);
             var infernalCourtyardAlbedo = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalCourtyardAlbedoResource);
             var infernalCourtyardNormal = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalCourtyardNormalResource);
             var authority = new GameObject("Authoritative Route Container");
@@ -29,7 +31,9 @@ namespace RealmRaiders.Tests
             try
             {
                 Assert.That(sylvanTexture, Is.Not.Null);
+                Assert.That(sylvanRouteNormal, Is.Not.Null);
                 Assert.That(infernalRouteTexture, Is.Not.Null);
+                Assert.That(infernalRouteNormal, Is.Not.Null);
                 Assert.That(infernalCourtyardAlbedo, Is.Not.Null);
                 Assert.That(infernalCourtyardNormal, Is.Not.Null);
                 var sylvanPresentation = RealmRoutePresentation.BuildSegment(sylvan.transform, RealmRouteStyle.SylvanOrganic);
@@ -37,9 +41,11 @@ namespace RealmRaiders.Tests
                 var infernalPresentation = RealmRoutePresentation.BuildDefenseLane(infernal.transform, RealmRouteStyle.InfernalFractured);
                 yield return null;
 
-                AssertBinding(sylvan, sylvanPresentation, sylvanTexture, sylvanTexture, sylvanSnapshot, false);
-                AssertBinding(sylvanDefense, sylvanDefensePresentation, sylvanTexture, sylvanTexture, sylvanDefenseSnapshot, true);
-                AssertBinding(infernal, infernalPresentation, infernalCourtyardAlbedo, infernalRouteTexture, infernalSnapshot, true);
+                AssertBinding(sylvan, sylvanPresentation, sylvanTexture, sylvanTexture, sylvanRouteNormal, sylvanSnapshot, false);
+                AssertBinding(sylvanDefense, sylvanDefensePresentation, sylvanTexture, sylvanTexture, sylvanRouteNormal, sylvanDefenseSnapshot, true);
+                AssertBinding(infernal, infernalPresentation, infernalCourtyardAlbedo, infernalRouteTexture, infernalRouteNormal, infernalSnapshot, true);
+                Assert.That(sylvan.GetComponent<Renderer>().sharedMaterial.GetTexture("_BumpMap"), Is.Null);
+                Assert.That(sylvanDefense.GetComponent<Renderer>().sharedMaterial.GetTexture("_BumpMap"), Is.Null);
                 var infernalFloorMaterial = infernal.GetComponent<Renderer>().sharedMaterial;
                 Assert.That(infernalFloorMaterial.GetTexture("_BumpMap"), Is.SameAs(infernalCourtyardNormal));
                 Assert.That(infernalFloorMaterial.GetFloat("_BumpScale"), Is.EqualTo(RealmRoutePresentation.InfernalCourtyardNormalStrength).Within(.001f));
@@ -61,11 +67,13 @@ namespace RealmRaiders.Tests
             var courtyardAlbedo = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalCourtyardAlbedoResource);
             var courtyardNormal = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalCourtyardNormalResource);
             var routeAlbedo = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalAlbedoResource);
+            var routeNormal = Resources.Load<Texture2D>(RealmRoutePresentation.InfernalRouteNormalResource);
             try
             {
                 Assert.That(courtyardAlbedo, Is.Not.Null);
                 Assert.That(courtyardNormal, Is.Not.Null);
                 Assert.That(routeAlbedo, Is.Not.Null);
+                Assert.That(routeNormal, Is.Not.Null);
                 SceneManager.LoadScene("InfernalRealm");
                 yield return null;
                 yield return null;
@@ -75,17 +83,64 @@ namespace RealmRaiders.Tests
                 var presentation = floor.transform.Find(RealmRoutePresentation.RootName);
                 Assert.That(presentation, Is.Not.Null);
                 var snapshot = Snapshot(floor);
-                AssertBinding(floor, presentation, courtyardAlbedo, routeAlbedo, snapshot, true);
+                AssertBinding(floor, presentation, courtyardAlbedo, routeAlbedo, routeNormal, snapshot, true);
                 var floorMaterial = floor.GetComponent<Renderer>().sharedMaterial;
                 Assert.That(floorMaterial.GetTexture("_BumpMap"), Is.SameAs(courtyardNormal));
                 Assert.That(floorMaterial.GetFloat("_BumpScale"), Is.EqualTo(RealmRoutePresentation.InfernalCourtyardNormalStrength).Within(.001f));
                 AssertRendererCourtyardTiling(floor.GetComponent<Renderer>(), new Vector2(14f / RealmRoutePresentation.InfernalCourtyardWorldUnitsPerTile, 68f / RealmRoutePresentation.InfernalCourtyardWorldUnitsPerTile));
                 Assert.That(presentation.GetComponentsInChildren<Renderer>(true), Has.Length.EqualTo(RealmRoutePresentation.DefenseRendererCeiling));
                 foreach (var renderer in presentation.GetComponentsInChildren<Renderer>(true))
+                {
                     Assert.That(renderer.sharedMaterial.mainTexture, Is.SameAs(routeAlbedo));
+                    Assert.That(renderer.sharedMaterial.GetTexture("_BumpMap"), Is.SameAs(routeNormal));
+                    Assert.That(renderer.sharedMaterial.GetFloat("_BumpScale"), Is.EqualTo(RealmRoutePresentation.RouteNormalStrength).Within(.001f));
+                }
 
                 yield return null;
-                AssertBinding(floor, presentation, courtyardAlbedo, routeAlbedo, snapshot, true);
+                AssertBinding(floor, presentation, courtyardAlbedo, routeAlbedo, routeNormal, snapshot, true);
+            }
+            finally
+            {
+                SceneManager.LoadScene("RealmBuild");
+                RealmRoutePresentation.ResetTextureLoaderForTests();
+            }
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator SylvanRouteNormalsStayOutOfNodeFloorsAndArenaBoundary()
+        {
+            RealmRoutePresentation.ResetTextureLoaderForTests();
+            var routeNormal = Resources.Load<Texture2D>(RealmRoutePresentation.SylvanRouteNormalResource);
+            var nodeNormal = Resources.Load<Texture2D>("Art/WorldSurfaces/MWS10-SylvanClearingFloor/sylvan-clearing-floor-mobile-normal-rgb-candidate");
+            var boundaryNormal = Resources.Load<Texture2D>(PrototypeArenaBoundaryBuilder.SylvanNormalResource);
+            try
+            {
+                Assert.That(routeNormal, Is.Not.Null);
+                Assert.That(nodeNormal, Is.Not.Null);
+                Assert.That(boundaryNormal, Is.Not.Null);
+                SceneManager.LoadScene("SylvanRealm");
+                yield return null;
+                yield return null;
+
+                var path = GameObject.Find("Living Path");
+                var nodeFloor = GameObject.Find("PORTAL Ground");
+                var boundary = GameObject.Find(PrototypeArenaBoundaryBuilder.BoundaryName);
+                Assert.That(path, Is.Not.Null);
+                Assert.That(nodeFloor, Is.Not.Null);
+                Assert.That(boundary, Is.Not.Null);
+                var pathPresentation = path.transform.Find(RealmRoutePresentation.RootName);
+                var boundaryVisual = boundary.transform.Find(PrototypeArenaBoundaryBuilder.VisualName);
+                Assert.That(pathPresentation, Is.Not.Null);
+                Assert.That(boundaryVisual, Is.Not.Null);
+                var pathRenderer = pathPresentation.GetComponentInChildren<Renderer>();
+                var nodeRenderer = nodeFloor.GetComponent<Renderer>();
+                var boundaryRenderer = boundaryVisual.GetComponent<Renderer>();
+                Assert.That(pathRenderer.sharedMaterial.GetTexture("_BumpMap"), Is.SameAs(routeNormal));
+                Assert.That(nodeRenderer.sharedMaterial.GetTexture("_BumpMap"), Is.SameAs(nodeNormal));
+                Assert.That(boundaryRenderer.sharedMaterial.GetTexture("_BumpMap"), Is.SameAs(boundaryNormal));
+                Assert.That(nodeRenderer.sharedMaterial.GetTexture("_BumpMap"), Is.Not.SameAs(routeNormal));
+                Assert.That(boundaryRenderer.sharedMaterial.GetTexture("_BumpMap"), Is.Not.SameAs(routeNormal));
             }
             finally
             {
@@ -115,6 +170,7 @@ namespace RealmRaiders.Tests
                 root.layer);
 
         static void AssertBinding(GameObject root, Transform presentation, Texture2D expectedRootTexture, Texture2D expectedPresentationTexture,
+            Texture2D expectedPresentationNormal,
             (Transform parent, Vector3 position, Quaternion rotation, Vector3 localPosition, Quaternion localRotation,
                 Vector3 localScale, Mesh mesh, Collider collider, bool colliderIsTrigger, Vector3 colliderCenter, Vector3 colliderSize,
                 int layer) snapshot, bool rootRendererEnabled)
@@ -136,7 +192,11 @@ namespace RealmRaiders.Tests
             Assert.That(root.GetComponent<Renderer>().sharedMaterial.mainTexture, Is.SameAs(expectedRootTexture));
             Assert.That(presentation.GetComponentsInChildren<Collider>(true), Is.Empty);
             foreach (var renderer in presentation.GetComponentsInChildren<Renderer>(true))
+            {
                 Assert.That(renderer.sharedMaterial.mainTexture, Is.SameAs(expectedPresentationTexture));
+                Assert.That(renderer.sharedMaterial.GetTexture("_BumpMap"), Is.SameAs(expectedPresentationNormal));
+                Assert.That(renderer.sharedMaterial.GetFloat("_BumpScale"), Is.EqualTo(RealmRoutePresentation.RouteNormalStrength).Within(.001f));
+            }
         }
 
         static void AssertRendererCourtyardTiling(Renderer renderer, Vector2 expected)
