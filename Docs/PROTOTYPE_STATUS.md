@@ -92,7 +92,8 @@ Last reviewed: 2026-09-10
 - Diamond Pass 14.3 Raid Result Copy Matches the Next Action is present: journey victory and defeat results now describe the factual immediate DEFEND YOUR REALM step while direct raids retain their planning copy and PLAN NEXT DEFENSE route; metrics and exact-once credit are unchanged.
 - Diamond Pass 14.4 In-Run Control Style Mark is present: the existing gameplay selector now reinforces exact CONTROL AUTO/TAP/STICK text with one cached original 32 px mark, complete independent text-only fallback and unchanged control authority.
 - Diamond Pass 14.5 Hub Control Choice Marks is present: the existing CONTEXTUAL, FINGERTAP and JOYSTICK choice buttons now reuse their explicit original non-raycast marks while exact text, saved-preference summary, button actions and responsive footprints remain authoritative.
-- Current Unity Test Runner baseline: EditMode `178/178` and PlayMode `82/82` passed with `0` failures through the QA menu commands on 2026-09-10.
+- Diamond Pass 14.6 Grounded Jump Coyote Time is present: direct players receive one strict 0.10-second grace after factual grounded contact while startup airborne, repeated jump and all existing lifecycle/authority gates remain rejected; the QA menu also recovers safely from an unacknowledged test-run start without automatic retries.
+- Current Unity Test Runner baseline: EditMode `178/178` and PlayMode `83/83` passed with `0` failures through the QA menu commands on 2026-09-10.
 - Physical-device validation remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -109,7 +110,7 @@ Last reviewed: 2026-09-10
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `178/178` and PlayMode `82/82` passed with `0` failures on 2026-09-10.
+- Current verified baseline: EditMode `178/178` and PlayMode `83/83` passed with `0` failures on 2026-09-10.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -122,7 +123,7 @@ Last reviewed: 2026-09-10
 - Realm-specific layout, colors, statistics, names and HUD wiring remain in their bootstraps; shared material, ability, entity, camera, light and EventSystem construction is centralized in a small core helper.
 - Device controls, audio balance and performance have not yet been validated on a representative Android phone.
 - Adaptive portrait/landscape layout plus selectable Contextual, Fingertap and Joystick control styles are implemented; physical-device rotation, focus-loss and layout checks remain outstanding.
-- Direct-controlled characters now have one grounded jump, including a guarded Fingertap empty-ground double-tap path that keeps the initial destination for ordinary airborne movement. It intentionally has no coyote time, input buffer, double/wall/charged jump, air dodge/attack, animation, VFX/audio or physical-device validation. A Unity Game-view smoke confirmed Sylvan portrait and landscape control copy; possessed-Defender direct-control Game View remained unobserved because QA automation lost stable Game View coordinates, although its control path is covered by PlayMode tests.
+- Direct-controlled characters now have one grounded jump plus a strict 0.10-second post-edge coyote window, including a guarded Fingertap empty-ground double-tap path that keeps the initial destination for ordinary airborne movement. It intentionally has no input buffer, double/wall/charged jump, air dodge/attack, animation, VFX/audio or physical-device validation. A Unity Game-view smoke confirmed Sylvan portrait and landscape control copy; the new coyote behavior and possessed-Defender direct-control Game View remain manually unobserved because QA automation lacked safe Game View interaction, although their control paths are covered by PlayMode tests.
 - Camera framing, threat-cue readability, safe-area layout and state-continuity behavior are covered in code/tests. Joystick manual yaw and factual Fingertap locomotion recentering are intentionally presentation-only; untargeted direct attacks now use the visible camera plane without target lock or camera-relative movement. Physical-device noticeability, rotation continuity, attack feel and comfort remain unverified.
 - Android Studio and Xcode export checks are documented in `Docs/PLATFORM_BUILDS.md`; a physical-device performance/usability pass remains outstanding.
 - The visual-tuning Modules package is installed and its pure-data tests run, but no module provider/profile is discovered or integrated into runtime presentation yet.

@@ -14,11 +14,14 @@ namespace RealmRaiders.Editor
         const string StartedKey = "RealmRaiders.TestGate.Started";
         const string JobIdKey = "RealmRaiders.TestGate.JobId";
         const double StaleRecoveryDelaySeconds = 3d;
+        const double StartAcknowledgementDelaySeconds = 3d;
 
         static TestRunnerApi testRunnerApi;
         static GateCallbacks callbacks;
         static double staleRecoveryDeadline;
         static bool staleRecoveryPending;
+        static double startAcknowledgementDeadline;
+        static bool startAcknowledgementPending;
 
         static RealmRaidersTestGate()
         {
@@ -36,6 +39,32 @@ namespace RealmRaiders.Editor
         public static void RunAllPlayModeTests()
         {
             StartRun(TestMode.PlayMode);
+        }
+
+        [MenuItem("Realm Raiders/QA/Clear Stale Test Run Ownership", false, 102)]
+        public static void ClearStaleTestRunOwnership()
+        {
+            if (!SessionState.GetBool(ActiveKey, false))
+            {
+                Debug.Log($"{LogPrefix} No test-run ownership is active.");
+                return;
+            }
+
+            if (SessionState.GetBool(StartedKey, false))
+            {
+                Debug.LogWarning($"{LogPrefix} Cannot clear ownership because the owned test run has started.");
+                return;
+            }
+
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Debug.LogWarning($"{LogPrefix} Cannot clear ownership while Unity is compiling, updating assets, or changing Play Mode.");
+                return;
+            }
+
+            string mode = TryGetOwnedMode(out TestMode ownedMode) ? ModeName(ownedMode) : "unknown-mode";
+            ClearOwnedRun();
+            Debug.LogWarning($"{LogPrefix} Cleared unacknowledged {mode} test-run ownership manually. QA may invoke menu once.");
         }
 
         static void StartRun(TestMode mode)
@@ -77,7 +106,10 @@ namespace RealmRaiders.Editor
                 // Execute normally schedules asynchronously. Keep this assignment guarded in case
                 // a future Test Framework version completes synchronously and clears ownership first.
                 if (SessionState.GetBool(ActiveKey, false))
+                {
                     SessionState.SetString(JobIdKey, jobId ?? string.Empty);
+                    ScheduleStartAcknowledgementIfNeeded();
+                }
             }
             catch (Exception exception)
             {
@@ -103,6 +135,7 @@ namespace RealmRaiders.Editor
             SessionState.SetBool(StartedKey, false);
             SessionState.EraseString(JobIdKey);
             CancelStaleStateRecovery();
+            CancelStartAcknowledgement();
         }
 
         static void ClearOwnedRun()
@@ -112,6 +145,7 @@ namespace RealmRaiders.Editor
             SessionState.EraseBool(StartedKey);
             SessionState.EraseString(JobIdKey);
             CancelStaleStateRecovery();
+            CancelStartAcknowledgement();
         }
 
         static bool TryGetOwnedMode(out TestMode mode)
@@ -185,6 +219,44 @@ namespace RealmRaiders.Editor
             staleRecoveryPending = false;
         }
 
+        static void ScheduleStartAcknowledgementIfNeeded()
+        {
+            if (!SessionState.GetBool(ActiveKey, false) || SessionState.GetBool(StartedKey, false)) return;
+
+            startAcknowledgementDeadline = EditorApplication.timeSinceStartup + StartAcknowledgementDelaySeconds;
+            startAcknowledgementPending = true;
+            EditorApplication.update -= RecoverMissingRunStart;
+            EditorApplication.update += RecoverMissingRunStart;
+        }
+
+        static void RecoverMissingRunStart()
+        {
+            if (!SessionState.GetBool(ActiveKey, false) || SessionState.GetBool(StartedKey, false))
+            {
+                CancelStartAcknowledgement();
+                return;
+            }
+
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                startAcknowledgementDeadline = EditorApplication.timeSinceStartup + StartAcknowledgementDelaySeconds;
+                return;
+            }
+
+            if (EditorApplication.timeSinceStartup < startAcknowledgementDeadline) return;
+
+            string mode = TryGetOwnedMode(out TestMode ownedMode) ? ModeName(ownedMode) : "unknown-mode";
+            ClearOwnedRun();
+            Debug.LogWarning($"{LogPrefix} {mode} run did not report RunStarted after Execute; ownership cleared. QA may invoke menu once.");
+        }
+
+        static void CancelStartAcknowledgement()
+        {
+            if (!startAcknowledgementPending) return;
+            EditorApplication.update -= RecoverMissingRunStart;
+            startAcknowledgementPending = false;
+        }
+
         sealed class GateCallbacks : ICallbacks
         {
             public void RunStarted(ITestAdaptor testsToRun)
@@ -192,6 +264,7 @@ namespace RealmRaiders.Editor
                 if (!SessionState.GetBool(ActiveKey, false) || !MatchesOwnedMode(testsToRun)) return;
 
                 SessionState.SetBool(StartedKey, true);
+                CancelStartAcknowledgement();
                 Debug.Log($"{LogPrefix} {ModeName(testsToRun.TestMode)} run started with {testsToRun.TestCaseCount} test case(s).");
             }
 

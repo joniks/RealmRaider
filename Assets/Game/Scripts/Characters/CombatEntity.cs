@@ -14,6 +14,7 @@ namespace RealmRaiders.Characters
         public const float DodgeDuration = .18f;
         public const float DodgeImmunityDuration = .18f;
         public const float DodgeCooldown = 1.5f;
+        public const float JumpCoyoteSeconds = .10f;
         long selectionIdentity;
         public CharacterDefinition Definition { get; private set; }
         public Health Health { get; private set; }
@@ -32,6 +33,7 @@ namespace RealmRaiders.Characters
         bool isDodging;
         float dodgeReadyAt;
         float rootedUntil;
+        float lastGroundedAt = float.NegativeInfinity;
         public bool IsRooted => Time.time < rootedUntil;
         public CombatActionPhase ActionPhase => action.Phase;
         public bool IsActionResolving => action.IsResolving;
@@ -39,7 +41,7 @@ namespace RealmRaiders.Characters
         public bool IsJumping => jump.IsActive;
         public bool IsGrounded => Motor && Motor.enabled && Motor.isGrounded;
         public float DodgeCooldownRemaining => Mathf.Max(0, dodgeReadyAt - Time.time);
-        public bool CanJump => Health != null && !Health.IsDead && IsGrounded && !IsRooted && !isDodging && !jump.IsActive && !action.IsResolving && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled;
+        public bool CanJump => Health != null && !Health.IsDead && HasJumpGrounding && !IsRooted && !isDodging && !jump.IsActive && !action.IsResolving && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled;
         public bool CanDodge => Health != null && Motor && Motor.enabled && !Health.IsDead && !IsRooted && !isDodging && !jump.IsActive && !action.IsResolving && DodgeCooldownRemaining <= 0 && !GameplayInput.TerminalState && ActiveController is PlayerController player && player.IsActive;
         public long SelectionIdentity
         {
@@ -47,6 +49,17 @@ namespace RealmRaiders.Characters
             {
                 if (selectionIdentity == 0) selectionIdentity = ++nextSelectionIdentity;
                 return selectionIdentity;
+            }
+        }
+
+        bool HasJumpGrounding
+        {
+            get
+            {
+                if (!Motor || !Motor.enabled) return false;
+                if (Motor.isGrounded) return true;
+                var elapsed = Time.time - lastGroundedAt;
+                return lastGroundedAt >= 0 && elapsed >= 0 && elapsed < JumpCoyoteSeconds;
             }
         }
 
@@ -88,7 +101,7 @@ namespace RealmRaiders.Characters
         void Update()
         {
             if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
-            if ((GameplayInput.TerminalState || !Motor || !Motor.enabled) && jump.IsActive) CancelJump();
+            if (GameplayInput.TerminalState || !Motor || !Motor.enabled) CancelJump();
             if (!Health.IsDead) ActiveController?.Tick();
         }
 
@@ -186,6 +199,7 @@ namespace RealmRaiders.Characters
             if (velocity.sqrMagnitude > .01f && !action.IsResolving) transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(velocity), 15 * Time.deltaTime);
             var gravity = jump.IsActive ? Vector3.up * jump.Step(Time.deltaTime) : Physics.gravity;
             Motor.Move((velocity + gravity) * Time.deltaTime);
+            if (Motor.isGrounded) lastGroundedAt = Time.time;
             jump.ObserveGrounded(Motor.isGrounded);
         }
 
@@ -220,7 +234,11 @@ namespace RealmRaiders.Characters
             if (clearImmunity && Health) Health.ClearDamageImmunity();
         }
 
-        internal void CancelJump() => jump.Cancel();
+        internal void CancelJump()
+        {
+            jump.Cancel();
+            lastGroundedAt = float.NegativeInfinity;
+        }
 
         void OnDisable() { CancelDodge(); CancelJump(); }
         void OnDestroy()

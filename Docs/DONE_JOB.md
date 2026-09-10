@@ -2479,3 +2479,35 @@ Completed on 2026-09-10.
 
 - Selected-state art, orientation/navigation icons, control behavior, final-art
   approval, manual portrait readability and physical-device validation.
+
+## Diamond Pass 14.6 — Grounded Jump Coyote Time
+
+Completed on 2026-09-10.
+
+### Delivered
+
+- Direct-controlled characters may jump during one strict 0.10-second grace
+  window after the existing CharacterController records factual grounded contact.
+- Airborne spawn, repeated jump and attempts at or beyond the boundary still
+  reject; root, terminal, controller swap, disabled Motor, death, disable and
+  destroy cleanup cannot carry grace into a later state.
+- Joystick and Fingertap continue to call the same CombatEntity jump authority;
+  no input buffering, delayed execution or control-mode behavior was introduced.
+- The QA menu now clears unacknowledged test-run ownership after a bounded idle
+  start timeout and exposes one safe manual stale-ownership command without
+  automatically retrying tests or changing Test Runner state.
+
+### Verification
+
+- Architect confirmed the strict timing boundary, factual Motor contact, unchanged
+  jump impulse and conjunctive authority gates; `git diff --check` is clean.
+- After one user-authorized controlled Editor restart repaired the stalled Unity
+  compile/domain-reload pipeline, QA gates passed EditMode `178/178` and PlayMode
+  `83/83`, both with zero failed/skipped/inconclusive tests.
+- Editor log tail showed no error/exception entries. Manual ledge behavior is not
+  claimed because QA could not safely operate the Game view.
+
+### Scope intentionally deferred
+
+- Jump input buffering, double/wall/charged/air jump, AI jump, jump tuning,
+  animation/VFX/audio/haptics, device validation and broader movement changes.

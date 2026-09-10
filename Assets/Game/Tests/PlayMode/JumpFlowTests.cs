@@ -79,6 +79,60 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator CoyoteJump_UsesOneStrictGraceWindowAndClearsAcrossLifecycle()
+        {
+            GameplayInput.ResetForTests();
+            var cameraObject = MainCamera();
+            var ground = CreateGround("Coyote Jump Ground", Vector3.zero, new Vector3(20, .5f, 20));
+            var fixture = new EntityFixture(new Vector3(0, 1, 0), false);
+            try
+            {
+                fixture.Entity.SetController(fixture.Player);
+
+                yield return RecordGroundAndLeave(fixture);
+                Assert.That(fixture.Player.Jump(), Is.True, "The first press immediately after factual grounding may use coyote time.");
+                Assert.That(fixture.Player.Jump(), Is.False, "Coyote time cannot create a second airborne jump.");
+                fixture.Entity.ApplyRoot(.01f);
+                fixture.Entity.BreakRoot();
+
+                yield return RecordGroundAndLeave(fixture);
+                yield return new WaitForSeconds(CombatEntity.JumpCoyoteSeconds);
+                yield return null;
+                Assert.That(fixture.Entity.IsGrounded, Is.False);
+                Assert.That(fixture.Player.Jump(), Is.False, "Coyote time rejects at 0.10 seconds plus one frame.");
+
+                yield return RecordGroundAndLeave(fixture);
+                fixture.Entity.ApplyRoot(1);
+                fixture.Entity.BreakRoot();
+                Assert.That(fixture.Player.Jump(), Is.False, "Root cleanup cannot leave a delayed jump grace.");
+
+                yield return RecordGroundAndLeave(fixture);
+                GameplayInput.SetTerminalState(true);
+                yield return null;
+                GameplayInput.SetTerminalState(false);
+                Assert.That(fixture.Player.Jump(), Is.False, "Terminal cleanup cannot leave a delayed jump grace.");
+
+                yield return RecordGroundAndLeave(fixture);
+                fixture.Entity.SetController(fixture.Ai);
+                fixture.Entity.SetController(fixture.Player);
+                Assert.That(fixture.Player.Jump(), Is.False, "Controller release cannot carry grace into the next direct-control state.");
+
+                yield return RecordGroundAndLeave(fixture);
+                fixture.Entity.Motor.enabled = false;
+                yield return null;
+                fixture.Entity.Motor.enabled = true;
+                Assert.That(fixture.Player.Jump(), Is.False, "Disabled Motor cleanup cannot leave a delayed jump grace.");
+            }
+            finally
+            {
+                GameplayInput.ResetForTests();
+                fixture.Dispose();
+                Object.Destroy(ground);
+                Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator JumpGate_RejectsRootActionDodgeTerminalReleaseDisableAirborneAndDeath()
         {
             GameplayInput.ResetForTests();
@@ -411,6 +465,20 @@ namespace RealmRaiders.Tests
             }
             Assert.That(stableFrames, Is.EqualTo(2), $"{fixture.Root.name} did not reach a stable grounded contact.");
             Assert.That(fixture.Entity.IsGrounded, Is.True, fixture.Root.name);
+        }
+
+        static IEnumerator RecordGroundAndLeave(EntityFixture fixture)
+        {
+            var position = fixture.Entity.transform.position;
+            position.y = 1;
+            fixture.Entity.transform.position = position;
+            Physics.SyncTransforms();
+            yield return Settle(fixture);
+
+            fixture.Entity.transform.position += Vector3.up * 3;
+            Physics.SyncTransforms();
+            fixture.Entity.Move(Vector3.zero);
+            Assert.That(fixture.Entity.IsGrounded, Is.False, "The fixture must leave ground after recording a factual motor contact.");
         }
 
         static IEnumerator WaitForGrounded(CombatEntity entity)

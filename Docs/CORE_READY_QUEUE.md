@@ -294,9 +294,9 @@ Console counters were unavailable to the automation surface, so Hub icon/text
 readability and numeric Console state are not manually claimed; Editor log tail
 showed no warning/error/exception entries.
 
-## Now — Diamond Pass 14.6: Grounded Jump Coyote Time
+## Accepted — Diamond Pass 14.6: Grounded Jump Coyote Time
 
-Owner: Core developer. Base: Architect's accepted 14.5 commit. Full lease:
+Owner: Core developer. Base: Architect's accepted 14.5 commit `ab9e5b3`. Full lease:
 `Docs/NEXT_JOB.md`.
 
 Give direct players a strict 0.10-second grace after walking off a grounded edge,
@@ -304,8 +304,18 @@ using CombatEntity's existing Motor movement and jump authority. Preserve startu
 airborne rejection, no double jump, every root/action/dodge/terminal/death/
 controller gate and distinct Joystick/Fingertap intent.
 
-## Ready after 14.6
+Acceptance: after the one user-authorized controlled Editor restart repaired the
+stalled compile/domain-reload pipeline, QA's menu gates passed EditMode `178/178`
+and PlayMode `83/83`, both with zero failed/skipped/inconclusive tests. The new
+start-ack watchdog and explicit stale-ownership command loaded and the command
+correctly reported that no ownership was active. Editor log tail showed no
+error/exception entries; a manual ledge smoke is not claimed because Game view
+was not safely operable through the QA automation surface.
 
-Use QA's observation to accept or make one bounded timing/lifecycle correction.
-Input buffering and the visual-profile integration remain separate later gates;
-Core must not infer queued intent or invent visual transform values.
+## Ready — Diamond Pass 14.7: Jump Takeoff and Landing Readability
+
+Add one bounded presentation-only takeoff stretch and landing settle under the
+existing `Presentation Pivot`, driven by factual jump-state transitions. Gameplay
+root, CharacterController, jump timing, input semantics and combat authority must
+remain unchanged. Core may prepare this lease only after the 14.6 commit; input
+buffering and visual-profile integration remain separate later gates.
