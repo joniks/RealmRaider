@@ -10,18 +10,23 @@ namespace RealmRaiders.Combat
     public sealed class CombatFeedback : MonoBehaviour
     {
         public const float DodgeConfirmationDuration = .45f;
+        public const float NoHitConfirmationDuration = .45f;
         static readonly int ColorId = Shader.PropertyToID("_BaseColor");
         static readonly System.Collections.Generic.Dictionary<Color, Material> materials = new();
         GameObject telegraph;
         GameObject dodgeConfirmation;
         Coroutine dodgeConfirmationRoutine;
+        GameObject noHitConfirmation;
+        Coroutine noHitConfirmationRoutine;
         readonly System.Collections.Generic.List<GameObject> transient = new();
         Renderer[] renderers;
         public bool DodgeConfirmationVisible => dodgeConfirmation && dodgeConfirmation.activeSelf;
+        public bool NoHitConfirmationVisible => noHitConfirmation && noHitConfirmation.activeSelf;
 
         void Awake() => renderers = GetComponentsInChildren<Renderer>();
         public void ShowTelegraph(AbilityDefinition ability, Vector3 direction)
         {
+            ClearNoHitConfirmation();
             ClearTelegraph();
             telegraph = ability.Kind == AbilityKind.Area
                 ? FlatPrimitive("Area Impact Radius", PrimitiveType.Cylinder, transform.position + direction * Mathf.Max(1, ability.Range * .55f), new Vector3(ability.Radius * 2, .025f, ability.Radius * 2), new Color(1f, .62f, .12f, .42f))
@@ -75,15 +80,54 @@ namespace RealmRaiders.Combat
             dodgeConfirmation = null;
         }
 
+        public void ShowNoHitConfirmation()
+        {
+            if (!isActiveAndEnabled) return;
+            var entity = GetComponent<CombatEntity>();
+            if (!entity || !entity.isActiveAndEnabled || entity.Health == null || entity.Health.IsDead || GameplayInput.TerminalState ||
+                entity.ActiveController is not PlayerController player || !player.IsActive || !player.isActiveAndEnabled) return;
+            if (!noHitConfirmation)
+            {
+                noHitConfirmation = new GameObject("Combat No Hit Confirmation", typeof(TextMesh), typeof(CameraFacingMarker));
+                var text = noHitConfirmation.GetComponent<TextMesh>(); text.text = "NO HIT"; text.anchor = TextAnchor.MiddleCenter; text.characterSize = .09f; text.fontSize = 54; text.color = new Color(1f, .72f, .22f);
+                transient.Add(noHitConfirmation);
+            }
+            noHitConfirmation.transform.position = transform.position + Vector3.up * 1.6f;
+            if (noHitConfirmationRoutine != null) StopCoroutine(noHitConfirmationRoutine);
+            noHitConfirmationRoutine = StartCoroutine(ClearNoHitConfirmationAfter(noHitConfirmation));
+        }
+
+        public void ClearNoHitConfirmation()
+        {
+            if (noHitConfirmationRoutine != null) StopCoroutine(noHitConfirmationRoutine);
+            noHitConfirmationRoutine = null;
+            if (noHitConfirmation)
+            {
+                noHitConfirmation.SetActive(false);
+                transient.Remove(noHitConfirmation);
+                Destroy(noHitConfirmation);
+            }
+            noHitConfirmation = null;
+        }
+
+        public static bool ShouldShowNoHit(AbilityKind kind, float damage, bool eligibleContact,
+            bool appliedHit, bool directControl, bool sourceAlive, bool terminal)
+        {
+            var offensiveKind = kind is AbilityKind.Melee or AbilityKind.Area;
+            return offensiveKind && !float.IsNaN(damage) && !float.IsInfinity(damage) && damage > 0 &&
+                   !eligibleContact && !appliedHit && directControl && sourceAlive && !terminal;
+        }
+
         public void ShowImpact()
         {
+            ClearNoHitConfirmation();
             var pulse = FlatPrimitive("Ability Impact", PrimitiveType.Cylinder, transform.position + Vector3.up * .05f, new Vector3(1.45f, .02f, 1.45f), new Color(.95f, 1f, .5f, .5f));
             Track(pulse, .2f);
         }
 
         public void Cleanup()
         {
-            StopAllCoroutines(); dodgeConfirmationRoutine = null; ClearTelegraph();
+            StopAllCoroutines(); dodgeConfirmationRoutine = null; noHitConfirmationRoutine = null; ClearTelegraph();
             if (dodgeConfirmation)
             {
                 dodgeConfirmation.SetActive(false);
@@ -91,6 +135,13 @@ namespace RealmRaiders.Combat
                 Destroy(dodgeConfirmation);
             }
             dodgeConfirmation = null;
+            if (noHitConfirmation)
+            {
+                noHitConfirmation.SetActive(false);
+                transient.Remove(noHitConfirmation);
+                Destroy(noHitConfirmation);
+            }
+            noHitConfirmation = null;
             GetComponent<CharacterVisualMotion>()?.ClearTransientReaction();
             foreach (var item in transient) if (item) Destroy(item);
             transient.Clear();
@@ -116,6 +167,20 @@ namespace RealmRaiders.Combat
                 Destroy(dodgeConfirmation);
             }
             dodgeConfirmation = null;
+        }
+
+        IEnumerator ClearNoHitConfirmationAfter(GameObject expected)
+        {
+            yield return new WaitForSecondsRealtime(NoHitConfirmationDuration);
+            if (noHitConfirmation != expected) yield break;
+            noHitConfirmationRoutine = null;
+            if (noHitConfirmation)
+            {
+                noHitConfirmation.SetActive(false);
+                transient.Remove(noHitConfirmation);
+                Destroy(noHitConfirmation);
+            }
+            noHitConfirmation = null;
         }
 
         GameObject FlatPrimitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Color color)

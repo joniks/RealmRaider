@@ -114,7 +114,7 @@ namespace RealmRaiders.Characters
 
         void Update()
         {
-            if (GameplayInput.TerminalState && !presentationTerminal) { PublishPresentation(CombatPresentationEnd.Terminal); feedback?.ClearDodgeConfirmation(); }
+            if (GameplayInput.TerminalState && !presentationTerminal) { PublishPresentation(CombatPresentationEnd.Terminal); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); }
             presentationTerminal = GameplayInput.TerminalState;
             if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
             if (GameplayInput.TerminalState || !Motor || !Motor.enabled) CancelJump();
@@ -157,13 +157,14 @@ namespace RealmRaiders.Characters
                 }
             }
             var center = transform.position + direction * Mathf.Max(1, ability.Range * .55f);
-            bool connected = false;
+            bool connected = false, eligibleContact = false;
             var damaged = new HashSet<CombatEntity>();
             foreach (var hit in Physics.OverlapSphere(center, ability.Radius, ~0, QueryTriggerInteraction.Ignore))
             {
                 var target = hit.GetComponentInParent<CombatEntity>();
                 if (target && target != this && !target.Health.IsDead && damaged.Add(target))
                 {
+                    eligibleContact = true;
                     var damage = ability.Damage + Stats.AbilityPower * .25f;
                     var point = hit.ClosestPoint(center);
                     if (target.Health.TakeDamage(new DamageInfo(damage, gameObject, point), target.Stats.Armor))
@@ -176,6 +177,13 @@ namespace RealmRaiders.Characters
                 }
             }
             if (connected) feedback.ShowImpact();
+            else
+            {
+                var directControl = ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled;
+                if (CombatFeedback.ShouldShowNoHit(ability.Kind, ability.Damage, eligibleContact, connected,
+                    directControl, Health != null && !Health.IsDead, GameplayInput.TerminalState))
+                    feedback.ShowNoHitConfirmation();
+            }
             action.Recover();
             PublishPresentation();
             yield return new WaitForSecondsRealtime(.12f);
@@ -313,11 +321,12 @@ namespace RealmRaiders.Characters
 
         void ClearPendingJump() => pendingJumpUntil = float.NegativeInfinity;
 
-        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); feedback?.ClearDodgeConfirmation(); CancelDodge(); CancelJump(); }
+        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); CancelDodge(); CancelJump(); }
         void OnDestroy()
         {
             PublishPresentation(CombatPresentationEnd.Destroyed);
             if (Health != null) Health.Died -= OnDeath;
+            feedback?.ClearNoHitConfirmation();
             CancelDodge();
             CancelJump();
         }

@@ -762,9 +762,27 @@ Same-entity death, exact HP/name, inactive controllers, camera return, orientati
 timeout and release-cause separation passed without compiler/runtime errors or new
 duplicate-listener warnings. Manual readability remains unobserved.
 
-## Ready — Diamond Pass 16.9: Next Player-Visible Loop Slice
+## Accepted — Diamond Pass 16.9: Factual Direct-Combat No-Hit Confirmation
 
-Core prepares one read-only proposal from the accepted `858a547` successor. Prefer
-a bounded improvement outside the now-covered health/release/death receipt cluster:
-combat choice, possession agency, world navigation/readability or earned Build
-progression using existing factual state and presentation.
+After one accepted direct-player positive-damage Melee or Area action reaches its
+authoritative impact overlap, reuse the existing CombatFeedback world-marker pattern
+for one bounded `NO HIT` only when zero eligible living contacts were found. Applied
+damage keeps ordinary feedback; an eligible contact that rejects damage keeps only
+`DODGED`. AI, Dash, invalid damage, canceled/rejected actions and lifecycle exits
+never show it. No range, cooldown, timing, targeting, camera or input change.
+
+Acceptance: fresh main and Modules assemblies; final native gates passed EditMode
+`357/357` and PlayMode `104/104`, both with zero failed/skipped/inconclusive tests.
+The exact empty-impact, applied-hit, immunity, AI/Dash/invalid/canceled and lifecycle
+paths passed without compiler/runtime errors or new duplicate-listener warnings.
+Manual marker readability remains unobserved.
+
+## Active — Diamond Pass 17.0: Explicit Blood Knight Motion-Tuning Resolution
+
+Owner: Core developer on GPT-5.6 Sol. Replace the adapter's hard-coded tuning
+selection with the accepted explicit MMP11 Blood Knight assignment resolved against
+the accepted starter provider/catalogue. Preferred resolution must preserve the
+exact current `BloodKnightDeviceReadable` object and therefore every accepted pose,
+timing and gameplay invariant. Any rejected/unavailable assignment fails closed to
+the exact compatibility tuning without discovery, scene scans or module-owned
+gameplay authority. This is a narrow modularity gate, not a motion retune.

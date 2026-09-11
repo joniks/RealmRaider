@@ -73,6 +73,24 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void NoHitConfirmation_RequiresAnEmptyAcceptedDirectOffensiveImpact()
+        {
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Melee, 20, false, false, true, true, false), Is.True);
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Area, .5f, false, false, true, true, false), Is.True);
+
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Melee, 20, true, false, true, true, false), Is.False, "An eligible immunity contact owns the existing DODGED outcome.");
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Melee, 20, true, true, true, true, false), Is.False, "Applied damage owns ordinary impact feedback.");
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Melee, 20, false, false, false, true, false), Is.False, "AI or inactive player control cannot create direct-player feedback.");
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Melee, 20, false, false, true, false, false), Is.False);
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Melee, 20, false, false, true, true, true), Is.False);
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Dash, 20, false, false, true, true, false), Is.False);
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Melee, 0, false, false, true, true, false), Is.False);
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Area, -1, false, false, true, true, false), Is.False);
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Area, float.NaN, false, false, true, true, false), Is.False);
+            Assert.That(CombatFeedback.ShouldShowNoHit(AbilityKind.Area, float.PositiveInfinity, false, false, true, true, false), Is.False);
+        }
+
+        [Test]
         public void ExplicitReleaseFeedback_RequiresFactualActiveAiAndFormatsInvariantHealth()
         {
             var previousCulture = System.Globalization.CultureInfo.CurrentCulture;

@@ -3624,3 +3624,55 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual named defeat receipt fit and Keeper-return/corpse feel in both
   orientations remains unobserved because QA could not safely access the Game view.
+
+## Module Pass MMP11 — Starter Procedural-Humanoid Tuning Assignment
+
+Completed on 2026-09-11 in Modules commit `42fbbc8`.
+
+### Delivered
+
+- One immutable, stable `realmraiders.blood-knight` assignment explicitly selects
+  the accepted device-readable tuning profile and names Compatibility as its only
+  fallback.
+- The assignment is passive data: no discovery, collection, scene access,
+  automatic application or gameplay authority was added.
+
+### Verification
+
+- Four new MMP11 Editor tests were discovered after one controlled Unity refresh
+  and passed inside the final EditMode `357/357` gate.
+- Exact ID, singleton/immutability, preferred and explicit-fallback behavior passed;
+  there was no compiler/runtime error or exception.
+
+## Diamond Pass 16.9 — Factual Direct-Combat No-Hit Confirmation
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- An accepted living direct player's finite positive-damage Melee or Area action
+  now shows one `NO HIT` world marker only after authoritative overlap finds no
+  eligible living non-self creature.
+- Applied damage keeps existing hit/impact feedback, while an immunity-rejected
+  eligible contact keeps only its singular `DODGED` result. AI, Dash, invalid,
+  rejected and canceled actions remain silent.
+- The collider-free camera-facing marker is bounded to 0.45 seconds, restarts
+  singularly and clears on the next action, applied impact, controller change,
+  death, terminal state, disable, destroy and teardown.
+
+### Verification
+
+- QA verified objectively newer main and Modules Runtime/EditMode/PlayMode
+  assemblies after one controlled refresh.
+- Final EditMode passed `357/357`, zero failed/skipped/inconclusive, in 1.809 s
+  (job `2e323666-1ee2-4638-a166-c20e09690c84`).
+- Final PlayMode passed `104/104`, zero failed/skipped/inconclusive, in 84.199 s
+  (job `c655f29f-9425-4a6b-8c63-f495060683f4`,
+  2026-09-11 02:52:11Z–02:53:35Z).
+- No compiler/runtime error, new Console error or new duplicate-`AudioListener`
+  warning occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual `NO HIT` readability in portrait/landscape remains unobserved because QA
+  could not safely access the Game view without changing the user's UI.

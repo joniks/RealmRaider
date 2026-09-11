@@ -87,7 +87,7 @@ namespace RealmRaiders.Tests
             GameplayInput.ResetForTests(); Time.timeScale = 1;
             var cameraObject = MainCamera();
             var target = new EntityFixture(false);
-            var attackerObject = new GameObject("Dodge Confirmation Attacker", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var attackerObject = new GameObject("Dodge Confirmation Attacker", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
             var ground = GameObject.CreatePrimitive(PrimitiveType.Cube); ground.name = "Dodge Confirmation Ground"; ground.transform.position = new Vector3(0, -.25f, 0); ground.transform.localScale = new Vector3(20, .5f, 20);
             var attackerDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
             var attack = ScriptableObject.CreateInstance<AbilityDefinition>();
@@ -95,7 +95,7 @@ namespace RealmRaiders.Tests
             {
                 attack.DisplayName = "Confirmation Strike"; attack.Kind = AbilityKind.Area; attack.Damage = 25; attack.Range = 1; attack.Radius = 4; attack.Windup = 0; attack.Cooldown = 0;
                 attackerDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 }; attackerDefinition.Abilities = new[] { attack };
-                var attacker = attackerObject.GetComponent<CombatEntity>(); attacker.Initialize(attackerDefinition);
+                var attacker = attackerObject.GetComponent<CombatEntity>(); attacker.Initialize(attackerDefinition); attacker.SetController(attackerObject.GetComponent<PlayerController>());
                 target.Root.transform.position = new Vector3(0, 1, 0); attackerObject.transform.position = new Vector3(0, 1, -1); Physics.SyncTransforms();
                 target.Entity.SetController(target.Player);
                 var feedback = target.Root.GetComponent<CombatFeedback>();
@@ -116,6 +116,7 @@ namespace RealmRaiders.Tests
                 Assert.That(confirmation.GetComponent<Collider>(), Is.Null);
                 Assert.That(GameObject.Find("Combat Damage"), Is.Null, "An immunity-rejected hit cannot display damage feedback.");
                 Assert.That(GameObject.Find("Ability Impact"), Is.Null, "An immunity-rejected hit cannot count as an attacker impact.");
+                Assert.That(attacker.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "An eligible immunity contact owns DODGED without a competing attacker NO HIT.");
 
                 feedback.ShowDodgeConfirmation(target.Entity.transform.position);
                 feedback.ShowDodgeConfirmation(target.Entity.transform.position);
@@ -136,10 +137,122 @@ namespace RealmRaiders.Tests
                 Assert.That(feedback.DodgeConfirmationVisible, Is.False);
                 Assert.That(GameObject.Find("Combat Damage"), Is.Not.Null, "An applied hit retains ordinary target feedback.");
                 Assert.That(GameObject.Find("Ability Impact"), Is.Not.Null, "An applied hit retains ordinary attacker impact feedback.");
+                Assert.That(attacker.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "Applied damage cannot also report NO HIT.");
             }
             finally
             {
                 GameplayInput.ResetForTests(); target.Dispose(); Object.Destroy(cameraObject); Object.Destroy(attackerObject); Object.Destroy(ground); Object.Destroy(attackerDefinition); Object.Destroy(attack);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator EmptyDirectMelee_ShowsOneBoundedNoHitWithoutGameplayOrSceneArtifacts()
+        {
+            GameplayInput.ResetForTests(); Time.timeScale = 1;
+            var cameraObject = MainCamera();
+            var fixture = new EntityFixture(true);
+            try
+            {
+                fixture.Entity.SetController(fixture.Player);
+                var feedback = fixture.Root.GetComponent<CombatFeedback>();
+                var rootPosition = fixture.Root.transform.position;
+                var cameraPosition = cameraObject.transform.position;
+                var cameraRotation = cameraObject.transform.rotation;
+                var cameraCount = Object.FindObjectsByType<Camera>(FindObjectsSortMode.None).Length;
+                var listenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+                var eventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
+
+                Assert.That(fixture.Entity.TryUse(0, Vector3.forward), Is.True);
+                var deadline = Time.realtimeSinceStartup + 1;
+                while (!feedback.NoHitConfirmationVisible && fixture.Entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
+
+                Assert.That(feedback.NoHitConfirmationVisible, Is.True);
+                var first = GameObject.Find("Combat No Hit Confirmation");
+                Assert.That(first, Is.Not.Null);
+                Assert.That(first.GetComponent<TextMesh>().text, Is.EqualTo("NO HIT"));
+                Assert.That(first.GetComponent<CameraFacingMarker>(), Is.Not.Null);
+                Assert.That(first.GetComponent<Collider>(), Is.Null);
+                Assert.That(GameObject.Find("Combat Damage"), Is.Null);
+                Assert.That(GameObject.Find("Ability Impact"), Is.Null);
+                Assert.That(fixture.Root.transform.position.x, Is.EqualTo(rootPosition.x).Within(.001f));
+                Assert.That(fixture.Root.transform.position.z, Is.EqualTo(rootPosition.z).Within(.001f));
+                Assert.That(cameraObject.transform.position, Is.EqualTo(cameraPosition));
+                Assert.That(cameraObject.transform.rotation, Is.EqualTo(cameraRotation));
+                Assert.That(GameplayInput.Movement, Is.EqualTo(Vector2.zero));
+                Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(cameraCount));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenerCount));
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(eventSystemCount));
+
+                deadline = Time.realtimeSinceStartup + 1;
+                while (fixture.Entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
+                Assert.That(fixture.Entity.TryUse(0, Vector3.forward), Is.True, "A separate ready action supplies the repeat whiff.");
+                deadline = Time.realtimeSinceStartup + 1;
+                while (!feedback.NoHitConfirmationVisible && fixture.Entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
+                Assert.That(feedback.NoHitConfirmationVisible, Is.True);
+                Assert.That(Object.FindObjectsByType<CameraFacingMarker>(FindObjectsSortMode.None), Has.Length.EqualTo(1), "Repeated whiffs remain a singular presentation.");
+
+                yield return new WaitForSecondsRealtime(CombatFeedback.NoHitConfirmationDuration + .05f);
+                Assert.That(feedback.NoHitConfirmationVisible, Is.False);
+                Assert.That(GameObject.Find("Combat No Hit Confirmation"), Is.Null);
+            }
+            finally
+            {
+                GameplayInput.ResetForTests(); fixture.Dispose(); Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator NoHitConfirmation_RejectsAiDashInvalidRejectedAndCanceledActions()
+        {
+            GameplayInput.ResetForTests(); Time.timeScale = 1;
+            var cameraObject = MainCamera();
+            var aiFixture = new EntityFixture(true);
+            var dashFixture = new EntityFixture(true);
+            var invalidFixture = new EntityFixture(true);
+            var canceledFixture = new EntityFixture(true);
+            try
+            {
+                aiFixture.Root.transform.position = Vector3.zero;
+                dashFixture.Root.transform.position = Vector3.right * 20;
+                invalidFixture.Root.transform.position = Vector3.right * 40;
+                canceledFixture.Root.transform.position = Vector3.right * 60;
+                Physics.SyncTransforms();
+
+                aiFixture.Entity.SetController(aiFixture.Ai);
+                Assert.That(aiFixture.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return new WaitForSecondsRealtime(.3f);
+                Assert.That(aiFixture.Root.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "AI whiffs stay silent.");
+
+                dashFixture.Ability.Kind = AbilityKind.Dash; dashFixture.Ability.DashDistance = .1f;
+                dashFixture.Entity.SetController(dashFixture.Player);
+                Assert.That(dashFixture.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return new WaitForSecondsRealtime(.35f);
+                Assert.That(dashFixture.Root.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "Traversal-capable Dash stays outside this feedback.");
+
+                invalidFixture.Ability.Damage = 0;
+                invalidFixture.Entity.SetController(invalidFixture.Player);
+                Assert.That(invalidFixture.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return new WaitForSecondsRealtime(.3f);
+                Assert.That(invalidFixture.Root.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False);
+                invalidFixture.Ability.Damage = float.NaN;
+                Assert.That(invalidFixture.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return new WaitForSecondsRealtime(.3f);
+                Assert.That(invalidFixture.Root.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "Invalid damage cannot produce outcome copy.");
+
+                canceledFixture.Ability.Windup = 1;
+                canceledFixture.Entity.SetController(canceledFixture.Player);
+                Assert.That(canceledFixture.Entity.TryUse(0, Vector3.forward), Is.True);
+                Assert.That(canceledFixture.Entity.TryUse(0, Vector3.forward), Is.False, "Overlapping input is rejected without feedback.");
+                canceledFixture.Entity.SetController(canceledFixture.Ai);
+                yield return null;
+                Assert.That(canceledFixture.Root.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "Controller loss cancels windup before impact.");
+                Assert.That(GameObject.Find("Combat No Hit Confirmation"), Is.Null);
+            }
+            finally
+            {
+                GameplayInput.ResetForTests();
+                aiFixture.Dispose(); dashFixture.Dispose(); invalidFixture.Dispose(); canceledFixture.Dispose();
+                Object.Destroy(cameraObject);
             }
         }
 
@@ -160,14 +273,21 @@ namespace RealmRaiders.Tests
                 Assert.That(fixture.Entity.TryDodge(Vector3.right), Is.False, "AI control must never gain dodge.");
                 var fixtureFeedback = fixture.Root.GetComponent<CombatFeedback>(); fixtureFeedback.ShowDodgeConfirmation(fixture.Entity.transform.position);
                 Assert.That(fixtureFeedback.DodgeConfirmationVisible, Is.False, "AI/nonimmune targets cannot create confirmation.");
+                fixtureFeedback.ShowNoHitConfirmation();
+                Assert.That(fixtureFeedback.NoHitConfirmationVisible, Is.False, "AI cannot directly fabricate NO HIT.");
                 fixture.Entity.SetController(fixture.Player);
                 fixture.Entity.ApplyRoot(1);
                 Assert.That(fixture.Player.Dodge(), Is.False);
                 Assert.That(fixture.Player.RootEscapeVisible, Is.True); Assert.That(fixture.Player.RootEscapeProgress, Is.Zero);
                 fixture.Entity.BreakRoot();
+                fixtureFeedback.ShowNoHitConfirmation();
+                Assert.That(fixtureFeedback.NoHitConfirmationVisible, Is.True);
                 GameplayInput.SetTerminalState(true);
+                fixture.Entity.SendMessage("Update", SendMessageOptions.RequireReceiver);
                 Assert.That(fixture.Player.Dodge(), Is.False);
+                Assert.That(fixtureFeedback.NoHitConfirmationVisible, Is.False, "Terminal state clears NO HIT synchronously on the existing terminal edge.");
                 GameplayInput.SetTerminalState(false);
+                fixture.Entity.SendMessage("Update", SendMessageOptions.RequireReceiver);
 
                 Assert.That(fixture.Entity.TryUse(0, Vector3.forward), Is.True);
                 Assert.That(fixture.Player.Dodge(), Is.False, "An active ability must own the action window.");
@@ -178,31 +298,45 @@ namespace RealmRaiders.Tests
                 Assert.That(Vector3.Dot(fixture.Entity.transform.forward, Vector3.left), Is.GreaterThan(.99f), "No movement history must fall back to facing.");
                 Assert.That(fixture.Entity.TryUse(0, Vector3.forward), Is.False, "Abilities must not begin during dodge.");
                 fixtureFeedback.ShowDodgeConfirmation(fixture.Entity.transform.position); Assert.That(fixtureFeedback.DodgeConfirmationVisible, Is.True);
+                fixtureFeedback.ShowNoHitConfirmation(); Assert.That(fixtureFeedback.NoHitConfirmationVisible, Is.True);
                 fixture.Entity.SetController(fixture.Ai);
                 Assert.That(fixture.Entity.IsDodging, Is.False);
                 Assert.That(fixture.Entity.Health.IsDamageImmune, Is.False);
                 Assert.That(fixtureFeedback.DodgeConfirmationVisible, Is.False, "Controller swap clears confirmation.");
+                Assert.That(fixtureFeedback.NoHitConfirmationVisible, Is.False, "Controller swap clears NO HIT.");
 
                 deathFixture.Entity.SetController(deathFixture.Player);
                 Assert.That(deathFixture.Player.Dodge(), Is.True);
                 var deathFeedback = deathFixture.Root.GetComponent<CombatFeedback>(); deathFeedback.ShowDodgeConfirmation(deathFixture.Entity.transform.position);
                 Assert.That(deathFeedback.DodgeConfirmationVisible, Is.True);
+                deathFeedback.ShowNoHitConfirmation(); Assert.That(deathFeedback.NoHitConfirmationVisible, Is.True);
                 deathFixture.Entity.SendMessage("OnDeath", SendMessageOptions.RequireReceiver);
                 Assert.That(deathFixture.Entity.IsDodging, Is.False);
                 Assert.That(deathFixture.Entity.Health.IsDamageImmune, Is.False);
                 Assert.That(deathFeedback.DodgeConfirmationVisible, Is.False, "Death cleanup clears confirmation.");
+                Assert.That(deathFeedback.NoHitConfirmationVisible, Is.False, "Death cleanup clears NO HIT.");
                 deathFixture.Entity.Health.TakeDamage(new DamageInfo(1000, null, Vector3.zero), 0);
                 Assert.That(deathFixture.Entity.Health.IsDead, Is.True);
                 Assert.That(deathFixture.Player.Dodge(), Is.False);
 
                 disableFixture.Entity.SetController(disableFixture.Player);
+                var disableFeedback = disableFixture.Root.GetComponent<CombatFeedback>();
+                disableFeedback.ShowNoHitConfirmation(); Assert.That(disableFeedback.NoHitConfirmationVisible, Is.True);
+                disableFeedback.enabled = false;
+                Assert.That(disableFeedback.NoHitConfirmationVisible, Is.False, "Feedback disable clears NO HIT.");
+                disableFeedback.enabled = true;
                 Assert.That(disableFixture.Player.Dodge(), Is.True);
-                var disableFeedback = disableFixture.Root.GetComponent<CombatFeedback>(); disableFeedback.ShowDodgeConfirmation(disableFixture.Entity.transform.position);
+                disableFeedback.ShowDodgeConfirmation(disableFixture.Entity.transform.position);
+                disableFeedback.ShowNoHitConfirmation();
                 Assert.That(disableFeedback.DodgeConfirmationVisible, Is.True);
+                Assert.That(disableFeedback.NoHitConfirmationVisible, Is.True);
                 disableFixture.Entity.enabled = false;
                 Assert.That(disableFixture.Entity.IsDodging, Is.False);
                 Assert.That(disableFixture.Entity.Health.IsDamageImmune, Is.False);
                 Assert.That(disableFeedback.DodgeConfirmationVisible, Is.False, "CombatEntity disable clears confirmation.");
+                Assert.That(disableFeedback.NoHitConfirmationVisible, Is.False, "CombatEntity disable clears NO HIT.");
+                disableFeedback.ShowNoHitConfirmation();
+                Assert.That(disableFeedback.NoHitConfirmationVisible, Is.False, "A disabled source cannot recreate NO HIT.");
 
                 trapFixture.Entity.SetController(trapFixture.Player);
                 Assert.That(trapFixture.Player.Dodge(), Is.True);
@@ -219,10 +353,13 @@ namespace RealmRaiders.Tests
                 destroyFixture.Entity.SetController(destroyFixture.Player);
                 Assert.That(destroyFixture.Player.Dodge(), Is.True);
                 var destroyFeedback = destroyFixture.Root.GetComponent<CombatFeedback>(); destroyFeedback.ShowDodgeConfirmation(destroyFixture.Entity.transform.position);
+                destroyFeedback.ShowNoHitConfirmation();
                 var teardownMarker = GameObject.Find("Combat Dodge Confirmation"); Assert.That(teardownMarker, Is.Not.Null);
+                var noHitTeardownMarker = GameObject.Find("Combat No Hit Confirmation"); Assert.That(noHitTeardownMarker, Is.Not.Null);
                 destroyFixture.Dispose(); destroyFixture = null;
                 yield return null; yield return null;
                 Assert.That(teardownMarker == null, Is.True, "Entity/scene teardown destroys the detached world-space confirmation.");
+                Assert.That(noHitTeardownMarker == null, Is.True, "Entity/scene teardown destroys NO HIT.");
             }
             finally
             {
@@ -319,7 +456,7 @@ namespace RealmRaiders.Tests
             public readonly PlayerController Player;
             public readonly CreatureBrain Ai;
             readonly CharacterDefinition definition;
-            readonly AbilityDefinition ability;
+            public readonly AbilityDefinition Ability;
 
             public EntityFixture(bool withAbility)
             {
@@ -330,9 +467,9 @@ namespace RealmRaiders.Tests
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 4, AttackSpeed = 1 };
                 if (withAbility)
                 {
-                    ability = ScriptableObject.CreateInstance<AbilityDefinition>();
-                    ability.DisplayName = "Test Action"; ability.Kind = AbilityKind.Melee; ability.Windup = .1f; ability.Cooldown = 0; ability.Range = 1; ability.Radius = .1f;
-                    definition.Abilities = new[] { ability };
+                    Ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+                    Ability.DisplayName = "Test Action"; Ability.Kind = AbilityKind.Melee; Ability.Windup = .1f; Ability.Cooldown = 0; Ability.Range = 1; Ability.Radius = .1f;
+                    definition.Abilities = new[] { Ability };
                 }
                 Entity = Root.GetComponent<CombatEntity>(); Player = Root.GetComponent<PlayerController>(); Ai = Root.GetComponent<CreatureBrain>();
                 Entity.Initialize(definition);
@@ -342,7 +479,7 @@ namespace RealmRaiders.Tests
             {
                 Object.Destroy(Root);
                 Object.Destroy(definition);
-                if (ability) Object.Destroy(ability);
+                if (Ability) Object.Destroy(Ability);
             }
         }
     }

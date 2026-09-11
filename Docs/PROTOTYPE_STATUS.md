@@ -131,7 +131,9 @@ Last reviewed: 2026-09-11
 - Diamond Pass 16.7 Factual Creature-Return Receipt is present: an explicit release only confirms that the same named living creature resumed defense with unchanged HP after its active AI is restored, while forced terminal/death/energy returns and invalid/repeated paths cannot invent that claim.
 - Module Pass MMP10 is accepted in the pinned Modules submodule: stable character/recipe assignments now resolve preferred or explicit fallback procedural-humanoid tuning profiles deterministically without discovery or automatic application.
 - Diamond Pass 16.8 Factual Possessed-Creature Defeat Receipt is present: only the exact currently possessed creature's authoritative death reports its factual named loss and zero/maximum HP through the existing notice, while all other release causes retain distinct truthful copy and unchanged authority.
-- Current Unity Test Runner baseline: EditMode `352/352` and PlayMode `102/102` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Module Pass MMP11 is accepted in Modules commit `42fbbc8`: the Blood Knight now has one stable explicit preferred/fallback procedural-motion tuning assignment without discovery, automatic application or gameplay authority.
+- Diamond Pass 16.9 Factual Direct-Combat No-Hit Confirmation is present: only an accepted direct-player positive-damage Melee/Area impact with no eligible living contact shows one bounded `NO HIT`; damage, immunity `DODGED`, AI, Dash and canceled paths retain their distinct existing outcomes.
+- Current Unity Test Runner baseline: EditMode `357/357` and PlayMode `104/104` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -148,7 +150,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `352/352` and PlayMode `102/102` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `357/357` and PlayMode `104/104` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
