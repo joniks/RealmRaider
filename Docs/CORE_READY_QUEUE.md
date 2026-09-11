@@ -689,9 +689,23 @@ The measured result-text fit remained inside its authored portrait/landscape reg
 no compiler error, exception or new duplicate-listener warning occurred. Manual
 result-to-Build readability remains unobserved.
 
-## Ready — Diamond Pass 16.4: Next Player-Visible Loop Slice
+## Accepted — Diamond Pass 16.4: Factual Incoming-Attack Cue
 
-Core prepares one read-only proposal from the current verified loop and remaining
-player-facing limitations. Prefer direct control, combat, possession, world
-readability or a real earned consequence over process work, speculative breadth or
-documentation. Architect freezes acceptance and reserved paths before writing.
+During exact accepted hostile Windup against the current direct player, reuse the
+existing singular non-raycast threat plate/edge tab to show factual `INCOMING`
+copy. Key it by attacker and ActionId and clear at phase/lifecycle boundaries.
+Preserve generic threat fallback, recent-damage urgency, camera/player/targeting
+authority and all combat timing. No new UI object or gameplay change.
+
+Acceptance: after two focused QA defect cycles and one Architect-caught recursive
+reconciliation risk, the final fresh native gates passed EditMode `339/339` and
+PlayMode `96/96`, both with zero failed/skipped/inconclusive tests. Retarget,
+same-threat pulse history, ActionId/fallback and authority cleanup all passed; no
+recursion, NRE, compiler/runtime error or new duplicate-listener warning occurred.
+
+## Ready — Diamond Pass 16.5: Next Player-Visible Loop Slice
+
+Core prepares one read-only proposal from the verified loop and player-facing
+limitations. Prefer direct combat feel, possession meaning, world readability or
+an existing earned consequence over documentation, speculative breadth or process
+work. Architect freezes acceptance and paths before implementation.

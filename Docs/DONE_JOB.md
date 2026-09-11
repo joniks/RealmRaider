@@ -3402,3 +3402,40 @@ Completed on 2026-09-11; included with this project commit.
 - Manual Sylvan result → Return to Build → Ready → explicit cultivate readability
   in portrait/landscape remains unobserved because QA could not safely access the
   Game view.
+
+## Diamond Pass 16.4 — Factual Incoming-Attack Cue
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- The already tracked eligible hostile now enters one exact incoming state only
+  from its accepted `CombatPresentationFact` Windup against the current living
+  direct-controlled entity.
+- State is keyed by attacker plus ActionId and reuses the existing singular,
+  non-raycast threat plate/edge tab for `INCOMING` copy. Impact/end and every
+  authority, target, distance, death, terminal, transition, rebind and teardown
+  boundary clear or revert it.
+- Generic `ATTACKER`/`ATTACKING`, recent-damage urgency, safe-area dimensions,
+  camera focus, player movement, targeting and combat timing remain authoritative
+  and unchanged.
+- CreatureBrain target loss now hides the cue and clears focus synchronously while
+  preserving same-threat one-shot pulse history until bounded next-frame stale
+  cleanup; no recursive intent reconciliation is possible.
+
+### Verification
+
+- QA verified fresh Runtime and PlayMode assemblies after the final correction.
+- Final EditMode passed `339/339`, zero failed/skipped/inconclusive, in 1.779 s
+  (job `e4ee97ef-c7cf-46eb-9fcd-2cf203bbbecb`).
+- Final PlayMode passed `96/96`, zero failed/skipped/inconclusive, in 77.821 s
+  (job `ccac54b1-528c-4923-bef2-d3b31610f51d`,
+  2026-09-11 01:31:21Z–01:32:38Z).
+- Retarget synchronous hide, pulse preservation, accepted-windup fallback and
+  RaidInvader cleanup all passed. No recursion, NRE, compiler/runtime error or new
+  duplicate-listener warning occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual Sylvan possession and possessed-defense incoming-cue readability in both
+  orientations remains unobserved because QA could not safely access the Game view.

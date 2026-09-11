@@ -124,7 +124,8 @@ Last reviewed: 2026-09-11
 - Diamond Pass 16.1 Earned Cultivation Affordance is present: the existing Guardian Ent cultivation button now truthfully shows `MISSING`, `READY` or `CAPPED`, exact shortages and immediate post-purchase stores/rank/status refresh without changing the economy or persistence.
 - Diamond Pass 16.2 Factual Defense Result Debrief is present: the first authoritative terminal transition freezes outcome, elapsed time, invader health and Core progress exactly once and appends those facts to the existing result copy without changing result actions or gameplay.
 - Diamond Pass 16.3 Earned Cultivation Result Handoff is present: only a frozen Sylvan `READY` result points back to the existing explicit Guardian Ent purchase, while missing/capped/malformed/Infernal results and all stores, actions and purchase authority remain unchanged.
-- Current Unity Test Runner baseline: EditMode `339/339` and PlayMode `94/94` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Diamond Pass 16.4 Factual Incoming-Attack Cue is present: an accepted hostile Windup against the current direct player temporarily upgrades the existing singular threat plate/edge tab to factual `INCOMING` copy, keyed by attacker and ActionId with complete authority/lifecycle cleanup and no camera or combat change.
+- Current Unity Test Runner baseline: EditMode `339/339` and PlayMode `96/96` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -141,7 +142,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `339/339` and PlayMode `94/94` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `339/339` and PlayMode `96/96` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

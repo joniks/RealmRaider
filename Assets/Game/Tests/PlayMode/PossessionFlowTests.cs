@@ -1021,6 +1021,242 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator CombatCameraAwareness_UsesAcceptedWindupForOneFactualIncomingCue()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
+            var playerObject = new GameObject("Player", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
+            var threatObject = new GameObject("Windup Threat", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(CreatureBrain));
+            var unrelatedObject = new GameObject("Unrelated Attacker", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var hudObject = new GameObject("Incoming HUD", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(ResponsiveHudRoot));
+            GameObject reboundHudObject = null;
+            var playerDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var threatDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var unrelatedDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+            try
+            {
+                playerDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                ability.DisplayName = "Measured Strike"; ability.Kind = AbilityKind.Dash; ability.Damage = 0; ability.Range = .1f; ability.Radius = .05f; ability.Windup = .15f; ability.Cooldown = .6f; ability.DashDistance = .4f;
+                threatDefinition.DisplayName = "Windup Knight"; threatDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 }; threatDefinition.Abilities = new[] { ability };
+                unrelatedDefinition.DisplayName = "Unrelated"; unrelatedDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 }; unrelatedDefinition.Abilities = new[] { ability };
+                var player = playerObject.GetComponent<CombatEntity>(); var threat = threatObject.GetComponent<CombatEntity>(); var unrelated = unrelatedObject.GetComponent<CombatEntity>();
+                player.Initialize(playerDefinition); threat.Initialize(threatDefinition); unrelated.Initialize(unrelatedDefinition);
+                player.SetController(playerObject.GetComponent<PlayerController>());
+
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat); rig.enabled = false;
+                var view = cameraObject.GetComponent<Camera>(); view.transform.SetPositionAndRotation(new Vector3(0, 2, -10), Quaternion.LookRotation(Vector3.forward)); view.fieldOfView = 60; view.aspect = 1;
+                hudObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                var responsive = hudObject.GetComponent<ResponsiveHudRoot>(); responsive.Initialize(false); responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
+                var awareness = rig.BindCombatHud(responsive); awareness.SetControlled(player);
+                var brain = threatObject.GetComponent<CreatureBrain>(); brain.DetectionRange = 14; threat.SetController(brain);
+
+                var pointAhead = view.transform.position + view.transform.forward * 10;
+                var behind = view.transform.position - view.transform.forward * 2;
+                threatObject.transform.position = pointAhead; unrelatedObject.transform.position = Vector3.right * 30; Physics.SyncTransforms();
+                brain.Target = player; brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(threat.ActionPhase, Is.EqualTo(CombatActionPhase.Windup));
+                Assert.That(awareness.HasIncomingAttack, Is.True);
+                var firstActionId = awareness.IncomingActionId;
+                Assert.That(firstActionId, Is.GreaterThan(0));
+                Assert.That(awareness.TargetPlateVisible, Is.True); Assert.That(awareness.IndicatorVisible, Is.False);
+                Assert.That(awareness.TargetPlateText, Is.EqualTo("INCOMING  WINDUP KNIGHT  100/100 HP"));
+                Assert.That(awareness.TargetPlateRaycastTarget, Is.False);
+                Assert.That(awareness.TargetPlateRect.sizeDelta, Is.EqualTo(new Vector2(380, 64)));
+
+                Assert.That(threat.TryUse(0, Vector3.forward), Is.False, "A blocked use cannot replace the accepted action fact.");
+                Assert.That(unrelated.TryUse(0, Vector3.forward), Is.True);
+                RefreshAwareness(awareness);
+                Assert.That(awareness.IncomingActionId, Is.EqualTo(firstActionId), "Blocked and unrelated actions cannot replace the tracked attacker/action key.");
+                Assert.That(awareness.PresentationRoot.parent, Is.EqualTo(hudObject.transform));
+                Assert.That(CountNamed(hudObject.transform, "Combat Threat Presentation"), Is.EqualTo(1));
+
+                threatObject.transform.position = behind + view.transform.right * 5; Physics.SyncTransforms(); RefreshAwareness(awareness);
+                Assert.That(awareness.IndicatorVisible, Is.True); Assert.That(awareness.IndicatorDirection, Is.EqualTo(1));
+                Assert.That(awareness.IndicatorText, Is.EqualTo("INCOMING ATTACK  ▶"));
+                Assert.That(awareness.IndicatorRaycastTarget, Is.False);
+                Assert.That(awareness.IndicatorRect.sizeDelta, Is.EqualTo(new Vector2(300, 80)));
+
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                threatObject.transform.position = behind - view.transform.right * 5; Physics.SyncTransforms(); RefreshAwareness(awareness);
+                Assert.That(awareness.IndicatorDirection, Is.EqualTo(-1));
+                Assert.That(awareness.IndicatorText, Is.EqualTo("◀  INCOMING ATTACK"));
+                Assert.That(awareness.IndicatorRect.sizeDelta, Is.EqualTo(new Vector2(260, 68)));
+
+                yield return WaitForActionPhase(threat, CombatActionPhase.Impact);
+                RefreshAwareness(awareness);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Impact ends the reaction window.");
+                Assert.That(awareness.IncomingActionId, Is.Zero);
+                Assert.That(awareness.IndicatorText, Is.EqualTo("◀  ATTACKER"), "Impact ends exact incoming and falls back to the CreatureBrain's current broad Chase intent.");
+
+                yield return WaitForActionPhase(threat, CombatActionPhase.Idle);
+                threatObject.transform.position = pointAhead; Physics.SyncTransforms(); brain.Tick(); RefreshAwareness(awareness);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "A cooldown-blocked use cannot create a factual incoming cue.");
+                var nextActionDeadline = Time.realtimeSinceStartup + 1;
+                while (!awareness.HasIncomingAttack && Time.realtimeSinceStartup < nextActionDeadline) { yield return null; RefreshAwareness(awareness); }
+                Assert.That(awareness.HasIncomingAttack, Is.True);
+                Assert.That(awareness.IncomingActionId, Is.GreaterThan(firstActionId), "A later accepted action owns a distinct key.");
+
+                reboundHudObject = new GameObject("Rebound Incoming HUD", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(ResponsiveHudRoot));
+                reboundHudObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                var reboundResponsive = reboundHudObject.GetComponent<ResponsiveHudRoot>(); reboundResponsive.Initialize(false);
+                awareness.BindHud(reboundResponsive);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "HUD rebind cannot carry an in-flight cue into another presentation root.");
+                Assert.That(awareness.PresentationRoot.parent, Is.EqualTo(reboundHudObject.transform));
+                Assert.That(CountNamed(reboundHudObject.transform, "Combat Threat Presentation"), Is.EqualTo(1));
+                yield return null;
+                Assert.That(CountNamed(hudObject.transform, "Combat Threat Presentation"), Is.Zero, "The replaced presentation root is destroyed after the rebind frame.");
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                if (reboundHudObject) Object.Destroy(reboundHudObject);
+                Object.Destroy(hudObject); Object.Destroy(cameraObject); Object.Destroy(playerObject); Object.Destroy(threatObject); Object.Destroy(unrelatedObject);
+                Object.Destroy(playerDefinition); Object.Destroy(threatDefinition); Object.Destroy(unrelatedDefinition); Object.Destroy(ability);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CombatCameraAwareness_IncomingCueClearsAtEveryAuthorityBoundary()
+        {
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
+            var playerObject = new GameObject("Boundary Player", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
+            var hudObject = new GameObject("Boundary HUD", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(ResponsiveHudRoot));
+            GameObject replacementCameraObject = null;
+            GameObject replacementHudObject = null;
+            var threatObjects = new System.Collections.Generic.List<GameObject>();
+            var playerDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var threatDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+            try
+            {
+                playerDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 };
+                ability.DisplayName = "Long Windup"; ability.Kind = AbilityKind.Melee; ability.Damage = 0; ability.Range = .1f; ability.Radius = .05f; ability.Windup = 5; ability.Cooldown = 0;
+                threatDefinition.DisplayName = "Boundary Threat"; threatDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 }; threatDefinition.Abilities = new[] { ability };
+                var player = playerObject.GetComponent<CombatEntity>(); var playerController = playerObject.GetComponent<PlayerController>(); player.Initialize(playerDefinition);
+
+                PrototypeCameraRig rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat); rig.enabled = false;
+                var view = cameraObject.GetComponent<Camera>(); view.transform.SetPositionAndRotation(new Vector3(0, 2, -10), Quaternion.LookRotation(Vector3.forward)); view.fieldOfView = 60; view.aspect = 1;
+                hudObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                var responsive = hudObject.GetComponent<ResponsiveHudRoot>(); responsive.Initialize(false);
+                CombatCameraAwareness awareness = rig.BindCombatHud(responsive);
+                player.SetController(playerController);
+
+                (CombatEntity entity, CreatureBrain brain) CreateThreat(string name)
+                {
+                    var item = new GameObject(name, typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(CreatureBrain));
+                    threatObjects.Add(item);
+                    var entity = item.GetComponent<CombatEntity>(); entity.Initialize(threatDefinition);
+                    var brain = item.GetComponent<CreatureBrain>(); brain.DetectionRange = 14;
+                    return (entity, brain);
+                }
+
+                void BeginIncoming(CombatEntity entity, CreatureBrain brain)
+                {
+                    GameplayInput.SetTerminalState(false);
+                    rig.StopAllCoroutines(); rig.SnapTo(player, CameraMode.HeroCombat); rig.enabled = false;
+                    player.SetController(playerController);
+                    entity.SetController(null); brain.Target = null;
+                    entity.transform.position = player.transform.position + Vector3.forward * 2; Physics.SyncTransforms();
+                    entity.SetController(brain); brain.Target = player; brain.Tick(); RefreshAwareness(awareness);
+                    Assert.That(entity.ActionPhase, Is.EqualTo(CombatActionPhase.Windup));
+                    Assert.That(awareness.HasIncomingAttack, Is.True);
+                    Assert.That(awareness.IncomingActionId, Is.GreaterThan(0));
+                }
+
+                var reusable = CreateThreat("Reusable Boundary Threat");
+                BeginIncoming(reusable.entity, reusable.brain);
+                reusable.brain.Target = null;
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Retarget clears incoming synchronously.");
+                Assert.That(awareness.IndicatorVisible || awareness.TargetPlateVisible, Is.False);
+
+                BeginIncoming(reusable.entity, reusable.brain);
+                reusable.entity.transform.position = player.transform.position + Vector3.forward * 15; Physics.SyncTransforms(); RefreshAwareness(awareness);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Range loss clears incoming.");
+                Assert.That(rig.HasCombatFocus, Is.False);
+
+                BeginIncoming(reusable.entity, reusable.brain);
+                GameplayInput.SetTerminalState(true); RefreshAwareness(awareness);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Terminal state clears incoming.");
+                Assert.That(awareness.IndicatorVisible || awareness.TargetPlateVisible, Is.False);
+                GameplayInput.SetTerminalState(false);
+
+                BeginIncoming(reusable.entity, reusable.brain);
+                rig.enabled = true; rig.TransitionTo(player, CameraMode.PossessedCreature, 1); RefreshAwareness(awareness);
+                Assert.That(rig.IsTransitioning, Is.True);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "A camera transition clears incoming.");
+                Assert.That(rig.HasCombatFocus, Is.False);
+
+                BeginIncoming(reusable.entity, reusable.brain);
+                rig.SnapToOverview(); RefreshAwareness(awareness);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Keeper overview clears incoming.");
+                Assert.That(awareness.IndicatorVisible || awareness.TargetPlateVisible, Is.False);
+
+                BeginIncoming(reusable.entity, reusable.brain);
+                reusable.entity.SetController(null);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Attacker controller change clears incoming from its presentation end.");
+
+                BeginIncoming(reusable.entity, reusable.brain);
+                player.SetController(null);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Direct-control release clears incoming synchronously.");
+                Assert.That(rig.HasCombatFocus, Is.False);
+
+                player.SetController(playerController);
+                BeginIncoming(reusable.entity, reusable.brain);
+                reusable.entity.Health.TakeDamage(new DamageInfo(1000, playerObject, reusable.entity.transform.position), 0);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Attacker death clears incoming synchronously.");
+                Assert.That(awareness.IndicatorVisible || awareness.TargetPlateVisible, Is.False);
+                reusable.entity.SetController(null);
+
+                var disabled = CreateThreat("Disabled Boundary Threat");
+                BeginIncoming(disabled.entity, disabled.brain);
+                disabled.entity.enabled = false;
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Attacker disable clears incoming from its presentation end.");
+                disabled.entity.SetController(null);
+
+                var destroyed = CreateThreat("Destroyed Boundary Threat");
+                BeginIncoming(destroyed.entity, destroyed.brain);
+                Object.Destroy(destroyed.entity.gameObject);
+                yield return null;
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Attacker destruction clears incoming from its presentation end.");
+                Assert.That(awareness.IndicatorVisible || awareness.TargetPlateVisible, Is.False);
+
+                var teardown = CreateThreat("Teardown Boundary Threat");
+                BeginIncoming(teardown.entity, teardown.brain);
+                var presentation = awareness.PresentationRoot;
+                Object.Destroy(cameraObject);
+                yield return null; yield return null;
+                Assert.That(presentation == null, Is.True, "Camera/scene teardown destroys the owned presentation root.");
+                teardown.entity.SetController(null);
+
+                replacementCameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); replacementCameraObject.tag = "MainCamera";
+                replacementHudObject = new GameObject("Replacement Boundary HUD", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(ResponsiveHudRoot));
+                rig = replacementCameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapTo(player, CameraMode.HeroCombat); rig.enabled = false;
+                replacementHudObject.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                var replacementResponsive = replacementHudObject.GetComponent<ResponsiveHudRoot>(); replacementResponsive.Initialize(false);
+                awareness = rig.BindCombatHud(replacementResponsive);
+                player.SetController(playerController);
+
+                var controlledDeath = CreateThreat("Controlled Death Threat");
+                BeginIncoming(controlledDeath.entity, controlledDeath.brain);
+                player.Health.TakeDamage(new DamageInfo(1000, controlledDeath.entity.gameObject, player.transform.position), 0);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Controlled-entity death clears incoming synchronously.");
+                Assert.That(awareness.IndicatorVisible || awareness.TargetPlateVisible, Is.False);
+                Assert.That(rig.HasCombatFocus, Is.False);
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                if (replacementHudObject) Object.Destroy(replacementHudObject);
+                if (replacementCameraObject) Object.Destroy(replacementCameraObject);
+                if (hudObject) Object.Destroy(hudObject);
+                if (cameraObject) Object.Destroy(cameraObject);
+                Object.Destroy(playerObject);
+                foreach (var item in threatObjects) if (item) Object.Destroy(item);
+                Object.Destroy(playerDefinition); Object.Destroy(threatDefinition); Object.Destroy(ability);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator CombatCameraAwareness_TracksActiveCreatureIntentAcrossEdgesAndCleansUp()
         {
             var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig), typeof(CombatCameraAwareness)); cameraObject.tag = "MainCamera";
@@ -1109,6 +1345,7 @@ namespace RealmRaiders.Tests
 
                 player.Health.TakeDamage(new DamageInfo(1, threatObject, playerObject.transform.position), 0);
                 awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Recent damage changes generic urgency, not accepted-windup state.");
                 Assert.That(awareness.IndicatorText, Is.EqualTo("◀  ATTACKING"));
                 Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking));
                 Assert.That(awareness.EdgePulseCount, Is.EqualTo(2));
@@ -1124,6 +1361,7 @@ namespace RealmRaiders.Tests
                 threatObject.transform.position = playerObject.transform.position + Vector3.forward * 2f; Physics.SyncTransforms(); brain.Tick(); awareness.SendMessage("LateUpdate", SendMessageOptions.RequireReceiver);
                 Assert.That(brain.State, Is.EqualTo(BrainState.Attack));
                 Assert.That(awareness.HasEligibleThreat, Is.True);
+                Assert.That(awareness.HasIncomingAttack, Is.False, "Broad Attack state without an accepted ability remains generic urgency.");
                 Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking), "Active Attack intent is independently immediate after damage recency expires.");
 
                 brain.Target = null; brain.Tick();
@@ -1243,12 +1481,15 @@ namespace RealmRaiders.Tests
                 view.transform.rotation = Quaternion.LookRotation(Vector3.back);
                 invaderObject.transform.position = defenderObject.transform.position + Vector3.right * 2; Physics.SyncTransforms(); brain.Tick(); RefreshAwareness(awareness);
                 Assert.That(invader.ActionPhase, Is.EqualTo(CombatActionPhase.Windup));
+                Assert.That(awareness.HasIncomingAttack, Is.True);
                 Assert.That(awareness.IndicatorVisible, Is.True);
                 Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking));
-                Assert.That(awareness.IndicatorText, Does.Contain("ATTACKING"));
+                Assert.That(awareness.IndicatorText, Does.Contain("INCOMING ATTACK"));
                 yield return WaitForActionPhase(invader, CombatActionPhase.Impact);
                 RefreshAwareness(awareness);
+                Assert.That(awareness.HasIncomingAttack, Is.False);
                 Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacking), "Accepted Impact remains factual attacking urgency.");
+                Assert.That(awareness.IndicatorText, Does.Contain("ATTACKING"));
                 yield return WaitForActionPhase(invader, CombatActionPhase.Recovery);
                 RefreshAwareness(awareness);
                 Assert.That(awareness.Urgency, Is.EqualTo(CombatThreatUrgency.Attacker), "Recovery alone must not claim ATTACKING without recent damage.");

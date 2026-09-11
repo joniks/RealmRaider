@@ -35,6 +35,9 @@ namespace RealmRaiders.CameraSystem
         CreatureBrain threatBrain;
         RaidInvaderBrain threatInvaderBrain;
         CombatEntity lastDamageThreat;
+        CombatEntity incomingThreat;
+        long incomingActionId;
+        bool incomingAttack;
         float threatReportedAt = float.NegativeInfinity;
         float threatDamageAt = float.NegativeInfinity;
 
@@ -52,8 +55,10 @@ namespace RealmRaiders.CameraSystem
         CombatEntity displayedPlateTarget;
         float displayedPlateHealth = float.NaN;
         float displayedPlateMaximum = float.NaN;
+        bool displayedPlateIncoming;
         int displayedEdgeDirection;
         CombatThreatUrgency displayedEdgeUrgency;
+        bool displayedEdgeIncoming;
         bool hasDisplayedEdgeState;
         bool edgeMode;
         bool edgeArrivalPulsed;
@@ -77,6 +82,8 @@ namespace RealmRaiders.CameraSystem
         public bool EdgePulsePlaying => pulseRoutine != null;
         public CombatThreatUrgency Urgency { get; private set; }
         public bool HasEligibleThreat => IsEligible(threat);
+        public bool HasIncomingAttack => incomingAttack && incomingThreat == threat;
+        public long IncomingActionId => HasIncomingAttack ? incomingActionId : 0;
         public bool HasHudBinding => hud && presentationRoot;
 
         void Awake()
@@ -94,6 +101,7 @@ namespace RealmRaiders.CameraSystem
 
         public void BindHud(ResponsiveHudRoot responsiveHud, RectTransform competingEdgeCue = null)
         {
+            ClearIncomingAttack();
             if (hud == responsiveHud && presentationRoot)
             {
                 secondaryEdgeCue = competingEdgeCue;
@@ -140,9 +148,19 @@ namespace RealmRaiders.CameraSystem
 
         void ObserveHostileIntent(CreatureBrain brain)
         {
-            if (!brain || !controlled || brain.Target != controlled || !IsHostileIntent(brain)) return;
+            if (!brain) return;
             var candidate = brain.GetComponent<CombatEntity>();
-            if (!candidate || candidate == controlled) return;
+            if (!candidate) return;
+            if (!controlled || !IsHostileIntent(brain))
+            {
+                if (threat == candidate && threatBrain == brain)
+                {
+                    ClearIncomingAttack();
+                    if (!HasFreshReport(candidate)) SuspendTrackedIntentAndReconcile();
+                }
+                return;
+            }
+            if (candidate == controlled) return;
             var delta = candidate.transform.position - controlled.transform.position; delta.y = 0;
             if (delta.sqrMagnitude > NearbyDistance * NearbyDistance) return;
 
@@ -177,13 +195,26 @@ namespace RealmRaiders.CameraSystem
             ReconcileHostileIntent();
         }
 
+        void SuspendTrackedIntentAndReconcile()
+        {
+            if (indicatorRoot) indicatorRoot.gameObject.SetActive(false);
+            StopEdgePulse();
+            RestoreSecondaryCue();
+            ClearTargetPlate();
+            if (rig) rig.ClearCombatFocus();
+            needsIntentReconcile = controlled && controlled.Health != null && !controlled.Health.IsDead;
+        }
+
         void TrackThreat(CombatEntity candidate, bool explicitReport)
         {
             if (threat != candidate)
             {
+                if (threat) threat.PresentationChanged -= ObserveThreatPresentation;
+                ClearIncomingAttack();
                 threat = candidate;
                 threatBrain = candidate.GetComponent<CreatureBrain>();
                 threatInvaderBrain = candidate.GetComponent<RaidInvaderBrain>();
+                threat.PresentationChanged += ObserveThreatPresentation;
                 threatReportedAt = float.NegativeInfinity;
                 lastDamageThreat = null;
                 threatDamageAt = float.NegativeInfinity;
@@ -191,6 +222,26 @@ namespace RealmRaiders.CameraSystem
             }
             if (explicitReport) threatReportedAt = Time.unscaledTime;
             needsIntentReconcile = false;
+        }
+
+        void ObserveThreatPresentation(CombatPresentationFact fact)
+        {
+            if (!threat) { ClearIncomingAttack(); return; }
+            if (fact.End is CombatPresentationEnd.ControllerChanged or CombatPresentationEnd.Death or CombatPresentationEnd.Terminal or CombatPresentationEnd.Disabled or CombatPresentationEnd.Destroyed)
+            {
+                ClearThreat();
+                return;
+            }
+            if (fact.Phase == CombatActionPhase.Windup && fact.End == CombatPresentationEnd.None)
+            {
+                if (!IsEligible(threat) || !HasHostileIntent(threat)) { ClearIncomingAttack(); return; }
+                incomingThreat = threat;
+                incomingActionId = fact.ActionId;
+                incomingAttack = true;
+                InvalidateCueCopy();
+                return;
+            }
+            if (incomingAttack && incomingThreat == threat && incomingActionId == fact.ActionId) ClearIncomingAttack();
         }
 
         void FindExistingHostileIntent()
@@ -274,7 +325,7 @@ namespace RealmRaiders.CameraSystem
         {
             if (!HasHudBinding) return;
             var viewport = view.WorldToViewportPoint(threat.transform.position + Vector3.up);
-            Urgency = HasAttackIntent(threat) || threat == lastDamageThreat && Time.unscaledTime - threatDamageAt <= ImmediateLifetime
+            Urgency = HasIncomingAttack || HasAttackIntent(threat) || threat == lastDamageThreat && Time.unscaledTime - threatDamageAt <= ImmediateLifetime
                 ? CombatThreatUrgency.Attacking
                 : CombatThreatUrgency.Attacker;
             if (ShouldUseEdge(viewport, edgeMode)) ShowEdge(viewport);
@@ -285,16 +336,20 @@ namespace RealmRaiders.CameraSystem
         {
             var entering = !IndicatorVisible;
             var becameImmediate = hasDisplayedEdgeState && displayedEdgeUrgency == CombatThreatUrgency.Attacker && Urgency == CombatThreatUrgency.Attacking;
+            var incoming = HasIncomingAttack;
             edgeMode = true;
             if (targetPlateRoot) targetPlateRoot.gameObject.SetActive(false);
             ClearTargetPlateCache();
             IndicatorDirection = IndicatorDirectionFor(viewport, view.transform.right, threat.transform.position - view.transform.position);
-            if (!hasDisplayedEdgeState || displayedEdgeDirection != IndicatorDirection || displayedEdgeUrgency != Urgency)
+            if (!hasDisplayedEdgeState || displayedEdgeDirection != IndicatorDirection || displayedEdgeUrgency != Urgency || displayedEdgeIncoming != incoming)
             {
                 displayedEdgeDirection = IndicatorDirection;
                 displayedEdgeUrgency = Urgency;
+                displayedEdgeIncoming = incoming;
                 hasDisplayedEdgeState = true;
-                indicator.text = Urgency == CombatThreatUrgency.Attacking
+                indicator.text = incoming
+                    ? IndicatorDirection < 0 ? "◀  INCOMING ATTACK" : "INCOMING ATTACK  ▶"
+                    : Urgency == CombatThreatUrgency.Attacking
                     ? IndicatorDirection < 0 ? "◀  ATTACKING" : "ATTACKING  ▶"
                     : IndicatorDirection < 0 ? "◀  ATTACKER" : "ATTACKER  ▶";
                 var color = Urgency == CombatThreatUrgency.Attacking ? OrangeRed : Amber;
@@ -326,13 +381,17 @@ namespace RealmRaiders.CameraSystem
             RestoreSecondaryCue();
             var health = threat.Health.Current;
             var maximum = threat.Health.Maximum;
-            if (displayedPlateTarget != threat || !Mathf.Approximately(displayedPlateHealth, health) || !Mathf.Approximately(displayedPlateMaximum, maximum))
+            var incoming = HasIncomingAttack;
+            if (displayedPlateTarget != threat || !Mathf.Approximately(displayedPlateHealth, health) || !Mathf.Approximately(displayedPlateMaximum, maximum) || displayedPlateIncoming != incoming)
             {
                 var displayName = threat.Definition && !string.IsNullOrWhiteSpace(threat.Definition.DisplayName) ? threat.Definition.DisplayName : threat.name;
-                targetPlate.text = $"ATTACKER  {displayName.ToUpperInvariant()}  {health:0}/{maximum:0} HP";
+                targetPlate.text = incoming
+                    ? $"INCOMING  {displayName.ToUpperInvariant()}  {health:0}/{maximum:0} HP"
+                    : $"ATTACKER  {displayName.ToUpperInvariant()}  {health:0}/{maximum:0} HP";
                 displayedPlateTarget = threat;
                 displayedPlateHealth = health;
                 displayedPlateMaximum = maximum;
+                displayedPlateIncoming = incoming;
             }
             var orientation = hud.Orientation;
             var reference = orientation == PrototypeOrientation.Portrait ? new Vector2(1080, 1920) : new Vector2(1920, 1080);
@@ -464,6 +523,8 @@ namespace RealmRaiders.CameraSystem
 
         public void ClearThreat()
         {
+            if (threat) threat.PresentationChanged -= ObserveThreatPresentation;
+            ClearIncomingAttack();
             threat = null;
             threatBrain = null;
             threatInvaderBrain = null;
@@ -483,6 +544,7 @@ namespace RealmRaiders.CameraSystem
             edgeArrivalPulsed = false;
             immediatePulsePlayed = false;
             displayedEdgeDirection = 0;
+            displayedEdgeIncoming = false;
             hasDisplayedEdgeState = false;
             if (indicatorRoot) indicatorRoot.gameObject.SetActive(false);
             StopEdgePulse();
@@ -501,6 +563,22 @@ namespace RealmRaiders.CameraSystem
             displayedPlateTarget = null;
             displayedPlateHealth = float.NaN;
             displayedPlateMaximum = float.NaN;
+            displayedPlateIncoming = false;
+        }
+
+        void ClearIncomingAttack()
+        {
+            if (!incomingAttack && !incomingThreat && incomingActionId == 0) return;
+            incomingThreat = null;
+            incomingActionId = 0;
+            incomingAttack = false;
+            InvalidateCueCopy();
+        }
+
+        void InvalidateCueCopy()
+        {
+            hasDisplayedEdgeState = false;
+            ClearTargetPlateCache();
         }
 
         void OnDisable()
