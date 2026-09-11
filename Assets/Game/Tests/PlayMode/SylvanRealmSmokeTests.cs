@@ -145,17 +145,25 @@ namespace RealmRaiders.Tests
                 SceneManager.LoadScene("RealmBuild"); yield return null; yield return null;
                 var hud = Object.FindFirstObjectByType<BuildHUD>(); var root = Object.FindFirstObjectByType<ResponsiveHudRoot>();
                 Assert.That(hud, Is.Not.Null); Assert.That(root, Is.Not.Null);
-                Assert.That(hud.GuardianEntUpgradeText, Does.Contain("RANK 0/3").And.Contain("CURRENT: +0% MAX HEALTH IN NEXT DEFENSE").And.Contain("NEXT CULTIVATION: +10% TOTAL").And.Contain("COST: 100 GOLD • 1 RARE MATERIAL"));
+                Assert.That(hud.GuardianEntUpgradeText, Does.Contain("— READY").And.Contain("RANK 0/3").And.Contain("CURRENT: +0% MAX HEALTH IN NEXT DEFENSE").And.Contain("NEXT CULTIVATION: +10% TOTAL").And.Contain("COST: 100 GOLD • 1 RARE MATERIAL"));
+                Assert.That(hud.GuardianEntUpgradeStatus, Is.EqualTo(GuardianEntCultivationStatus.Ready));
                 Assert.That(hud.GuardianEntUpgradeInteractable, Is.True);
+                Assert.That(hud.GuardianEntUpgradeTint, Is.EqualTo(BuildHUD.CultivationReadyTint));
                 Assert.That(GameObject.Find("CULTIVATE GUARDIAN ENT").GetComponent<UiPointerOwnership>(), Is.Not.Null);
-                root.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertBuildPlanClear();
-                root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertBuildPlanClear();
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertBuildPlanClear(); AssertCultivationButtonContained();
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertBuildPlanClear(); AssertCultivationButtonContained();
 
                 Assert.That(hud.PurchaseGuardianEntVitalityForTests(), Is.True);
                 Assert.That(hud.RealmStoresText, Is.EqualTo("REALM STORES  •  0 GOLD  •  0 RARE MATERIALS"));
-                Assert.That(hud.GuardianEntUpgradeText, Does.Contain("RANK 1/3").And.Contain("CURRENT: +10% MAX HEALTH IN NEXT DEFENSE").And.Contain("NEXT CULTIVATION: +20% TOTAL").And.Contain("NEEDS: 100 GOLD • 1 RARE MATERIAL"));
+                Assert.That(hud.GuardianEntUpgradeText, Does.Contain("— MISSING").And.Contain("RANK 1/3").And.Contain("CURRENT: +10% MAX HEALTH IN NEXT DEFENSE").And.Contain("NEXT CULTIVATION: +20% TOTAL").And.Contain("NEEDS: 100 GOLD • 1 RARE MATERIAL"));
+                Assert.That(hud.GuardianEntUpgradeStatus, Is.EqualTo(GuardianEntCultivationStatus.Missing));
                 Assert.That(hud.GuardianEntUpgradeInteractable, Is.False);
+                Assert.That(hud.GuardianEntUpgradeTint, Is.EqualTo(BuildHUD.CultivationIdleTint));
                 Assert.That(hud.PurchaseGuardianEntVitalityForTests(), Is.False);
+                Assert.That(hud.GuardianEntUpgradeStatus, Is.EqualTo(GuardianEntCultivationStatus.Missing));
+                Assert.That(RealmProgress.Load().GuardianEntVitalityRank, Is.EqualTo(1), "A failed repeat cannot mutate cultivation progress.");
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertBuildPlanClear(); AssertCultivationButtonContained();
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertBuildPlanClear(); AssertCultivationButtonContained();
 
                 GameObject.Find("SAVE & DEFEND").GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;
@@ -454,6 +462,15 @@ namespace RealmRaiders.Tests
                 foreach (var button in buttons) AssertNoDesignOverlap(label, button.GetComponent<RectTransform>(), reference, $"Build label/button overlap: {label.name}/{button.name}");
                 for (var other = index + 1; other < labels.Count; other++) AssertNoDesignOverlap(label, labels[other], reference, $"Build labels overlap: {label.name}/{labels[other].name}");
             }
+        }
+
+        static void AssertCultivationButtonContained()
+        {
+            var reference = Object.FindFirstObjectByType<CanvasScaler>().referenceResolution;
+            var button = GameObject.Find("CULTIVATE GUARDIAN ENT").GetComponent<RectTransform>();
+            var bounds = DesignRect(button, reference);
+            Assert.That(bounds.xMin, Is.GreaterThanOrEqualTo(0)); Assert.That(bounds.yMin, Is.GreaterThanOrEqualTo(0));
+            Assert.That(bounds.xMax, Is.LessThanOrEqualTo(reference.x)); Assert.That(bounds.yMax, Is.LessThanOrEqualTo(reference.y));
         }
 
         static void AssertGuardianEntStatusContained(DefenderHUD hud)

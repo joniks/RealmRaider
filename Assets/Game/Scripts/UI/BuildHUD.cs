@@ -6,10 +6,57 @@ using UnityEngine.SceneManagement;
 
 namespace RealmRaiders.UI
 {
+    public enum GuardianEntCultivationStatus { Missing, Ready, Capped }
+
+    public readonly struct GuardianEntCultivationAffordance
+    {
+        public GuardianEntCultivationStatus Status { get; }
+        public int MissingGold { get; }
+        public int MissingRareMaterials { get; }
+        public string Copy { get; }
+        public bool IsReady => Status == GuardianEntCultivationStatus.Ready;
+
+        GuardianEntCultivationAffordance(GuardianEntCultivationStatus status, int missingGold, int missingRareMaterials, string copy)
+        {
+            Status = status;
+            MissingGold = missingGold;
+            MissingRareMaterials = missingRareMaterials;
+            Copy = copy;
+        }
+
+        public static GuardianEntCultivationAffordance From(RealmProgressData progress)
+        {
+            var rank = Mathf.Clamp(progress?.GuardianEntVitalityRank ?? 0, 0, RealmProgress.GuardianEntVitalityRankCap);
+            if (rank >= RealmProgress.GuardianEntVitalityRankCap)
+                return new GuardianEntCultivationAffordance(GuardianEntCultivationStatus.Capped, 0, 0,
+                    "GUARDIAN ENT CULTIVATION — CAPPED\nRANK 3/3 • +30% MAX HEALTH IN NEXT DEFENSE");
+
+            var gold = Mathf.Max(0, progress?.Gold ?? 0);
+            var rareMaterials = Mathf.Max(0, progress?.RareMaterials ?? 0);
+            var missingGold = Mathf.Max(0, RealmProgress.GuardianEntVitalityGoldCost - gold);
+            var missingRare = Mathf.Max(0, RealmProgress.GuardianEntVitalityRareMaterialCost - rareMaterials);
+            var ready = missingGold == 0 && missingRare == 0;
+            var status = ready ? GuardianEntCultivationStatus.Ready : GuardianEntCultivationStatus.Missing;
+            var costLine = ready
+                ? $"COST: {RealmProgress.GuardianEntVitalityGoldCost} GOLD • {RealmProgress.GuardianEntVitalityRareMaterialCost} RARE MATERIAL"
+                : $"NEEDS: {MissingCopy(missingGold, missingRare)}";
+            var copy = $"CULTIVATE GUARDIAN ENT — {status.ToString().ToUpperInvariant()} • RANK {rank}/3\n" +
+                $"CURRENT: +{rank * 10}% MAX HEALTH IN NEXT DEFENSE\n" +
+                $"NEXT CULTIVATION: +{(rank + 1) * 10}% TOTAL\n{costLine}";
+            return new GuardianEntCultivationAffordance(status, missingGold, missingRare, copy);
+        }
+
+        static string MissingCopy(int gold, int rareMaterials) => gold > 0 && rareMaterials > 0
+            ? $"{gold} GOLD • {rareMaterials} RARE MATERIAL"
+            : gold > 0 ? $"{gold} GOLD" : $"{rareMaterials} RARE MATERIAL";
+    }
+
     public sealed class BuildHUD : MonoBehaviour
     {
         public const string SaveAndDefendAction = "SAVE & DEFEND";
         public const string SaveAndRaidAction = "SAVE & RAID";
+        public static readonly Color CultivationIdleTint = new(.12f, .3f, .18f, .96f);
+        public static readonly Color CultivationReadyTint = new(.38f, .62f, .16f, .98f);
         public int SlotCount => slots.Length;
         public string DefensePlanText => plan ? plan.text : string.Empty;
         public string RealmStoresText => realmStores ? realmStores.text : string.Empty;
@@ -18,6 +65,8 @@ namespace RealmRaiders.UI
         public bool SaveInteractable => saveButton && saveButton.interactable;
         public string SaveActionText => saveButton ? saveButton.GetComponentInChildren<Text>().text : string.Empty;
         public bool GuardianEntUpgradeInteractable => cultivateEnt && cultivateEnt.interactable;
+        public GuardianEntCultivationStatus GuardianEntUpgradeStatus => cultivationAffordance.Status;
+        public Color GuardianEntUpgradeTint => cultivateEnt ? cultivateEnt.GetComponent<Image>().color : Color.clear;
         public BuildGuideStep GuideStep => guideStep;
         public bool GuideLineVisible => guide && guide.DismissVisible;
         public string GuideText => reason ? reason.text : string.Empty;
@@ -29,6 +78,7 @@ namespace RealmRaiders.UI
         public RectTransform GuideSkipRect => guide ? guide.SkipRect : null;
         Button[] slots = Array.Empty<Button>(); Button saveButton, cultivateEnt; Text title; Text budget; Text reason; Text realmStores; Text plan; DefenseLayout layout; ResponsiveHudRoot responsive; HudPresentation presentation; BuildPlanPreview planPreview;
         BuildLayoutSnapshot entryLayout; BuildGuideStep guideStep, dismissedStep; FirstPlayableMinuteBuildGuide guide;
+        GuardianEntCultivationAffordance cultivationAffordance;
         int journeyToken;
         bool journeyHandoff;
         public void Initialize()
@@ -96,8 +146,10 @@ namespace RealmRaiders.UI
             if (cultivateEnt)
             {
                 var progress = RealmProgress.Load();
-                cultivateEnt.interactable = RealmProgress.CanPurchaseGuardianEntVitality();
-                cultivateEnt.GetComponentInChildren<Text>().text = GuardianEntUpgradeCopy(progress);
+                cultivationAffordance = GuardianEntCultivationAffordance.From(progress);
+                cultivateEnt.interactable = cultivationAffordance.IsReady;
+                cultivateEnt.GetComponentInChildren<Text>().text = cultivationAffordance.Copy;
+                cultivateEnt.GetComponent<Image>().color = cultivationAffordance.IsReady ? CultivationReadyTint : CultivationIdleTint;
             }
             for (int i = 0; i < slots.Length; i++) slots[i].GetComponentInChildren<Text>().text = FormatSlotCopy(i, layout.Slots[i]);
             planPreview?.Refresh(layout);
@@ -154,22 +206,7 @@ namespace RealmRaiders.UI
             var rect = cultivateEnt.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = anchor; rect.pivot = pivot; rect.anchoredPosition = position; rect.sizeDelta = new Vector2(720, 100);
         }
         public static string GuardianEntUpgradeCopy(RealmProgressData progress)
-        {
-            if (progress.GuardianEntVitalityRank >= RealmProgress.GuardianEntVitalityRankCap) return "GUARDIAN ENT FULLY CULTIVATED\nRANK 3/3 • +30% MAX HEALTH IN NEXT DEFENSE";
-            var rank = progress.GuardianEntVitalityRank;
-            var nextRank = rank + 1;
-            var canAfford = progress.Gold >= RealmProgress.GuardianEntVitalityGoldCost && progress.RareMaterials >= RealmProgress.GuardianEntVitalityRareMaterialCost;
-            var costLine = canAfford
-                ? $"COST: {RealmProgress.GuardianEntVitalityGoldCost} GOLD • {RealmProgress.GuardianEntVitalityRareMaterialCost} RARE MATERIAL"
-                : $"NEEDS: {MissingGuardianEntCost(progress)}";
-            return $"CULTIVATE GUARDIAN ENT — RANK {rank}/3\nCURRENT: +{rank * 10}% MAX HEALTH IN NEXT DEFENSE\nNEXT CULTIVATION: +{nextRank * 10}% TOTAL\n{costLine}";
-        }
-        static string MissingGuardianEntCost(RealmProgressData progress)
-        {
-            var gold = Mathf.Max(0, RealmProgress.GuardianEntVitalityGoldCost - progress.Gold);
-            var rare = Mathf.Max(0, RealmProgress.GuardianEntVitalityRareMaterialCost - progress.RareMaterials);
-            return gold > 0 && rare > 0 ? $"{gold} GOLD • {rare} RARE MATERIAL" : gold > 0 ? $"{gold} GOLD" : $"{rare} RARE MATERIAL";
-        }
+            => GuardianEntCultivationAffordance.From(progress).Copy;
         public static string FormatSlotCopy(int index, DefenseSlotLayout slot)
         {
             return $"{BuildPlanPreview.SlotName(index)}\n{BuildPlanPreview.PieceName(slot.Piece)} • {BuildPlanPreview.Role(slot.Piece)} • {DefenseLayoutRules.Cost(slot.Piece)} THREAT";

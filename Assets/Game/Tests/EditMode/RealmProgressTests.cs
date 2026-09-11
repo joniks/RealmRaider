@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using RealmRaiders.Core;
 using RealmRaiders.Raid;
+using RealmRaiders.UI;
 using UnityEngine;
 
 namespace RealmRaiders.Tests
@@ -33,12 +34,46 @@ namespace RealmRaiders.Tests
                 var malformed = RealmProgress.Load();
                 Assert.That(malformed.Gold, Is.Zero);
                 Assert.That(malformed.CompletedRaids, Is.Zero);
+                var malformedAffordance = GuardianEntCultivationAffordance.From(malformed);
+                Assert.That(malformedAffordance.Status, Is.EqualTo(GuardianEntCultivationStatus.Missing));
+                Assert.That(malformedAffordance.MissingGold, Is.EqualTo(100));
+                Assert.That(malformedAffordance.MissingRareMaterials, Is.EqualTo(1));
+                Assert.That(malformedAffordance.Copy, Does.Contain("— MISSING").And.Contain("NEEDS: 100 GOLD • 1 RARE MATERIAL"));
 
                 PlayerPrefs.SetString(RealmProgress.KeyForTests, "{\"Version\":99,\"Gold\":500}");
                 var invalid = RealmProgress.Load();
                 Assert.That(invalid.Gold, Is.Zero);
                 Assert.That(invalid.RareMaterials, Is.Zero);
+                var invalidAffordance = GuardianEntCultivationAffordance.From(invalid);
+                Assert.That(invalidAffordance.Status, Is.EqualTo(GuardianEntCultivationStatus.Missing));
+                Assert.That(invalidAffordance.Copy, Does.Contain("NEEDS: 100 GOLD • 1 RARE MATERIAL"));
             });
+        }
+
+        [Test]
+        public void GuardianEntCultivationAffordanceMapsExactMissingReadyAndCappedTruth()
+        {
+            var missingBoth = GuardianEntCultivationAffordance.From(new RealmProgressData { Gold = 80, RareMaterials = 0, GuardianEntVitalityRank = 1 });
+            Assert.That(missingBoth.Status, Is.EqualTo(GuardianEntCultivationStatus.Missing));
+            Assert.That(missingBoth.IsReady, Is.False);
+            Assert.That(missingBoth.MissingGold, Is.EqualTo(20));
+            Assert.That(missingBoth.MissingRareMaterials, Is.EqualTo(1));
+            Assert.That(missingBoth.Copy, Does.Contain("— MISSING").And.Contain("RANK 1/3").And.Contain("NEEDS: 20 GOLD • 1 RARE MATERIAL"));
+
+            var missingRare = GuardianEntCultivationAffordance.From(new RealmProgressData { Gold = 100, RareMaterials = 0, GuardianEntVitalityRank = 1 });
+            Assert.That(missingRare.Status, Is.EqualTo(GuardianEntCultivationStatus.Missing));
+            Assert.That(missingRare.Copy, Does.Contain("NEEDS: 1 RARE MATERIAL"));
+
+            var ready = GuardianEntCultivationAffordance.From(new RealmProgressData { Gold = 100, RareMaterials = 1, GuardianEntVitalityRank = 2 });
+            Assert.That(ready.Status, Is.EqualTo(GuardianEntCultivationStatus.Ready));
+            Assert.That(ready.IsReady, Is.True);
+            Assert.That(ready.MissingGold, Is.Zero); Assert.That(ready.MissingRareMaterials, Is.Zero);
+            Assert.That(ready.Copy, Does.Contain("— READY").And.Contain("RANK 2/3").And.Contain("COST: 100 GOLD • 1 RARE MATERIAL"));
+
+            var capped = GuardianEntCultivationAffordance.From(new RealmProgressData { Gold = 500, RareMaterials = 5, GuardianEntVitalityRank = 3 });
+            Assert.That(capped.Status, Is.EqualTo(GuardianEntCultivationStatus.Capped));
+            Assert.That(capped.IsReady, Is.False);
+            Assert.That(capped.Copy, Is.EqualTo("GUARDIAN ENT CULTIVATION — CAPPED\nRANK 3/3 • +30% MAX HEALTH IN NEXT DEFENSE"));
         }
 
         [Test]

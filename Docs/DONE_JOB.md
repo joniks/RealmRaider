@@ -3271,3 +3271,39 @@ Completed on 2026-09-11; included with this project commit.
   unobserved because QA could not safely access Game-view content.
 - No pickup object, inventory, drop table, rarity roll, new currency, economy
   rebalance, VFX package, audio, haptics or platform export was added.
+
+## Diamond Pass 16.1 — Earned Cultivation Affordance
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- The existing Guardian Ent cultivation button now maps one loaded authoritative
+  Realm Progress snapshot to exact `MISSING`, `READY` or `CAPPED` presentation.
+- `READY` requires the existing 100 Gold plus one Rare Material cost below the
+  existing rank-three cap. Every missing state reports the exact shortage, while
+  capped progress cannot remain interactable.
+- A successful existing purchase immediately refreshes Realm Stores, rank, copy,
+  interactability and one fixed ready tint. Failed repeat purchases leave progress
+  and presentation truthful.
+- No new UI object, economy rule, currency, persistence schema, defense stat,
+  navigation path or reward dependency was introduced.
+
+### Verification
+
+- QA verified that Runtime, EditMode and PlayMode assemblies were newer than all
+  three changed source/test files before running the final gates.
+- Final EditMode passed `334/334`, zero failed/skipped/inconclusive, in 1.75 s
+  (job `3406bdea-d1c4-4915-a41c-9e098ef0d887`).
+- Final PlayMode passed `94/94`, zero failed/skipped/inconclusive, in 76.996 s
+  (job `ff90d3cc-f185-41a0-a079-610b21db8a61`,
+  2026-09-11 00:18:44Z–00:20:01Z).
+- The post-gate scan found no compiler error, runtime exception or test failure;
+  `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual `READY`/`MISSING`/`CAPPED` and portrait/landscape Build readability
+  remains unobserved because QA could not safely access the Game view.
+- Repeated two-AudioListener warnings are an existing test-scene noise defect and
+  are queued separately; 16.1 did not add or alter any AudioListener.

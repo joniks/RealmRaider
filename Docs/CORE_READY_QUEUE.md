@@ -629,7 +629,7 @@ native gates passed EditMode `333/333` and PlayMode `94/94`, both with zero
 failed/skipped/inconclusive tests and no post-gate compiler error or exception.
 Manual Game-view cue readability remains honestly unobserved.
 
-## Ready — Diamond Pass 16.1: Earned Cultivation Affordance
+## Accepted — Diamond Pass 16.1: Earned Cultivation Affordance
 
 Make the prototype's only real loot-to-upgrade payoff unmistakable on the existing
 Build screen. Map loaded Realm Progress to exact `MISSING`, `READY` or `CAPPED`
@@ -638,3 +638,18 @@ interactability and a fixed bounded ready tint. A successful existing purchase
 must immediately refresh stores, rank and status. Preserve the exact costs, rank
 cap, persistence schema, defense stats, saved layout and navigation. This adds no
 new UI object, upgrade, currency, tutorial, animation, asset or reward dependency.
+
+Acceptance: QA first verified fresh Runtime/EditMode/PlayMode assemblies. Final
+native gates passed EditMode `334/334` and PlayMode `94/94`, both with zero
+failed/skipped/inconclusive tests and no compiler error or exception. Manual Build
+readability remains unobserved because the Game view was inaccessible. Repeated
+two-AudioListener test warnings are recorded as a separate quality defect.
+
+## Ready — Diamond Pass 16.2: Factual Defense Result Debrief
+
+Freeze one immutable result fact on the first authoritative defense terminal
+transition and append only factual outcome, elapsed duration, invader remaining
+health and Realm Core danger to the existing result text. Later callbacks,
+orientation and refresh cannot overwrite or duplicate the debrief. Preserve the
+first-minute guide suffix and existing result actions. This adds no score, reward,
+history, causal diagnosis, telemetry, UI object, economy or combat change.
