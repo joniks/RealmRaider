@@ -794,7 +794,7 @@ actual bind/rebind ownership passed without compiler/runtime errors or new
 duplicate-listener warnings. No manual motion check was required because no tuning
 value or pose behavior changed.
 
-## Active — Diamond Pass 17.1: Factual Direct-Combat Defeat Confirmation
+## Accepted — Diamond Pass 17.1: Factual Direct-Combat Defeat Confirmation
 
 Owner: Core developer on GPT-5.6 Sol. When an accepted direct-player Melee or Area
 hit applies damage and that same hit authoritatively transitions an eligible living
@@ -802,3 +802,16 @@ enemy to dead, show one bounded factual `DEFEATED — <NAME>` through the existi
 world-marker presentation. Preserve damage, reward, death, AI and encounter
 authority exactly. AI kills, already-dead/invalid targets, immunity, misses,
 repeated colliders/callbacks and lifecycle exits cannot duplicate or invent it.
+
+Acceptance: after replacing only an ungrounded multi-stage test fixture with one
+owned ground surface, objectively fresh final gates passed EditMode `359/359` and
+PlayMode `106/106`, both with zero failed/skipped/inconclusive tests. Direct and
+multi-target lethal transitions, deduplication, exclusions and lifecycle cleanup
+passed without compiler/runtime errors or new duplicate-listener warnings.
+
+## Ready — Diamond Pass 17.2: Combat Feedback Mobile Presentation Audit
+
+Architect will next inspect the existing `INCOMING`, `DODGED`, `NO HIT`, damage and
+`DEFEATED` presentation as one mobile readability system, then activate one bounded
+player-visible correction only where the code proves inconsistent lifetime,
+overlap, priority or cleanup. No speculative new combat authority is pre-approved.

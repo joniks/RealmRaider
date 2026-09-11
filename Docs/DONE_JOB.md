@@ -3709,3 +3709,38 @@ Completed on 2026-09-11; included with this project commit.
 
 - No manual motion check was required because this gate deliberately changes no
   tuning value or pose behavior.
+
+## Diamond Pass 17.1 — Factual Direct-Combat Defeat Confirmation
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- Only an applied direct-player positive-damage Melee/Area hit that transitions an
+  eligible living named target to dead shows exact `DEFEATED — <DISPLAY NAME>`.
+- Each genuinely distinct defeated target owns one collider-free camera-facing
+  marker for at most 0.65 seconds. Repeated colliders cannot duplicate damage,
+  death or presentation.
+- AI, Dash, misses, immunity, nonlethal/invalid damage, terminal/lost authority and
+  invalid names stay silent while ordinary damage/impact, `DODGED` and `NO HIT`
+  retain their accepted behavior.
+- New action, controller/terminal changes, source or target disable/destroy,
+  timeout and teardown clear every source-owned detached marker.
+
+### Verification
+
+- Final EditMode passed `359/359`, zero failed/skipped/inconclusive, in 1.831 s
+  (job `813c3eb1-401d-4fb9-bcc3-f3ac41e9b5ad`).
+- Final PlayMode passed `106/106`, zero failed/skipped/inconclusive, in 85.725 s
+  (job `2c393632-9143-4721-bae0-3ff634f2ff22`,
+  2026-09-11 03:24:12Z–03:25:38Z).
+- The first two PlayMode attempts exposed an ungrounded long-running test source,
+  not a runtime combat defect. One owned ground fixture kept the source inside the
+  authoritative overlap volume; strict lifecycle assertions then all passed.
+- No compiler/runtime error, new Console error or new duplicate-`AudioListener`
+  warning occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual portrait/landscape marker readability remains unobserved because QA could
+  not safely access the Game view without changing the user's UI.

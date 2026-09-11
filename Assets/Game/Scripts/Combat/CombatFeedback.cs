@@ -11,6 +11,7 @@ namespace RealmRaiders.Combat
     {
         public const float DodgeConfirmationDuration = .45f;
         public const float NoHitConfirmationDuration = .45f;
+        public const float DefeatConfirmationDuration = .65f;
         static readonly int ColorId = Shader.PropertyToID("_BaseColor");
         static readonly System.Collections.Generic.Dictionary<Color, Material> materials = new();
         GameObject telegraph;
@@ -18,14 +19,20 @@ namespace RealmRaiders.Combat
         Coroutine dodgeConfirmationRoutine;
         GameObject noHitConfirmation;
         Coroutine noHitConfirmationRoutine;
+        GameObject defeatConfirmation;
+        Coroutine defeatConfirmationRoutine;
+        CombatFeedback defeatConfirmationSource;
+        readonly System.Collections.Generic.List<CombatFeedback> defeatConfirmationTargets = new();
         readonly System.Collections.Generic.List<GameObject> transient = new();
         Renderer[] renderers;
         public bool DodgeConfirmationVisible => dodgeConfirmation && dodgeConfirmation.activeSelf;
         public bool NoHitConfirmationVisible => noHitConfirmation && noHitConfirmation.activeSelf;
+        public bool DefeatConfirmationVisible => defeatConfirmation && defeatConfirmation.activeSelf;
 
         void Awake() => renderers = GetComponentsInChildren<Renderer>();
         public void ShowTelegraph(AbilityDefinition ability, Vector3 direction)
         {
+            ClearDefeatConfirmation();
             ClearNoHitConfirmation();
             ClearTelegraph();
             telegraph = ability.Kind == AbilityKind.Area
@@ -118,6 +125,52 @@ namespace RealmRaiders.Combat
                    !eligibleContact && !appliedHit && directControl && sourceAlive && !terminal;
         }
 
+        public static bool ShouldShowDefeat(AbilityKind kind, float damage, bool appliedHit,
+            bool targetWasAlive, bool targetIsDead, bool eligibleNonSelfTarget, bool directControl,
+            bool sourceAlive, bool terminal, string targetDisplayName)
+        {
+            var offensiveKind = kind is AbilityKind.Melee or AbilityKind.Area;
+            return offensiveKind && !float.IsNaN(damage) && !float.IsInfinity(damage) && damage > 0 &&
+                   appliedHit && targetWasAlive && targetIsDead && eligibleNonSelfTarget && directControl &&
+                   sourceAlive && !terminal && !string.IsNullOrWhiteSpace(targetDisplayName);
+        }
+
+        internal void ShowDefeatConfirmation(CombatEntity target, Vector3 point)
+        {
+            var source = GetComponent<CombatEntity>();
+            if (!isActiveAndEnabled || !source || !source.isActiveAndEnabled || source.Health == null || source.Health.IsDead ||
+                GameplayInput.TerminalState || source.ActiveController is not PlayerController player || !player.IsActive || !player.isActiveAndEnabled ||
+                !target || target == source || !target.isActiveAndEnabled || target.Health == null || !target.Health.IsDead ||
+                !target.Definition || string.IsNullOrWhiteSpace(target.Definition.DisplayName)) return;
+            var targetFeedback = target.GetComponent<CombatFeedback>();
+            if (!targetFeedback || !targetFeedback.isActiveAndEnabled || targetFeedback.defeatConfirmation) return;
+
+            targetFeedback.defeatConfirmationSource = this;
+            targetFeedback.defeatConfirmation = new GameObject("Combat Defeat Confirmation", typeof(TextMesh), typeof(CameraFacingMarker));
+            targetFeedback.defeatConfirmation.transform.position = point + Vector3.up * 1.7f;
+            var text = targetFeedback.defeatConfirmation.GetComponent<TextMesh>();
+            text.text = $"DEFEATED — {target.Definition.DisplayName}";
+            text.anchor = TextAnchor.MiddleCenter;
+            text.characterSize = .075f;
+            text.fontSize = 54;
+            text.color = new Color(1f, .78f, .25f);
+            targetFeedback.transient.Add(targetFeedback.defeatConfirmation);
+            defeatConfirmationTargets.Add(targetFeedback);
+            targetFeedback.defeatConfirmationRoutine = targetFeedback.StartCoroutine(
+                targetFeedback.ClearDefeatConfirmationAfter(targetFeedback.defeatConfirmation));
+        }
+
+        public void ClearDefeatConfirmation()
+        {
+            ClearOwnedDefeatConfirmation();
+            while (defeatConfirmationTargets.Count > 0)
+            {
+                var target = defeatConfirmationTargets[defeatConfirmationTargets.Count - 1];
+                defeatConfirmationTargets.RemoveAt(defeatConfirmationTargets.Count - 1);
+                if (target) target.ClearDefeatConfirmationFrom(this);
+            }
+        }
+
         public void ShowImpact()
         {
             ClearNoHitConfirmation();
@@ -127,7 +180,8 @@ namespace RealmRaiders.Combat
 
         public void Cleanup()
         {
-            StopAllCoroutines(); dodgeConfirmationRoutine = null; noHitConfirmationRoutine = null; ClearTelegraph();
+            StopAllCoroutines(); dodgeConfirmationRoutine = null; noHitConfirmationRoutine = null; defeatConfirmationRoutine = null; ClearTelegraph();
+            ClearDefeatConfirmation();
             if (dodgeConfirmation)
             {
                 dodgeConfirmation.SetActive(false);
@@ -181,6 +235,34 @@ namespace RealmRaiders.Combat
                 Destroy(noHitConfirmation);
             }
             noHitConfirmation = null;
+        }
+
+        IEnumerator ClearDefeatConfirmationAfter(GameObject expected)
+        {
+            yield return new WaitForSecondsRealtime(DefeatConfirmationDuration);
+            if (defeatConfirmation != expected) yield break;
+            ClearOwnedDefeatConfirmation();
+        }
+
+        void ClearDefeatConfirmationFrom(CombatFeedback expectedSource)
+        {
+            if (defeatConfirmationSource == expectedSource) ClearOwnedDefeatConfirmation();
+        }
+
+        void ClearOwnedDefeatConfirmation()
+        {
+            if (defeatConfirmationRoutine != null) StopCoroutine(defeatConfirmationRoutine);
+            defeatConfirmationRoutine = null;
+            var source = defeatConfirmationSource;
+            defeatConfirmationSource = null;
+            if (defeatConfirmation)
+            {
+                defeatConfirmation.SetActive(false);
+                transient.Remove(defeatConfirmation);
+                Destroy(defeatConfirmation);
+            }
+            defeatConfirmation = null;
+            if (source) source.defeatConfirmationTargets.Remove(this);
         }
 
         GameObject FlatPrimitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Color color)

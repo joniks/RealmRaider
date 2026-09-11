@@ -91,6 +91,28 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void DefeatConfirmation_RequiresExactAppliedLethalDirectCombatTransition()
+        {
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, true, true, true, true, false, "Bog Warden"), Is.True);
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Area, .5f, true, true, true, true, true, true, false, "Cinder Hound"), Is.True);
+
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, false, true, true, true, false, "Bog Warden"), Is.False, "A nonlethal hit stays on ordinary damage feedback.");
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, false, true, false, true, true, true, false, "Bog Warden"), Is.False, "Immunity never reports an applied defeat.");
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, false, false, true, true, true, true, false, "Bog Warden"), Is.False, "An already-dead target has no lethal transition.");
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, false, true, false, false, true, true, false, "Bog Warden"), Is.False, "Misses, self and world contacts are ineligible.");
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, true, true, false, true, false, "Bog Warden"), Is.False, "AI or inactive direct control stays silent.");
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, true, true, true, false, false, "Bog Warden"), Is.False, "A dead source cannot own confirmation.");
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, true, true, true, true, true, "Bog Warden"), Is.False, "Terminal gameplay stays silent.");
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Dash, 20, true, true, true, true, true, true, false, "Bog Warden"), Is.False);
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 0, true, true, true, true, true, true, false, "Bog Warden"), Is.False);
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, -1, true, true, true, true, true, true, false, "Bog Warden"), Is.False);
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, float.NaN, true, true, true, true, true, true, false, "Bog Warden"), Is.False);
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, float.PositiveInfinity, true, true, true, true, true, true, false, "Bog Warden"), Is.False);
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, true, true, true, true, false, null), Is.False);
+            Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, true, true, true, true, false, " \t"), Is.False);
+        }
+
+        [Test]
         public void ExplicitReleaseFeedback_RequiresFactualActiveAiAndFormatsInvariantHealth()
         {
             var previousCulture = System.Globalization.CultureInfo.CurrentCulture;

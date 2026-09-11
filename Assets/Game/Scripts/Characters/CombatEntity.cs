@@ -114,7 +114,7 @@ namespace RealmRaiders.Characters
 
         void Update()
         {
-            if (GameplayInput.TerminalState && !presentationTerminal) { PublishPresentation(CombatPresentationEnd.Terminal); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); }
+            if (GameplayInput.TerminalState && !presentationTerminal) { PublishPresentation(CombatPresentationEnd.Terminal); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); feedback?.ClearDefeatConfirmation(); }
             presentationTerminal = GameplayInput.TerminalState;
             if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
             if (GameplayInput.TerminalState || !Motor || !Motor.enabled) CancelJump();
@@ -162,15 +162,22 @@ namespace RealmRaiders.Characters
             foreach (var hit in Physics.OverlapSphere(center, ability.Radius, ~0, QueryTriggerInteraction.Ignore))
             {
                 var target = hit.GetComponentInParent<CombatEntity>();
-                if (target && target != this && !target.Health.IsDead && damaged.Add(target))
+                if (target && target != this && target.Health != null && !target.Health.IsDead && damaged.Add(target))
                 {
                     eligibleContact = true;
                     var damage = ability.Damage + Stats.AbilityPower * .25f;
                     var point = hit.ClosestPoint(center);
-                    if (target.Health.TakeDamage(new DamageInfo(damage, gameObject, point), target.Stats.Armor))
+                    var targetWasAlive = !target.Health.IsDead;
+                    var applied = target.Health.TakeDamage(new DamageInfo(damage, gameObject, point), target.Stats.Armor);
+                    if (applied)
                     {
                         target.feedback?.ShowHit(damage, point, transform.position);
                         connected = true;
+                        var directControl = ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled;
+                        if (CombatFeedback.ShouldShowDefeat(ability.Kind, damage, true, targetWasAlive, target.Health.IsDead,
+                            true, directControl, Health != null && !Health.IsDead, GameplayInput.TerminalState,
+                            target.Definition ? target.Definition.DisplayName : null))
+                            feedback?.ShowDefeatConfirmation(target, point);
                     }
                     else if (target.Health.IsDamageImmune && target.ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled)
                         target.feedback?.ShowDodgeConfirmation(point);
@@ -321,12 +328,13 @@ namespace RealmRaiders.Characters
 
         void ClearPendingJump() => pendingJumpUntil = float.NegativeInfinity;
 
-        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); CancelDodge(); CancelJump(); }
+        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); feedback?.ClearDefeatConfirmation(); CancelDodge(); CancelJump(); }
         void OnDestroy()
         {
             PublishPresentation(CombatPresentationEnd.Destroyed);
             if (Health != null) Health.Died -= OnDeath;
             feedback?.ClearNoHitConfirmation();
+            feedback?.ClearDefeatConfirmation();
             CancelDodge();
             CancelJump();
         }

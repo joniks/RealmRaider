@@ -117,6 +117,7 @@ namespace RealmRaiders.Tests
                 Assert.That(GameObject.Find("Combat Damage"), Is.Null, "An immunity-rejected hit cannot display damage feedback.");
                 Assert.That(GameObject.Find("Ability Impact"), Is.Null, "An immunity-rejected hit cannot count as an attacker impact.");
                 Assert.That(attacker.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "An eligible immunity contact owns DODGED without a competing attacker NO HIT.");
+                Assert.That(feedback.DefeatConfirmationVisible, Is.False, "An immunity-rejected hit cannot claim a defeat.");
 
                 feedback.ShowDodgeConfirmation(target.Entity.transform.position);
                 feedback.ShowDodgeConfirmation(target.Entity.transform.position);
@@ -138,10 +139,173 @@ namespace RealmRaiders.Tests
                 Assert.That(GameObject.Find("Combat Damage"), Is.Not.Null, "An applied hit retains ordinary target feedback.");
                 Assert.That(GameObject.Find("Ability Impact"), Is.Not.Null, "An applied hit retains ordinary attacker impact feedback.");
                 Assert.That(attacker.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False, "Applied damage cannot also report NO HIT.");
+                Assert.That(feedback.DefeatConfirmationVisible, Is.False, "An applied nonlethal hit remains ordinary damage feedback.");
             }
             finally
             {
                 GameplayInput.ResetForTests(); target.Dispose(); Object.Destroy(cameraObject); Object.Destroy(attackerObject); Object.Destroy(ground); Object.Destroy(attackerDefinition); Object.Destroy(attack);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DirectLethalHit_ShowsOneExactBoundedDefeatAlongsideOrdinaryFeedback()
+        {
+            GameplayInput.ResetForTests(); Time.timeScale = 1;
+            var cameraObject = MarkerCamera();
+            var attacker = new EntityFixture(true, "Blood Knight", 100);
+            var target = new EntityFixture(false, "Bog Warden", 100);
+            var duplicateCollider = new GameObject("Bog Warden Secondary Collider", typeof(SphereCollider));
+            duplicateCollider.transform.SetParent(target.Root.transform, false);
+            var deathCount = 0;
+            try
+            {
+                attacker.Root.transform.position = new Vector3(0, 0, -1);
+                target.Root.transform.position = Vector3.zero;
+                attacker.Ability.Kind = AbilityKind.Melee;
+                attacker.Ability.Damage = 25;
+                attacker.Ability.Range = 1;
+                attacker.Ability.Radius = 1;
+                attacker.Ability.Windup = 0;
+                attacker.Ability.Cooldown = 0;
+                attacker.Entity.SetController(attacker.Player);
+                target.Entity.Health.Died += () => deathCount++;
+                Physics.SyncTransforms();
+                var cameraCount = Object.FindObjectsByType<Camera>(FindObjectsSortMode.None).Length;
+                var listenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+                var eventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
+
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return WaitForAction(attacker.Entity);
+                Assert.That(target.Entity.Health.Current, Is.EqualTo(75), "Repeated colliders must still apply one damage result per target.");
+                Assert.That(target.Root.GetComponent<CombatFeedback>().DefeatConfirmationVisible, Is.False);
+
+                attacker.Ability.Damage = 100;
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                var deadline = Time.realtimeSinceStartup + 1;
+                while (!target.Entity.Health.IsDead && attacker.Entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
+
+                Assert.That(target.Entity.Health.IsDead, Is.True);
+                Assert.That(deathCount, Is.EqualTo(1), "The authoritative death event remains exact-once.");
+                var targetFeedback = target.Root.GetComponent<CombatFeedback>();
+                Assert.That(targetFeedback.DefeatConfirmationVisible, Is.True);
+                var marker = GameObject.Find("Combat Defeat Confirmation");
+                Assert.That(marker, Is.Not.Null);
+                Assert.That(marker.GetComponent<TextMesh>().text, Is.EqualTo("DEFEATED — Bog Warden"));
+                Assert.That(marker.GetComponent<CameraFacingMarker>(), Is.Not.Null);
+                Assert.That(marker.GetComponent<Collider>(), Is.Null);
+                Assert.That(CountDefeatMarkers(), Is.EqualTo(1));
+                Assert.That(GameObject.Find("Combat Damage"), Is.Not.Null, "A lethal hit retains ordinary target damage feedback.");
+                Assert.That(GameObject.Find("Ability Impact"), Is.Not.Null, "A lethal hit retains ordinary source impact feedback.");
+                Assert.That(attacker.Root.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False);
+                Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(cameraCount));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenerCount));
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(eventSystemCount));
+
+                yield return new WaitForSecondsRealtime(CombatFeedback.DefeatConfirmationDuration + .05f);
+                Assert.That(targetFeedback.DefeatConfirmationVisible, Is.False);
+                Assert.That(CountDefeatMarkers(), Is.Zero);
+            }
+            finally
+            {
+                GameplayInput.ResetForTests(); attacker.Dispose(); target.Dispose(); Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator AreaDefeatMarkers_ArePerTargetAndClearAcrossActionAndLifecycleBoundaries()
+        {
+            GameplayInput.ResetForTests(); Time.timeScale = 1;
+            var cameraObject = MarkerCamera();
+            var attacker = new EntityFixture(true, "Blood Knight", 100);
+            var first = new EntityFixture(false, "Moss Wolf", 10);
+            var second = new EntityFixture(false, "Thorn Warden", 10);
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            EntityFixture lifecycleTarget = null;
+            try
+            {
+                ground.name = "Defeat Lifecycle Test Ground";
+                ground.transform.position = new Vector3(0, -.25f, 0);
+                ground.transform.localScale = new Vector3(20, .5f, 20);
+                attacker.Root.transform.position = new Vector3(0, 1, -1);
+                first.Root.transform.position = new Vector3(-.75f, 1, 0);
+                second.Root.transform.position = new Vector3(.75f, 1, 0);
+                attacker.Ability.Kind = AbilityKind.Area;
+                attacker.Ability.Damage = 20;
+                attacker.Ability.Range = 1;
+                attacker.Ability.Radius = 3;
+                attacker.Ability.Windup = 0;
+                attacker.Ability.Cooldown = 0;
+                attacker.Entity.SetController(attacker.Player);
+                Physics.SyncTransforms();
+
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                var deadline = Time.realtimeSinceStartup + 1;
+                while ((!first.Entity.Health.IsDead || !second.Entity.Health.IsDead) && attacker.Entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
+                Assert.That(first.Entity.Health.IsDead, Is.True);
+                Assert.That(second.Entity.Health.IsDead, Is.True);
+                Assert.That(first.Root.GetComponent<CombatFeedback>().DefeatConfirmationVisible, Is.True);
+                Assert.That(second.Root.GetComponent<CombatFeedback>().DefeatConfirmationVisible, Is.True);
+                Assert.That(CountDefeatMarkers(), Is.EqualTo(2), "Each genuinely distinct defeated target owns one factual marker.");
+
+                yield return WaitForAction(attacker.Entity);
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                Assert.That(CountDefeatMarkers(), Is.Zero, "A new accepted action clears all stale confirmations from its source.");
+                yield return WaitForAction(attacker.Entity);
+
+                lifecycleTarget = new EntityFixture(false, "Cinder Hound", 10);
+                lifecycleTarget.Root.transform.position = Vector3.up;
+                Physics.SyncTransforms();
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return WaitForDeath(attacker.Entity, lifecycleTarget.Entity, "controller-change target");
+                Assert.That(lifecycleTarget.Root.GetComponent<CombatFeedback>().DefeatConfirmationVisible, Is.True);
+                attacker.Entity.SetController(attacker.Ai);
+                Assert.That(CountDefeatMarkers(), Is.Zero, "Controller loss clears source-owned confirmation.");
+                yield return WaitForAction(attacker.Entity);
+
+                attacker.Entity.SetController(attacker.Player);
+                lifecycleTarget.Dispose(); lifecycleTarget = null;
+                yield return null;
+                lifecycleTarget = new EntityFixture(false, "Ash Brute", 10);
+                lifecycleTarget.Root.transform.position = Vector3.up;
+                Physics.SyncTransforms();
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return WaitForDeath(attacker.Entity, lifecycleTarget.Entity, "terminal target");
+                GameplayInput.SetTerminalState(true);
+                attacker.Entity.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(CountDefeatMarkers(), Is.Zero, "Terminal state clears confirmation synchronously on the existing edge.");
+                GameplayInput.SetTerminalState(false);
+                attacker.Entity.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                yield return WaitForAction(attacker.Entity);
+
+                lifecycleTarget.Dispose(); lifecycleTarget = null;
+                yield return null;
+                lifecycleTarget = new EntityFixture(false, "Root Sentinel", 10);
+                lifecycleTarget.Root.transform.position = Vector3.up;
+                Physics.SyncTransforms();
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return WaitForDeath(attacker.Entity, lifecycleTarget.Entity, "target-disable target");
+                lifecycleTarget.Entity.enabled = false;
+                Assert.That(CountDefeatMarkers(), Is.Zero, "Target disable clears its owned confirmation.");
+                yield return WaitForAction(attacker.Entity);
+
+                lifecycleTarget.Dispose(); lifecycleTarget = null;
+                yield return null;
+                lifecycleTarget = new EntityFixture(false, "Gate Keeper", 10);
+                lifecycleTarget.Root.transform.position = Vector3.up;
+                Physics.SyncTransforms();
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return WaitForDeath(attacker.Entity, lifecycleTarget.Entity, "source-destroy target");
+                var teardownMarker = GameObject.Find("Combat Defeat Confirmation");
+                Assert.That(teardownMarker, Is.Not.Null);
+                Object.Destroy(attacker.Root);
+                yield return null;
+                yield return null;
+                Assert.That(teardownMarker == null, Is.True, "Source destroy removes detached target confirmation.");
+                Assert.That(CountDefeatMarkers(), Is.Zero);
+            }
+            finally
+            {
+                GameplayInput.ResetForTests(); attacker.Dispose(); first.Dispose(); second.Dispose(); lifecycleTarget?.Dispose(); Object.Destroy(ground); Object.Destroy(cameraObject);
             }
         }
 
@@ -174,6 +338,7 @@ namespace RealmRaiders.Tests
                 Assert.That(first.GetComponent<Collider>(), Is.Null);
                 Assert.That(GameObject.Find("Combat Damage"), Is.Null);
                 Assert.That(GameObject.Find("Ability Impact"), Is.Null);
+                Assert.That(GameObject.Find("Combat Defeat Confirmation"), Is.Null);
                 Assert.That(fixture.Root.transform.position.x, Is.EqualTo(rootPosition.x).Within(.001f));
                 Assert.That(fixture.Root.transform.position.z, Is.EqualTo(rootPosition.z).Within(.001f));
                 Assert.That(cameraObject.transform.position, Is.EqualTo(cameraPosition));
@@ -412,9 +577,38 @@ namespace RealmRaiders.Tests
             GameplayInput.SetTerminalState(false); possession.Release(); Time.timeScale = 1; GameplayInput.ResetForTests();
         }
 
+        static IEnumerator WaitForAction(CombatEntity entity)
+        {
+            var deadline = Time.realtimeSinceStartup + 1;
+            while (entity && entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.That(entity && entity.IsActionResolving, Is.False, "The bounded combat action must finish before the next test step.");
+        }
+
+        static IEnumerator WaitForDeath(CombatEntity source, CombatEntity target, string stage)
+        {
+            var deadline = Time.realtimeSinceStartup + 1;
+            while (target && !target.Health.IsDead && source && source.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.That(target && target.Health.IsDead, Is.True, $"The configured lethal hit must reach authoritative health for the {stage}.");
+        }
+
+        static int CountDefeatMarkers()
+        {
+            var count = 0;
+            foreach (var marker in Object.FindObjectsByType<CameraFacingMarker>(FindObjectsSortMode.None))
+                if (marker.name == "Combat Defeat Confirmation") count++;
+            return count;
+        }
+
         static GameObject MainCamera()
         {
             var camera = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener));
+            camera.tag = "MainCamera";
+            return camera;
+        }
+
+        static GameObject MarkerCamera()
+        {
+            var camera = new GameObject("Defeat Marker Test Camera", typeof(Camera));
             camera.tag = "MainCamera";
             return camera;
         }
@@ -458,13 +652,13 @@ namespace RealmRaiders.Tests
             readonly CharacterDefinition definition;
             public readonly AbilityDefinition Ability;
 
-            public EntityFixture(bool withAbility)
+            public EntityFixture(bool withAbility, string displayName = "Dodge Test Entity", float maximumHealth = 100)
             {
                 Root = new GameObject("Dodge Test Entity", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController), typeof(CreatureBrain));
                 definition = ScriptableObject.CreateInstance<CharacterDefinition>();
-                definition.DisplayName = "Dodge Test Entity";
+                definition.DisplayName = displayName;
                 definition.Possessable = true;
-                definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 4, AttackSpeed = 1 };
+                definition.Stats = new CombatStats { MaxHealth = maximumHealth, MoveSpeed = 4, AttackSpeed = 1 };
                 if (withAbility)
                 {
                     Ability = ScriptableObject.CreateInstance<AbilityDefinition>();
