@@ -60,7 +60,9 @@ namespace RealmRaiders.Tests
                 Assert.That(raidHud.ResultText, Does.Not.Contain("plan the next defense"));
                 Assert.That(raidHud.ResultText, Does.Contain("Gold collected:").And.Contain("Secured for your Realm:"));
                 Assert.That(FirstPlayableMinute.ChangedBuildAcceptedForSession, Is.True);
-                Assert.That(RealmProgress.Load().CompletedRaids, Is.EqualTo(1));
+                var earnedProgress = RealmProgress.Load();
+                Assert.That(earnedProgress.CompletedRaids, Is.EqualTo(1));
+                Assert.That(GuardianEntCultivationAffordance.From(earnedProgress).Status, Is.EqualTo(GuardianEntCultivationStatus.Ready));
                 AssertResultActionsResponsive(raidHud.GetComponent<ResponsiveHudRoot>(), "Raid Result", RaidHUD.DefendYourRealmAction, "RAID AGAIN", "MY REALM");
 
                 GameObject.Find(RaidHUD.DefendYourRealmAction).GetComponent<Button>().onClick.Invoke();
@@ -78,16 +80,48 @@ namespace RealmRaiders.Tests
                 Assert.That(Object.FindFirstObjectByType<DefenseManager>().State, Is.EqualTo(DefenseState.DefenderVictory));
                 Assert.That(defenderHud.JourneyCompletedForResult, Is.True);
                 Assert.That(defenderHud.ResultPrimaryActionText, Is.EqualTo("RETURN TO BUILD"));
+                Assert.That(defenderHud.ResultText, Does.Contain(DefenderHUD.CultivationReadyResultCopy));
+                Assert.That(Occurrences(defenderHud.ResultText, DefenderHUD.CultivationReadyResultCopy), Is.EqualTo(1));
+                Assert.That(defenderHud.ResultText, Does.EndWith("TRY THE CONTROL LOOP — DEFEND AGAIN"), "The cultivation handoff must compose before the existing first-minute result suffix.");
                 Assert.That(PrototypeJourney.Stage, Is.EqualTo(PrototypeJourneyStage.Inactive));
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Active), "An early guide result may offer its existing retry but cannot be falsely completed.");
                 AssertResultActionsResponsive(defenderHud.GetComponent<ResponsiveHudRoot>(), "Defense Result", "DEFEND AGAIN", "RETURN TO BUILD", "MY REALM");
+                AssertResultCopyResponsive(defenderHud.GetComponent<ResponsiveHudRoot>(), defenderHud.ResultRect, "Defense Result", "DEFEND AGAIN", "RETURN TO BUILD", "MY REALM");
+
+                var frozenResultCopy = defenderHud.ResultText;
+                var earnedProgressJson = PlayerPrefs.GetString(RealmProgress.KeyForTests);
+                try
+                {
+                    RealmProgress.ResetForTests();
+                    defenderHud.SendMessage("OnDefenseState", DefenseState.DefenderVictory, SendMessageOptions.RequireReceiver);
+                    Assert.That(defenderHud.ResultText, Is.EqualTo(frozenResultCopy), "Later callbacks and progress changes cannot rewrite the frozen result.");
+                    Assert.That(Occurrences(defenderHud.ResultText, DefenderHUD.CultivationReadyResultCopy), Is.EqualTo(1));
+                }
+                finally
+                {
+                    PlayerPrefs.SetString(RealmProgress.KeyForTests, earnedProgressJson);
+                    PlayerPrefs.Save();
+                }
 
                 GameObject.Find("RETURN TO BUILD").GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;
                 Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("RealmBuild"));
                 Assert.That(PrototypeJourney.IsActive, Is.False);
-                Assert.That(Object.FindFirstObjectByType<BuildHUD>().SaveActionText, Is.EqualTo(BuildHUD.SaveAndDefendAction), "The completed journey cannot leak into the next BUILD entry.");
-                Assert.That(RealmProgress.Load().CompletedRaids, Is.EqualTo(1), "Defense and route transitions cannot duplicate raid credit.");
+                var returnedBuild = Object.FindFirstObjectByType<BuildHUD>();
+                Assert.That(returnedBuild.SaveActionText, Is.EqualTo(BuildHUD.SaveAndDefendAction), "The completed journey cannot leak into the next BUILD entry.");
+                Assert.That(returnedBuild.GuardianEntUpgradeStatus, Is.EqualTo(GuardianEntCultivationStatus.Ready));
+                Assert.That(returnedBuild.GuardianEntUpgradeInteractable, Is.True);
+                var beforePurchase = RealmProgress.Load();
+                Assert.That(beforePurchase.CompletedRaids, Is.EqualTo(1), "Defense and route transitions cannot duplicate raid credit.");
+                Assert.That(beforePurchase.Gold, Is.EqualTo(earnedProgress.Gold));
+                Assert.That(beforePurchase.RareMaterials, Is.EqualTo(earnedProgress.RareMaterials));
+                Assert.That(beforePurchase.GuardianEntVitalityRank, Is.EqualTo(earnedProgress.GuardianEntVitalityRank), "The handoff must not auto-purchase cultivation.");
+
+                Assert.That(returnedBuild.PurchaseGuardianEntVitalityForTests(), Is.True, "Cultivation remains an explicit Build action.");
+                var afterPurchase = RealmProgress.Load();
+                Assert.That(afterPurchase.Gold, Is.EqualTo(beforePurchase.Gold - RealmProgress.GuardianEntVitalityGoldCost));
+                Assert.That(afterPurchase.RareMaterials, Is.EqualTo(beforePurchase.RareMaterials - RealmProgress.GuardianEntVitalityRareMaterialCost));
+                Assert.That(afterPurchase.GuardianEntVitalityRank, Is.EqualTo(beforePurchase.GuardianEntVitalityRank + 1));
             }
             finally { saved.Restore(); }
         }
@@ -258,6 +292,46 @@ namespace RealmRaiders.Tests
                         Assert.That(actions[first].Overlaps(actions[second]), Is.False, $"{actionNames[first]}/{actionNames[second]}");
             }
             AssertSceneSingletons();
+        }
+
+        static void AssertResultCopyResponsive(ResponsiveHudRoot responsive, RectTransform result, string panelName, params string[] actionNames)
+        {
+            foreach (var orientation in new[] { PrototypeOrientation.Portrait, PrototypeOrientation.Landscape })
+            {
+                responsive.SetOrientationForTests(orientation);
+                var panelTransform = GameObject.Find(panelName).GetComponent<RectTransform>();
+                var reference = responsive.GetComponent<CanvasScaler>().referenceResolution;
+                var panel = DesignRect(panelTransform, reference);
+                var localPanel = new Rect(Vector2.zero, panel.size);
+                var resultBounds = DesignRect(result, panel.size);
+                Assert.That(localPanel.Contains(resultBounds.min) && localPanel.Contains(resultBounds.max), Is.True,
+                    $"{result.name} | orientation={orientation} | panel={localPanel} | result={resultBounds}");
+                Canvas.ForceUpdateCanvases();
+                var resultText = result.GetComponent<Text>();
+                var settings = resultText.GetGenerationSettings(new Vector2(resultBounds.width, 0));
+                var preferredHeight = resultText.cachedTextGeneratorForLayout.GetPreferredHeight(resultText.text, settings) / resultText.pixelsPerUnit;
+                Assert.That(preferredHeight, Is.LessThanOrEqualTo(resultBounds.height + 1),
+                    $"Result text is vertically truncated | orientation={orientation} | preferred={preferredHeight:0.##} | allocated={resultBounds.height:0.##} | font={resultText.fontSize}");
+                foreach (var actionName in actionNames)
+                {
+                    var action = DesignRect(GameObject.Find(actionName).GetComponent<RectTransform>(), panel.size);
+                    Assert.That(resultBounds.Overlaps(action), Is.False,
+                        $"{result.name}/{actionName} | orientation={orientation} | result={resultBounds} | action={action}");
+                }
+            }
+            AssertSceneSingletons();
+        }
+
+        static int Occurrences(string value, string fragment)
+        {
+            var count = 0;
+            var index = 0;
+            while ((index = value.IndexOf(fragment, index, System.StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += fragment.Length;
+            }
+            return count;
         }
 
         static Rect DesignRect(RectTransform rect, Vector2 parentSize)

@@ -3368,3 +3368,37 @@ Completed on 2026-09-11; included with this project commit.
 - Duplicate-listener warning count had delta `0` across the final run; the
   post-gate scan found no compiler error or exception. EditMode was intentionally
   not repeated because no runtime or EditMode source changed.
+
+## Diamond Pass 16.3 — Earned Cultivation Result Handoff
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- The first authoritative Sylvan terminal result takes one Realm Progress snapshot
+  and reuses the existing cultivation affordance truth.
+- Only a frozen `READY` state appends the factual instruction to return to Build
+  and strengthen the Guardian Ent. Missing, capped, malformed fallback and every
+  Infernal result retain their existing copy.
+- Later terminal callbacks, orientation refresh and PlayerPrefs mutation cannot
+  duplicate or rewrite the frozen result. The first-minute suffix, all three
+  result actions, stores and explicit purchase authority remain unchanged.
+- The existing result Text uses a bounded ready-only font/layout adjustment, and
+  PlayMode coverage measures natural text height rather than only rectangle overlap.
+
+### Verification
+
+- QA verified fresh Runtime, EditMode and PlayMode assemblies before final gates.
+- Final EditMode passed `339/339`, zero failed/skipped/inconclusive, in 1.791 s
+  (job `a4f5027a-aa2b-4142-a8cd-63b4ef9de2a5`).
+- Final PlayMode passed `94/94`, zero failed/skipped/inconclusive, in 77.623 s
+  (job `2dcb775d-97e7-48b0-b947-b32e0d2f6160`,
+  2026-09-11 00:53:54Z–00:55:12Z).
+- No text-fit assertion, compiler error, exception or new duplicate-listener warning
+  occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual Sylvan result → Return to Build → Ready → explicit cultivate readability
+  in portrait/landscape remains unobserved because QA could not safely access the
+  Game view.

@@ -1,6 +1,8 @@
 using NUnit.Framework;
+using RealmRaiders.Core;
 using RealmRaiders.Raid;
 using RealmRaiders.UI;
+using UnityEngine;
 
 namespace RealmRaiders.Tests
 {
@@ -37,6 +39,38 @@ namespace RealmRaiders.Tests
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new DefenseResultFact(DefenseState.DefenderVictory, 1, 0, 0, 0));
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new DefenseResultFact(DefenseState.RealmLost, 1, 101, 100, 1));
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new DefenseResultFact(DefenseState.RealmLost, 1, 10, 100, 1.01f));
+        }
+
+        [Test]
+        public void CultivationHandoffMapsOnlyReadySylvanProgress()
+        {
+            var ready = new RealmProgressData { Gold = 100, RareMaterials = 1, GuardianEntVitalityRank = 2 };
+            var missing = new RealmProgressData { Gold = 99, RareMaterials = 1, GuardianEntVitalityRank = 2 };
+            var capped = new RealmProgressData { Gold = 500, RareMaterials = 5, GuardianEntVitalityRank = 3 };
+
+            Assert.That(DefenderHUD.CultivationResultHandoffCopy(DefenseHudConfig.Sylvan, ready),
+                Is.EqualTo(DefenderHUD.CultivationReadyResultCopy));
+            Assert.That(DefenderHUD.CultivationResultHandoffCopy(DefenseHudConfig.Sylvan, missing), Is.Empty);
+            Assert.That(DefenderHUD.CultivationResultHandoffCopy(DefenseHudConfig.Sylvan, capped), Is.Empty);
+            Assert.That(DefenderHUD.CultivationResultHandoffCopy(DefenseHudConfig.Infernal, ready), Is.Empty);
+        }
+
+        [Test]
+        public void CultivationHandoffRejectsMalformedProgressFallback()
+        {
+            var hadProgress = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
+            var previousProgress = PlayerPrefs.GetString(RealmProgress.KeyForTests, string.Empty);
+            try
+            {
+                PlayerPrefs.SetString(RealmProgress.KeyForTests, "{not valid json");
+                Assert.That(DefenderHUD.CultivationResultHandoffCopy(DefenseHudConfig.Sylvan, RealmProgress.Load()), Is.Empty);
+            }
+            finally
+            {
+                if (hadProgress) PlayerPrefs.SetString(RealmProgress.KeyForTests, previousProgress);
+                else PlayerPrefs.DeleteKey(RealmProgress.KeyForTests);
+                PlayerPrefs.Save();
+            }
         }
     }
 }

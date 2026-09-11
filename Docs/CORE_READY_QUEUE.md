@@ -674,9 +674,24 @@ scene listener. The one-file test correction left runtime untouched. QA's final
 PlayMode gate passed `94/94` with zero failures and zero new duplicate-listener
 warnings; EditMode was intentionally not repeated.
 
-## Ready — Diamond Pass 16.3: Next Player-Visible Loop Slice
+## Accepted — Diamond Pass 16.3: Earned Cultivation Result Handoff
 
-Core prepares a read-only proposal from the current verified loop and known
-limitations. Prefer one bounded player-visible consequence or clarity improvement
-over documentation, speculative systems or another quality-only gate. Architect
-must freeze acceptance and reserved paths before implementation begins.
+When the first authoritative Sylvan terminal result freezes, reuse the existing
+loaded cultivation affordance truth. Only `READY` appends one factual line to the
+existing result text that points to the unchanged explicit Build purchase. Missing,
+capped, malformed fallback and all Infernal results remain unchanged. Preserve the
+first-minute suffix, orientation layout, result actions, stores and player purchase
+authority. No new UI object, economy rule or automatic spend.
+
+Acceptance: QA verified fresh assemblies. Final native gates passed EditMode
+`339/339` and PlayMode `94/94`, both with zero failed/skipped/inconclusive tests.
+The measured result-text fit remained inside its authored portrait/landscape region;
+no compiler error, exception or new duplicate-listener warning occurred. Manual
+result-to-Build readability remains unobserved.
+
+## Ready — Diamond Pass 16.4: Next Player-Visible Loop Slice
+
+Core prepares one read-only proposal from the current verified loop and remaining
+player-facing limitations. Prefer direct control, combat, possession, world
+readability or a real earned consequence over process work, speculative breadth or
+documentation. Architect freezes acceptance and reserved paths before writing.

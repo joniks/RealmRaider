@@ -60,6 +60,7 @@ namespace RealmRaiders.UI
 
     public sealed class DefenderHUD : MonoBehaviour
     {
+        public const string CultivationReadyResultCopy = "CULTIVATION READY — RETURN TO BUILD TO STRENGTHEN YOUR GUARDIAN ENT";
         Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel, jumpLabel;
         Image energyFill;
         RectTransform energyMeter;
@@ -98,6 +99,8 @@ namespace RealmRaiders.UI
         int journeyToken;
         bool journeyHandoff;
         bool journeyCompletedForResult;
+        bool terminalResultPresented;
+        bool cultivationResultVisible;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
@@ -149,6 +152,13 @@ namespace RealmRaiders.UI
                 DefenseState.RealmLost => $"DEFENSE FACTS — CORE CAPTURED • INVADER {HealthCopy(fact.InvaderHealth)}/{HealthCopy(fact.InvaderMaximumHealth)} HP • {seconds}s",
                 _ => string.Empty
             };
+        }
+
+        public static string CultivationResultHandoffCopy(DefenseHudConfig hudConfig, RealmProgressData progress)
+        {
+            var sylvan = DefenseHudConfig.Sylvan;
+            if (hudConfig.RealmTitle != sylvan.RealmTitle || hudConfig.NextActionScene != sylvan.NextActionScene) return string.Empty;
+            return GuardianEntCultivationAffordance.From(progress).IsReady ? CultivationReadyResultCopy : string.Empty;
         }
 
         static string HealthCopy(float value) => value.ToString("0.#", CultureInfo.InvariantCulture);
@@ -250,7 +260,7 @@ namespace RealmRaiders.UI
             }
             else
             {
-                PlaceResultRegion(resultRect, new Vector2(.06f, .54f), new Vector2(.94f, .95f)); result.alignment = TextAnchor.MiddleCenter;
+                PlaceResultRegion(resultRect, new Vector2(.06f, cultivationResultVisible ? .52f : .54f), new Vector2(.94f, .95f)); result.alignment = TextAnchor.MiddleCenter;
                 PlaceResultRegion((RectTransform)retry.transform, new Vector2(.27f, .38f), new Vector2(.73f, .5f));
                 PlaceResultRegion((RectTransform)nextAction.transform, new Vector2(.27f, .21f), new Vector2(.73f, .33f));
                 PlaceResultRegion((RectTransform)realmHub.transform, new Vector2(.27f, .04f), new Vector2(.73f, .16f));
@@ -451,9 +461,25 @@ namespace RealmRaiders.UI
             {
                 if (journeyToken != 0 && !journeyCompletedForResult) journeyCompletedForResult = PrototypeJourney.TryCompleteDefense(journeyToken);
                 HideReleaseNotice(); resultPanel.SetActive(true); HideAndDisableLiveActions(); presentation?.PlayResult();
-                var outcome = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured.";
-                var debrief = defense.HasResult ? DefenseResultDebriefCopy(defense.Result) : string.Empty;
-                result.text = string.IsNullOrEmpty(debrief) ? outcome : outcome + "\n\n" + debrief;
+                if (!terminalResultPresented)
+                {
+                    var outcome = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured.";
+                    var debrief = defense.HasResult ? DefenseResultDebriefCopy(defense.Result) : string.Empty;
+                    var copy = string.IsNullOrEmpty(debrief) ? outcome : outcome + "\n\n" + debrief;
+                    if (config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle)
+                    {
+                        var cultivation = CultivationResultHandoffCopy(config, RealmProgress.Load());
+                        if (!string.IsNullOrEmpty(cultivation))
+                        {
+                            copy += "\n\n" + cultivation;
+                            cultivationResultVisible = true;
+                            result.fontSize = 26;
+                            ApplyResultLayout(responsive.Orientation);
+                        }
+                    }
+                    result.text = copy;
+                    terminalResultPresented = true;
+                }
             }
             RefreshPossessionEnergy();
         }
