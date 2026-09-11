@@ -660,10 +660,23 @@ and no compiler error or exception. Manual result readability remains unobserved
 The repeated two-AudioListener warning persisted with 669 entries and is isolated
 as the next root-cause investigation rather than silently bundled into 16.2.
 
-## Ready — QA Quality Gate 02: AudioListener Warning Root Cause
+## Accepted — QA Quality Gate 02: AudioListener Warning Root Cause
 
 Prove which exact runtime or test-fixture lifecycle creates overlapping active
 AudioListeners during the full PlayMode gate. Begin read-only. Only after one
 reproducible owner is identified may Architect lease the smallest correction.
 Preserve camera, audio, scene and test authority; do not suppress the warning,
 disable audio globally, add a singleton or weaken assertions merely to quiet logs.
+
+Acceptance: read-only evidence isolated the warning to one non-spatial encounter
+fixture that added its own listener after PrototypeHub already supplied the valid
+scene listener. The one-file test correction left runtime untouched. QA's final
+PlayMode gate passed `94/94` with zero failures and zero new duplicate-listener
+warnings; EditMode was intentionally not repeated.
+
+## Ready — Diamond Pass 16.3: Next Player-Visible Loop Slice
+
+Core prepares a read-only proposal from the current verified loop and known
+limitations. Prefer one bounded player-visible consequence or clarity improvement
+over documentation, speculative systems or another quality-only gate. Architect
+must freeze acceptance and reserved paths before implementation begins.

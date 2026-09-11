@@ -22,7 +22,9 @@ namespace RealmRaiders.Tests
         public IEnumerator EmptyAndHostileNodesPublishTruthfulResponsiveCueWithExactOnceAccountingAndCleanup()
         {
             var previousControlStyle = PrototypeSave.ControlStylePreference;
-            var cameraObject = new GameObject("Encounter Camera", typeof(Camera), typeof(AudioListener)); cameraObject.tag = "MainCamera";
+            var listenerCountBeforeFixture = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+            Assert.That(listenerCountBeforeFixture, Is.LessThanOrEqualTo(1), "The encounter fixture must not inherit an invalid listener state.");
+            var cameraObject = new GameObject("Encounter Camera", typeof(Camera)); cameraObject.tag = "MainCamera";
             var heroObject = new GameObject("Encounter Hero", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
             var firstHostileObject = new GameObject("First Explicit Hostile", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
             var secondHostileObject = new GameObject("Second Explicit Hostile", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
@@ -44,11 +46,11 @@ namespace RealmRaiders.Tests
             GameObject[] abilityIconObjects = System.Array.Empty<GameObject>();
             var initialCanvasCount = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
             var initialEventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
-            var initialListenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
             try
             {
                 GameplayInput.ResetForTests();
                 PrototypeSave.SetControlStyle(InRunControlStyleSelector.Contextual);
+                Assert.That(cameraObject.GetComponent<AudioListener>(), Is.Null, "The non-spatial encounter fixture must not add a second scene listener.");
                 heroDefinition.DisplayName = "Encounter Hero";
                 heroDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
                 ConfigureAbility(slashDefinition, "Basic Slash");
@@ -115,7 +117,7 @@ namespace RealmRaiders.Tests
                 Assert.That(rewardFacts[0].GoldDelta, Is.EqualTo(5)); Assert.That(rewardFacts[0].TotalGold, Is.EqualTo(5));
                 Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(initialCanvasCount + 1));
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(initialEventSystemCount));
-                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(initialListenerCount));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenerCountBeforeFixture));
 
                 responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
                 yield return null;
@@ -258,6 +260,7 @@ namespace RealmRaiders.Tests
                 Object.Destroy(slashDefinition); Object.Destroy(rushDefinition); Object.Destroy(cleaveDefinition);
             }
             yield return null;
+            Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenerCountBeforeFixture), "Encounter fixture cleanup must preserve the entering scene's listener ownership.");
             Assert.That(cueLabelObject == null, Is.True, "Scene teardown must destroy its encounter label.");
             Assert.That(cueIconObject == null, Is.True, "Scene teardown must destroy its encounter icon.");
             Assert.That(rewardLabelObject == null, Is.True, "Scene teardown must destroy its reward label and pending presentation.");

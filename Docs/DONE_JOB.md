@@ -3342,3 +3342,29 @@ Completed on 2026-09-11; included with this project commit.
   unobserved because QA could not safely access the Game view.
 - The unrelated repeated two-AudioListener warning persisted with 669 entries in
   the final PlayMode span and requires a separate root-cause gate.
+
+## QA Quality Gate 02 — AudioListener Fixture Ownership
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- Read-only evidence proved the duplicate-listener flood was isolated to one
+  PlayMode fixture, not a production bootstrap or scene lifecycle defect.
+- `RaidEncounterCueFlowTests` now records the entering scene's listener count
+  before constructing fixtures and creates its non-spatial camera without an
+  unnecessary second `AudioListener`.
+- The fixture explicitly requires at most one entering listener and proves the
+  count is unchanged after HUD creation and cleanup. Runtime camera/audio code,
+  scenes and ProjectSettings remain untouched.
+
+### Verification
+
+- QA verified the refreshed PlayMode assembly was newer than the changed test.
+- The single final PlayMode gate passed `94/94`, zero
+  failed/skipped/inconclusive, in 77.049 s (job
+  `1926b3cf-ecf8-4fe5-91b9-3683478ac9d6`,
+  2026-09-11 00:38:37Z–00:39:54Z).
+- Duplicate-listener warning count had delta `0` across the final run; the
+  post-gate scan found no compiler error or exception. EditMode was intentionally
+  not repeated because no runtime or EditMode source changed.

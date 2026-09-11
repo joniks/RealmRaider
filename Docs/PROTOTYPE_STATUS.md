@@ -146,9 +146,9 @@ Last reviewed: 2026-09-11
 ## Known limitations
 
 - The Realm layout and content are generated at runtime from code rather than authored prefabs and persistent ScriptableObject assets.
-- Test scenes currently emit repeated two-AudioListener warnings during the full
-  gates. They do not fail the suites, but should be removed in a separate scoped
-  quality pass so genuine audio warnings remain visible.
+- The former repeated two-AudioListener test warning was fixture-only and is
+  resolved without changing runtime audio ownership; the final PlayMode gate
+  produced zero new duplicate-listener warnings.
 - The BUILD step is a compact five-slot runtime greybox with a live defense-plan summary; full device usability and performance remain unvalidated.
 - Combat presentation uses bounded pivot motion plus a modular six-bone procedural Blood Knight pilot, action telegraphs, concise HUD/audio feedback, and one deliberately narrow direct-control dodge. Unity feedback drove corrected visual forward fit, doubled forward/back counter-swing and a continuous deep-crouch/one-leg-push/fall/landing timeline; its latest feel still needs user confirmation, and there is no final clip-driven animation rig or production VFX.
 - Fog of war is a basic graph-driven show/hide implementation.
