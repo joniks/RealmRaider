@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
@@ -39,14 +40,28 @@ namespace RealmRaiders.Tests
                 core.Initialize(invader);
                 var defense = defenseObject.GetComponent<DefenseManager>();
                 defense.Initialize(invader, core, possessionObject.GetComponent<PossessionManager>());
+                var results = new List<DefenseResultFact>();
+                defense.Finished += results.Add;
 
                 invader.Health.TakeDamage(new DamageInfo(1000, null, invader.transform.position), 0);
                 Assert.That(defense.State, Is.EqualTo(DefenseState.DefenderVictory));
+                Assert.That(defense.HasResult, Is.True);
+                Assert.That(results, Has.Count.EqualTo(1));
+                var frozen = defense.Result;
+                Assert.That(frozen.Outcome, Is.EqualTo(DefenseState.DefenderVictory));
+                Assert.That(frozen.InvaderHealth, Is.Zero);
+                Assert.That(frozen.InvaderMaximumHealth, Is.EqualTo(100));
+                Assert.That(frozen.CoreProgress, Is.Zero);
                 invader.Health.RestoreFull();
                 yield return null;
                 yield return null;
                 Assert.That(defense.State, Is.EqualTo(DefenseState.DefenderVictory));
                 Assert.That(defense.IsFinished, Is.True);
+                Assert.That(results, Has.Count.EqualTo(1), "A later Core callback cannot publish another terminal fact.");
+                Assert.That(defense.Result.Outcome, Is.EqualTo(frozen.Outcome));
+                Assert.That(defense.Result.Duration, Is.EqualTo(frozen.Duration), "Live time cannot overwrite the frozen victory duration.");
+                Assert.That(defense.Result.InvaderHealth, Is.EqualTo(frozen.InvaderHealth));
+                Assert.That(defense.Result.CoreProgress, Is.EqualTo(frozen.CoreProgress), "Live Core progress cannot overwrite the frozen victory fact.");
             }
             finally
             {
@@ -77,16 +92,30 @@ namespace RealmRaiders.Tests
                 core.Initialize(invader);
                 var defense = defenseObject.GetComponent<DefenseManager>();
                 defense.Initialize(invader, core, possessionObject.GetComponent<PossessionManager>());
+                var results = new List<DefenseResultFact>();
+                defense.Finished += results.Add;
 
                 yield return null;
                 yield return null;
                 Assert.That(defense.State, Is.EqualTo(DefenseState.RealmLost));
+                Assert.That(defense.HasResult, Is.True);
+                Assert.That(results, Has.Count.EqualTo(1));
+                var frozen = defense.Result;
+                Assert.That(frozen.Outcome, Is.EqualTo(DefenseState.RealmLost));
+                Assert.That(frozen.InvaderHealth, Is.EqualTo(100));
+                Assert.That(frozen.InvaderMaximumHealth, Is.EqualTo(100));
+                Assert.That(frozen.CoreProgress, Is.EqualTo(1));
 
                 invader.Health.TakeDamage(new DamageInfo(1000, null, invader.transform.position), 0);
                 yield return null;
 
                 Assert.That(defense.State, Is.EqualTo(DefenseState.RealmLost));
                 Assert.That(defense.IsFinished, Is.True);
+                Assert.That(results, Has.Count.EqualTo(1), "A later death callback cannot publish another terminal fact.");
+                Assert.That(defense.Result.Outcome, Is.EqualTo(frozen.Outcome));
+                Assert.That(defense.Result.Duration, Is.EqualTo(frozen.Duration), "Live time cannot overwrite the frozen loss duration.");
+                Assert.That(defense.Result.InvaderHealth, Is.EqualTo(frozen.InvaderHealth), "Live health cannot overwrite the frozen loss fact.");
+                Assert.That(defense.Result.CoreProgress, Is.EqualTo(frozen.CoreProgress));
             }
             finally
             {

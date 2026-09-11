@@ -42,13 +42,15 @@ namespace RealmRaiders.Tests
                 Assert.That(scene.Guide.GuideText, Is.EqualTo("FIRST DEFENSE COMPLETE — RETURN TO BUILD"));
                 Assert.That(scene.Guide.GuideLineRaycastTarget, Is.False);
                 Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("RETURN TO BUILD"));
-                Assert.That(scene.Hud.ResultText, Does.Contain("DEFENDER VICTORY").And.Contain("The invader was destroyed.").And.Contain("FIRST DEFENSE COMPLETE — RETURN TO BUILD"));
+                Assert.That(scene.Hud.ResultText, Does.Contain("DEFENDER VICTORY").And.Contain("The invader was destroyed.")
+                    .And.Contain("DEFENSE FACTS — INVADER DEFEATED • CORE DANGER").And.Contain("FIRST DEFENSE COMPLETE — RETURN TO BUILD"));
+                var frozenResultCopy = scene.Hud.ResultText;
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
                 Assert.That(scene.Guide.SkipVisible, Is.False);
                 AssertPossessableMarkerHidden(scene.Guide);
                 AssertTerminalGameplayActionsHidden(scene.Hud);
-                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
-                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; Assert.That(scene.Hud.ResultText, Is.EqualTo(frozenResultCopy)); AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
+                scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; Assert.That(scene.Hud.ResultText, Is.EqualTo(frozenResultCopy)); AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
                 AssertSceneSingletons();
             }
             finally { saved.Restore(); }
@@ -72,7 +74,9 @@ namespace RealmRaiders.Tests
                 Assert.That(scene.Guide.TerminalOutcome, Is.EqualTo(DefenseGuideTerminalOutcome.Completed));
                 Assert.That(scene.Guide.GuideText, Is.EqualTo("REALM LOST — RETURN TO BUILD AND ADJUST DEFENCES"));
                 Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("RETURN TO BUILD"));
-                Assert.That(scene.Hud.ResultText, Does.Contain("REALM LOST").And.Contain("Heart Tree was captured.").And.Contain("RETURN TO BUILD AND ADJUST DEFENCES"));
+                Assert.That(scene.Hud.ResultText, Does.Contain("REALM LOST").And.Contain("Heart Tree was captured.")
+                    .And.Contain("DEFENSE FACTS — CORE CAPTURED • INVADER").And.Contain("RETURN TO BUILD AND ADJUST DEFENCES"));
+                var frozenResultCopy = scene.Hud.ResultText;
                 Assert.That(FirstPlayableMinute.Load(), Is.EqualTo(FirstPlayableMinuteStatus.Completed));
                 AssertTerminalGameplayActionsHidden(scene.Hud);
                 var completionWrites = FirstPlayableMinute.SuccessfulWritesForTests;
@@ -82,10 +86,12 @@ namespace RealmRaiders.Tests
                 Assert.That(retryAction.interactable, Is.True);
 
                 scene.Responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
+                Assert.That(scene.Hud.ResultText, Is.EqualTo(frozenResultCopy));
                 Assert.That(scene.Guide.GuideText, Is.EqualTo("REALM LOST — RETURN TO BUILD AND ADJUST DEFENCES"));
                 Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("RETURN TO BUILD"));
                 AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
                 scene.Responsive.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null;
+                Assert.That(scene.Hud.ResultText, Is.EqualTo(frozenResultCopy));
                 Assert.That(scene.Guide.GuideText, Is.EqualTo("REALM LOST — RETURN TO BUILD AND ADJUST DEFENCES"));
                 Assert.That(scene.Guide.EmphasisTargetName, Is.EqualTo("RETURN TO BUILD"));
                 AssertTerminalGameplayActionsHidden(scene.Hud); AssertGuideLayoutClear(scene.Guide); AssertResultActionsClear(scene.Hud);
@@ -525,12 +531,16 @@ namespace RealmRaiders.Tests
         static void AssertResultActionsClear(DefenderHUD hud)
         {
             var root = WorldRect((RectTransform)hud.transform);
+            var resultBounds = WorldRect(hud.ResultRect);
+            Assert.That(resultBounds.xMin, Is.GreaterThanOrEqualTo(root.xMin)); Assert.That(resultBounds.yMin, Is.GreaterThanOrEqualTo(root.yMin));
+            Assert.That(resultBounds.xMax, Is.LessThanOrEqualTo(root.xMax)); Assert.That(resultBounds.yMax, Is.LessThanOrEqualTo(root.yMax));
             var actions = new[] { GameObject.Find("DEFEND AGAIN").GetComponent<RectTransform>(), GameObject.Find("RETURN TO BUILD").GetComponent<RectTransform>(), GameObject.Find("MY REALM").GetComponent<RectTransform>() };
             for (var index = 0; index < actions.Length; index++)
             {
                 var bounds = WorldRect(actions[index]);
                 Assert.That(bounds.xMin, Is.GreaterThanOrEqualTo(root.xMin)); Assert.That(bounds.yMin, Is.GreaterThanOrEqualTo(root.yMin));
                 Assert.That(bounds.xMax, Is.LessThanOrEqualTo(root.xMax)); Assert.That(bounds.yMax, Is.LessThanOrEqualTo(root.yMax));
+                Assert.That(resultBounds.Overlaps(bounds), Is.False, $"Result facts overlap {actions[index].name}");
                 for (var other = index + 1; other < actions.Length; other++)
                     Assert.That(bounds.Overlaps(WorldRect(actions[other])), Is.False, $"Result actions overlap: {actions[index].name}/{actions[other].name}");
             }

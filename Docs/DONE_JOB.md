@@ -3307,3 +3307,38 @@ Completed on 2026-09-11; included with this project commit.
   remains unobserved because QA could not safely access the Game view.
 - Repeated two-AudioListener warnings are an existing test-scene noise defect and
   are queued separately; 16.1 did not add or alter any AudioListener.
+
+## Diamond Pass 16.2 — Factual Defense Result Debrief
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- `DefenseManager` freezes one immutable result fact on the first authoritative
+  victory or loss transition before possession/controller cleanup can alter the
+  observed battle state.
+- The fact contains only outcome, elapsed duration, invader current/maximum health
+  and factual Realm Core progress. Reentrant or later death/Core callbacks cannot
+  overwrite or republish it.
+- The existing result label appends deterministic victory/loss facts while keeping
+  the first-minute guide suffix and all three existing result actions unchanged.
+- No score, history, causal diagnosis, reward, economy, combat rule, persistence
+  record, UI object or Canvas was added.
+
+### Verification
+
+- QA verified fresh Runtime, EditMode and PlayMode assemblies before the gates.
+- Final EditMode passed `337/337`, zero failed/skipped/inconclusive, in 1.764 s
+  (job `6c78cc66-913b-450e-a27b-f7c704705146`).
+- Final PlayMode passed `94/94`, zero failed/skipped/inconclusive, in 77.388 s
+  (job `41b91408-d77b-4944-934f-dfb1467231ec`,
+  2026-09-11 00:28:54Z–00:30:11Z).
+- The post-gate scan found no compiler error, runtime exception or test failure;
+  `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual result copy/action readability in portrait and landscape remains
+  unobserved because QA could not safely access the Game view.
+- The unrelated repeated two-AudioListener warning persisted with 669 entries in
+  the final PlayMode span and requires a separate root-cause gate.

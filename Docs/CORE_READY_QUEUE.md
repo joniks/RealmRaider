@@ -645,7 +645,7 @@ failed/skipped/inconclusive tests and no compiler error or exception. Manual Bui
 readability remains unobserved because the Game view was inaccessible. Repeated
 two-AudioListener test warnings are recorded as a separate quality defect.
 
-## Ready — Diamond Pass 16.2: Factual Defense Result Debrief
+## Accepted — Diamond Pass 16.2: Factual Defense Result Debrief
 
 Freeze one immutable result fact on the first authoritative defense terminal
 transition and append only factual outcome, elapsed duration, invader remaining
@@ -653,3 +653,17 @@ health and Realm Core danger to the existing result text. Later callbacks,
 orientation and refresh cannot overwrite or duplicate the debrief. Preserve the
 first-minute guide suffix and existing result actions. This adds no score, reward,
 history, causal diagnosis, telemetry, UI object, economy or combat change.
+
+Acceptance: QA verified fresh assemblies; final native gates passed EditMode
+`337/337` and PlayMode `94/94`, both with zero failed/skipped/inconclusive tests
+and no compiler error or exception. Manual result readability remains unobserved.
+The repeated two-AudioListener warning persisted with 669 entries and is isolated
+as the next root-cause investigation rather than silently bundled into 16.2.
+
+## Ready — QA Quality Gate 02: AudioListener Warning Root Cause
+
+Prove which exact runtime or test-fixture lifecycle creates overlapping active
+AudioListeners during the full PlayMode gate. Begin read-only. Only after one
+reproducible owner is identified may Architect lease the smallest correction.
+Preserve camera, audio, scene and test authority; do not suppress the warning,
+disable audio globally, add a singleton or weaken assertions merely to quiet logs.

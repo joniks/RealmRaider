@@ -1,3 +1,4 @@
+using System.Globalization;
 using RealmRaiders.Characters;
 using RealmRaiders.Possession;
 using RealmRaiders.Raid;
@@ -123,6 +124,7 @@ namespace RealmRaiders.UI
         public FirstPlayableMinuteDefenseGuide FirstMinuteGuide => firstMinuteGuide;
         public DefenseDeploymentReceipt DeploymentReceipt => deploymentReceipt;
         public string ResultText => result ? result.text : string.Empty;
+        public RectTransform ResultRect => resultRect;
         public string PossessionEnergyText => energyText ? energyText.text : string.Empty;
         public PossessionEnergyReadabilityLevel PossessionEnergyLevel => hasDisplayedEnergy ? displayedEnergy.Level : PossessionEnergyReadabilityLevel.Normal;
         public float PossessionEnergyFill => energyFill ? energyFill.rectTransform.anchorMax.x : 0;
@@ -137,6 +139,19 @@ namespace RealmRaiders.UI
         public RectTransform ChargeAffordanceRect => chargeAffordance;
         public float PossessionEnergyRemaining => energy?.Remaining ?? 0;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
+
+        public static string DefenseResultDebriefCopy(DefenseResultFact fact)
+        {
+            var seconds = Mathf.RoundToInt(fact.Duration);
+            return fact.Outcome switch
+            {
+                DefenseState.DefenderVictory => $"DEFENSE FACTS — INVADER DEFEATED • CORE DANGER {Mathf.RoundToInt(fact.CoreProgress * 100)}% • {seconds}s",
+                DefenseState.RealmLost => $"DEFENSE FACTS — CORE CAPTURED • INVADER {HealthCopy(fact.InvaderHealth)}/{HealthCopy(fact.InvaderMaximumHealth)} HP • {seconds}s",
+                _ => string.Empty
+            };
+        }
+
+        static string HealthCopy(float value) => value.ToString("0.#", CultureInfo.InvariantCulture);
 
         public void Initialize(DefenseManager defenseManager, PossessionManager manager, PossessionEnergy possessionEnergy, CombatEntity raidInvader, CombatEntity defender, TrapBase rootTrap, RealmCore core, DefenseHudConfig hudConfig, DefenseDeploymentReceiptData deployment = null)
         {
@@ -435,7 +450,10 @@ namespace RealmRaiders.UI
             if (value is DefenseState.DefenderVictory or DefenseState.RealmLost)
             {
                 if (journeyToken != 0 && !journeyCompletedForResult) journeyCompletedForResult = PrototypeJourney.TryCompleteDefense(journeyToken);
-                HideReleaseNotice(); resultPanel.SetActive(true); HideAndDisableLiveActions(); presentation?.PlayResult(); result.text = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured.";
+                HideReleaseNotice(); resultPanel.SetActive(true); HideAndDisableLiveActions(); presentation?.PlayResult();
+                var outcome = value == DefenseState.DefenderVictory ? "DEFENDER VICTORY\n\nThe invader was destroyed." : $"REALM LOST\n\nThe {config.CoreName} was captured.";
+                var debrief = defense.HasResult ? DefenseResultDebriefCopy(defense.Result) : string.Empty;
+                result.text = string.IsNullOrEmpty(debrief) ? outcome : outcome + "\n\n" + debrief;
             }
             RefreshPossessionEnergy();
         }
