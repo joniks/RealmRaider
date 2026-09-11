@@ -18,14 +18,15 @@ namespace RealmRaiders.Combat
         public void Initialize(float maximum)
         { damageImmuneUntil = 0; Maximum = Mathf.Max(1, maximum); Current = Maximum; Changed?.Invoke(Current, Maximum); }
 
-        public void TakeDamage(DamageInfo hit, float armor)
+        public bool TakeDamage(DamageInfo hit, float armor)
         {
-            if (IsDead || IsDamageImmune) return;
+            if (IsDead || IsDamageImmune) return false;
             var reduction = 100f / (100f + Mathf.Max(0, armor));
             Current = Mathf.Max(0, Current - hit.Amount * reduction);
             Damaged?.Invoke(hit);
             Changed?.Invoke(Current, Maximum);
             if (IsDead) Died?.Invoke();
+            return true;
         }
 
         internal void BeginDamageImmunity(float seconds) => damageImmuneUntil = Time.time + Mathf.Max(0, seconds);

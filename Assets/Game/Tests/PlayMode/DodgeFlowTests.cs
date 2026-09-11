@@ -65,16 +65,81 @@ namespace RealmRaiders.Tests
 
                 yield return new WaitForSeconds(CombatEntity.DodgeCooldown);
                 Assert.That(fixture.Player.Dodge(), Is.True);
+                var feedback = fixture.Root.GetComponent<CombatFeedback>(); feedback.ShowDodgeConfirmation(fixture.Entity.transform.position);
+                Assert.That(feedback.DodgeConfirmationVisible, Is.True);
                 GameplayInput.SetTerminalState(true);
                 yield return null;
                 Assert.That(fixture.Entity.IsDodging, Is.False);
                 Assert.That(fixture.Entity.Health.IsDamageImmune, Is.False);
+                Assert.That(feedback.DodgeConfirmationVisible, Is.False, "Terminal state clears dodge confirmation.");
             }
             finally
             {
                 GameplayInput.ResetForTests();
                 fixture.Dispose();
                 Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SuccessfulDodge_ShowsOneTruthfulConfirmationWithoutHitFeedback()
+        {
+            GameplayInput.ResetForTests(); Time.timeScale = 1;
+            var cameraObject = MainCamera();
+            var target = new EntityFixture(false);
+            var attackerObject = new GameObject("Dodge Confirmation Attacker", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cube); ground.name = "Dodge Confirmation Ground"; ground.transform.position = new Vector3(0, -.25f, 0); ground.transform.localScale = new Vector3(20, .5f, 20);
+            var attackerDefinition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            var attack = ScriptableObject.CreateInstance<AbilityDefinition>();
+            try
+            {
+                attack.DisplayName = "Confirmation Strike"; attack.Kind = AbilityKind.Area; attack.Damage = 25; attack.Range = 1; attack.Radius = 4; attack.Windup = 0; attack.Cooldown = 0;
+                attackerDefinition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 1 }; attackerDefinition.Abilities = new[] { attack };
+                var attacker = attackerObject.GetComponent<CombatEntity>(); attacker.Initialize(attackerDefinition);
+                target.Root.transform.position = new Vector3(0, 1, 0); attackerObject.transform.position = new Vector3(0, 1, -1); Physics.SyncTransforms();
+                target.Entity.SetController(target.Player);
+                var feedback = target.Root.GetComponent<CombatFeedback>();
+                GameplayInput.SetMovement(Vector2.right); target.Player.Tick(); GameplayInput.ClearMovement();
+                var dodgeStart = target.Entity.transform.position;
+
+                Assert.That(target.Player.Dodge(), Is.True);
+                Assert.That(attacker.TryUse(0, Vector3.forward), Is.True);
+                var impactDeadline = Time.realtimeSinceStartup + 1;
+                while (!feedback.DodgeConfirmationVisible && attacker.IsActionResolving && Time.realtimeSinceStartup < impactDeadline) yield return null;
+
+                Assert.That(target.Entity.Health.Current, Is.EqualTo(100), "The existing dodge immunity remains authoritative.");
+                Assert.That(feedback.DodgeConfirmationVisible, Is.True);
+                var confirmation = GameObject.Find("Combat Dodge Confirmation");
+                Assert.That(confirmation, Is.Not.Null);
+                Assert.That(confirmation.GetComponent<TextMesh>().text, Is.EqualTo("DODGED"));
+                Assert.That(confirmation.GetComponent<CameraFacingMarker>(), Is.Not.Null);
+                Assert.That(confirmation.GetComponent<Collider>(), Is.Null);
+                Assert.That(GameObject.Find("Combat Damage"), Is.Null, "An immunity-rejected hit cannot display damage feedback.");
+                Assert.That(GameObject.Find("Ability Impact"), Is.Null, "An immunity-rejected hit cannot count as an attacker impact.");
+
+                feedback.ShowDodgeConfirmation(target.Entity.transform.position);
+                feedback.ShowDodgeConfirmation(target.Entity.transform.position);
+                Assert.That(Object.FindObjectsByType<CameraFacingMarker>(FindObjectsSortMode.None), Has.Length.EqualTo(1), "The visible confirmation window deduplicates repeated rejected hits.");
+
+                yield return new WaitForSecondsRealtime(CombatFeedback.DodgeConfirmationDuration + .05f);
+                Assert.That(feedback.DodgeConfirmationVisible, Is.False);
+                Assert.That(GameObject.Find("Combat Dodge Confirmation"), Is.Null);
+                var dodgeDisplacement = target.Entity.transform.position - dodgeStart;
+                Assert.That(dodgeDisplacement.x, Is.GreaterThan(2.4f).And.LessThanOrEqualTo(CombatEntity.DodgeDistance + .05f));
+                Assert.That(Mathf.Abs(dodgeDisplacement.z), Is.LessThan(.05f), "Rejected hit feedback cannot add its ordinary knockback.");
+                Assert.That(target.Player.Dodge(), Is.False, "A failed cooldown dodge cannot create confirmation.");
+
+                Assert.That(attacker.TryUse(0, Vector3.forward), Is.True);
+                impactDeadline = Time.realtimeSinceStartup + 1;
+                while (target.Entity.Health.Current == 100 && attacker.IsActionResolving && Time.realtimeSinceStartup < impactDeadline) yield return null;
+                Assert.That(target.Entity.Health.Current, Is.EqualTo(75));
+                Assert.That(feedback.DodgeConfirmationVisible, Is.False);
+                Assert.That(GameObject.Find("Combat Damage"), Is.Not.Null, "An applied hit retains ordinary target feedback.");
+                Assert.That(GameObject.Find("Ability Impact"), Is.Not.Null, "An applied hit retains ordinary attacker impact feedback.");
+            }
+            finally
+            {
+                GameplayInput.ResetForTests(); target.Dispose(); Object.Destroy(cameraObject); Object.Destroy(attackerObject); Object.Destroy(ground); Object.Destroy(attackerDefinition); Object.Destroy(attack);
             }
         }
 
@@ -88,10 +153,13 @@ namespace RealmRaiders.Tests
             var deathFixture = new EntityFixture(false);
             var disableFixture = new EntityFixture(false);
             var trapFixture = new EntityFixture(false);
+            EntityFixture destroyFixture = new EntityFixture(false);
             try
             {
                 fixture.Entity.SetController(fixture.Ai);
                 Assert.That(fixture.Entity.TryDodge(Vector3.right), Is.False, "AI control must never gain dodge.");
+                var fixtureFeedback = fixture.Root.GetComponent<CombatFeedback>(); fixtureFeedback.ShowDodgeConfirmation(fixture.Entity.transform.position);
+                Assert.That(fixtureFeedback.DodgeConfirmationVisible, Is.False, "AI/nonimmune targets cannot create confirmation.");
                 fixture.Entity.SetController(fixture.Player);
                 fixture.Entity.ApplyRoot(1);
                 Assert.That(fixture.Player.Dodge(), Is.False);
@@ -109,37 +177,58 @@ namespace RealmRaiders.Tests
                 Assert.That(fixture.Player.Dodge(), Is.True);
                 Assert.That(Vector3.Dot(fixture.Entity.transform.forward, Vector3.left), Is.GreaterThan(.99f), "No movement history must fall back to facing.");
                 Assert.That(fixture.Entity.TryUse(0, Vector3.forward), Is.False, "Abilities must not begin during dodge.");
+                fixtureFeedback.ShowDodgeConfirmation(fixture.Entity.transform.position); Assert.That(fixtureFeedback.DodgeConfirmationVisible, Is.True);
                 fixture.Entity.SetController(fixture.Ai);
                 Assert.That(fixture.Entity.IsDodging, Is.False);
                 Assert.That(fixture.Entity.Health.IsDamageImmune, Is.False);
+                Assert.That(fixtureFeedback.DodgeConfirmationVisible, Is.False, "Controller swap clears confirmation.");
 
                 deathFixture.Entity.SetController(deathFixture.Player);
                 Assert.That(deathFixture.Player.Dodge(), Is.True);
+                var deathFeedback = deathFixture.Root.GetComponent<CombatFeedback>(); deathFeedback.ShowDodgeConfirmation(deathFixture.Entity.transform.position);
+                Assert.That(deathFeedback.DodgeConfirmationVisible, Is.True);
                 deathFixture.Entity.SendMessage("OnDeath", SendMessageOptions.RequireReceiver);
                 Assert.That(deathFixture.Entity.IsDodging, Is.False);
                 Assert.That(deathFixture.Entity.Health.IsDamageImmune, Is.False);
+                Assert.That(deathFeedback.DodgeConfirmationVisible, Is.False, "Death cleanup clears confirmation.");
                 deathFixture.Entity.Health.TakeDamage(new DamageInfo(1000, null, Vector3.zero), 0);
                 Assert.That(deathFixture.Entity.Health.IsDead, Is.True);
                 Assert.That(deathFixture.Player.Dodge(), Is.False);
 
                 disableFixture.Entity.SetController(disableFixture.Player);
                 Assert.That(disableFixture.Player.Dodge(), Is.True);
+                var disableFeedback = disableFixture.Root.GetComponent<CombatFeedback>(); disableFeedback.ShowDodgeConfirmation(disableFixture.Entity.transform.position);
+                Assert.That(disableFeedback.DodgeConfirmationVisible, Is.True);
                 disableFixture.Entity.enabled = false;
                 Assert.That(disableFixture.Entity.IsDodging, Is.False);
                 Assert.That(disableFixture.Entity.Health.IsDamageImmune, Is.False);
+                Assert.That(disableFeedback.DodgeConfirmationVisible, Is.False, "CombatEntity disable clears confirmation.");
 
                 trapFixture.Entity.SetController(trapFixture.Player);
                 Assert.That(trapFixture.Player.Dodge(), Is.True);
                 trapFixture.Entity.ApplyRoot(1);
                 Assert.That(trapFixture.Entity.IsDodging, Is.False, "A root must stop dodge travel.");
                 Assert.That(trapFixture.Entity.Health.IsDamageImmune, Is.True, "Root-before-damage traps must preserve the exact immunity window.");
-                trapFixture.Entity.Health.TakeDamage(new DamageInfo(20, null, Vector3.zero), 0);
+                Assert.That(trapFixture.Entity.Health.TakeDamage(new DamageInfo(20, null, Vector3.zero), 0), Is.False);
                 Assert.That(trapFixture.Entity.Health.Current, Is.EqualTo(100), "Trap damage inside the dodge window must be ignored.");
+                var trapFeedback = trapFixture.Root.GetComponent<CombatFeedback>();
+                Assert.That(trapFeedback.DodgeConfirmationVisible, Is.False, "Direct trap damage does not invent ability-impact confirmation.");
+                trapFeedback.ShowDodgeConfirmation(trapFixture.Entity.transform.position); Assert.That(trapFeedback.DodgeConfirmationVisible, Is.True);
+                trapFeedback.Cleanup(); Assert.That(trapFeedback.DodgeConfirmationVisible, Is.False, "Visual cleanup clears confirmation.");
+
+                destroyFixture.Entity.SetController(destroyFixture.Player);
+                Assert.That(destroyFixture.Player.Dodge(), Is.True);
+                var destroyFeedback = destroyFixture.Root.GetComponent<CombatFeedback>(); destroyFeedback.ShowDodgeConfirmation(destroyFixture.Entity.transform.position);
+                var teardownMarker = GameObject.Find("Combat Dodge Confirmation"); Assert.That(teardownMarker, Is.Not.Null);
+                destroyFixture.Dispose(); destroyFixture = null;
+                yield return null; yield return null;
+                Assert.That(teardownMarker == null, Is.True, "Entity/scene teardown destroys the detached world-space confirmation.");
             }
             finally
             {
                 GameplayInput.ResetForTests();
                 fixture.Dispose(); deathFixture.Dispose(); disableFixture.Dispose(); trapFixture.Dispose();
+                destroyFixture?.Dispose();
                 Object.Destroy(cameraObject);
             }
         }

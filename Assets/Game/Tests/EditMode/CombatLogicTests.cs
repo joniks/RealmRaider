@@ -24,17 +24,29 @@ namespace RealmRaiders.Tests
         [Test]
         public void Damage_IsReducedByArmor()
         {
-            health.TakeDamage(new DamageInfo(100, null, Vector3.zero), 100);
+            Assert.That(health.TakeDamage(new DamageInfo(100, null, Vector3.zero), 100), Is.True);
             Assert.That(health.Current, Is.EqualTo(50).Within(.01f));
         }
 
         [Test]
         public void Death_FiresOnce_AndHealthDoesNotGoNegative()
         {
-            int deaths = 0; health.Died += () => deaths++;
-            health.TakeDamage(new DamageInfo(500, null, Vector3.zero), 0);
-            health.TakeDamage(new DamageInfo(500, null, Vector3.zero), 0);
-            Assert.That(health.Current, Is.Zero); Assert.That(deaths, Is.EqualTo(1));
+            var events = new System.Collections.Generic.List<string>();
+            health.Damaged += _ => events.Add("Damaged"); health.Changed += (_, _) => events.Add("Changed"); health.Died += () => events.Add("Died");
+            Assert.That(health.TakeDamage(new DamageInfo(500, null, Vector3.zero), 0), Is.True);
+            Assert.That(health.TakeDamage(new DamageInfo(500, null, Vector3.zero), 0), Is.False);
+            Assert.That(health.Current, Is.Zero);
+            Assert.That(events, Is.EqualTo(new[] { "Damaged", "Changed", "Died" }));
+        }
+
+        [Test]
+        public void DamageResult_RejectsImmunityWithoutChangingHealthOrPublishingEvents()
+        {
+            var eventCount = 0; health.Damaged += _ => eventCount++; health.Changed += (_, _) => eventCount++; health.Died += () => eventCount++;
+            var beginImmunity = typeof(Health).GetMethod("BeginDamageImmunity", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            Assert.That(beginImmunity, Is.Not.Null); beginImmunity.Invoke(health, new object[] { 1f });
+            Assert.That(health.TakeDamage(new DamageInfo(25, null, Vector3.zero), 0), Is.False);
+            Assert.That(health.Current, Is.EqualTo(100)); Assert.That(eventCount, Is.Zero);
         }
 
         [Test]

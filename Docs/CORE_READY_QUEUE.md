@@ -703,9 +703,22 @@ PlayMode `96/96`, both with zero failed/skipped/inconclusive tests. Retarget,
 same-threat pulse history, ActionId/fallback and authority cleanup all passed; no
 recursion, NRE, compiler/runtime error or new duplicate-listener warning occurred.
 
-## Ready — Diamond Pass 16.5: Next Player-Visible Loop Slice
+## Accepted — Diamond Pass 16.5: Truthful Successful-Dodge Confirmation
 
-Core prepares one read-only proposal from the verified loop and player-facing
-limitations. Prefer direct combat feel, possession meaning, world readability or
-an existing earned consequence over documentation, speculative breadth or process
-work. Architect freezes acceptance and paths before implementation.
+Make Health report whether its existing damage path applied. Only applied ability
+hits may produce hit/damage/knockback/impact feedback; a direct player protected by
+the existing dodge-immunity window instead receives one bounded, collider-free
+`DODGED` confirmation through existing CombatFeedback. Preserve all gameplay
+timing, damage values, authority and non-ability trap behavior.
+
+Acceptance: QA verified fresh assemblies. Final native gates passed EditMode
+`340/340` and PlayMode `97/97`, both with zero failed/skipped/inconclusive tests.
+Dodge coverage passed `4/4`; no stale marker, compiler/runtime error or new
+duplicate-listener warning occurred. Manual incoming-to-dodge feel remains
+unobserved.
+
+## Ready — Diamond Pass 16.6: Next Player-Visible Loop Slice
+
+Core prepares one read-only proposal from the verified loop and remaining
+player-facing limitations. Prefer combat consequence, possession meaning, world
+readability or earned progression over process work or speculative breadth.

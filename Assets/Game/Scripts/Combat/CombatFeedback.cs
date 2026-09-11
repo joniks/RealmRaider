@@ -1,5 +1,6 @@
 using System.Collections;
 using RealmRaiders.Characters;
+using RealmRaiders.Controllers;
 using UnityEngine;
 
 namespace RealmRaiders.Combat
@@ -8,11 +9,15 @@ namespace RealmRaiders.Combat
     [DisallowMultipleComponent]
     public sealed class CombatFeedback : MonoBehaviour
     {
+        public const float DodgeConfirmationDuration = .45f;
         static readonly int ColorId = Shader.PropertyToID("_BaseColor");
         static readonly System.Collections.Generic.Dictionary<Color, Material> materials = new();
         GameObject telegraph;
+        GameObject dodgeConfirmation;
+        Coroutine dodgeConfirmationRoutine;
         readonly System.Collections.Generic.List<GameObject> transient = new();
         Renderer[] renderers;
+        public bool DodgeConfirmationVisible => dodgeConfirmation && dodgeConfirmation.activeSelf;
 
         void Awake() => renderers = GetComponentsInChildren<Renderer>();
         public void ShowTelegraph(AbilityDefinition ability, Vector3 direction)
@@ -45,6 +50,31 @@ namespace RealmRaiders.Combat
             Track(marker, .65f);
         }
 
+        public void ShowDodgeConfirmation(Vector3 point)
+        {
+            if (dodgeConfirmation) return;
+            var entity = GetComponent<CombatEntity>();
+            if (!entity || entity.Health == null || entity.Health.IsDead || !entity.Health.IsDamageImmune || entity.ActiveController is not PlayerController player || !player.IsActive || !player.isActiveAndEnabled) return;
+            dodgeConfirmation = new GameObject("Combat Dodge Confirmation", typeof(TextMesh), typeof(CameraFacingMarker));
+            dodgeConfirmation.transform.position = point + Vector3.up * 1.5f;
+            var text = dodgeConfirmation.GetComponent<TextMesh>(); text.text = "DODGED"; text.anchor = TextAnchor.MiddleCenter; text.characterSize = .09f; text.fontSize = 54; text.color = new Color(.35f, .9f, 1f);
+            transient.Add(dodgeConfirmation);
+            dodgeConfirmationRoutine = StartCoroutine(ClearDodgeConfirmationAfter(dodgeConfirmation));
+        }
+
+        public void ClearDodgeConfirmation()
+        {
+            if (dodgeConfirmationRoutine != null) StopCoroutine(dodgeConfirmationRoutine);
+            dodgeConfirmationRoutine = null;
+            if (dodgeConfirmation)
+            {
+                dodgeConfirmation.SetActive(false);
+                transient.Remove(dodgeConfirmation);
+                Destroy(dodgeConfirmation);
+            }
+            dodgeConfirmation = null;
+        }
+
         public void ShowImpact()
         {
             var pulse = FlatPrimitive("Ability Impact", PrimitiveType.Cylinder, transform.position + Vector3.up * .05f, new Vector3(1.45f, .02f, 1.45f), new Color(.95f, 1f, .5f, .5f));
@@ -53,7 +83,14 @@ namespace RealmRaiders.Combat
 
         public void Cleanup()
         {
-            StopAllCoroutines(); ClearTelegraph();
+            StopAllCoroutines(); dodgeConfirmationRoutine = null; ClearTelegraph();
+            if (dodgeConfirmation)
+            {
+                dodgeConfirmation.SetActive(false);
+                transient.Remove(dodgeConfirmation);
+                Destroy(dodgeConfirmation);
+            }
+            dodgeConfirmation = null;
             GetComponent<CharacterVisualMotion>()?.ClearTransientReaction();
             foreach (var item in transient) if (item) Destroy(item);
             transient.Clear();
@@ -65,6 +102,20 @@ namespace RealmRaiders.Combat
             foreach (var renderer in renderers) if (renderer) { renderer.GetPropertyBlock(block); block.SetColor(ColorId, Color.white); renderer.SetPropertyBlock(block); }
             yield return new WaitForSecondsRealtime(.1f);
             foreach (var renderer in renderers) if (renderer) renderer.SetPropertyBlock(null);
+        }
+
+        IEnumerator ClearDodgeConfirmationAfter(GameObject expected)
+        {
+            yield return new WaitForSecondsRealtime(DodgeConfirmationDuration);
+            if (dodgeConfirmation != expected) yield break;
+            dodgeConfirmationRoutine = null;
+            if (dodgeConfirmation)
+            {
+                dodgeConfirmation.SetActive(false);
+                transient.Remove(dodgeConfirmation);
+                Destroy(dodgeConfirmation);
+            }
+            dodgeConfirmation = null;
         }
 
         GameObject FlatPrimitive(string name, PrimitiveType type, Vector3 position, Vector3 scale, Color color)

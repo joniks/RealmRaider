@@ -114,7 +114,7 @@ namespace RealmRaiders.Characters
 
         void Update()
         {
-            if (GameplayInput.TerminalState && !presentationTerminal) PublishPresentation(CombatPresentationEnd.Terminal);
+            if (GameplayInput.TerminalState && !presentationTerminal) { PublishPresentation(CombatPresentationEnd.Terminal); feedback?.ClearDodgeConfirmation(); }
             presentationTerminal = GameplayInput.TerminalState;
             if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
             if (GameplayInput.TerminalState || !Motor || !Motor.enabled) CancelJump();
@@ -166,9 +166,13 @@ namespace RealmRaiders.Characters
                 {
                     var damage = ability.Damage + Stats.AbilityPower * .25f;
                     var point = hit.ClosestPoint(center);
-                    target.Health.TakeDamage(new DamageInfo(damage, gameObject, point), target.Stats.Armor);
-                    target.feedback?.ShowHit(damage, point, transform.position);
-                    connected = true;
+                    if (target.Health.TakeDamage(new DamageInfo(damage, gameObject, point), target.Stats.Armor))
+                    {
+                        target.feedback?.ShowHit(damage, point, transform.position);
+                        connected = true;
+                    }
+                    else if (target.Health.IsDamageImmune && target.ActiveController is PlayerController player && player.IsActive && player.isActiveAndEnabled)
+                        target.feedback?.ShowDodgeConfirmation(point);
                 }
             }
             if (connected) feedback.ShowImpact();
@@ -309,7 +313,7 @@ namespace RealmRaiders.Characters
 
         void ClearPendingJump() => pendingJumpUntil = float.NegativeInfinity;
 
-        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); CancelDodge(); CancelJump(); }
+        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); feedback?.ClearDodgeConfirmation(); CancelDodge(); CancelJump(); }
         void OnDestroy()
         {
             PublishPresentation(CombatPresentationEnd.Destroyed);

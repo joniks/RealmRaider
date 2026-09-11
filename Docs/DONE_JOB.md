@@ -3439,3 +3439,38 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual Sylvan possession and possessed-defense incoming-cue readability in both
   orientations remains unobserved because QA could not safely access the Game view.
+
+## Diamond Pass 16.5 — Truthful Successful-Dodge Confirmation
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- `Health.TakeDamage` now reports whether its existing damage path was applied;
+  dead or immunity-rejected hits return false without changing health or publishing
+  damage/change/death events.
+- Ability overlap creates damage text, hit reaction, bounded knockback and attacker
+  impact only for an applied hit. Existing armor, values and event ordering remain
+  unchanged.
+- A factual rejected hit against the living direct player during existing dodge
+  immunity shows one camera-facing, collider-free world-space `DODGED` marker for
+  0.45 seconds. It deduplicates and clears on every authority/lifecycle boundary.
+- AI, traps, failed dodge, ordinary misses and nonimmune targets cannot invent the
+  confirmation; all dodge and combat timings remain unchanged.
+
+### Verification
+
+- QA verified fresh Runtime, EditMode and PlayMode assemblies before final gates.
+- Final EditMode passed `340/340`, zero failed/skipped/inconclusive, in 1.787 s
+  (job `2fab33c0-ba22-44bb-93ed-ba1f1fbdac6c`).
+- Final PlayMode passed `97/97`, zero failed/skipped/inconclusive, in 78.675 s
+  (job `a11756a0-e6a2-434e-b7c0-f2ce35d90c35`,
+  2026-09-11 01:44:18Z–01:45:37Z).
+- Dodge coverage passed `4/4`, including truthful rejection, expiry, later applied
+  hit and cleanup. No stale marker, compiler/runtime error or new duplicate-listener
+  warning occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual incoming → dodge confirmation feel in Sylvan and possessed Defense
+  remains unobserved because QA could not safely access the Game view.
