@@ -3,6 +3,7 @@ using RealmRaiders.Combat;
 using RealmRaiders.Characters;
 using RealmRaiders.Controllers;
 using RealmRaiders.Core;
+using RealmRaiders.Possession;
 using RealmRaiders.UI;
 using UnityEngine;
 using UnityEngine.UI;
@@ -69,6 +70,27 @@ namespace RealmRaiders.Tests
             Assert.That(DirectControlHealthReadability.Map("Blood Knight", 1, 0, true, false).IsLow, Is.False);
             Assert.That(DirectControlHealthReadability.Map("Blood Knight", 1, float.NaN, true, false).IsLow, Is.False);
             Assert.That(DirectControlHealthReadability.Map("Blood Knight", float.PositiveInfinity, 100, true, false).IsLow, Is.False);
+        }
+
+        [Test]
+        public void ExplicitReleaseFeedback_RequiresFactualActiveAiAndFormatsInvariantHealth()
+        {
+            var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+            try
+            {
+                System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("lv-LV");
+                Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy(" Guardian Ent ", 87.5f, 120.26f, true, false),
+                    Is.EqualTo("RELEASED — GUARDIAN ENT RESUMED DEFENSE\n87.5/120.3 HP"));
+            }
+            finally { System.Globalization.CultureInfo.CurrentCulture = previousCulture; }
+
+            Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy("Guardian Ent", 80, 120, false, false), Is.EqualTo(PossessionManager.ExplicitReleaseFallback), "Absent or inactive AI cannot claim resumed defense.");
+            Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy("Guardian Ent", 80, 120, true, true), Is.EqualTo(PossessionManager.ExplicitReleaseFallback), "Terminal UI cannot show a return receipt.");
+            Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy("", 80, 120, true, false), Is.EqualTo(PossessionManager.ExplicitReleaseFallback));
+            Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy("Guardian Ent", 0, 120, true, false), Is.EqualTo(PossessionManager.ExplicitReleaseFallback));
+            Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy("Guardian Ent", float.NaN, 120, true, false), Is.EqualTo(PossessionManager.ExplicitReleaseFallback));
+            Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy("Guardian Ent", 80, 0, true, false), Is.EqualTo(PossessionManager.ExplicitReleaseFallback));
+            Assert.That(PossessionManager.ExplicitReleaseFeedbackCopy("Guardian Ent", 121, 120, true, false), Is.EqualTo(PossessionManager.ExplicitReleaseFallback));
         }
 
         [Test]

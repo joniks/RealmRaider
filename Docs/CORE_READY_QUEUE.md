@@ -732,9 +732,23 @@ possession, death, terminal, orientation and invader-isolation coverage passed;
 there was no compiler/runtime error or new duplicate-listener warning. Manual
 portrait/landscape readability remains unobserved.
 
-## Ready — Diamond Pass 16.7: Next Player-Visible Loop Slice
+## Accepted — Diamond Pass 16.7: Factual Creature-Return Receipt
 
-Core prepares one read-only proposal from the verified loop and remaining
-player-facing limitations. Prefer one bounded combat consequence, possession
-meaning, world readability or earned progression improvement. The proposal must
-reuse existing truthful state and presentation before suggesting a new system.
+On successful explicit release only, after the same living entity factually
+restores its active `CreatureBrain`, reuse the existing bounded MomentFeedback
+notice to confirm that named creature resumed defense and show its unchanged
+current/maximum HP. Forced release, death, energy depletion, absent/inactive AI,
+invalid data, repeated release and terminal UI must preserve existing fallback or
+silence. No new UI object, event, timer or gameplay authority.
+
+Acceptance: fresh main and Modules assemblies; final native gates passed EditMode
+`347/347` and PlayMode `101/101`, both with zero failed/skipped/inconclusive tests.
+Same-entity, unchanged-HP, active-AI, no-AI, repeated, forced death/energy and
+terminal win/loss paths passed without compiler/runtime errors or new
+duplicate-listener warnings. Manual readability remains unobserved.
+
+## Ready — Diamond Pass 16.8: Next Player-Visible Loop Slice
+
+Core prepares one read-only proposal from base `1a549da` plus the accepted 16.7
+candidate. Prefer a bounded improvement to combat consequence, possession meaning,
+world readability or earned progression that reuses existing truthful state.

@@ -62,14 +62,14 @@ namespace RealmRaiders.Raid
         void Win()
         {
             if (!TryFreezeResult(DefenseState.DefenderVictory)) return;
-            possession.Release();
+            possession.Release(true);
             PublishResult();
         }
 
         void Lose()
         {
             if (!TryFreezeResult(DefenseState.RealmLost)) return;
-            possession.Release();
+            possession.Release(true);
             if (invader && !invader.Health.IsDead) invader.SetController(null);
             PublishResult();
         }

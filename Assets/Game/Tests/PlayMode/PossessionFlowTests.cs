@@ -419,10 +419,24 @@ namespace RealmRaiders.Tests
                 fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
                 Assert.That(fixture.Hud.LowHealthVisible, Is.True);
 
+                var releaseNotice = fixture.Hud.transform.Find("Possession Release Notice").GetComponent<Text>();
+                string releaseMoment = null; var releaseEvents = 0;
+                fixture.Possession.MomentFeedback += value => { releaseMoment = value; releaseEvents++; };
                 fixture.Possession.Release();
                 Assert.That(fixture.Hud.LowHealthVisible, Is.False);
                 Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
                 Assert.That(fixture.Hud.DefenderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+                Assert.That(releaseMoment, Is.EqualTo("RELEASED — BRUTE RESUMED DEFENSE\n25/100 HP"));
+                Assert.That(releaseEvents, Is.EqualTo(1));
+                Assert.That(releaseNotice.gameObject.activeSelf, Is.True);
+                Assert.That(releaseNotice.text, Is.EqualTo(releaseMoment));
+                Assert.That(CountNamed(fixture.Hud.transform, "Possession Release Notice"), Is.EqualTo(1));
+                fixture.Possession.Release();
+                Assert.That(releaseEvents, Is.EqualTo(1), "Repeated release with no possessed entity emits nothing.");
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
+                Assert.That(releaseNotice.gameObject.activeSelf, Is.True); Assert.That(releaseNotice.text, Is.EqualTo(releaseMoment));
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                Assert.That(releaseNotice.gameObject.activeSelf, Is.True); Assert.That(releaseNotice.text, Is.EqualTo(releaseMoment));
 
                 fixture.Possession.Select(fixture.Defender);
                 Assert.That(fixture.Possession.PossessSelected(), Is.True);
@@ -432,6 +446,7 @@ namespace RealmRaiders.Tests
                 Assert.That(fixture.Possession.Possessed, Is.Null);
                 Assert.That(fixture.Hud.LowHealthVisible, Is.False, "Terminal result restores neutral health presentation.");
                 Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
+                Assert.That(releaseNotice.gameObject.activeSelf, Is.False, "Terminal result owns the screen and clears the release notice.");
                 yield return null;
                 Assert.That(fixture.Hud.InvaderHealthText, Is.EqualTo("Invader  0/100 HP"));
                 Assert.That(fixture.Hud.InvaderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
@@ -587,7 +602,7 @@ namespace RealmRaiders.Tests
                 var ai = entityObject.GetComponent<CreatureBrain>(); var player = entityObject.GetComponent<PlayerController>(); entity.SetController(ai);
                 var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.ConfigureOverview(new Vector3(0, 6, -8), Quaternion.identity); rig.SnapToOverview();
                 var manager = managerObject.GetComponent<PossessionManager>(); manager.Initialize(rig); manager.Register(entity);
-                string moment = null; manager.MomentFeedback += value => moment = value;
+                var moments = new System.Collections.Generic.List<string>(); manager.MomentFeedback += moments.Add;
 
                 manager.Select(entity); yield return new WaitForEndOfFrame();
                 var selection = entity.transform.Find("Possession Selection Presentation");
@@ -601,21 +616,101 @@ namespace RealmRaiders.Tests
                 Assert.That(Vector3.Dot(-marker.LabelTransform.forward, toCamera), Is.GreaterThan(.98f));
 
                 Assert.That(manager.PossessSelected(), Is.True); yield return null;
-                Assert.That(moment, Is.EqualTo("YOU CONTROL: GUARDIAN ENT"));
+                Assert.That(moments[moments.Count - 1], Is.EqualTo("YOU CONTROL: GUARDIAN ENT"));
                 Assert.That(manager.Possessed, Is.SameAs(entity)); Assert.That(player.IsActive, Is.True); Assert.That(ai.IsActive, Is.False);
                 Assert.That(entity.transform.Find("Possession Selection Presentation"), Is.Null);
                 var canvasCountAfterTakeover = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
                 Assert.That(canvasCountAfterTakeover, Is.LessThanOrEqualTo(initialCanvasCount + 1));
 
+                entity.Health.TakeDamage(new DamageInfo(12.5f, null, entity.transform.position), 0);
+                var releasedEntity = entity; var releasedObject = entity.gameObject; var releasedHealth = entity.Health.Current;
                 manager.Release(); yield return null;
-                Assert.That(moment, Is.EqualTo("RELEASED — KEEPER OVERVIEW"));
+                Assert.That(moments[moments.Count - 1], Is.EqualTo("RELEASED — GUARDIAN ENT RESUMED DEFENSE\n87.5/100 HP"));
+                Assert.That(moments, Has.Count.EqualTo(2));
                 Assert.That(manager.Possessed, Is.Null); Assert.That(player.IsActive, Is.False); Assert.That(ai.IsActive, Is.True);
+                Assert.That(entity, Is.SameAs(releasedEntity)); Assert.That(entity.gameObject, Is.SameAs(releasedObject)); Assert.That(entity.Health.Current, Is.EqualTo(releasedHealth));
+                manager.Release(); Assert.That(moments, Has.Count.EqualTo(2), "Repeated release must remain silent.");
                 Assert.That(Object.FindObjectsByType<PossessionSelectionPresentation>(FindObjectsInactive.Include, FindObjectsSortMode.None), Is.Empty);
                 Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(canvasCountAfterTakeover));
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(initialEventSystemCount));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(initialListenerCount));
             }
             finally { Object.Destroy(managerObject); Object.Destroy(entityObject); Object.Destroy(cameraObject); Object.Destroy(definition); }
+        }
+
+        [UnityTest]
+        public IEnumerator ExplicitRelease_WithoutRestoredAiUsesExactKeeperFallbackAndDoesNotRepeat()
+        {
+            GameplayInput.ResetForTests();
+            var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig)); cameraObject.tag = "MainCamera";
+            var entityObject = new GameObject("Possessable Without AI", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController));
+            var managerObject = new GameObject("Possession Manager", typeof(PossessionManager));
+            var definition = ScriptableObject.CreateInstance<CharacterDefinition>();
+            try
+            {
+                definition.DisplayName = "Solo Guardian"; definition.Possessable = true; definition.Stats = new CombatStats { MaxHealth = 90, MoveSpeed = 1 };
+                var entity = entityObject.GetComponent<CombatEntity>(); entity.Initialize(definition);
+                var rig = cameraObject.GetComponent<PrototypeCameraRig>(); rig.SnapToOverview();
+                var manager = managerObject.GetComponent<PossessionManager>(); manager.Initialize(rig); manager.Register(entity);
+                var moments = new System.Collections.Generic.List<string>(); manager.MomentFeedback += moments.Add;
+                manager.Select(entity); Assert.That(manager.PossessSelected(), Is.True);
+                Assert.That(moments, Has.Count.EqualTo(1));
+                manager.Release();
+                Assert.That(entity.ActiveController, Is.Null);
+                Assert.That(moments, Has.Count.EqualTo(2));
+                Assert.That(moments[moments.Count - 1], Is.EqualTo(PossessionManager.ExplicitReleaseFallback));
+                manager.Release();
+                Assert.That(moments, Has.Count.EqualTo(2));
+            }
+            finally
+            {
+                GameplayInput.ResetForTests();
+                Object.Destroy(managerObject); Object.Destroy(entityObject); Object.Destroy(cameraObject); Object.Destroy(definition);
+            }
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator DefenseTerminalRelease_IsForcedForWinAndLossAndNeverClaimsResumedDefense()
+        {
+            foreach (var defenderVictory in new[] { true, false })
+            {
+                GameplayInput.ResetForTests();
+                var fixture = EnergyHudFixture.Create(DefenseHudConfig.Sylvan);
+                try
+                {
+                    var moments = new System.Collections.Generic.List<string>();
+                    var releases = new System.Collections.Generic.List<bool>();
+                    fixture.Possession.MomentFeedback += moments.Add;
+                    fixture.Possession.Released += releases.Add;
+                    fixture.Possession.Select(fixture.Defender);
+                    Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                    moments.Clear();
+
+                    if (defenderVictory)
+                        fixture.Invader.Health.TakeDamage(new DamageInfo(1000, null, fixture.Invader.transform.position), 0);
+                    else
+                    {
+                        var core = fixture.CoreObject.GetComponent<RealmCore>();
+                        core.InteractionDuration = .001f;
+                        fixture.CoreObject.transform.position = fixture.Invader.transform.position;
+                        core.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                    }
+
+                    Assert.That(fixture.Defense.State, Is.EqualTo(defenderVictory ? DefenseState.DefenderVictory : DefenseState.RealmLost));
+                    Assert.That(fixture.Possession.Possessed, Is.Null);
+                    Assert.That(releases, Is.EqualTo(new[] { true }), "A terminal manager return is forced/system-owned, not an explicit player release.");
+                    Assert.That(moments, Has.Count.EqualTo(1));
+                    Assert.That(moments[0], Is.EqualTo("POSSESSION ENDED — RETURNING TO KEEPER"));
+                    Assert.That(moments[0], Does.Not.Contain("RESUMED DEFENSE"));
+                }
+                finally
+                {
+                    GameplayInput.ResetForTests();
+                    fixture.Destroy();
+                }
+                yield return null;
+            }
         }
 
         [UnityTest]
@@ -649,6 +744,8 @@ namespace RealmRaiders.Tests
                 Assert.That(assembler.Assemble(recipe), Is.True);
                 var motion = fixture.Defender.GetComponent<CharacterVisualMotion>();
                 var brain = fixture.Defender.Controller<CreatureBrain>();
+                string moment = null;
+                fixture.Possession.MomentFeedback += value => moment = value;
 
                 fixture.Possession.Select(fixture.Defender);
                 Assert.That(fixture.Possession.PossessSelected(), Is.True);
@@ -657,6 +754,7 @@ namespace RealmRaiders.Tests
                 fixture.Possession.SendMessage("Update", SendMessageOptions.RequireReceiver);
                 Assert.That(fixture.Possession.Possessed, Is.Null, "Energy depletion follows the existing forced release path.");
                 Assert.That(motion.IsPossessionArrivalActive, Is.False, "Forced release clears the pending arrival response.");
+                Assert.That(moment, Is.EqualTo("POSSESSION ENERGY DEPLETED — RETURNING TO KEEPER"), "Energy depletion keeps its exact forced-return copy.");
 
                 fixture.Energy.Refill(); fixture.Possession.Select(fixture.Defender);
                 Assert.That(fixture.Possession.PossessSelected(), Is.True);
@@ -695,6 +793,7 @@ namespace RealmRaiders.Tests
                 fixture.Defender.Health.TakeDamage(new DamageInfo(1000, null, fixture.Defender.transform.position), 0);
                 Assert.That(fixture.Possession.Possessed, Is.Null, "Possessed death follows the existing forced return path.");
                 Assert.That(motion.IsPossessionArrivalActive, Is.False, "Possessed death clears arrival feedback immediately.");
+                Assert.That(moment, Is.EqualTo("POSSESSION ENDED — RETURNING TO KEEPER"), "Death keeps its exact forced-return copy.");
                 Assert.That(motion.IsDefeatActive, Is.True, "Only the factual lethal Health.Died path begins the final pivot response.");
                 Assert.That(fixture.Defender.transform.localPosition, Is.EqualTo(rootLocalPosition));
                 Assert.That(fixture.Defender.transform.position, Is.EqualTo(rootWorldPosition));

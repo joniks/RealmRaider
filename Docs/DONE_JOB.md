@@ -3508,3 +3508,62 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual raid and possessed-defense LOW HP readability in portrait/landscape
   remains unobserved because QA could not safely access the Game view.
+
+## Module Pass MMP09 — Explicit Procedural Humanoid Tuning Catalogue
+
+Completed on 2026-09-11 in Modules commit `a9f65dc`.
+
+### Delivered
+
+- An immutable, explicit provider/catalogue boundary maps stable profile IDs to
+  existing procedural humanoid tuning objects without discovery or automatic Core
+  application.
+- Catalogue construction snapshots caller inputs, uses ordinal deterministic order
+  and exact lookup, and fails closed with structured issues for invalid, duplicate,
+  null or unreadable providers and profiles.
+- The starter provider exposes Compatibility and Blood Knight device-readable
+  profiles while preserving the exact existing tuning object identity and all
+  accepted gait, jump, attack and hit values.
+
+### Verification
+
+- QA verified a fresh Modules/runtime/EditMode assembly in the main Unity host.
+- All five new catalogue tests were discovered inside the final EditMode gate;
+  that gate passed `347/347` with zero failed/skipped/inconclusive tests.
+- No compiler/runtime error, exception or new duplicate-`AudioListener` warning
+  occurred. The package remains passive and unintegrated into Core selection.
+
+## Diamond Pass 16.7 — Factual Creature-Return Receipt
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- A successful explicit release now confirms, through the existing bounded notice,
+  that the named living creature resumed defense and shows its unchanged factual
+  current/maximum HP.
+- The receipt is emitted only after the same entity restores its active
+  `CreatureBrain`. Missing/inactive AI, invalid health/name, terminal state and
+  repeated/no-possession release retain the exact existing fallback or silence.
+- Defense victory and Realm loss now classify their automatic possession return as
+  forced/system-owned, so they cannot emit a false resumed-defense claim. Existing
+  energy and death forced-release copy remains unchanged.
+- No UI object, timer, gameplay event, HP, AI, possession, camera or combat timing
+  was added or changed.
+
+### Verification
+
+- QA verified fresh main and Modules Runtime/EditMode/PlayMode assemblies.
+- Final EditMode passed `347/347`, zero failed/skipped/inconclusive, in 1.777 s
+  (job `66c30102-7c75-4d8a-955c-fbc780ecce57`).
+- Final PlayMode passed `101/101`, zero failed/skipped/inconclusive, in 78.955 s
+  (job `686920b1-006f-4b4c-9d48-e615b04aa0a7`,
+  2026-09-11 02:17:14Z–02:18:33Z).
+- Win/loss, death, energy depletion, no-AI, repeat release, same-entity unchanged-HP
+  and orientation coverage passed. No compiler/runtime error, exception or new
+  duplicate-listener warning occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual portrait/landscape receipt readability and autonomous-resume feel remain
+  unobserved because QA could not safely access the Game view.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using RealmRaiders.AI;
 using RealmRaiders.CameraSystem;
 using RealmRaiders.Characters;
@@ -14,6 +15,7 @@ namespace RealmRaiders.Possession
     {
         public const float KeeperTapMaximumDuration = .45f;
         public const float KeeperTapSlopShortEdge = .035f;
+        public const string ExplicitReleaseFallback = "RELEASED — KEEPER OVERVIEW";
         public event Action<CombatEntity> SelectionChanged;
         public event Action<CombatEntity> PossessionChanged;
         public event Action<bool> Released;
@@ -120,7 +122,7 @@ namespace RealmRaiders.Possession
 
         void OnPossessedDied() => Release(true, "POSSESSION ENDED — RETURNING TO KEEPER");
         public void Release() => Release(false);
-        public void Release(bool forced) => Release(forced, forced ? "POSSESSION ENDED — RETURNING TO KEEPER" : "RELEASED — KEEPER OVERVIEW");
+        public void Release(bool forced) => Release(forced, forced ? "POSSESSION ENDED — RETURNING TO KEEPER" : ExplicitReleaseFallback);
         void Release(bool forced, string feedback)
         {
             if (!Possessed) return;
@@ -130,6 +132,13 @@ namespace RealmRaiders.Possession
             var ai = released.Controller<CreatureBrain>();
             if (ai != null && !released.Health.IsDead) released.SetController(ai);
             else released.SetController(null);
+            if (!forced)
+            {
+                var restoredActiveAi = ai != null && released.ActiveController == ai && ai.IsActive;
+                var displayName = released.Definition ? released.Definition.DisplayName : string.Empty;
+                feedback = ExplicitReleaseFeedbackCopy(displayName, released.Health.Current, released.Health.Maximum,
+                    restoredActiveAi, GameplayInput.TerminalState);
+            }
             Possessed = null; Selected = null;
             keeperPresses.Clear();
             ClearSelection(); ClearPulse();
@@ -139,6 +148,17 @@ namespace RealmRaiders.Possession
             Released?.Invoke(forced);
             MomentFeedback?.Invoke(feedback);
         }
+
+        public static string ExplicitReleaseFeedbackCopy(string displayName, float current, float maximum,
+            bool restoredActiveAi, bool terminal)
+        {
+            if (!restoredActiveAi || terminal || string.IsNullOrWhiteSpace(displayName) || !Finite(current) ||
+                !Finite(maximum) || current <= 0 || maximum <= 0 || current > maximum)
+                return ExplicitReleaseFallback;
+            return $"RELEASED — {displayName.Trim().ToUpperInvariant()} RESUMED DEFENSE\n{current.ToString("0.#", CultureInfo.InvariantCulture)}/{maximum.ToString("0.#", CultureInfo.InvariantCulture)} HP";
+        }
+
+        static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
 
         void ShowSelection(CombatEntity entity)
         {
