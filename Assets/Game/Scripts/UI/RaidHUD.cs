@@ -59,6 +59,10 @@ namespace RealmRaiders.UI
         public string ControlHintText => controlHint ? controlHint.text : string.Empty;
         public RaidEncounterCue EncounterCue => encounterCue;
         public RaidRewardCue RewardCue => rewardCue;
+        public string HealthText => health ? health.text : string.Empty;
+        public Color HealthTint => health ? health.color : DirectControlHealthReadability.NeutralTint;
+        public bool LowHealthVisible { get; private set; }
+        public RectTransform HealthRect => health ? health.rectTransform : null;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
@@ -66,7 +70,7 @@ namespace RealmRaiders.UI
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; Build();
             manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter; manager.Rewarded += OnReward;
-            hero.Health.Changed += (_, _) => Refresh();
+            hero.Health.Changed += OnHeroHealthChanged;
             Refresh(); OnState(manager.State); OnEncounter(manager.Encounter);
         }
 
@@ -225,6 +229,7 @@ namespace RealmRaiders.UI
             if (value == RaidState.RaidStarting) rewardCue?.Clear();
             if (value is RaidState.Victory or RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) encounterCue?.Clear();
             if (value is RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) rewardCue?.Clear();
+            RefreshHealth();
         }
         void OnReward(RaidRewardFact fact) => rewardCue?.Enqueue(fact);
         void OnEncounter(RaidEncounterState value)
@@ -234,8 +239,29 @@ namespace RealmRaiders.UI
         }
         void Refresh()
         {
-            health.text = $"Blood Knight  {hero.Health.Current:0}/{hero.Health.Maximum:0} HP";
+            RefreshHealth();
             stats.text = $"Gold {raid.Gold}   Enemies {raid.EnemiesDefeated}   Rooms {raid.RoomsDiscovered}   {raid.Duration:0}s";
+        }
+        void OnHeroHealthChanged(float current, float maximum) => RefreshHealth();
+        void RefreshHealth()
+        {
+            if (!health || !hero || hero.Health == null) return;
+            var player = hero.Controller<PlayerController>();
+            var direct = player && player.IsActive;
+            var terminal = GameplayInput.TerminalState || resultPanel && resultPanel.activeSelf || IsTerminalRaidState();
+            ApplyHealthPresentation(DirectControlHealthReadability.Map("Blood Knight", hero.Health.Current, hero.Health.Maximum, direct, terminal));
+        }
+        bool IsTerminalRaidState() => raid && (raid.State == RaidState.Victory || raid.State == RaidState.Defeat || raid.State == RaidState.Escape || raid.State == RaidState.RaidResult);
+        void ApplyHealthPresentation(DirectControlHealthReadabilityState next)
+        {
+            if (health.text != next.Copy) health.text = next.Copy;
+            if (health.color != next.Tint) health.color = next.Tint;
+            LowHealthVisible = next.IsLow;
+        }
+        void RestoreHealthPresentation()
+        {
+            if (!health || !hero || hero.Health == null) return;
+            ApplyHealthPresentation(DirectControlHealthReadability.Map("Blood Knight", hero.Health.Current, hero.Health.Maximum, false, true));
         }
         void RefreshAbilityButtons()
         {
@@ -357,12 +383,15 @@ namespace RealmRaiders.UI
         void OnDestroy()
         {
             if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; raid.EncounterChanged -= OnEncounter; raid.Rewarded -= OnReward; }
+            if (hero && hero.Health != null) hero.Health.Changed -= OnHeroHealthChanged;
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
             encounterCue?.Clear();
             rewardCue?.Clear();
             if (journeyToken != 0 && !journeyHandoff && PrototypeJourney.Cancel(journeyResultReached ? journeyResultToken : journeyToken))
                 FirstPlayableMinute.ResetBuildHandoff();
         }
+
+        void OnDisable() => RestoreHealthPresentation();
 
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, bool bottom = false)
         {

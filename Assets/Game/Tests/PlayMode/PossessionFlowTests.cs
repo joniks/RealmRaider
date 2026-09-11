@@ -371,6 +371,106 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator DirectControlCriticalHealth_DefenseTracksPossessionAndRestoresEveryExit()
+        {
+            GameplayInput.ResetForTests();
+            var fixture = EnergyHudFixture.Create(DefenseHudConfig.Infernal);
+            try
+            {
+                var initialTextCount = fixture.Hud.GetComponentsInChildren<Text>(true).Length;
+                fixture.Defender.Health.TakeDamage(new DamageInfo(75, null, fixture.Defender.transform.position), 0);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.LowHealthVisible, Is.False, "Low AI health must remain neutral in Keeper view.");
+                Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
+                Assert.That(fixture.Hud.DefenderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+                Assert.That(fixture.Hud.InvaderHealthText, Is.EqualTo("Invader  100/100 HP"));
+                Assert.That(fixture.Hud.InvaderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+
+                var responsive = fixture.Hud.GetComponent<ResponsiveHudRoot>();
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
+
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                Assert.That(fixture.Possession.Possessed, Is.SameAs(fixture.Defender), "Possession warning must describe the existing creature entity.");
+                Assert.That(fixture.Hud.LowHealthVisible, Is.True);
+                Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("LOW HP — Brute 25/100"));
+                Assert.That(fixture.Hud.DefenderHealthTint, Is.EqualTo(DirectControlHealthReadability.LowHealthTint));
+                Assert.That(fixture.Hud.GetComponentsInChildren<Text>(true), Has.Length.EqualTo(initialTextCount), "Critical readability must reuse the existing health label.");
+                Assert.That(fixture.Hud.InvaderHealthText, Is.EqualTo("Invader  100/100 HP"));
+                Assert.That(fixture.Hud.InvaderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.LowHealthVisible, Is.True);
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.LowHealthVisible, Is.True);
+
+                var player = fixture.Defender.Controller<PlayerController>();
+                fixture.Defender.SetController(fixture.Defender.Controller<CreatureBrain>());
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.LowHealthVisible, Is.False, "Controller loss restores the neutral presentation.");
+                fixture.Defender.SetController(player);
+                fixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(fixture.Hud.LowHealthVisible, Is.True);
+
+                fixture.Possession.Release();
+                Assert.That(fixture.Hud.LowHealthVisible, Is.False);
+                Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
+                Assert.That(fixture.Hud.DefenderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                Assert.That(fixture.Hud.LowHealthVisible, Is.True);
+                fixture.Invader.Health.TakeDamage(new DamageInfo(1000, null, fixture.Invader.transform.position), 0);
+                Assert.That(fixture.Defense.State, Is.EqualTo(DefenseState.DefenderVictory));
+                Assert.That(fixture.Possession.Possessed, Is.Null);
+                Assert.That(fixture.Hud.LowHealthVisible, Is.False, "Terminal result restores neutral health presentation.");
+                Assert.That(fixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
+                yield return null;
+                Assert.That(fixture.Hud.InvaderHealthText, Is.EqualTo("Invader  0/100 HP"));
+                Assert.That(fixture.Hud.InvaderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+            }
+            finally
+            {
+                fixture.Destroy();
+                GameplayInput.ResetForTests();
+            }
+            yield return null;
+
+            var deathFixture = EnergyHudFixture.Create(DefenseHudConfig.Infernal);
+            try
+            {
+                deathFixture.Defender.Health.TakeDamage(new DamageInfo(75, null, deathFixture.Defender.transform.position), 0);
+                deathFixture.Possession.Select(deathFixture.Defender);
+                Assert.That(deathFixture.Possession.PossessSelected(), Is.True);
+                Assert.That(deathFixture.Hud.LowHealthVisible, Is.True);
+                deathFixture.HudObject.SetActive(false);
+                Assert.That(deathFixture.Hud.LowHealthVisible, Is.False, "HUD disable cannot retain a live warning state.");
+                Assert.That(deathFixture.Hud.DefenderHealthText, Is.EqualTo("Brute  25/100 HP"));
+                deathFixture.HudObject.SetActive(true);
+                deathFixture.Hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(deathFixture.Hud.LowHealthVisible, Is.True);
+                deathFixture.Defender.Health.TakeDamage(new DamageInfo(1000, null, deathFixture.Defender.transform.position), 0);
+                Assert.That(deathFixture.Possession.Possessed, Is.Null);
+                Assert.That(deathFixture.Hud.LowHealthVisible, Is.False, "Controlled creature death restores neutral health presentation immediately.");
+                Assert.That(deathFixture.Hud.DefenderHealthText, Is.EqualTo("Brute  0/100 HP"));
+                Assert.That(deathFixture.Hud.DefenderHealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+            }
+            finally
+            {
+                deathFixture.Destroy();
+                GameplayInput.ResetForTests();
+            }
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator PossessionPreservesEntityStateAndRestoresAiWithSingleView()
         {
             var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener), typeof(PrototypeCameraRig));

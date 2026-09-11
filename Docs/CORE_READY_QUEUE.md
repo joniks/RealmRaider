@@ -717,8 +717,24 @@ Dodge coverage passed `4/4`; no stale marker, compiler/runtime error or new
 duplicate-listener warning occurred. Manual incoming-to-dodge feel remains
 unobserved.
 
-## Ready — Diamond Pass 16.6: Next Player-Visible Loop Slice
+## Accepted — Diamond Pass 16.6: Direct-Control Critical Health Readability
+
+Reuse only the existing raid hero-health and defense possessed-creature health
+labels to make the factual one-hit-from-death state unmistakable. At valid living
+direct-control health at or below exactly 25%, show compact `LOW HP` copy and one
+fixed warning tint. Restore the exact neutral presentation on recovery above the
+boundary, Keeper view, release, death, terminal state and teardown. Never decorate
+the defense invader-health label. No new UI object or gameplay authority.
+
+Acceptance: fresh assemblies; final native gates passed EditMode `341/341` and
+PlayMode `99/99`, both with zero failed/skipped/inconclusive tests. Controller,
+possession, death, terminal, orientation and invader-isolation coverage passed;
+there was no compiler/runtime error or new duplicate-listener warning. Manual
+portrait/landscape readability remains unobserved.
+
+## Ready — Diamond Pass 16.7: Next Player-Visible Loop Slice
 
 Core prepares one read-only proposal from the verified loop and remaining
-player-facing limitations. Prefer combat consequence, possession meaning, world
-readability or earned progression over process work or speculative breadth.
+player-facing limitations. Prefer one bounded combat consequence, possession
+meaning, world readability or earned progression improvement. The proposal must
+reuse existing truthful state and presentation before suggesting a new system.

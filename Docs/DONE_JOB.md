@@ -3474,3 +3474,37 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual incoming → dodge confirmation feel in Sylvan and possessed Defense
   remains unobserved because QA could not safely access the Game view.
+
+## Diamond Pass 16.6 — Direct-Control Critical Health Readability
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- A deterministic presentation mapper marks valid living direct-control health at
+  or below exactly 25% with compact `LOW HP — <NAME> <CURRENT>/<MAXIMUM>` copy and
+  one fixed high-contrast tint.
+- Raid and possessed-defense reuse only their existing health labels. Keeper view,
+  invader health and every neutral state retain their factual existing copy and
+  white tint; no Canvas, label, gameplay event or authority was added.
+- Health change, possession, release, controller loss, death, terminal state,
+  disable and teardown restore the exact neutral presentation. HUD event
+  subscriptions are symmetric and repeated frame refreshes avoid redundant text
+  and colour writes.
+
+### Verification
+
+- QA verified fresh Runtime, EditMode and PlayMode assemblies.
+- Final EditMode passed `341/341`, zero failed/skipped/inconclusive, in 1.79 s
+  (job `b7830092-f21b-4d35-861a-d6fb1e162bd1`).
+- After one test-timing correction that left runtime unchanged, final PlayMode
+  passed `99/99`, zero failed/skipped/inconclusive, in 79.233 s (job
+  `7acfbab8-511a-4e1f-9f9c-1f72aeda4f18`,
+  2026-09-11 02:03:02Z–02:04:22Z).
+- No compiler/runtime error, exception or new duplicate-`AudioListener` warning
+  occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual raid and possessed-defense LOW HP readability in portrait/landscape
+  remains unobserved because QA could not safely access the Game view.

@@ -50,6 +50,28 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void DirectControlHealthReadability_MapsExactBoundaryAndNeutralFallbacks()
+        {
+            var above = DirectControlHealthReadability.Map("Blood Knight", 26, 100, true, false);
+            Assert.That(above.IsLow, Is.False);
+            Assert.That(above.Copy, Is.EqualTo("Blood Knight  26/100 HP"));
+            Assert.That(above.Tint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+
+            var boundary = DirectControlHealthReadability.Map("Blood Knight", 25, 100, true, false);
+            Assert.That(boundary.IsLow, Is.True);
+            Assert.That(boundary.Copy, Is.EqualTo("LOW HP — Blood Knight 25/100"));
+            Assert.That(boundary.Tint, Is.EqualTo(DirectControlHealthReadability.LowHealthTint));
+
+            Assert.That(DirectControlHealthReadability.Map("Blood Knight", 1, 100, true, false).IsLow, Is.True);
+            Assert.That(DirectControlHealthReadability.Map("Blood Knight", 0, 100, true, false).IsLow, Is.False, "Death is never presented as a live warning.");
+            Assert.That(DirectControlHealthReadability.Map("Blood Knight", 25, 100, false, false).IsLow, Is.False, "Keeper/AI control stays neutral.");
+            Assert.That(DirectControlHealthReadability.Map("Blood Knight", 25, 100, true, true).IsLow, Is.False, "Terminal state stays neutral.");
+            Assert.That(DirectControlHealthReadability.Map("Blood Knight", 1, 0, true, false).IsLow, Is.False);
+            Assert.That(DirectControlHealthReadability.Map("Blood Knight", 1, float.NaN, true, false).IsLow, Is.False);
+            Assert.That(DirectControlHealthReadability.Map("Blood Knight", float.PositiveInfinity, 100, true, false).IsLow, Is.False);
+        }
+
+        [Test]
         public void RestoreFull_UsesConfiguredMaximum()
         {
             health.TakeDamage(new DamageInfo(20, null, Vector3.zero), 0); health.RestoreFull();

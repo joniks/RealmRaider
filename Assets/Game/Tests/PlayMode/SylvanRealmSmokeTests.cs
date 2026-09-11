@@ -245,6 +245,70 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator SylvanRaid_CriticalHealthReusesTheResponsiveLabelAndRestoresOnExit()
+        {
+            GameplayInput.ResetForTests();
+            SceneManager.LoadScene("SylvanRealm");
+            yield return null;
+            yield return null;
+            try
+            {
+                var hero = GameObject.Find("Blood Knight").GetComponent<CombatEntity>();
+                var player = hero.Controller<PlayerController>();
+                var hud = Object.FindFirstObjectByType<RaidHUD>();
+                var responsive = hud.GetComponent<ResponsiveHudRoot>();
+                var healthRect = hud.HealthRect;
+                var originalAnchorMin = healthRect.anchorMin;
+                var originalAnchorMax = healthRect.anchorMax;
+                var originalPivot = healthRect.pivot;
+                var originalPosition = healthRect.anchoredPosition;
+                var originalSize = healthRect.sizeDelta;
+                var initialTextCount = hud.GetComponentsInChildren<Text>(true).Length;
+
+                Assert.That(hud.LowHealthVisible, Is.False);
+                Assert.That(hud.HealthText, Is.EqualTo($"Blood Knight  {hero.Health.Current:0}/{hero.Health.Maximum:0} HP"));
+                Assert.That(hud.HealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+
+                var reduction = 100f / (100f + Mathf.Max(0, hero.Stats.Armor));
+                var desiredHealth = hero.Health.Maximum * .24f;
+                var damage = (hero.Health.Current - desiredHealth) / reduction;
+                Assert.That(hero.Health.TakeDamage(new DamageInfo(damage, null, hero.transform.position), hero.Stats.Armor), Is.True);
+                Assert.That(hero.Health.Current, Is.LessThanOrEqualTo(hero.Health.Maximum * DirectControlHealthReadability.LowHealthFraction));
+                var expected = DirectControlHealthReadability.Map("Blood Knight", hero.Health.Current, hero.Health.Maximum, true, false);
+                Assert.That(hud.LowHealthVisible, Is.True);
+                Assert.That(hud.HealthText, Is.EqualTo(expected.Copy));
+                Assert.That(hud.HealthTint, Is.EqualTo(DirectControlHealthReadability.LowHealthTint));
+                Assert.That(hud.GetComponentsInChildren<Text>(true), Has.Length.EqualTo(initialTextCount), "Low-health readability must reuse the existing raid health label.");
+
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
+                yield return null;
+                Assert.That(hud.HealthText, Is.EqualTo(expected.Copy));
+                AssertHealthRectUnchanged(healthRect, originalAnchorMin, originalAnchorMax, originalPivot, originalPosition, originalSize);
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                yield return null;
+                Assert.That(hud.HealthText, Is.EqualTo(expected.Copy));
+                AssertHealthRectUnchanged(healthRect, originalAnchorMin, originalAnchorMax, originalPivot, originalPosition, originalSize);
+
+                hero.SetController(null);
+                hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(hud.LowHealthVisible, Is.False, "Controller loss restores neutral raid health presentation.");
+                Assert.That(hud.HealthText, Is.EqualTo($"Blood Knight  {hero.Health.Current:0}/{hero.Health.Maximum:0} HP"));
+                Assert.That(hud.HealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+
+                hero.SetController(player);
+                hud.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                Assert.That(hud.LowHealthVisible, Is.True);
+                hero.Health.TakeDamage(new DamageInfo(10000, null, hero.transform.position), 0);
+                Assert.That(hero.Health.IsDead, Is.True);
+                Assert.That(Object.FindFirstObjectByType<RaidManager>().State, Is.EqualTo(RaidState.Defeat));
+                Assert.That(hud.LowHealthVisible, Is.False, "Death/terminal entry restores the exact neutral presentation.");
+                Assert.That(hud.HealthText, Is.EqualTo($"Blood Knight  0/{hero.Health.Maximum:0} HP"));
+                Assert.That(hud.HealthTint, Is.EqualTo(DirectControlHealthReadability.NeutralTint));
+            }
+            finally { GameplayInput.ResetForTests(); }
+        }
+
+        [UnityTest]
         public IEnumerator DefenderTest_BootstrapsLiveInvasion()
         {
             SceneManager.LoadScene("DefenderTest");
@@ -513,6 +577,15 @@ namespace RealmRaiders.Tests
             var pivotPoint = Vector2.Scale(rect.anchorMin, parentSize) + rect.anchoredPosition;
             var min = pivotPoint - Vector2.Scale(rect.pivot, rect.sizeDelta);
             return new Rect(min, rect.sizeDelta);
+        }
+
+        static void AssertHealthRectUnchanged(RectTransform rect, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 position, Vector2 size)
+        {
+            Assert.That(rect.anchorMin, Is.EqualTo(anchorMin));
+            Assert.That(rect.anchorMax, Is.EqualTo(anchorMax));
+            Assert.That(rect.pivot, Is.EqualTo(pivot));
+            Assert.That(rect.anchoredPosition, Is.EqualTo(position));
+            Assert.That(rect.sizeDelta, Is.EqualTo(size));
         }
 
         [UnityTest]

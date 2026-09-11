@@ -72,6 +72,7 @@ namespace RealmRaiders.UI
         PossessionManager possessionManager;
         PossessionEnergy energy;
         DefenseManager defense;
+        RealmCore realmCore;
         CombatEntity invader, ent;
         GuardianEntGrowthPresentation guardianEntGrowth;
         TrapBase trap;
@@ -141,6 +142,11 @@ namespace RealmRaiders.UI
         public string ChargeAffordanceText => chargeAffordanceLabel ? chargeAffordanceLabel.text : string.Empty;
         public RectTransform ChargeAffordanceRect => chargeAffordance;
         public float PossessionEnergyRemaining => energy?.Remaining ?? 0;
+        public string DefenderHealthText => entHealth ? entHealth.text : string.Empty;
+        public Color DefenderHealthTint => entHealth ? entHealth.color : DirectControlHealthReadability.NeutralTint;
+        public bool LowHealthVisible { get; private set; }
+        public string InvaderHealthText => invaderHealth ? invaderHealth.text : string.Empty;
+        public Color InvaderHealthTint => invaderHealth ? invaderHealth.color : DirectControlHealthReadability.NeutralTint;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
         public static string DefenseResultDebriefCopy(DefenseResultFact fact)
@@ -169,10 +175,11 @@ namespace RealmRaiders.UI
             hasDisplayedEnergy = false;
             if (hudConfig.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && PrototypeJourney.Stage == PrototypeJourneyStage.Defense) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
-            defense = defenseManager; possessionManager = manager; energy = possessionEnergy; invader = raidInvader; ent = defender; trap = rootTrap; config = hudConfig; guardianEntGrowth = defender ? defender.GetComponent<GuardianEntGrowthPresentation>() : null;
+            defense = defenseManager; possessionManager = manager; energy = possessionEnergy; realmCore = core; invader = raidInvader; ent = defender; trap = rootTrap; config = hudConfig; guardianEntGrowth = defender ? defender.GetComponent<GuardianEntGrowthPresentation>() : null;
             Build(deployment);
             manager.SelectionChanged += OnSelection; manager.PossessionChanged += OnPossession; manager.Released += OnReleased; manager.MomentFeedback += ShowMomentFeedback;
-            defenseManager.StateChanged += OnDefenseState; possessionEnergy.Changed += (_, _) => Refresh(); core.ProgressChanged += value => coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
+            defenseManager.StateChanged += OnDefenseState; possessionEnergy.Changed += OnEnergyChanged; core.ProgressChanged += OnCoreProgressChanged;
+            defender.Health.Changed += OnDefenderHealthChanged;
             initialized = true;
             OnSelection(null); OnPossession(null); OnDefenseState(defenseManager.State); Refresh(); RefreshRouteStatus();
             InitializeFirstMinuteGuide();
@@ -396,7 +403,7 @@ namespace RealmRaiders.UI
         }
         void OnPossession(CombatEntity value)
         {
-            if (IsTerminalResultActive) { ClearEnergyPulse(); HideAndDisableLiveActions(); return; }
+            if (IsTerminalResultActive) { ClearEnergyPulse(); RefreshDirectHealth(); HideAndDisableLiveActions(); return; }
             bool active = value; release.gameObject.SetActive(active); smash.gameObject.SetActive(active); slam.gameObject.SetActive(active); dodge.gameObject.SetActive(active); jump.gameObject.SetActive(active);
             if (active) { ArmPossessionEntryPulse(); openingCueDismissed = true; SetOpeningCueVisible(false); SetDeploymentReceiptVisible(false); }
             if (!active) { possess.gameObject.SetActive(false); ClearEnergyPulse(); }
@@ -404,12 +411,13 @@ namespace RealmRaiders.UI
             RefreshJumpButton();
             RefreshPossessionEnergy();
             RefreshChargeAffordance();
+            RefreshDirectHealth();
         }
         void OnReleased(bool forced)
         {
-            if (IsTerminalResultActive) { ClearEnergyPulse(); HideAndDisableLiveActions(); return; }
+            if (IsTerminalResultActive) { ClearEnergyPulse(); RefreshDirectHealth(); HideAndDisableLiveActions(); return; }
             ClearEnergyPulse();
-            RefreshPossessionEnergy(); RefreshJumpButton(); RefreshChargeAffordance();
+            RefreshPossessionEnergy(); RefreshJumpButton(); RefreshChargeAffordance(); RefreshDirectHealth();
         }
 
         void InitializeFirstMinuteGuide()
@@ -426,6 +434,17 @@ namespace RealmRaiders.UI
             ClearEnergyPulse();
             SetDeploymentReceiptVisible(false);
             firstMinuteGuide?.Shutdown();
+            if (possessionManager)
+            {
+                possessionManager.SelectionChanged -= OnSelection;
+                possessionManager.PossessionChanged -= OnPossession;
+                possessionManager.Released -= OnReleased;
+                possessionManager.MomentFeedback -= ShowMomentFeedback;
+            }
+            if (defense) defense.StateChanged -= OnDefenseState;
+            if (energy != null) energy.Changed -= OnEnergyChanged;
+            if (realmCore) realmCore.ProgressChanged -= OnCoreProgressChanged;
+            if (ent && ent.Health != null) ent.Health.Changed -= OnDefenderHealthChanged;
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
             if (responsive) responsive.LayoutChanged -= ApplyChargeAffordanceLayout;
             if (responsive && deploymentReceipt) responsive.LayoutChanged -= deploymentReceipt.ApplyOrientation;
@@ -434,8 +453,15 @@ namespace RealmRaiders.UI
         void OnDisable()
         {
             ClearEnergyPulse();
+            RestoreHealthPresentation();
             SetDeploymentReceiptVisible(false);
             if (chargeAffordance) chargeAffordance.gameObject.SetActive(false);
+        }
+        void OnEnergyChanged(float current, float maximum) => Refresh();
+        void OnDefenderHealthChanged(float current, float maximum) => RefreshDirectHealth();
+        void OnCoreProgressChanged(float value)
+        {
+            if (coreText) coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
         }
         void ShowMomentFeedback(string message)
         {
@@ -482,6 +508,7 @@ namespace RealmRaiders.UI
                 }
             }
             RefreshPossessionEnergy();
+            RefreshDirectHealth();
         }
 
         void RefreshOpeningCue()
@@ -547,7 +574,10 @@ namespace RealmRaiders.UI
         {
             if (!initialized) return;
             if (!invader || !ent) return;
-            invaderHealth.text = $"Invader  {invader.Health.Current:0}/{invader.Health.Maximum:0} HP"; entHealth.text = $"{config.DefenderName}  {ent.Health.Current:0}/{ent.Health.Maximum:0} HP";
+            var invaderCopy = $"Invader  {invader.Health.Current:0}/{invader.Health.Maximum:0} HP";
+            if (invaderHealth.text != invaderCopy) invaderHealth.text = invaderCopy;
+            if (invaderHealth.color != DirectControlHealthReadability.NeutralTint) invaderHealth.color = DirectControlHealthReadability.NeutralTint;
+            RefreshDirectHealth();
             RefreshPossessionEnergy();
             if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
             if (trap.State == TrapState.Ready)
@@ -567,6 +597,28 @@ namespace RealmRaiders.UI
                 else trapText.text = trap is RootTrap root && root.RecentlyActivated ? "ROOTED!  12 DAMAGE — INVADER HELD" : $"{config.TrapName.ToUpperInvariant()} COOLDOWN — {trap.CooldownRemaining:0.0}s";
                 activateTrap.GetComponent<Image>().color = new Color(.28f, .14f, .08f, .75f);
             }
+        }
+
+        void RefreshDirectHealth()
+        {
+            if (!entHealth || !ent || ent.Health == null) return;
+            var player = ent.Controller<PlayerController>();
+            var direct = possessionManager && possessionManager.Possessed == ent && player && player.IsActive;
+            var next = DirectControlHealthReadability.Map(config.DefenderName, ent.Health.Current, ent.Health.Maximum, direct, IsTerminalResultActive);
+            ApplyHealthPresentation(next);
+        }
+
+        void ApplyHealthPresentation(DirectControlHealthReadabilityState next)
+        {
+            if (entHealth.text != next.Copy) entHealth.text = next.Copy;
+            if (entHealth.color != next.Tint) entHealth.color = next.Tint;
+            LowHealthVisible = next.IsLow;
+        }
+
+        void RestoreHealthPresentation()
+        {
+            if (!entHealth || !ent || ent.Health == null) return;
+            ApplyHealthPresentation(DirectControlHealthReadability.Map(config.DefenderName, ent.Health.Current, ent.Health.Maximum, false, true));
         }
 
         void RefreshPossessionEnergy()

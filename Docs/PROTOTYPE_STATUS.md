@@ -126,7 +126,8 @@ Last reviewed: 2026-09-11
 - Diamond Pass 16.3 Earned Cultivation Result Handoff is present: only a frozen Sylvan `READY` result points back to the existing explicit Guardian Ent purchase, while missing/capped/malformed/Infernal results and all stores, actions and purchase authority remain unchanged.
 - Diamond Pass 16.4 Factual Incoming-Attack Cue is present: an accepted hostile Windup against the current direct player temporarily upgrades the existing singular threat plate/edge tab to factual `INCOMING` copy, keyed by attacker and ActionId with complete authority/lifecycle cleanup and no camera or combat change.
 - Diamond Pass 16.5 Truthful Successful-Dodge Confirmation is present: immunity-rejected ability hits no longer create damage/hit/knockback/impact feedback and instead show one bounded direct-player `DODGED` marker, while applied damage, traps, timing and combat authority remain unchanged.
-- Current Unity Test Runner baseline: EditMode `340/340` and PlayMode `97/97` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Diamond Pass 16.6 Direct-Control Critical Health Readability is present: the existing raid and possessed-defender health labels now show factual `LOW HP` copy and a fixed warning tint at living active direct-control health at or below 25%, then restore their exact neutral presentation on every authority and terminal boundary without decorating invader health.
+- Current Unity Test Runner baseline: EditMode `341/341` and PlayMode `99/99` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -143,7 +144,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `340/340` and PlayMode `97/97` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `341/341` and PlayMode `99/99` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
