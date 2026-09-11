@@ -671,6 +671,78 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator PossessedDeath_ReportsOneFactualDefeatAndPreservesDeadEntityAcrossLayouts()
+        {
+            GameplayInput.ResetForTests();
+            var fixture = EnergyHudFixture.Create(DefenseHudConfig.Sylvan);
+            Text defeatNotice = null;
+            try
+            {
+                var responsive = fixture.Hud.GetComponent<ResponsiveHudRoot>();
+                var rig = fixture.CameraObject.GetComponent<PrototypeCameraRig>();
+                var player = fixture.Defender.Controller<PlayerController>();
+                var ai = fixture.Defender.Controller<CreatureBrain>();
+                var defeatedEntity = fixture.Defender;
+                var defeatedObject = fixture.Defender.gameObject;
+                var cameraCount = Object.FindObjectsByType<Camera>(FindObjectsSortMode.None).Length;
+                var listenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+                defeatNotice = fixture.Hud.transform.Find("Possession Release Notice").GetComponent<Text>();
+
+                fixture.Possession.Select(fixture.Defender);
+                Assert.That(fixture.Possession.PossessSelected(), Is.True);
+                yield return new WaitForSecondsRealtime(.9f);
+                Assert.That(rig.IsTransitioning, Is.False);
+                Assert.That(rig.Mode, Is.EqualTo(CameraMode.PossessedCreature));
+                var moments = new System.Collections.Generic.List<string>();
+                var releases = new System.Collections.Generic.List<bool>();
+                fixture.Possession.MomentFeedback += moments.Add;
+                fixture.Possession.Released += releases.Add;
+
+                fixture.Defender.Health.TakeDamage(new DamageInfo(1000, null, fixture.Defender.transform.position), 0);
+
+                Assert.That(moments, Is.EqualTo(new[] { "ENT DEFEATED — RETURNING TO KEEPER\n0/100 HP" }));
+                Assert.That(releases, Is.EqualTo(new[] { true }));
+                Assert.That(moments[0], Does.Not.Contain("RESUMED DEFENSE"));
+                Assert.That(fixture.Possession.Possessed, Is.Null);
+                Assert.That(fixture.Defender, Is.SameAs(defeatedEntity));
+                Assert.That(fixture.Defender.gameObject, Is.SameAs(defeatedObject));
+                Assert.That(fixture.Defender.Health.Current, Is.Zero);
+                Assert.That(fixture.Defender.ActiveController, Is.Null);
+                Assert.That(player.IsActive, Is.False);
+                Assert.That(ai.IsActive, Is.False);
+                Assert.That(rig.IsTransitioning, Is.True, "The established Keeper-return blend still starts on death.");
+                Assert.That(defeatNotice.gameObject.activeSelf, Is.True);
+                Assert.That(defeatNotice.text, Is.EqualTo(moments[0]));
+                Assert.That(CountNamed(fixture.Hud.transform, "Possession Release Notice"), Is.EqualTo(1));
+                Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(cameraCount));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenerCount));
+
+                responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
+                Assert.That(defeatNotice.gameObject.activeSelf, Is.True);
+                Assert.That(defeatNotice.text, Is.EqualTo(moments[0]));
+                responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
+                Assert.That(defeatNotice.gameObject.activeSelf, Is.True);
+                Assert.That(defeatNotice.text, Is.EqualTo(moments[0]));
+
+                yield return new WaitForSecondsRealtime(.75f);
+                Assert.That(rig.IsTransitioning, Is.False);
+                Assert.That(rig.Mode, Is.EqualTo(CameraMode.KeeperOverview));
+                Assert.That(defeatNotice.gameObject.activeSelf, Is.True);
+                yield return new WaitForSecondsRealtime(.85f);
+                Assert.That(defeatNotice.gameObject.activeSelf, Is.False, "The existing notice timeout remains authoritative.");
+                fixture.HudObject.SetActive(false);
+                Assert.That(defeatNotice.gameObject.activeInHierarchy, Is.False, "HUD disable cannot retain visible defeat feedback.");
+            }
+            finally
+            {
+                GameplayInput.ResetForTests();
+                fixture.Destroy();
+            }
+            yield return null;
+            Assert.That(defeatNotice == null, Is.True, "HUD teardown leaves no defeat notice behind.");
+        }
+
+        [UnityTest]
         public IEnumerator DefenseTerminalRelease_IsForcedForWinAndLossAndNeverClaimsResumedDefense()
         {
             foreach (var defenderVictory in new[] { true, false })
@@ -793,7 +865,7 @@ namespace RealmRaiders.Tests
                 fixture.Defender.Health.TakeDamage(new DamageInfo(1000, null, fixture.Defender.transform.position), 0);
                 Assert.That(fixture.Possession.Possessed, Is.Null, "Possessed death follows the existing forced return path.");
                 Assert.That(motion.IsPossessionArrivalActive, Is.False, "Possessed death clears arrival feedback immediately.");
-                Assert.That(moment, Is.EqualTo("POSSESSION ENDED — RETURNING TO KEEPER"), "Death keeps its exact forced-return copy.");
+                Assert.That(moment, Is.EqualTo("ENT DEFEATED — RETURNING TO KEEPER\n0/100 HP"), "Possessed death reports the exact factual creature loss.");
                 Assert.That(motion.IsDefeatActive, Is.True, "Only the factual lethal Health.Died path begins the final pivot response.");
                 Assert.That(fixture.Defender.transform.localPosition, Is.EqualTo(rootLocalPosition));
                 Assert.That(fixture.Defender.transform.position, Is.EqualTo(rootWorldPosition));

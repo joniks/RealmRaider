@@ -747,8 +747,24 @@ Same-entity, unchanged-HP, active-AI, no-AI, repeated, forced death/energy and
 terminal win/loss paths passed without compiler/runtime errors or new
 duplicate-listener warnings. Manual readability remains unobserved.
 
-## Ready — Diamond Pass 16.8: Next Player-Visible Loop Slice
+## Accepted — Diamond Pass 16.8: Factual Possessed-Creature Defeat Receipt
 
-Core prepares one read-only proposal from base `1a549da` plus the accepted 16.7
-candidate. Prefer a bounded improvement to combat consequence, possession meaning,
-world readability or earned progression that reuses existing truthful state.
+Only the authoritative death of the currently possessed entity may replace the
+generic forced-return copy with a factual named defeat and zero/maximum HP receipt.
+Reuse the existing MomentFeedback notice; preserve same-entity death, camera and
+controller cleanup. Invalid, non-dead, terminal, energy, explicit-release,
+win/loss and repeated paths retain their exact current copy or silence. No new UI,
+timer, event, state or gameplay authority.
+
+Acceptance: fresh main and Modules assemblies; final native gates passed EditMode
+`352/352` and PlayMode `102/102`, both with zero failed/skipped/inconclusive tests.
+Same-entity death, exact HP/name, inactive controllers, camera return, orientation,
+timeout and release-cause separation passed without compiler/runtime errors or new
+duplicate-listener warnings. Manual readability remains unobserved.
+
+## Ready — Diamond Pass 16.9: Next Player-Visible Loop Slice
+
+Core prepares one read-only proposal from the accepted `858a547` successor. Prefer
+a bounded improvement outside the now-covered health/release/death receipt cluster:
+combat choice, possession agency, world navigation/readability or earned Build
+progression using existing factual state and presentation.

@@ -3567,3 +3567,60 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual portrait/landscape receipt readability and autonomous-resume feel remain
   unobserved because QA could not safely access the Game view.
+
+## Module Pass MMP10 — Procedural Humanoid Tuning Assignment
+
+Completed on 2026-09-11 in Modules commit `58189a8`.
+
+### Delivered
+
+- An immutable explicit character/recipe assignment names one preferred and one
+  fallback profile from the accepted MMP09 tuning catalogue.
+- The passive resolver returns deterministic `Preferred`, `Fallback` or structured
+  `Rejected` results with exact case-sensitive stable IDs. It never discovers,
+  mutates or applies tuning and gives no scene or gameplay authority to Modules.
+- Invalid, null or unavailable assignments fail closed; a present malformed
+  preferred profile cannot silently yield to fallback.
+
+### Verification
+
+- Four new resolver tests were discovered in the fresh final EditMode assembly and
+  passed inside the `352/352` gate with no compiler/runtime error or exception.
+- No automatic Core integration was added; the main project only pins the accepted
+  Modules commit.
+
+## Diamond Pass 16.8 — Factual Possessed-Creature Defeat Receipt
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- Only the authoritative death callback for the exact currently possessed entity
+  can reuse existing MomentFeedback for the factual named defeat plus zero/maximum
+  HP receipt.
+- Eligibility requires the same still-possessed dead entity, finite exact-zero
+  current health, positive finite maximum, valid name and non-terminal ownership.
+  Every mismatch preserves the exact generic forced-return fallback.
+- The same dead GameObject/entity remains at zero HP with inactive player and AI
+  controllers while the unchanged camera return, death presentation, event order,
+  timeout and teardown remain authoritative.
+- Explicit living release, energy expiry and terminal win/loss keep their distinct
+  accepted 16.7/forced copy; no new UI, event, timer or gameplay state was added.
+
+### Verification
+
+- QA verified fresh main and Modules assemblies. Final EditMode passed `352/352`,
+  zero failed/skipped/inconclusive, in 1.796 s (job
+  `e579a93e-010a-41ea-813e-015a32e71754`).
+- Two initial PlayMode failures proved only stale Sylvan fixture name expectations;
+  after the test-only correction and an objectively newer PlayMode DLL, the single
+  replacement gate passed `102/102`, zero failed/skipped/inconclusive, in 82.037 s
+  (job `0c9b9435-0f01-4b1d-9ebb-ad3f7db5d9fe`,
+  2026-09-11 02:35:30Z–02:36:52Z).
+- No compiler/runtime error, exception or new duplicate-`AudioListener` warning
+  occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual named defeat receipt fit and Keeper-return/corpse feel in both
+  orientations remains unobserved because QA could not safely access the Game view.

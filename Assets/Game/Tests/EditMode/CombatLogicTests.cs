@@ -94,6 +94,31 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void DefeatReturnFeedback_RequiresExactDeadPossessedEntityAndFormatsInvariantMaximum()
+        {
+            var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+            try
+            {
+                System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("lv-LV");
+                Assert.That(PossessionManager.DefeatReturnFeedbackCopy(" Guardian Ent ", 0, 120.26f, true, true, false),
+                    Is.EqualTo("GUARDIAN ENT DEFEATED — RETURNING TO KEEPER\n0/120.3 HP"));
+            }
+            finally { System.Globalization.CultureInfo.CurrentCulture = previousCulture; }
+
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", 0, 120, false, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback), "A mismatched entity cannot claim the current possession's defeat.");
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", 0, 120, true, false, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", 0, 120, true, true, true), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("", 0, 120, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", -1, 120, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", .01f, 120, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", float.NaN, 120, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", float.PositiveInfinity, 120, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", 0, 0, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", 0, float.NaN, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+            Assert.That(PossessionManager.DefeatReturnFeedbackCopy("Guardian Ent", 0, float.PositiveInfinity, true, true, false), Is.EqualTo(PossessionManager.ForcedReleaseFallback));
+        }
+
+        [Test]
         public void RestoreFull_UsesConfiguredMaximum()
         {
             health.TakeDamage(new DamageInfo(20, null, Vector3.zero), 0); health.RestoreFull();

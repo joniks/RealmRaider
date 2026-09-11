@@ -16,6 +16,7 @@ namespace RealmRaiders.Possession
         public const float KeeperTapMaximumDuration = .45f;
         public const float KeeperTapSlopShortEdge = .035f;
         public const string ExplicitReleaseFallback = "RELEASED — KEEPER OVERVIEW";
+        public const string ForcedReleaseFallback = "POSSESSION ENDED — RETURNING TO KEEPER";
         public event Action<CombatEntity> SelectionChanged;
         public event Action<CombatEntity> PossessionChanged;
         public event Action<bool> Released;
@@ -120,9 +121,18 @@ namespace RealmRaiders.Possession
             return true;
         }
 
-        void OnPossessedDied() => Release(true, "POSSESSION ENDED — RETURNING TO KEEPER");
+        void OnPossessedDied()
+        {
+            var defeated = Possessed;
+            var health = defeated ? defeated.Health : null;
+            var displayName = defeated && defeated.Definition ? defeated.Definition.DisplayName : string.Empty;
+            var feedback = DefeatReturnFeedbackCopy(displayName, health ? health.Current : float.NaN,
+                health ? health.Maximum : float.NaN, defeated && defeated == Possessed, health && health.IsDead,
+                GameplayInput.TerminalState);
+            Release(true, feedback);
+        }
         public void Release() => Release(false);
-        public void Release(bool forced) => Release(forced, forced ? "POSSESSION ENDED — RETURNING TO KEEPER" : ExplicitReleaseFallback);
+        public void Release(bool forced) => Release(forced, forced ? ForcedReleaseFallback : ExplicitReleaseFallback);
         void Release(bool forced, string feedback)
         {
             if (!Possessed) return;
@@ -156,6 +166,15 @@ namespace RealmRaiders.Possession
                 !Finite(maximum) || current <= 0 || maximum <= 0 || current > maximum)
                 return ExplicitReleaseFallback;
             return $"RELEASED — {displayName.Trim().ToUpperInvariant()} RESUMED DEFENSE\n{current.ToString("0.#", CultureInfo.InvariantCulture)}/{maximum.ToString("0.#", CultureInfo.InvariantCulture)} HP";
+        }
+
+        public static string DefeatReturnFeedbackCopy(string displayName, float current, float maximum,
+            bool exactPossessedEntity, bool dead, bool terminal)
+        {
+            if (!exactPossessedEntity || !dead || terminal || string.IsNullOrWhiteSpace(displayName) ||
+                !Finite(current) || current != 0 || !Finite(maximum) || maximum <= 0)
+                return ForcedReleaseFallback;
+            return $"{displayName.Trim().ToUpperInvariant()} DEFEATED — RETURNING TO KEEPER\n0/{maximum.ToString("0.#", CultureInfo.InvariantCulture)} HP";
         }
 
         static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
