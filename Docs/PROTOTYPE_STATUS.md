@@ -135,7 +135,8 @@ Last reviewed: 2026-09-11
 - Diamond Pass 16.9 Factual Direct-Combat No-Hit Confirmation is present: only an accepted direct-player positive-damage Melee/Area impact with no eligible living contact shows one bounded `NO HIT`; damage, immunity `DODGED`, AI, Dash and canceled paths retain their distinct existing outcomes.
 - Diamond Pass 17.0 Explicit Blood Knight Motion-Tuning Resolution is present: the Core adapter now resolves the accepted explicit Modules assignment once and retains the exact device-readable tuning identity, with deterministic Compatibility fail-closed behavior and no retune or gameplay change.
 - Diamond Pass 17.1 Factual Direct-Combat Defeat Confirmation is present: an applied direct-player lethal Melee/Area hit now confirms each exact named defeated target once while AI, immunity, misses, invalid and lifecycle-exited paths remain silent.
-- Current Unity Test Runner baseline: EditMode `359/359` and PlayMode `106/106` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Diamond Pass 17.2 Singular Latest-Damage Marker is present: each target now owns at most one active damage number, refreshed to the latest factual hit and point for a bounded lifetime while distinct targets remain independent.
+- Current Unity Test Runner baseline: EditMode `359/359` and PlayMode `107/107` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -152,7 +153,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `359/359` and PlayMode `106/106` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `359/359` and PlayMode `107/107` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

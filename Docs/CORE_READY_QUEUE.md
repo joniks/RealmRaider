@@ -809,9 +809,21 @@ PlayMode `106/106`, both with zero failed/skipped/inconclusive tests. Direct and
 multi-target lethal transitions, deduplication, exclusions and lifecycle cleanup
 passed without compiler/runtime errors or new duplicate-listener warnings.
 
-## Ready — Diamond Pass 17.2: Combat Feedback Mobile Presentation Audit
+## Accepted — Diamond Pass 17.2: Singular Latest-Damage Marker
 
-Architect will next inspect the existing `INCOMING`, `DODGED`, `NO HIT`, damage and
-`DEFEATED` presentation as one mobile readability system, then activate one bounded
-player-visible correction only where the code proves inconsistent lifetime,
-overlap, priority or cleanup. No speculative new combat authority is pre-approved.
+Each target owns at most one active `Combat Damage` marker. A later applied hit
+reuses it with the latest exact value and point and restarts the bounded 0.65-second
+lifetime; distinct targets remain independent and every existing hit effect stays
+unchanged.
+
+Acceptance: after one test-only deferred-`Destroy` timing correction, fresh final
+gates passed EditMode `359/359` and PlayMode `107/107`, both with zero
+failed/skipped/inconclusive tests. Reuse, latest data, refreshed expiry,
+multi-target independence and all cleanup paths passed without compiler/runtime
+errors or new duplicate-listener warnings.
+
+## Ready — Diamond Pass 17.3: Next Player-Visible Loop Gate
+
+Architect will select one code-proven gap in the canonical Build → Raid → Possess →
+Defend → Result → Build loop outside the completed combat-marker cluster. The next
+lease must remain a bounded vertical slice and preserve current authority.

@@ -3744,3 +3744,36 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual portrait/landscape marker readability remains unobserved because QA could
   not safely access the Game view without changing the user's UI.
+
+## Diamond Pass 17.2 — Singular Latest-Damage Marker
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- Each target now owns at most one active collider-free, camera-facing `Combat
+  Damage` marker rather than stacking rapid values at one world position.
+- Every applied hit still performs its existing flash, reaction, bounded knockback
+  and attacker impact. A later hit refreshes the same marker to its latest exact
+  value and point and restarts the 0.65-second lifetime.
+- Distinct targets remain independent. Cleanup, feedback/host disable, destroy and
+  teardown synchronously release ownership and remove the detached marker.
+
+### Verification
+
+- Final EditMode passed `359/359`, zero failed/skipped/inconclusive, in 1.835 s
+  (job `6a9d0fdd-2633-4c9f-a26a-4135777e771a`).
+- Final PlayMode passed `107/107`, zero failed/skipped/inconclusive, in 87.212 s
+  (job `001b970c-4b21-4138-931c-023681e52e8d`,
+  2026-09-11 03:51:31Z–03:52:59Z).
+- The first PlayMode attempt proved only Unity's deferred-destroy reference
+  semantics: visibility and ownership were already cleared on time. One exact
+  end-of-frame yield then confirmed object destruction without extending the
+  real-time deadline or changing runtime.
+- No compiler/runtime error, new Console error or new duplicate-`AudioListener`
+  warning occurred; `git diff --check` is clean.
+
+### Scope intentionally deferred
+
+- Manual rapid-hit readability in both orientations remains unobserved because QA
+  could not safely access the Game view without changing the user's UI.

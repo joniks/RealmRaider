@@ -12,9 +12,12 @@ namespace RealmRaiders.Combat
         public const float DodgeConfirmationDuration = .45f;
         public const float NoHitConfirmationDuration = .45f;
         public const float DefeatConfirmationDuration = .65f;
+        public const float DamageMarkerDuration = .65f;
         static readonly int ColorId = Shader.PropertyToID("_BaseColor");
         static readonly System.Collections.Generic.Dictionary<Color, Material> materials = new();
         GameObject telegraph;
+        GameObject damageMarker;
+        Coroutine damageMarkerRoutine;
         GameObject dodgeConfirmation;
         Coroutine dodgeConfirmationRoutine;
         GameObject noHitConfirmation;
@@ -25,6 +28,7 @@ namespace RealmRaiders.Combat
         readonly System.Collections.Generic.List<CombatFeedback> defeatConfirmationTargets = new();
         readonly System.Collections.Generic.List<GameObject> transient = new();
         Renderer[] renderers;
+        public bool DamageMarkerVisible => damageMarker && damageMarker.activeSelf;
         public bool DodgeConfirmationVisible => dodgeConfirmation && dodgeConfirmation.activeSelf;
         public bool NoHitConfirmationVisible => noHitConfirmation && noHitConfirmation.activeSelf;
         public bool DefeatConfirmationVisible => defeatConfirmation && defeatConfirmation.activeSelf;
@@ -56,10 +60,27 @@ namespace RealmRaiders.Combat
                 var away = transform.position - source; away.y = 0;
                 if (away.sqrMagnitude > .01f) entity.Motor.Move(away.normalized * .16f);
             }
-            var marker = new GameObject("Combat Damage", typeof(TextMesh), typeof(CameraFacingMarker));
-            marker.transform.position = point + Vector3.up * 1.35f;
-            var text = marker.GetComponent<TextMesh>(); text.text = $"-{damage:0}"; text.anchor = TextAnchor.MiddleCenter; text.characterSize = .09f; text.fontSize = 54; text.color = new Color(1f, .86f, .25f);
-            Track(marker, .65f);
+            if (!damageMarker)
+            {
+                damageMarker = new GameObject("Combat Damage", typeof(TextMesh), typeof(CameraFacingMarker));
+                var createdText = damageMarker.GetComponent<TextMesh>(); createdText.anchor = TextAnchor.MiddleCenter; createdText.characterSize = .09f; createdText.fontSize = 54; createdText.color = new Color(1f, .86f, .25f);
+            }
+            damageMarker.transform.position = point + Vector3.up * 1.35f;
+            damageMarker.GetComponent<TextMesh>().text = $"-{damage:0}";
+            if (damageMarkerRoutine != null) StopCoroutine(damageMarkerRoutine);
+            damageMarkerRoutine = StartCoroutine(ClearDamageMarkerAfter(damageMarker));
+        }
+
+        void ClearDamageMarker()
+        {
+            if (damageMarkerRoutine != null) StopCoroutine(damageMarkerRoutine);
+            damageMarkerRoutine = null;
+            if (damageMarker)
+            {
+                damageMarker.SetActive(false);
+                Destroy(damageMarker);
+            }
+            damageMarker = null;
         }
 
         public void ShowDodgeConfirmation(Vector3 point)
@@ -180,7 +201,8 @@ namespace RealmRaiders.Combat
 
         public void Cleanup()
         {
-            StopAllCoroutines(); dodgeConfirmationRoutine = null; noHitConfirmationRoutine = null; defeatConfirmationRoutine = null; ClearTelegraph();
+            StopAllCoroutines(); damageMarkerRoutine = null; dodgeConfirmationRoutine = null; noHitConfirmationRoutine = null; defeatConfirmationRoutine = null; ClearTelegraph();
+            ClearDamageMarker();
             ClearDefeatConfirmation();
             if (dodgeConfirmation)
             {
@@ -221,6 +243,14 @@ namespace RealmRaiders.Combat
                 Destroy(dodgeConfirmation);
             }
             dodgeConfirmation = null;
+        }
+
+        IEnumerator ClearDamageMarkerAfter(GameObject expected)
+        {
+            yield return new WaitForSecondsRealtime(DamageMarkerDuration);
+            if (damageMarker != expected) yield break;
+            damageMarkerRoutine = null;
+            ClearDamageMarker();
         }
 
         IEnumerator ClearNoHitConfirmationAfter(GameObject expected)

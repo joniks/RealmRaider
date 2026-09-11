@@ -154,13 +154,20 @@ namespace RealmRaiders.Tests
             var cameraObject = MarkerCamera();
             var attacker = new EntityFixture(true, "Blood Knight", 100);
             var target = new EntityFixture(false, "Bog Warden", 100);
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
             var duplicateCollider = new GameObject("Bog Warden Secondary Collider", typeof(SphereCollider));
             duplicateCollider.transform.SetParent(target.Root.transform, false);
             var deathCount = 0;
+            var latestDamagePoint = Vector3.zero;
+            var firstDamageAt = float.NegativeInfinity;
+            var latestDamageAt = float.NegativeInfinity;
             try
             {
-                attacker.Root.transform.position = new Vector3(0, 0, -1);
-                target.Root.transform.position = Vector3.zero;
+                ground.name = "Damage Marker Test Ground";
+                ground.transform.position = new Vector3(0, -.25f, 0);
+                ground.transform.localScale = new Vector3(20, .5f, 20);
+                attacker.Root.transform.position = new Vector3(0, 1, -1);
+                target.Root.transform.position = Vector3.up;
                 attacker.Ability.Kind = AbilityKind.Melee;
                 attacker.Ability.Damage = 25;
                 attacker.Ability.Range = 1;
@@ -169,6 +176,12 @@ namespace RealmRaiders.Tests
                 attacker.Ability.Cooldown = 0;
                 attacker.Entity.SetController(attacker.Player);
                 target.Entity.Health.Died += () => deathCount++;
+                target.Entity.Health.Damaged += hit =>
+                {
+                    latestDamagePoint = hit.Point;
+                    latestDamageAt = Time.realtimeSinceStartup;
+                    if (float.IsNegativeInfinity(firstDamageAt)) firstDamageAt = latestDamageAt;
+                };
                 Physics.SyncTransforms();
                 var cameraCount = Object.FindObjectsByType<Camera>(FindObjectsSortMode.None).Length;
                 var listenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
@@ -177,37 +190,71 @@ namespace RealmRaiders.Tests
                 Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
                 yield return WaitForAction(attacker.Entity);
                 Assert.That(target.Entity.Health.Current, Is.EqualTo(75), "Repeated colliders must still apply one damage result per target.");
-                Assert.That(target.Root.GetComponent<CombatFeedback>().DefeatConfirmationVisible, Is.False);
+                var targetFeedback = target.Root.GetComponent<CombatFeedback>();
+                Assert.That(targetFeedback.DefeatConfirmationVisible, Is.False);
+                Assert.That(targetFeedback.DamageMarkerVisible, Is.True);
+                var damageMarker = GameObject.Find("Combat Damage");
+                Assert.That(damageMarker, Is.Not.Null);
+                Assert.That(damageMarker.GetComponent<TextMesh>().text, Is.EqualTo("-25"));
+                Assert.That(damageMarker.transform.position, Is.EqualTo(latestDamagePoint + Vector3.up * 1.35f));
+                Assert.That(CountDamageMarkers(), Is.EqualTo(1));
+
+                yield return new WaitForSecondsRealtime(.2f);
+
+                attacker.Ability.Damage = 30;
+                Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
+                yield return WaitForAction(attacker.Entity);
+                Assert.That(target.Entity.Health.Current, Is.EqualTo(45));
+                Assert.That(targetFeedback.DefeatConfirmationVisible, Is.False);
+                Assert.That(GameObject.Find("Combat Damage"), Is.SameAs(damageMarker), "A later applied hit must refresh, not stack, the target-owned marker.");
+                Assert.That(damageMarker.GetComponent<TextMesh>().text, Is.EqualTo("-30"));
+                Assert.That(damageMarker.transform.position, Is.EqualTo(latestDamagePoint + Vector3.up * 1.35f));
+                Assert.That(damageMarker.GetComponent<CameraFacingMarker>(), Is.Not.Null);
+                Assert.That(damageMarker.GetComponent<Collider>(), Is.Null);
+                Assert.That(CountDamageMarkers(), Is.EqualTo(1));
+
+                while (Time.realtimeSinceStartup - firstDamageAt <= CombatFeedback.DamageMarkerDuration + .02f) yield return null;
+                Assert.That(targetFeedback.DamageMarkerVisible, Is.True, "The refreshed marker must outlive the first hit's original expiry.");
+                Assert.That(GameObject.Find("Combat Damage"), Is.SameAs(damageMarker));
+                var refreshedExpiryDeadline = latestDamageAt + CombatFeedback.DamageMarkerDuration + .05f;
+                while (targetFeedback.DamageMarkerVisible && Time.realtimeSinceStartup <= refreshedExpiryDeadline) yield return null;
+                Assert.That(targetFeedback.DamageMarkerVisible, Is.False);
+                yield return null;
+                Assert.That(damageMarker == null, Is.True, "The marker must expire within one frame of 0.65 seconds after the latest hit.");
+                Assert.That(CountDamageMarkers(), Is.Zero);
 
                 attacker.Ability.Damage = 100;
                 Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
                 var deadline = Time.realtimeSinceStartup + 1;
                 while (!target.Entity.Health.IsDead && attacker.Entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
-
                 Assert.That(target.Entity.Health.IsDead, Is.True);
                 Assert.That(deathCount, Is.EqualTo(1), "The authoritative death event remains exact-once.");
-                var targetFeedback = target.Root.GetComponent<CombatFeedback>();
                 Assert.That(targetFeedback.DefeatConfirmationVisible, Is.True);
-                var marker = GameObject.Find("Combat Defeat Confirmation");
-                Assert.That(marker, Is.Not.Null);
-                Assert.That(marker.GetComponent<TextMesh>().text, Is.EqualTo("DEFEATED — Bog Warden"));
-                Assert.That(marker.GetComponent<CameraFacingMarker>(), Is.Not.Null);
-                Assert.That(marker.GetComponent<Collider>(), Is.Null);
+                var defeatMarker = GameObject.Find("Combat Defeat Confirmation");
+                Assert.That(defeatMarker, Is.Not.Null);
+                Assert.That(defeatMarker.GetComponent<TextMesh>().text, Is.EqualTo("DEFEATED — Bog Warden"));
+                Assert.That(defeatMarker.GetComponent<CameraFacingMarker>(), Is.Not.Null);
+                Assert.That(defeatMarker.GetComponent<Collider>(), Is.Null);
                 Assert.That(CountDefeatMarkers(), Is.EqualTo(1));
-                Assert.That(GameObject.Find("Combat Damage"), Is.Not.Null, "A lethal hit retains ordinary target damage feedback.");
+                var lethalDamageMarker = GameObject.Find("Combat Damage");
+                Assert.That(lethalDamageMarker, Is.Not.Null, "A lethal hit retains ordinary target damage feedback.");
+                Assert.That(lethalDamageMarker.GetComponent<TextMesh>().text, Is.EqualTo("-100"));
                 Assert.That(GameObject.Find("Ability Impact"), Is.Not.Null, "A lethal hit retains ordinary source impact feedback.");
                 Assert.That(attacker.Root.GetComponent<CombatFeedback>().NoHitConfirmationVisible, Is.False);
                 Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(cameraCount));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenerCount));
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(eventSystemCount));
 
-                yield return new WaitForSecondsRealtime(CombatFeedback.DefeatConfirmationDuration + .05f);
+                yield return new WaitForSecondsRealtime(CombatFeedback.DamageMarkerDuration + .05f);
+                Assert.That(targetFeedback.DamageMarkerVisible, Is.False);
+                Assert.That(lethalDamageMarker == null, Is.True);
+                Assert.That(CountDamageMarkers(), Is.Zero);
                 Assert.That(targetFeedback.DefeatConfirmationVisible, Is.False);
                 Assert.That(CountDefeatMarkers(), Is.Zero);
             }
             finally
             {
-                GameplayInput.ResetForTests(); attacker.Dispose(); target.Dispose(); Object.Destroy(cameraObject);
+                GameplayInput.ResetForTests(); attacker.Dispose(); target.Dispose(); Object.Destroy(ground); Object.Destroy(cameraObject);
             }
         }
 
@@ -243,9 +290,14 @@ namespace RealmRaiders.Tests
                 while ((!first.Entity.Health.IsDead || !second.Entity.Health.IsDead) && attacker.Entity.IsActionResolving && Time.realtimeSinceStartup < deadline) yield return null;
                 Assert.That(first.Entity.Health.IsDead, Is.True);
                 Assert.That(second.Entity.Health.IsDead, Is.True);
-                Assert.That(first.Root.GetComponent<CombatFeedback>().DefeatConfirmationVisible, Is.True);
-                Assert.That(second.Root.GetComponent<CombatFeedback>().DefeatConfirmationVisible, Is.True);
+                var firstFeedback = first.Root.GetComponent<CombatFeedback>();
+                var secondFeedback = second.Root.GetComponent<CombatFeedback>();
+                Assert.That(firstFeedback.DefeatConfirmationVisible, Is.True);
+                Assert.That(secondFeedback.DefeatConfirmationVisible, Is.True);
                 Assert.That(CountDefeatMarkers(), Is.EqualTo(2), "Each genuinely distinct defeated target owns one factual marker.");
+                Assert.That(firstFeedback.DamageMarkerVisible, Is.True);
+                Assert.That(secondFeedback.DamageMarkerVisible, Is.True);
+                Assert.That(CountDamageMarkers(), Is.EqualTo(2), "Distinct targets retain independent damage markers.");
 
                 yield return WaitForAction(attacker.Entity);
                 Assert.That(attacker.Entity.TryUse(0, Vector3.forward), Is.True);
@@ -306,6 +358,74 @@ namespace RealmRaiders.Tests
             finally
             {
                 GameplayInput.ResetForTests(); attacker.Dispose(); first.Dispose(); second.Dispose(); lifecycleTarget?.Dispose(); Object.Destroy(ground); Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DamageMarker_CleansOnFeedbackDisableHostDisableCleanupAndDestroy()
+        {
+            GameplayInput.ResetForTests(); Time.timeScale = 1;
+            var cameraObject = MarkerCamera();
+            var cleanupFixture = new EntityFixture(false);
+            var feedbackDisableFixture = new EntityFixture(false);
+            var hostDisableFixture = new EntityFixture(false);
+            EntityFixture destroyFixture = new EntityFixture(false);
+            try
+            {
+                var cameraCount = Object.FindObjectsByType<Camera>(FindObjectsSortMode.None).Length;
+                var listenerCount = Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length;
+                var eventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
+
+                var cleanupFeedback = cleanupFixture.Root.GetComponent<CombatFeedback>();
+                cleanupFeedback.ShowHit(11, Vector3.left, Vector3.back);
+                var cleanupMarker = GameObject.Find("Combat Damage");
+                Assert.That(cleanupMarker, Is.Not.Null);
+                Assert.That(cleanupFeedback.DamageMarkerVisible, Is.True);
+                Assert.That(CountDamageMarkers(), Is.EqualTo(1));
+                cleanupFeedback.Cleanup();
+                Assert.That(cleanupFeedback.DamageMarkerVisible, Is.False);
+                Assert.That(CountDamageMarkers(), Is.Zero);
+
+                var feedbackDisable = feedbackDisableFixture.Root.GetComponent<CombatFeedback>();
+                feedbackDisable.ShowHit(12, Vector3.zero, Vector3.back);
+                var disabledMarker = GameObject.Find("Combat Damage");
+                Assert.That(disabledMarker, Is.Not.Null);
+                feedbackDisable.enabled = false;
+                Assert.That(feedbackDisable.DamageMarkerVisible, Is.False);
+                Assert.That(CountDamageMarkers(), Is.Zero);
+
+                var hostDisable = hostDisableFixture.Root.GetComponent<CombatFeedback>();
+                hostDisable.ShowHit(13, Vector3.right, Vector3.back);
+                var hostDisabledMarker = GameObject.Find("Combat Damage");
+                Assert.That(hostDisabledMarker, Is.Not.Null);
+                Assert.That(hostDisable.DamageMarkerVisible, Is.True);
+                hostDisableFixture.Root.SetActive(false);
+                Assert.That(hostDisable.DamageMarkerVisible, Is.False);
+                Assert.That(CountDamageMarkers(), Is.Zero);
+
+                var destroyFeedback = destroyFixture.Root.GetComponent<CombatFeedback>();
+                destroyFeedback.ShowHit(14, Vector3.forward, Vector3.back);
+                var destroyedMarker = GameObject.Find("Combat Damage");
+                Assert.That(destroyedMarker, Is.Not.Null);
+                Assert.That(destroyedMarker.GetComponent<Collider>(), Is.Null);
+                Assert.That(destroyedMarker.GetComponent<Canvas>(), Is.Null);
+                Assert.That(destroyedMarker.GetComponent<EventSystem>(), Is.Null);
+                Assert.That(destroyedMarker.GetComponent<AudioListener>(), Is.Null);
+                destroyFixture.Dispose(); destroyFixture = null;
+                yield return null;
+                yield return null;
+                Assert.That(cleanupMarker == null, Is.True);
+                Assert.That(disabledMarker == null, Is.True);
+                Assert.That(hostDisabledMarker == null, Is.True);
+                Assert.That(destroyedMarker == null, Is.True, "Host destroy must remove its detached damage marker.");
+                Assert.That(CountDamageMarkers(), Is.Zero);
+                Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(cameraCount));
+                Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(listenerCount));
+                Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(eventSystemCount));
+            }
+            finally
+            {
+                GameplayInput.ResetForTests(); cleanupFixture.Dispose(); feedbackDisableFixture.Dispose(); hostDisableFixture.Dispose(); destroyFixture?.Dispose(); Object.Destroy(cameraObject);
             }
         }
 
@@ -596,6 +716,14 @@ namespace RealmRaiders.Tests
             var count = 0;
             foreach (var marker in Object.FindObjectsByType<CameraFacingMarker>(FindObjectsSortMode.None))
                 if (marker.name == "Combat Defeat Confirmation") count++;
+            return count;
+        }
+
+        static int CountDamageMarkers()
+        {
+            var count = 0;
+            foreach (var marker in Object.FindObjectsByType<CameraFacingMarker>(FindObjectsSortMode.None))
+                if (marker.name == "Combat Damage") count++;
             return count;
         }
 
