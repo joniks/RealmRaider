@@ -26,6 +26,7 @@ namespace RealmRaiders.UI
         Camera view;
         HudPresentation presentation;
         RaidEncounterCue encounterCue;
+        RaidRewardCue rewardCue;
         InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
@@ -57,13 +58,14 @@ namespace RealmRaiders.UI
         public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
         public string ControlHintText => controlHint ? controlHint.text : string.Empty;
         public RaidEncounterCue EncounterCue => encounterCue;
+        public RaidRewardCue RewardCue => rewardCue;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
         {
             if (PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; Build();
-            manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter;
+            manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter; manager.Rewarded += OnReward;
             hero.Health.Changed += (_, _) => Refresh();
             Refresh(); OnState(manager.State); OnEncounter(manager.Encounter);
         }
@@ -130,6 +132,7 @@ namespace RealmRaiders.UI
             rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             controlHint = Label("", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true); controlHint.raycastTarget = false;
             encounterCue = gameObject.AddComponent<RaidEncounterCue>(); encounterCue.Initialize(responsive);
+            rewardCue = gameObject.AddComponent<RaidRewardCue>(); rewardCue.Initialize(responsive);
             abilityButtons = new[]
             {
                 AbilityButton("SLASH", new Vector2(-260, 110), 0),
@@ -219,8 +222,11 @@ namespace RealmRaiders.UI
         {
             state.text = $"SYLVAN RAID — {value}";
             presentation.DecorateRealmLabel(state, HudPresentation.SylvanRealmIdentity);
+            if (value == RaidState.RaidStarting) rewardCue?.Clear();
             if (value is RaidState.Victory or RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) encounterCue?.Clear();
+            if (value is RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) rewardCue?.Clear();
         }
+        void OnReward(RaidRewardFact fact) => rewardCue?.Enqueue(fact);
         void OnEncounter(RaidEncounterState value)
         {
             if (GameplayInput.TerminalState || resultPanel && resultPanel.activeSelf) encounterCue?.Clear();
@@ -300,6 +306,7 @@ namespace RealmRaiders.UI
             RefreshJumpButton();
             SetCompassVisible(false);
             encounterCue?.Clear();
+            rewardCue?.Clear();
             resultPanel.SetActive(true);
             presentation?.PlayResult();
             result.text = journeyResult ? JourneyResultCopy(value) : ResultCopy(value);
@@ -349,9 +356,10 @@ namespace RealmRaiders.UI
 
         void OnDestroy()
         {
-            if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; raid.EncounterChanged -= OnEncounter; }
+            if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; raid.EncounterChanged -= OnEncounter; raid.Rewarded -= OnReward; }
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
             encounterCue?.Clear();
+            rewardCue?.Clear();
             if (journeyToken != 0 && !journeyHandoff && PrototypeJourney.Cancel(journeyResultReached ? journeyResultToken : journeyToken))
                 FirstPlayableMinute.ResetBuildHandoff();
         }

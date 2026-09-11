@@ -120,7 +120,8 @@ Last reviewed: 2026-09-11
 - Module Pass MMP06 LargeCreature Motion Readiness is accepted through Modules commits `541a7a4` and `8978fe0`: immutable caller-supplied skin, clip, root-safety, loop, death-hold and fallback facts can be evaluated without Unity, filesystem or gameplay authority.
 - Diamond Pass 15.16A Guardian Ent Generic-Rig Feasibility Probe is present: an Editor-only exact-source copy proves one 31-bone skinned mesh and in-place deformation for Idle, Run, Attack_1 and Death1 without changing the accepted static runtime prefab or recipe. It is evidence, not yet a runtime animation binding.
 - Diamond Pass 15.16B Modular Guardian Ent Motion Integration is present: the exact Generic Tree01 skin now uses skeleton-only Idle, Run, Attack_1 and Death1 presentation with runtime-disabled events/root motion, deterministic static/primitive fallback and complete graph/bone cleanup while the same gameplay entity remains authoritative.
-- Current Unity Test Runner baseline: EditMode `328/328` and PlayMode `94/94` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Diamond Pass 16.0 Factual Raid Loot Feedback is present: existing exact-once room, enemy and Realm Core rewards now emit immutable receipts and one responsive FIFO HUD cue without changing the economy, persistence, input or result authority.
+- Current Unity Test Runner baseline: EditMode `333/333` and PlayMode `94/94` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -137,7 +138,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `328/328` and PlayMode `94/94` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `333/333` and PlayMode `94/94` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

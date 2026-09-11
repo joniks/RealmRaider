@@ -613,7 +613,7 @@ skipped or inconclusive tests. The actual Guardian motion/possession/cultivation
 path and retained static fallback passed. Manual Game-view motion feel remains
 honestly unobserved.
 
-## Ready — Diamond Pass 16.0: Factual Raid Loot Feedback
+## Accepted — Diamond Pass 16.0: Factual Raid Loot Feedback
 
 Make the already-authoritative raid rewards visible at the moment they are earned:
 publish one immutable reward fact from the existing exact-once room/enemy/core
@@ -623,3 +623,18 @@ enemy death, objective and scene flow remain unchanged. Duplicate death/result/
 teardown callbacks must never duplicate a cue or credit. Missing UI retains the
 current silent-but-correct reward behavior. This is feedback, not a pickup,
 inventory, drop table, magnet, economy or balance system.
+
+Acceptance: QA first verified fresh Runtime/EditMode/PlayMode assemblies. Final
+native gates passed EditMode `333/333` and PlayMode `94/94`, both with zero
+failed/skipped/inconclusive tests and no post-gate compiler error or exception.
+Manual Game-view cue readability remains honestly unobserved.
+
+## Ready — Diamond Pass 16.1: Earned Cultivation Affordance
+
+Make the prototype's only real loot-to-upgrade payoff unmistakable on the existing
+Build screen. Map loaded Realm Progress to exact `MISSING`, `READY` or `CAPPED`
+status; only the existing Guardian Ent cultivation button receives truthful copy,
+interactability and a fixed bounded ready tint. A successful existing purchase
+must immediately refresh stores, rank and status. Preserve the exact costs, rank
+cap, persistence schema, defense stats, saved layout and navigation. This adds no
+new UI object, upgrade, currency, tutorial, animation, asset or reward dependency.

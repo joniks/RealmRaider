@@ -3235,3 +3235,39 @@ Completed on 2026-09-11; included with this project commit.
   unobserved because QA could not safely access the Game view.
 - Production LOD0/1/2 (`4000/2000/800`), source-level weight cleanup, IK,
   ragdoll/physics-authoritative limbs, retargeting and physical-device performance.
+
+## Diamond Pass 16.0 — Factual Raid Loot Feedback
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- `RaidManager` now emits one immutable sequenced receipt only after each existing
+  exact-once room, enemy or Realm Core reward mutation. Each receipt carries the
+  real delta, resulting totals, source category and explicitly supplied position.
+- Added one existing-HUD-owned, non-raycast FIFO cue that keeps simultaneous
+  rewards readable without adding a Canvas, input target, scene scan or economy
+  authority. Duplicate sequence receipts cannot replay presentation.
+- Room re-entry, duplicate death, terminal/result flow, HUD disable, retry and
+  teardown clear or suppress the cue without changing reward amounts, defeat
+  halving, Rare Material rules, persistence or scene routing.
+- Portrait and landscape use fixed responsive bounds that remain separate from
+  encounter truth, ability controls and the virtual joystick.
+
+### Verification
+
+- QA verified fresh Runtime/EditMode/PlayMode assemblies after one explicit
+  Assets Refresh; every DLL timestamp was newer than the changed source/tests.
+- Final EditMode passed `333/333`, zero failed/skipped/inconclusive, in 1.797 s
+  (job `9f25172f-2f97-44b1-8792-dba320e774b0`).
+- Final PlayMode passed `94/94`, zero failed/skipped/inconclusive, in 77.193 s
+  (job `d617fb9d-ad2c-494e-8e69-cbc3b1ec1a69`).
+- The post-gate log contained no compiler error or exception; `git diff --check`
+  is clean.
+
+### Scope intentionally deferred
+
+- The Sylvan portrait/landscape room-to-enemy-to-Core visual smoke remains
+  unobserved because QA could not safely access Game-view content.
+- No pickup object, inventory, drop table, rarity roll, new currency, economy
+  rebalance, VFX package, audio, haptics or platform export was added.

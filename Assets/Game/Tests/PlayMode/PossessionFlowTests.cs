@@ -1310,7 +1310,7 @@ namespace RealmRaiders.Tests
                 definition.Abilities = new[] { first, second, third };
                 var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition); var player = hero.Controller<PlayerController>(); hero.SetController(player);
                 var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
-                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, System.Array.Empty<RealmNodeView>(), System.Array.Empty<CombatEntity>());
+                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, System.Array.Empty<RealmNodeView>(), System.Array.Empty<CombatEntity>(), coreObject.transform.position);
                 var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(raid, hero, core, cameraObject.GetComponent<Camera>());
                 yield return null;
 
@@ -1514,7 +1514,7 @@ namespace RealmRaiders.Tests
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
                 var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition);
                 var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
-                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, new RealmNodeView[0], new CombatEntity[0]);
+                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, new RealmNodeView[0], new CombatEntity[0], coreObject.transform.position);
                 var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(raid, hero, core, camera);
 
                 coreObject.transform.position = new Vector3(-30, 0, 20); hud.SendMessage("UpdateObjectiveCompass", SendMessageOptions.RequireReceiver); yield return new WaitForEndOfFrame();
@@ -1564,7 +1564,7 @@ namespace RealmRaiders.Tests
                 definition.Stats = new CombatStats { MaxHealth = 100, MoveSpeed = 3 };
                 var hero = heroObject.GetComponent<CombatEntity>(); hero.Initialize(definition);
                 var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
-                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, System.Array.Empty<RealmNodeView>(), System.Array.Empty<CombatEntity>());
+                var raid = raidObject.GetComponent<RaidManager>(); raid.Initialize(hero, System.Array.Empty<RealmNodeView>(), System.Array.Empty<CombatEntity>(), coreObject.transform.position);
                 var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(raid, hero, core, cameraObject.GetComponent<Camera>());
                 hud.SendMessage("ShowResult", new RaidResult(true, 115, 2, 4, 3, 46.8f, true), SendMessageOptions.RequireReceiver);
                 yield return null;

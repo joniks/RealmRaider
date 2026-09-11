@@ -86,6 +86,7 @@ namespace RealmRaiders.Raid
         public event Action<RaidState> StateChanged;
         public event Action<RaidResult> Finished;
         public event Action<RaidEncounterState> EncounterChanged;
+        public event Action<RaidRewardFact> Rewarded;
         public RaidState State { get; private set; } = RaidState.Idle;
         public float Duration => State == RaidState.Idle ? 0 : Time.time - startedAt;
         public int Gold { get; private set; }
@@ -104,10 +105,12 @@ namespace RealmRaiders.Raid
         readonly RaidEncounterLifecycle encounter = new();
         bool initialized;
         bool sourcesSubscribed;
+        long rewardSequence;
+        Vector3 objectiveRewardPosition;
 
         public RaidEncounterState Encounter => encounter.Current;
 
-        public void Initialize(CombatEntity raidHero, RealmNodeView[] nodes, CombatEntity[] enemies)
+        public void Initialize(CombatEntity raidHero, RealmNodeView[] nodes, CombatEntity[] enemies, Vector3 objectivePosition)
         {
             UnsubscribeSources();
             hero = raidHero;
@@ -116,6 +119,8 @@ namespace RealmRaiders.Raid
             creditedRooms.Clear();
             creditedEnemies.Clear();
             encounter.Reset();
+            rewardSequence = 0;
+            objectiveRewardPosition = objectivePosition;
             initialized = true;
             SubscribeSources();
             SetState(RaidState.RaidStarting); startedAt = Time.time; SetState(RaidState.Exploring);
@@ -127,7 +132,9 @@ namespace RealmRaiders.Raid
         public void CompleteObjective()
         {
             if (State != RaidState.ObjectiveReached) return;
-            Gold += 100; RareMaterials += 1; SetState(RaidState.Victory); StartCoroutine(ShowResult(true));
+            Gold += 100; RareMaterials += 1;
+            PublishReward(RaidRewardSource.RealmCoreVictory, 100, 1, objectiveRewardPosition);
+            SetState(RaidState.Victory); StartCoroutine(ShowResult(true));
         }
 
         // The result screen can be refreshed or recreated, but this raid may secure its rewards once.
@@ -142,13 +149,18 @@ namespace RealmRaiders.Raid
         {
             if (!node || !creditedRooms.Add(node)) return;
             RoomsDiscovered++; Gold += 5;
+            PublishReward(RaidRewardSource.RoomDiscovery, 5, 0, node.transform.position);
         }
 
         void OnEnemyDied(CombatEntity enemy)
         {
             if (!enemy || !creditedEnemies.Add(enemy)) return;
             EnemiesDefeated++; Gold += 15;
+            PublishReward(RaidRewardSource.EnemyDefeat, 15, 0, enemy.transform.position);
         }
+
+        void PublishReward(RaidRewardSource source, int goldDelta, int rareDelta, Vector3 worldPosition)
+            => Rewarded?.Invoke(new RaidRewardFact(++rewardSequence, source, goldDelta, rareDelta, Gold, RareMaterials, worldPosition));
 
         void OnEncounterEntered(RealmNodeVisit visit)
         {

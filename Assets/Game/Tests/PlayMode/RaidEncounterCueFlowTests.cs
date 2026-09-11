@@ -40,6 +40,7 @@ namespace RealmRaiders.Tests
             var cleaveDefinition = ScriptableObject.CreateInstance<AbilityDefinition>();
             GameObject cueLabelObject = null;
             GameObject cueIconObject = null;
+            GameObject rewardLabelObject = null;
             GameObject[] abilityIconObjects = System.Array.Empty<GameObject>();
             var initialCanvasCount = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length;
             var initialEventSystemCount = Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length;
@@ -62,6 +63,7 @@ namespace RealmRaiders.Tests
                 var secondHostile = secondHostileObject.GetComponent<CombatEntity>(); secondHostile.Initialize(hostileDefinition);
                 emptyNodeObject.transform.position = Vector3.zero;
                 hostileNodeObject.transform.position = new Vector3(20, 0, 0);
+                coreObject.transform.position = new Vector3(42, 0, 7);
                 heroObject.transform.position = Vector3.zero;
                 emptyFloor.transform.SetParent(emptyNodeObject.transform, false);
                 hostileFloor.transform.SetParent(hostileNodeObject.transform, false);
@@ -74,11 +76,14 @@ namespace RealmRaiders.Tests
                 hostileNode.EncounterEntered += visit => hostileVisit = visit;
 
                 var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero);
-                var raid = managerObject.GetComponent<RaidManager>(); raid.Initialize(hero, new[] { emptyNode, hostileNode }, new[] { firstHostile, secondHostile });
+                var raid = managerObject.GetComponent<RaidManager>(); raid.Initialize(hero, new[] { emptyNode, hostileNode }, new[] { firstHostile, secondHostile }, coreObject.transform.position);
+                var rewardFacts = new List<RaidRewardFact>(); raid.Rewarded += rewardFacts.Add;
                 var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(raid, hero, core, cameraObject.GetComponent<Camera>());
                 yield return null;
 
                 var cue = hud.EncounterCue;
+                var reward = hud.RewardCue;
+                rewardLabelObject = reward.Rect.gameObject;
                 cueLabelObject = cue.Rect.gameObject;
                 cueIconObject = cue.IconRect.gameObject;
                 var responsive = hud.GetComponent<ResponsiveHudRoot>();
@@ -100,6 +105,14 @@ namespace RealmRaiders.Tests
                 Assert.That(cue.IconSprite, Is.SameAs(discoveredIcon));
                 Assert.That(raid.RoomsDiscovered, Is.EqualTo(1));
                 Assert.That(raid.Gold, Is.EqualTo(5));
+                Assert.That(reward.Visible, Is.True);
+                Assert.That(reward.RaycastTarget, Is.False);
+                Assert.That(reward.Text, Is.EqualTo("+5 GOLD  •  ROOM DISCOVERED\nTOTAL 5 GOLD • 0 RARE"));
+                Assert.That(reward.Current.Source, Is.EqualTo(RaidRewardSource.RoomDiscovery));
+                Assert.That(reward.Current.WorldPosition, Is.EqualTo(emptyNodeObject.transform.position));
+                Assert.That(reward.PresentedCount, Is.EqualTo(1)); Assert.That(reward.PendingCount, Is.Zero);
+                Assert.That(rewardFacts, Has.Count.EqualTo(1));
+                Assert.That(rewardFacts[0].GoldDelta, Is.EqualTo(5)); Assert.That(rewardFacts[0].TotalGold, Is.EqualTo(5));
                 Assert.That(Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None), Has.Length.EqualTo(initialCanvasCount + 1));
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(initialEventSystemCount));
                 Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(initialListenerCount));
@@ -107,11 +120,13 @@ namespace RealmRaiders.Tests
                 responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
                 yield return null;
                 AssertLayout(cue, responsive, PrototypeOrientation.Portrait, hudObject);
+                AssertRewardLayout(reward, responsive, PrototypeOrientation.Portrait, hudObject);
                 AssertAbilityIcons(hudObject, PrototypeOrientation.Portrait);
                 yield return new WaitForSecondsRealtime(RaidEncounterCue.DiscoveryDuration + .05f);
                 Assert.That(cue.Visible, Is.False, "Discovery presentation must clear on its own timeout.");
                 Assert.That(cue.IconVisible, Is.False);
                 Assert.That(cue.IconSprite, Is.Null);
+                Assert.That(reward.Visible, Is.False);
 
                 var abilityButtons = AbilityButtons(hudObject);
                 var abilityCopy = new[] { "SLASH", "BLOOD RUSH", "CLEAVE" };
@@ -144,15 +159,29 @@ namespace RealmRaiders.Tests
                 Assert.That(cue.IconSprite, Is.SameAs(hostilesIcon));
                 Assert.That(raid.RoomsDiscovered, Is.EqualTo(2));
                 Assert.That(raid.Gold, Is.EqualTo(10));
+                Assert.That(reward.Visible, Is.True);
+                Assert.That(reward.Text, Is.EqualTo("+5 GOLD  •  ROOM DISCOVERED\nTOTAL 10 GOLD • 0 RARE"));
+                Assert.That(reward.Current.WorldPosition, Is.EqualTo(hostileNodeObject.transform.position));
 
                 firstHostile.Health.TakeDamage(new DamageInfo(1000, heroObject, firstHostileObject.transform.position), 0);
                 Assert.That(cue.Text, Is.EqualTo("WOLF GROVE • 1 HOSTILE"));
                 Assert.That(cue.IconSprite, Is.SameAs(hostilesIcon));
                 Assert.That(raid.EnemiesDefeated, Is.EqualTo(1));
                 Assert.That(raid.Gold, Is.EqualTo(25));
+                Assert.That(rewardFacts, Has.Count.EqualTo(3));
+                Assert.That(reward.PendingCount, Is.EqualTo(1), "A simultaneous real credit is queued, not overwritten.");
+                Assert.That(hudObject.GetComponentsInChildren<Text>(true).Count(item => item.name == RaidRewardCue.LabelName), Is.EqualTo(1));
+                yield return new WaitForSecondsRealtime(RaidRewardCue.Duration + .05f);
+                Assert.That(reward.Text, Is.EqualTo("+15 GOLD  •  ENEMY DEFEATED\nTOTAL 25 GOLD • 0 RARE"));
+                Assert.That(reward.Current.WorldPosition, Is.EqualTo(firstHostileObject.transform.position));
+                Assert.That(reward.PresentedCount, Is.EqualTo(3));
+                var presentedAfterFirstDeath = reward.PresentedCount;
                 firstHostile.Health.TakeDamage(new DamageInfo(1000, heroObject, firstHostileObject.transform.position), 0);
                 Assert.That(raid.EnemiesDefeated, Is.EqualTo(1), "A duplicate death attempt cannot award or transition twice.");
                 Assert.That(raid.Gold, Is.EqualTo(25));
+                Assert.That(reward.PresentedCount, Is.EqualTo(presentedAfterFirstDeath));
+                Assert.That(reward.PendingCount, Is.Zero, "A duplicate death cannot queue duplicate feedback.");
+                Assert.That(rewardFacts, Has.Count.EqualTo(3), "A duplicate callback cannot publish a second immutable receipt.");
 
                 secondHostile.Health.TakeDamage(new DamageInfo(1000, heroObject, secondHostileObject.transform.position), 0);
                 Assert.That(cue.Text, Is.EqualTo("WOLF GROVE • AREA CLEAR"));
@@ -161,10 +190,17 @@ namespace RealmRaiders.Tests
                 Assert.That(raid.EnemiesDefeated, Is.EqualTo(2));
                 Assert.That(raid.RoomsDiscovered, Is.EqualTo(2));
                 Assert.That(raid.Gold, Is.EqualTo(40));
+                Assert.That(rewardFacts, Has.Count.EqualTo(4));
+                Assert.That(reward.PendingCount, Is.EqualTo(1));
+                yield return new WaitForSecondsRealtime(RaidRewardCue.Duration + .05f);
+                Assert.That(reward.Text, Is.EqualTo("+15 GOLD  •  ENEMY DEFEATED\nTOTAL 40 GOLD • 0 RARE"));
+                Assert.That(reward.Current.WorldPosition, Is.EqualTo(secondHostileObject.transform.position));
+                Assert.That(reward.PresentedCount, Is.EqualTo(4));
 
                 responsive.SetOrientationForTests(PrototypeOrientation.Landscape);
                 yield return null;
                 AssertLayout(cue, responsive, PrototypeOrientation.Landscape, hudObject);
+                AssertRewardLayout(reward, responsive, PrototypeOrientation.Landscape, hudObject);
                 AssertAbilityIcons(hudObject, PrototypeOrientation.Landscape);
                 heroObject.transform.position += Vector3.right * 10;
                 yield return null;
@@ -172,26 +208,45 @@ namespace RealmRaiders.Tests
                 yield return null;
                 Assert.That(raid.RoomsDiscovered, Is.EqualTo(2), "Re-entry must not credit the room or replay encounter state.");
                 Assert.That(raid.Gold, Is.EqualTo(40));
+                Assert.That(rewardFacts, Has.Count.EqualTo(4), "Room re-entry cannot publish another reward fact.");
 
                 GameplayInput.SetTerminalState(true);
                 yield return null;
                 Assert.That(cue.Visible, Is.False, "Terminal state must yield to result presentation.");
                 Assert.That(cue.IconVisible, Is.False);
+                Assert.That(reward.Visible, Is.False);
                 GameplayInput.SetTerminalState(false);
                 cue.Show(raid.Encounter);
                 Assert.That(cue.Visible, Is.True);
+                reward.Enqueue(rewardFacts[2]); reward.Enqueue(rewardFacts[3]);
+                Assert.That(reward.Visible, Is.True); Assert.That(reward.PendingCount, Is.EqualTo(1));
                 hudObject.SetActive(false);
                 Assert.That(cue.Visible, Is.False, "HUD disable must immediately clear presentation.");
                 Assert.That(cue.IconVisible, Is.False);
+                Assert.That(reward.Visible, Is.False); Assert.That(reward.PendingCount, Is.Zero,
+                    "HUD disable must clear current and queued reward presentation.");
                 hudObject.SetActive(true);
                 Assert.That(cue.Visible, Is.False);
+                Assert.That(reward.Visible, Is.False);
                 cue.Show(raid.Encounter);
+                Assert.That(reward.Visible, Is.False);
                 raid.BeginObjective();
                 raid.CompleteObjective();
                 Assert.That(raid.State, Is.EqualTo(RaidState.Victory));
                 Assert.That(raid.Encounter.Visible, Is.False, "A terminal raid state must clear encounter lifecycle state.");
                 Assert.That(cue.Visible, Is.False);
                 Assert.That(raid.Gold, Is.EqualTo(140), "Encounter presentation must not alter the existing objective or room rewards.");
+                Assert.That(reward.Visible, Is.True, "The successful Core mutation must publish before result cleanup.");
+                Assert.That(reward.Text, Is.EqualTo("+100 GOLD • +1 RARE  •  REALM CORE DEFEATED\nTOTAL 140 GOLD • 1 RARE"));
+                Assert.That(reward.Current.Source, Is.EqualTo(RaidRewardSource.RealmCoreVictory));
+                Assert.That(reward.Current.WorldPosition, Is.EqualTo(coreObject.transform.position));
+                Assert.That(rewardFacts, Has.Count.EqualTo(5));
+                Assert.That(rewardFacts.Select(fact => fact.Sequence), Is.EqualTo(new long[] { 1, 2, 3, 4, 5 }));
+                Assert.That(rewardFacts[4].GoldDelta, Is.EqualTo(100)); Assert.That(rewardFacts[4].RareMaterialsDelta, Is.EqualTo(1));
+                Assert.That(rewardFacts[4].TotalGold, Is.EqualTo(140)); Assert.That(rewardFacts[4].TotalRareMaterials, Is.EqualTo(1));
+                yield return new WaitForSeconds(1.3f);
+                Assert.That(reward.Visible, Is.False, "Raid result must clear current and pending loot presentation.");
+                Assert.That(reward.PendingCount, Is.Zero);
             }
             finally
             {
@@ -205,6 +260,7 @@ namespace RealmRaiders.Tests
             yield return null;
             Assert.That(cueLabelObject == null, Is.True, "Scene teardown must destroy its encounter label.");
             Assert.That(cueIconObject == null, Is.True, "Scene teardown must destroy its encounter icon.");
+            Assert.That(rewardLabelObject == null, Is.True, "Scene teardown must destroy its reward label and pending presentation.");
             Assert.That(abilityIconObjects.All(icon => icon == null), Is.True, "Scene teardown must destroy all ability icons.");
         }
 
@@ -293,6 +349,32 @@ namespace RealmRaiders.Tests
                 Assert.That(cueBounds.Overlaps(WorldRect(responsive.JoystickRect)), Is.False, $"{orientation} cue overlaps joystick lane.");
                 Assert.That(iconBounds.Overlaps(WorldRect(responsive.JoystickRect)), Is.False, $"{orientation} icon overlaps joystick lane.");
             }
+        }
+
+        static void AssertRewardLayout(RaidRewardCue cue, ResponsiveHudRoot responsive, PrototypeOrientation orientation, GameObject hud)
+        {
+            var expectedSize = orientation == PrototypeOrientation.Portrait ? new Vector2(760, 92) : new Vector2(620, 82);
+            var expectedPosition = orientation == PrototypeOrientation.Portrait ? new Vector2(0, -370) : new Vector2(-285, -370);
+            Assert.That(cue.Rect.sizeDelta, Is.EqualTo(expectedSize));
+            Assert.That(cue.Rect.anchoredPosition, Is.EqualTo(expectedPosition));
+            var bounds = WorldRect(cue.Rect);
+            var encounter = hud.GetComponent<RaidEncounterCue>();
+            Assert.That(bounds.Overlaps(WorldRect(encounter.Rect)), Is.False, $"{orientation} reward cue overlaps encounter truth.");
+            foreach (var button in hud.GetComponentsInChildren<Button>(false))
+                Assert.That(bounds.Overlaps(WorldRect((RectTransform)button.transform)), Is.False, $"{orientation} reward cue overlaps {button.name}.");
+            foreach (var text in hud.GetComponentsInChildren<Text>(false))
+            {
+                if (text.rectTransform == cue.Rect || text.GetComponentInParent<Button>()) continue;
+                Assert.That(bounds.Overlaps(WorldRect(text.rectTransform)), Is.False,
+                    $"{orientation} reward cue overlaps {text.name}.");
+            }
+            if (responsive.JoystickRect)
+                Assert.That(bounds.Overlaps(WorldRect(responsive.JoystickRect)), Is.False,
+                    $"{orientation} reward cue overlaps joystick controls.");
+            var root = (RectTransform)hud.transform;
+            var rootBounds = WorldRect(root);
+            var corners = new Vector3[4]; cue.Rect.GetWorldCorners(corners);
+            Assert.That(rootBounds.Contains(corners[0]) && rootBounds.Contains(corners[2]), Is.True, $"{orientation} reward cue outside responsive safe-area root.");
         }
 
         static Rect WorldRect(RectTransform rect)

@@ -84,7 +84,7 @@ namespace RealmRaiders.Core
             foreach (var path in boundaryPaths) CreatePath(new Vector3(path.Center.x, 0, path.Center.y), path.Size, path.Yaw);
             PrototypeArenaBoundaryBuilder.BuildSylvan(root.transform, boundaryNodes, boundaryPaths);
 
-            var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), new[] { wolfOne, wolfTwo, ent });
+            var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), new[] { wolfOne, wolfTwo, ent }, coreObject.transform.position);
             var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero); core.InteractionStarted += manager.BeginObjective; core.Completed += manager.CompleteObjective;
             PrototypeRuntimeFactory.EventSystem(root.transform);
             var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>()); cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
