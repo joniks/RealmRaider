@@ -3676,3 +3676,36 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual `NO HIT` readability in portrait/landscape remains unobserved because QA
   could not safely access the Game view without changing the user's UI.
+
+## Diamond Pass 17.0 — Explicit Blood Knight Motion-Tuning Resolution
+
+Completed on 2026-09-11; included with this project commit.
+
+### Delivered
+
+- The Core procedural adapter resolves the accepted explicit MMP11 Blood Knight
+  assignment once against the explicitly supplied starter catalogue/provider.
+- Preferred resolution retains the exact existing
+  `BloodKnightDeviceReadable` tuning object. Explicit Compatibility fallback and
+  rejected/null catalogue states fail closed to the exact existing
+  `CompatibilityDefault` object.
+- No discovery, scene scan, per-frame resolution, tuning-value, pose, root,
+  controller, collider, Presentation Pivot or gameplay behavior changed.
+
+### Verification
+
+- QA verified objectively newer Runtime/EditMode/PlayMode assemblies after one
+  controlled refresh.
+- Final EditMode passed `358/358`, zero failed/skipped/inconclusive, in 1.829 s
+  (job `bb210ce7-fa2c-499e-b487-cd9869263676`).
+- Final PlayMode passed `104/104`, zero failed/skipped/inconclusive, in 83.851 s
+  (job `b079314b-e2f0-4714-b855-43846a0edfbc`,
+  2026-09-11 03:01:31Z–03:02:55Z).
+- Exact tuning identity, deterministic fallback, real bind/rebind and unchanged
+  root/controller/pivot ownership passed without compiler/runtime errors, new
+  Console errors or new duplicate-`AudioListener` warnings.
+
+### Scope intentionally deferred
+
+- No manual motion check was required because this gate deliberately changes no
+  tuning value or pose behavior.

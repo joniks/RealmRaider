@@ -1,12 +1,55 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
+using RealmRaiders.Modules.CharacterProceduralMotion;
 using UnityEngine;
 
 namespace RealmRaiders.Tests
 {
     public sealed class CharacterProceduralMotionAdapterTests
     {
+        [Test]
+        public void BloodKnightTuning_ResolvesPreferredExplicitFallbackAndRejectedCatalogueFailClosed()
+        {
+            var preferredBuild = ProceduralHumanoidTuningCatalogue.Build(
+                new IProceduralHumanoidTuningProvider[] { new StarterProceduralHumanoidTuningProvider() });
+            Assert.That(preferredBuild.Succeeded, Is.True);
+            var preferred = CharacterProceduralMotionAdapter.ResolveBloodKnightTuning(preferredBuild.Catalogue);
+            Assert.That(preferred, Is.SameAs(ProceduralHumanoidMotionTuning.BloodKnightDeviceReadable));
+            Assert.That(CharacterProceduralMotionAdapter.ResolveBloodKnightTuning(preferredBuild.Catalogue), Is.SameAs(preferred), "Repeated explicit resolution is deterministic.");
+
+            var fallbackBuild = ProceduralHumanoidTuningCatalogue.Build(new IProceduralHumanoidTuningProvider[]
+            {
+                new TestTuningProvider("tests.procedural-humanoid.fallback",
+                    new ProceduralHumanoidTuningProfile(StarterProceduralHumanoidTuningProvider.CompatibilityProfileId,
+                        ProceduralHumanoidMotionTuning.CompatibilityDefault))
+            });
+            Assert.That(fallbackBuild.Succeeded, Is.True);
+            Assert.That(CharacterProceduralMotionAdapter.ResolveBloodKnightTuning(fallbackBuild.Catalogue),
+                Is.SameAs(ProceduralHumanoidMotionTuning.CompatibilityDefault), "The assignment's explicit Compatibility profile is its factual fallback.");
+
+            var unavailableBuild = ProceduralHumanoidTuningCatalogue.Build(new IProceduralHumanoidTuningProvider[]
+            {
+                new TestTuningProvider("tests.procedural-humanoid.unassigned",
+                    new ProceduralHumanoidTuningProfile("tests.procedural-humanoid.other", ProceduralHumanoidMotionTuning.BloodKnightDeviceReadable))
+            });
+            Assert.That(unavailableBuild.Succeeded, Is.True);
+            Assert.That(CharacterProceduralMotionAdapter.ResolveBloodKnightTuning(unavailableBuild.Catalogue),
+                Is.SameAs(ProceduralHumanoidMotionTuning.CompatibilityDefault), "A rejected assignment fails closed to the exact compatibility object.");
+
+            var malformedBuild = ProceduralHumanoidTuningCatalogue.Build(new IProceduralHumanoidTuningProvider[]
+            {
+                new TestTuningProvider("tests.procedural-humanoid.malformed",
+                    new ProceduralHumanoidTuningProfile(StarterProceduralHumanoidTuningProvider.BloodKnightDeviceReadableProfileId, null))
+            });
+            Assert.That(malformedBuild.Succeeded, Is.False);
+            Assert.That(CharacterProceduralMotionAdapter.ResolveBloodKnightTuning(malformedBuild.Catalogue),
+                Is.SameAs(ProceduralHumanoidMotionTuning.CompatibilityDefault));
+            Assert.That(CharacterProceduralMotionAdapter.ResolveBloodKnightTuning(null),
+                Is.SameAs(ProceduralHumanoidMotionTuning.CompatibilityDefault));
+        }
+
         [TestCase(0f)]
         [TestCase(73f)]
         public void Adapter_OptionalTorsoUsesOwnedSemanticChainAndPreservesSixLimbLocalOutput(float yaw)
@@ -578,6 +621,15 @@ namespace RealmRaiders.Tests
             public bool Equals(Pose other) => Position == other.Position && Rotation == other.Rotation && Scale == other.Scale;
             public override bool Equals(object value) => value is Pose other && Equals(other);
             public override int GetHashCode() => Position.GetHashCode() ^ Rotation.GetHashCode() ^ Scale.GetHashCode();
+        }
+
+        sealed class TestTuningProvider : IProceduralHumanoidTuningProvider
+        {
+            public TestTuningProvider(string providerId, params ProceduralHumanoidTuningProfile[] profiles)
+            { ProviderId = providerId; Profiles = profiles; }
+
+            public string ProviderId { get; }
+            public IReadOnlyList<ProceduralHumanoidTuningProfile> Profiles { get; }
         }
 
         private sealed class Fixture

@@ -21,8 +21,9 @@ namespace RealmRaiders.Characters
         static readonly HumanoidBoneNameMap BloodKnightTorsoBones = new(
             "Bip01 L UpperArm", "Bip01 R UpperArm", "Bip01 L Thigh",
             "Bip01 R Thigh", "Bip01 L Calf", "Bip01 R Calf", "Bip01 Spine1");
+        static readonly ProceduralHumanoidMotionTuning BloodKnightTuning = ResolveConfiguredBloodKnightTuning();
 
-        readonly ProceduralHumanoidPoseDriver driver = new(ProceduralHumanoidMotionTuning.BloodKnightDeviceReadable);
+        readonly ProceduralHumanoidPoseDriver driver = new(BloodKnightTuning);
         CombatEntity entity;
         Health health;
         Transform baseBody;
@@ -43,6 +44,24 @@ namespace RealmRaiders.Characters
         public bool IsBound => driver.IsBound;
         public bool HasUpperTorso => driver.IsBound && bones[6];
         public bool HasCombatPresentation => combat.HasHit || combat.HasAttack;
+        public ProceduralHumanoidMotionTuning MotionTuning => driver.Tuning;
+
+        static ProceduralHumanoidMotionTuning ResolveConfiguredBloodKnightTuning()
+        {
+            var build = ProceduralHumanoidTuningCatalogue.Build(
+                new IProceduralHumanoidTuningProvider[] { new StarterProceduralHumanoidTuningProvider() });
+            return ResolveBloodKnightTuning(build != null && build.Succeeded ? build.Catalogue : null);
+        }
+
+        public static ProceduralHumanoidMotionTuning ResolveBloodKnightTuning(
+            ProceduralHumanoidTuningCatalogue catalogue)
+        {
+            var result = ProceduralHumanoidTuningAssignmentResolver.Resolve(
+                catalogue, StarterProceduralHumanoidTuningAssignments.BloodKnight);
+            return result != null && result.Resolution != ProceduralHumanoidTuningResolution.Rejected && result.Tuning != null
+                ? result.Tuning
+                : ProceduralHumanoidMotionTuning.CompatibilityDefault;
+        }
 
         void Awake()
         {

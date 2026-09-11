@@ -777,7 +777,7 @@ The exact empty-impact, applied-hit, immunity, AI/Dash/invalid/canceled and life
 paths passed without compiler/runtime errors or new duplicate-listener warnings.
 Manual marker readability remains unobserved.
 
-## Active — Diamond Pass 17.0: Explicit Blood Knight Motion-Tuning Resolution
+## Accepted — Diamond Pass 17.0: Explicit Blood Knight Motion-Tuning Resolution
 
 Owner: Core developer on GPT-5.6 Sol. Replace the adapter's hard-coded tuning
 selection with the accepted explicit MMP11 Blood Knight assignment resolved against
@@ -786,3 +786,19 @@ exact current `BloodKnightDeviceReadable` object and therefore every accepted po
 timing and gameplay invariant. Any rejected/unavailable assignment fails closed to
 the exact compatibility tuning without discovery, scene scans or module-owned
 gameplay authority. This is a narrow modularity gate, not a motion retune.
+
+Acceptance: objectively fresh assemblies; final native gates passed EditMode
+`358/358` and PlayMode `104/104`, both with zero failed/skipped/inconclusive tests.
+Preferred identity, explicit Compatibility fallback, rejected/null fail-closed and
+actual bind/rebind ownership passed without compiler/runtime errors or new
+duplicate-listener warnings. No manual motion check was required because no tuning
+value or pose behavior changed.
+
+## Active — Diamond Pass 17.1: Factual Direct-Combat Defeat Confirmation
+
+Owner: Core developer on GPT-5.6 Sol. When an accepted direct-player Melee or Area
+hit applies damage and that same hit authoritatively transitions an eligible living
+enemy to dead, show one bounded factual `DEFEATED — <NAME>` through the existing
+world-marker presentation. Preserve damage, reward, death, AI and encounter
+authority exactly. AI kills, already-dead/invalid targets, immunity, misses,
+repeated colliders/callbacks and lifecycle exits cannot duplicate or invent it.

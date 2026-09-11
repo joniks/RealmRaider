@@ -133,7 +133,8 @@ Last reviewed: 2026-09-11
 - Diamond Pass 16.8 Factual Possessed-Creature Defeat Receipt is present: only the exact currently possessed creature's authoritative death reports its factual named loss and zero/maximum HP through the existing notice, while all other release causes retain distinct truthful copy and unchanged authority.
 - Module Pass MMP11 is accepted in Modules commit `42fbbc8`: the Blood Knight now has one stable explicit preferred/fallback procedural-motion tuning assignment without discovery, automatic application or gameplay authority.
 - Diamond Pass 16.9 Factual Direct-Combat No-Hit Confirmation is present: only an accepted direct-player positive-damage Melee/Area impact with no eligible living contact shows one bounded `NO HIT`; damage, immunity `DODGED`, AI, Dash and canceled paths retain their distinct existing outcomes.
-- Current Unity Test Runner baseline: EditMode `357/357` and PlayMode `104/104` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Diamond Pass 17.0 Explicit Blood Knight Motion-Tuning Resolution is present: the Core adapter now resolves the accepted explicit Modules assignment once and retains the exact device-readable tuning identity, with deterministic Compatibility fail-closed behavior and no retune or gameplay change.
+- Current Unity Test Runner baseline: EditMode `358/358` and PlayMode `104/104` passed with `0` failures through the QA menu commands on 2026-09-11.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -150,7 +151,7 @@ Last reviewed: 2026-09-11
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `357/357` and PlayMode `104/104` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `358/358` and PlayMode `104/104` passed with `0` failures on 2026-09-11.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

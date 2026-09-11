@@ -4,6 +4,7 @@ using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
 using RealmRaiders.Controllers;
+using RealmRaiders.Modules.CharacterProceduralMotion;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -48,6 +49,8 @@ namespace RealmRaiders.Tests
                 var baseBody = host.transform.Find("Character Visual Modules/Presentation Pivot/Base Body");
                 Assert.That(adapter, Is.Not.Null);
                 Assert.That(adapter.IsBound, Is.True, "The active Blood Knight must bind its exact six factual Bip01 descendants.");
+                Assert.That(adapter.MotionTuning, Is.SameAs(ProceduralHumanoidMotionTuning.BloodKnightDeviceReadable),
+                    "The actual Blood Knight adapter must retain the exact accepted device-readable tuning identity.");
                 Assert.That(pivot, Is.Not.Null);
                 Assert.That(baseBody, Is.Not.Null);
                 var pivotPose = Pose.Of(pivot);
@@ -173,6 +176,8 @@ namespace RealmRaiders.Tests
                 yield return null;
                 Assert.That(adapter.IsBound, Is.True, "The actual enable lifecycle must rebind the retained Base Body.");
                 Assert.That(adapter.HasUpperTorso, Is.True, "The optional spine follows the same retained body/pivot rebind.");
+                Assert.That(adapter.MotionTuning, Is.SameAs(ProceduralHumanoidMotionTuning.BloodKnightDeviceReadable),
+                    "Lifecycle rebind must retain the same resolved tuning without rebuilding or rediscovery.");
 
                 Reset(adapter, baseBody, pivot);
                 baseline = Snapshot(bones);
