@@ -1020,7 +1020,7 @@ strict four-field structural JSON gate rejects hostile shapes/types and recovery
 never leaks partial state or alters unrelated preferences. Final QA passed
 EditMode `482/482` and PlayMode `121/121`, zero failed/skipped/inconclusive.
 
-## Ready next — 18.9 Materialize the Persisted Sylvan Starter Realm (gameplay/content)
+## Accepted — 18.9 Materialize the Persisted Sylvan Starter Realm (gameplay/content)
 
 Replace the current hard-coded Sylvan node coordinates and path floors with the
 single exact validated recipe returned by 18.8. Materialize all seven existing
@@ -1033,3 +1033,25 @@ physically distinct while preserving the complete playable loop. Initial camera
 heading may frame the Portal's first route as bounded presentation only. No
 reroll, expansion, new AI/pathfinding, encounter staging, saved fog/progress or
 reward redesign belongs in this gate. Full lease is in `Docs/NEXT_JOB.md`.
+
+Acceptance: all three generated-once layouts now build every exact node and edge
+through one validated Core materialization plan. The same recipe footprints own
+the graph, walkable floors and bounded collision contour; existing characters,
+trap, Moonwell, rewards, possession and Heart Tree remain authoritative. Retry
+preserves byte-identical identity and topology. Final QA passed EditMode `488/488`
+and PlayMode `122/122`, zero failed/skipped/inconclusive.
+
+## Ready next — 18.10 Node-Entry Encounter Activation (gameplay/content)
+
+Keep explored Sylvan enemies visible enough to read as a deliberate encounter,
+but prevent a newly revealed neighboring grove from chasing or attacking before
+the hero actually enters that exact node. Entering the node activates its explicit
+living hostiles once through existing controller authority; the other branch stays
+dormant until chosen. Death, retry, terminal state and scene teardown must not
+reactivate or leak an encounter.
+
+This turns the new three-layout geometry into a fair route decision and creates
+the real runtime seam required before Modules MGC11 can author richer per-layout
+beat plans. No spawn/reward rebalance, route lock, hidden surprise attack, global
+scan, NavMesh, wave framework or UI-only substitute belongs in this gate. Full
+lease is in `Docs/NEXT_JOB.md`.

@@ -1,5 +1,40 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 18.9 — Materialized Persistent Sylvan Starter Realm
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- The generated-once Sylvan identity now selects the actual playable map instead
+  of metadata beside one hard-coded arena. Ancient Crossroads, Forked Canopy and
+  Serpent Roots materialize all seven semantic roles and every exact recipe edge.
+- One Core plan maps validated immutable package facts to the existing RealmGraph,
+  node floors, paths and landmarks. The same node/path footprints drive visible
+  walkable geometry and the physical arena boundary, so presentation and collision
+  do not maintain competing coordinate sets.
+- Blood Knight, Wolves, Guardian Ent, Root Trap, Moonwell and Heart Tree keep their
+  existing gameplay components, controllers, stats and reward authority while
+  using recipe centres plus the existing authored composition offsets.
+- Generated paths are parented to the raid root with static non-trigger colliders.
+  Retry rebuilds the byte-identical persisted LayoutId and topology without a new
+  selection or PlayerPrefs rewrite.
+
+### Verification
+
+- Static review found no remaining runtime-authority or package-boundary issue.
+  Unity Refresh exposed only test-assembly visibility mistakes; those tests now
+  compare the same raw package facts through Core-owned primitives/reflection.
+- The first PlayMode run passed `121/122`; its sole failure was a new assertion
+  using active-only lookup for the intentionally unrevealed Root Trap. The test
+  now resolves the exact inactive revealables without changing runtime behavior.
+- Final Unity GUI gates after the last Refresh passed EditMode `488/488` and
+  PlayMode `122/122`, with zero failed/skipped/inconclusive tests. PlayMode XML
+  covers 2026-09-12 17:15:05Z–17:16:52Z and completed in 106.747 seconds.
+- `git diff --check` is clean. Full branch/bend, trap, Moonwell, objective and
+  retry feel remains with the user's current Android smoke; no unobserved manual
+  play result is claimed here.
+
 ## Diamond Pass 18.8 — Persistent Starter-Realm Identity
 
 Completed on 2026-09-12; included with this project commit.

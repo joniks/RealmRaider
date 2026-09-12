@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
@@ -240,7 +241,7 @@ namespace RealmRaiders.Tests
             AssertArchetype("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId);
             AssertArchetype("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId);
             AssertArchetype("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId);
-            AssertSylvanRaidRoutes();
+            AssertSylvanRaidRoutes(CurrentSylvanLayout());
             AssertLandmarkPresentation("Heart Tree", 8, "Wide Crown", "Radial Root Left");
             AssertLandmarkPresentation("Root Trap", 6, "Inward Root 1", "Inward Root 4");
             var raidHud = Object.FindFirstObjectByType<RaidHUD>();
@@ -254,23 +255,85 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator SylvanRealm_AllPersistedLayoutsMaterializeRawFactsAndRaidAgainByteIdentically()
+        {
+            const string realmId = "abcdef0123456789abcdef0123456789";
+            var key = SylvanStarterRealmIdentity.KeyForTests;
+            var hadIdentity = PlayerPrefs.HasKey(key);
+            var previousIdentity = PlayerPrefs.GetString(key, string.Empty);
+            var hadProgress = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
+            var previousProgress = PlayerPrefs.GetString(RealmProgress.KeyForTests, string.Empty);
+            try
+            {
+                foreach (var expected in new[]
+                {
+                    (Seed: 0, LayoutId: "realmraiders.sylvan-layout.ancient-crossroads"),
+                    (Seed: 1, LayoutId: "realmraiders.sylvan-layout.forked-canopy"),
+                    (Seed: 2, LayoutId: "realmraiders.sylvan-layout.serpent-roots")
+                })
+                {
+                    Dictionary<string, Vector3> spawnPositions = null;
+                    void Capture(Scene scene, LoadSceneMode mode)
+                    {
+                        if (scene.name != "SylvanRealm") return;
+                        spawnPositions = Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                            .ToDictionary(entity => entity.name, entity => entity.transform.position);
+                    }
+
+                    SylvanStarterRealmIdentity.ResetForTests();
+                    SylvanStarterRealmIdentity.SetFactoriesForTests(() => realmId, () => expected.Seed);
+                    SylvanRaidCompositionSelection.ResetForTests();
+                    SceneManager.sceneLoaded += Capture;
+                    try
+                    {
+                        SceneManager.LoadScene("SylvanRealm"); yield return null; yield return null;
+                        var identity = SylvanStarterRealmIdentity.LoadOrCreate();
+                        var plan = SylvanRealmLayoutMaterializer.Create(identity);
+                        var stored = PlayerPrefs.GetString(key);
+                        Assert.That(identity.LayoutId, Is.EqualTo(expected.LayoutId));
+                        AssertSylvanSceneMatchesRawRecipe(identity, plan, spawnPositions);
+                        var firstTopology = SylvanTopologySignature();
+
+                        var hud = Object.FindFirstObjectByType<RaidHUD>();
+                        hud.SendMessage("ShowResult", new RaidResult(true, 0, 0, 0, 0, 1, true), SendMessageOptions.RequireReceiver);
+                        GameObject.Find("RAID AGAIN").GetComponent<Button>().onClick.Invoke();
+                        yield return null; yield return null;
+                        Assert.That(PlayerPrefs.GetString(key), Is.EqualTo(stored), "RAID AGAIN must not rewrite persisted identity bytes.");
+                        Assert.That(CurrentSylvanLayout().LayoutId, Is.EqualTo(expected.LayoutId));
+                        Assert.That(SylvanTopologySignature(), Is.EqualTo(firstTopology));
+                        AssertSylvanSceneMatchesRawRecipe(SylvanStarterRealmIdentity.LoadOrCreate(), CurrentSylvanLayout(), spawnPositions);
+                    }
+                    finally { SceneManager.sceneLoaded -= Capture; }
+                }
+            }
+            finally
+            {
+                SylvanStarterRealmIdentity.ResetForTests();
+                if (hadIdentity) PlayerPrefs.SetString(key, previousIdentity); else PlayerPrefs.DeleteKey(key);
+                if (hadProgress) PlayerPrefs.SetString(RealmProgress.KeyForTests, previousProgress); else PlayerPrefs.DeleteKey(RealmProgress.KeyForTests);
+                PlayerPrefs.Save();
+                SylvanRaidCompositionSelection.ResetForTests();
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SylvanRaidVariants_MaterializeExactAuthoredFactsAndTruthfulNodeContents()
         {
             var variants = new[]
             {
                 new VariantExpectation("realmraiders.sylvan-raid.baseline", "Baseline",
-                    new SpawnExpectation("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -13, -11, .75f),
-                    new SpawnExpectation("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -15.5f, -8.3f, .68f),
-                    new SpawnExpectation("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 14, 4, 1.45f)),
+                    new SpawnExpectation("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", 1, -1, .75f),
+                    new SpawnExpectation("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -1.5f, 1.7f, .68f),
+                    new SpawnExpectation("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 0, 0, 1.45f)),
                 new VariantExpectation("realmraiders.sylvan-raid.wolf-pressure", "Wolf Pressure",
-                    new SpawnExpectation("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -13, -11, .75f),
-                    new SpawnExpectation("Wolf Hunter", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -16, -8.5f, .68f),
-                    new SpawnExpectation("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 14, 4, 1.45f),
-                    new SpawnExpectation("Moonwell Wolf", PrototypeCharacterRoster.SylvanWolfId, "Moonwell", 8.2f, 28.5f, .68f)),
+                    new SpawnExpectation("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", 1, -1, .75f),
+                    new SpawnExpectation("Wolf Hunter", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -2, 1.5f, .68f),
+                    new SpawnExpectation("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 0, 0, 1.45f),
+                    new SpawnExpectation("Moonwell Wolf", PrototypeCharacterRoster.SylvanWolfId, "Moonwell", -1.8f, 1.5f, .68f)),
                 new VariantExpectation("realmraiders.sylvan-raid.sentinel-escort", "Sentinel Escort",
-                    new SpawnExpectation("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -13, -11, .75f),
-                    new SpawnExpectation("Ent Sentinel", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 12.9f, 4, 1.45f),
-                    new SpawnExpectation("Ent Grove Wolf", PrototypeCharacterRoster.SylvanWolfId, "Ent Grove", 15.8f, 5.4f, .68f))
+                    new SpawnExpectation("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", 1, -1, .75f),
+                    new SpawnExpectation("Ent Sentinel", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", -1.1f, 0, 1.45f),
+                    new SpawnExpectation("Ent Grove Wolf", PrototypeCharacterRoster.SylvanWolfId, "Ent Grove", 1.8f, 1.4f, .68f))
             };
             try
             {
@@ -280,6 +343,7 @@ namespace RealmRaiders.Tests
                     SceneManager.LoadScene("SylvanRealm"); yield return null; yield return null;
                     var raid = Object.FindFirstObjectByType<RaidManager>();
                     var hero = SceneEntity("Blood Knight");
+                    var layout = CurrentSylvanLayout();
                     var sceneEntities = Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                     Assert.That(sceneEntities, Has.Length.EqualTo(variant.Spawns.Length + 1));
                     Assert.That(Object.FindFirstObjectByType<RaidHUD>().StateText, Does.StartWith($"SYLVAN RAID • {variant.Name.ToUpperInvariant()}"));
@@ -287,8 +351,9 @@ namespace RealmRaiders.Tests
                     {
                         var entity = SceneEntity(spawn.Name);
                         Assert.That(entity.Definition.ArchetypeId, Is.EqualTo(spawn.ArchetypeId), spawn.Name);
-                        Assert.That(entity.transform.position.x, Is.EqualTo(spawn.X).Within(.001f), spawn.Name);
-                        Assert.That(entity.transform.position.z, Is.EqualTo(spawn.Z).Within(.001f), spawn.Name);
+                        var center = NodeCenter(layout, spawn.NodeId);
+                        Assert.That(entity.transform.position.x, Is.EqualTo(center.x + spawn.X).Within(.001f), spawn.Name);
+                        Assert.That(entity.transform.position.z, Is.EqualTo(center.y + spawn.Z).Within(.001f), spawn.Name);
                         Assert.That(entity.transform.localScale, Is.EqualTo(Vector3.one * spawn.Scale), spawn.Name);
                     }
                     Assert.That(variant.Spawns.Count(spawn => spawn.ArchetypeId == PrototypeCharacterRoster.GuardianEntId), Is.EqualTo(1));
@@ -297,13 +362,13 @@ namespace RealmRaiders.Tests
                     if (moonwellWolf) Assert.That(moonwellWolf.gameObject.activeSelf, Is.False, "Moonwell Wolf must remain hidden with its authored node.");
                     foreach (var node in new[]
                     {
-                        (Id: "Wolf Grove", Position: new Vector3(-14, 0, -10)),
-                        (Id: "Ent Grove", Position: new Vector3(14, 0, 4)),
-                        (Id: "Moonwell", Position: new Vector3(10, 0, 27)),
-                        (Id: "Root Path", Position: new Vector3(0, 0, 5))
+                        (Id: "Wolf Grove", Position: NodeCenter(layout, "Wolf Grove")),
+                        (Id: "Ent Grove", Position: NodeCenter(layout, "Ent Grove")),
+                        (Id: "Moonwell", Position: NodeCenter(layout, "Moonwell")),
+                        (Id: "Root Path", Position: layout.RootPathHazard.Center)
                     })
                     {
-                        hero.transform.position = new Vector3(node.Position.x, hero.transform.position.y, node.Position.z);
+                        hero.transform.position = new Vector3(node.Position.x, hero.transform.position.y, node.Position.y);
                         var nodeView = Object.FindObjectsByType<RealmNodeView>(FindObjectsInactive.Include, FindObjectsSortMode.None)
                             .Single(view => view.Node.Id == node.Id);
                         nodeView.SendMessage("Update", SendMessageOptions.RequireReceiver);
@@ -854,23 +919,138 @@ namespace RealmRaiders.Tests
             Assert.That(namedRootCount, Is.EqualTo(1));
         }
 
-        static void AssertSylvanRaidRoutes()
+        static SylvanRealmLayoutPlan CurrentSylvanLayout() =>
+            SylvanRealmLayoutMaterializer.Create(SylvanStarterRealmIdentity.LoadOrCreate());
+
+        static void AssertSylvanSceneMatchesRawRecipe(SylvanStarterRealmIdentityResult identity,
+            SylvanRealmLayoutPlan plan, IReadOnlyDictionary<string, Vector3> spawnPositions)
+        {
+            Assert.That(spawnPositions, Is.Not.Null, "sceneLoaded must capture authoritative spawn heights before simulation.");
+            var recipe = RecipeObject(identity);
+            var rawNodes = RawItems(recipe, "Nodes");
+            var rawEdges = RawItems(recipe, "Edges");
+            Assert.That(plan.LayoutId, Is.EqualTo(RawValue<string>(recipe, "LayoutId")));
+            var nodeViews = Object.FindObjectsByType<RealmNodeView>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Assert.That(nodeViews, Has.Length.EqualTo(rawNodes.Length));
+            foreach (var raw in rawNodes)
+            {
+                var nodeId = RawValue<string>(raw, "NodeId");
+                var x = RawValue<float>(raw, "X");
+                var z = RawValue<float>(raw, "Z");
+                var node = plan.Nodes.Single(candidate => candidate.SourceNodeId == nodeId);
+                Assert.That(node.Center, Is.EqualTo(new Vector2(x, z)), nodeId);
+                var view = nodeViews.Single(candidate => candidate.Node.Id == node.GraphId);
+                Assert.That(view.transform.position, Is.EqualTo(new Vector3(x, 0, z)), nodeId);
+                var ground = GameObject.Find(node.Label + " Ground");
+                Assert.That(ground, Is.Not.Null, nodeId);
+                Assert.That(ground.transform.position, Is.EqualTo(new Vector3(x, 0, z)), nodeId);
+                Assert.That(ground.GetComponentInChildren<MeshCollider>().isTrigger, Is.False, nodeId);
+                Assert.That(ground.GetComponentInChildren<MeshCollider>().gameObject.isStatic, Is.True, nodeId);
+            }
+
+            var livingPaths = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(item => item.name == "Living Path").ToArray();
+            Assert.That(livingPaths, Has.Length.EqualTo(rawEdges.Length));
+            foreach (var raw in rawEdges)
+            {
+                var edgeId = RawValue<string>(raw, "EdgeId");
+                var fromId = RawValue<string>(raw, "FromNodeId");
+                var toId = RawValue<string>(raw, "ToNodeId");
+                var width = RawValue<float>(raw, "FloorPathWidth");
+                var edge = plan.Edges.Single(candidate => candidate.SourceEdgeId == edgeId);
+                Assert.That(edge.From.SourceNodeId, Is.EqualTo(fromId));
+                Assert.That(edge.To.SourceNodeId, Is.EqualTo(toId));
+                Assert.That(edge.IsActivePathSafe, Is.EqualTo(RawValue<bool>(raw, "IsActivePathSafe")));
+                Assert.That(edge.FloorPathWidth, Is.EqualTo(width));
+                var path = livingPaths.Single(candidate => Vector3.Distance(candidate.position,
+                    new Vector3(edge.Footprint.Center.x, -.06f, edge.Footprint.Center.y)) < .001f);
+                Assert.That(path.localScale, Is.EqualTo(new Vector3(width, .12f, edge.Footprint.Size.y)), edgeId);
+                Assert.That(Quaternion.Angle(path.rotation, Quaternion.Euler(0, edge.Footprint.Yaw, 0)), Is.LessThan(.001f), edgeId);
+                var fromView = nodeViews.Single(candidate => candidate.Node.Id == edge.From.GraphId);
+                var toView = nodeViews.Single(candidate => candidate.Node.Id == edge.To.GraphId);
+                Assert.That(fromView.Node.Neighbors, Does.Contain(toView.Node), edgeId);
+            }
+            Assert.That(nodeViews.Sum(view => view.Node.Neighbors.Count) / 2, Is.EqualTo(rawEdges.Length));
+
+            Assert.That(spawnPositions["Blood Knight"], Is.EqualTo(new Vector3(plan.PortalStart.Center.x, 1, plan.PortalStart.Center.y)));
+            var traps = Object.FindObjectsByType<RootTrap>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var moonwells = Object.FindObjectsByType<MoonwellRecovery>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var cores = Object.FindObjectsByType<RealmCore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Assert.That(traps, Has.Length.EqualTo(1));
+            Assert.That(moonwells, Has.Length.EqualTo(1));
+            Assert.That(cores, Has.Length.EqualTo(1));
+            Assert.That(traps[0], Is.Not.Null);
+            Assert.That(moonwells[0], Is.Not.Null);
+            Assert.That(cores[0], Is.Not.Null);
+            Assert.That(traps[0].transform.position, Is.EqualTo(new Vector3(plan.RootPathHazard.Center.x, .12f, plan.RootPathHazard.Center.y)));
+            Assert.That(moonwells[0].transform.position, Is.EqualTo(new Vector3(plan.MoonwellRecovery.Center.x, 0, plan.MoonwellRecovery.Center.y)));
+            Assert.That(cores[0].transform.position, Is.EqualTo(new Vector3(plan.HeartTreeObjective.Center.x, 2.5f, plan.HeartTreeObjective.Center.y)));
+
+            Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None),
+                Has.Length.EqualTo(4));
+            var expectedSpawns = new[]
+            {
+                new SpawnExpectation("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", 1, -1, .75f),
+                new SpawnExpectation("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -1.5f, 1.7f, .68f),
+                new SpawnExpectation("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 0, 0, 1.45f)
+            };
+            Assert.That(expectedSpawns.Count(spawn => spawn.ArchetypeId == PrototypeCharacterRoster.GuardianEntId), Is.EqualTo(1));
+            foreach (var spawn in expectedSpawns)
+            {
+                var center = NodeCenter(plan, spawn.NodeId);
+                var expectedY = spawn.ArchetypeId == PrototypeCharacterRoster.GuardianEntId ? 1.5f : .65f;
+                Assert.That(spawnPositions[spawn.Name], Is.EqualTo(new Vector3(
+                    center.x + spawn.X, expectedY, center.y + spawn.Z)), spawn.Name);
+            }
+        }
+
+        static object RecipeObject(SylvanStarterRealmIdentityResult identity) =>
+            typeof(SylvanStarterRealmIdentityResult).GetProperty("Recipe", BindingFlags.Instance | BindingFlags.Public).GetValue(identity);
+
+        static object[] RawItems(object owner, string property) =>
+            ((IEnumerable)owner.GetType().GetProperty(property, BindingFlags.Instance | BindingFlags.Public).GetValue(owner)).Cast<object>().ToArray();
+
+        static T RawValue<T>(object owner, string property) =>
+            (T)owner.GetType().GetProperty(property, BindingFlags.Instance | BindingFlags.Public).GetValue(owner);
+
+        static string SylvanTopologySignature()
+        {
+            var nodeSignatures = Object.FindObjectsByType<RealmNodeView>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .OrderBy(view => view.Node.Id)
+                .Select(view => $"N:{view.Node.Id}:{view.transform.position.x:R}:{view.transform.position.z:R}:{string.Join(",", view.Node.Neighbors.Select(node => node.Id).OrderBy(id => id))}");
+            var pathSignatures = Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(item => item.name == "Living Path")
+                .OrderBy(item => item.position.x).ThenBy(item => item.position.z)
+                .Select(item => $"P:{item.position.x:R}:{item.position.z:R}:{item.localScale.x:R}:{item.localScale.z:R}:{item.eulerAngles.y:R}");
+            return string.Join("|", nodeSignatures.Concat(pathSignatures));
+        }
+
+        static Vector2 NodeCenter(SylvanRealmLayoutPlan layout, string compositionNodeId) => compositionNodeId switch
+        {
+            "Wolf Grove" => layout.WolfGroveEncounter.Center,
+            "Ent Grove" => layout.EntGroveEncounter.Center,
+            "Moonwell" => layout.MoonwellRecovery.Center,
+            _ => throw new System.ArgumentOutOfRangeException(nameof(compositionNodeId))
+        };
+
+        static void AssertSylvanRaidRoutes(SylvanRealmLayoutPlan layout)
         {
             var paths = new List<Transform>();
             foreach (var candidate in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (candidate.name == "Living Path") paths.Add(candidate);
-            Assert.That(paths, Has.Count.EqualTo(6));
-
-            var positions = new[] { new Vector3(0, -.06f, -40), new Vector3(-7, -.06f, -20), new Vector3(7, -.06f, -13), new Vector3(0, -.06f, -12), new Vector3(5, -.06f, 16), new Vector3(5, -.06f, 39) };
-            var scales = new[] { new Vector3(7, .12f, 20), new Vector3(6, .12f, 28), new Vector3(6, .12f, 38), new Vector3(7, .12f, 36), new Vector3(7, .12f, 26), new Vector3(7, .12f, 25) };
-            var yaws = new[] { 0f, -35f, 25f, 0f, 22f, -24f };
-            for (var index = 0; index < positions.Length; index++)
+            var expected = layout.CreatePathFootprints();
+            Assert.That(paths, Has.Count.EqualTo(expected.Length));
+            for (var index = 0; index < expected.Length; index++)
             {
+                var positions = new Vector3(expected[index].Center.x, -.06f, expected[index].Center.y);
                 Transform path = null;
-                foreach (var candidate in paths) if (Vector3.Distance(candidate.position, positions[index]) < .01f) { path = candidate; break; }
-                Assert.That(path, Is.Not.Null, $"Missing authoritative Living Path at {positions[index]}.");
-                Assert.That(path.localScale, Is.EqualTo(scales[index]));
-                Assert.That(Quaternion.Angle(path.rotation, Quaternion.Euler(0, yaws[index], 0)), Is.LessThan(.01f));
+                foreach (var candidate in paths) if (Vector3.Distance(candidate.position, positions) < .01f) { path = candidate; break; }
+                Assert.That(path, Is.Not.Null, $"Missing authoritative Living Path at {positions}.");
+                Assert.That(path.localScale, Is.EqualTo(new Vector3(expected[index].Size.x, .12f, expected[index].Size.y)));
+                Assert.That(Quaternion.Angle(path.rotation, Quaternion.Euler(0, expected[index].Yaw, 0)), Is.LessThan(.01f));
+                Assert.That(path.parent.name, Is.EqualTo("Sylvan Realm Raid"));
+                Assert.That(path.gameObject.isStatic, Is.True);
+                Assert.That(path.GetComponent<Collider>().isTrigger, Is.False);
                 AssertRoutePresentation(path, RealmRoutePresentation.SegmentRendererCeiling, false, "Organic Route Band", "Organic Route Band");
             }
         }

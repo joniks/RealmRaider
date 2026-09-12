@@ -286,8 +286,14 @@ Last reviewed: 2026-09-12
   adds a strict isolated local Realm ID/seed/layout record: valid loads resolve the
   same cached recipe without reroll or rewrite, while malformed data recovers only
   that key and module/entropy failures expose no partial identity. Final QA passed
-  EditMode `482/482` and PlayMode `121/121`. Geometry is intentionally still the
-  current hard-coded Sylvan map; Core 18.9 is ready to materialize the recipe.
+  EditMode `482/482` and PlayMode `121/121`.
+- Diamond Pass 18.9 is present: Ancient Crossroads, Forked Canopy and Serpent Roots
+  now become the actual persisted playable Sylvan map. One validated plan drives
+  every role, graph edge, walkable floor and matching arena boundary while existing
+  spawns, trap, Moonwell, rewards, possession and Heart Tree keep authority. Retry
+  preserves byte-identical identity/topology. Final QA passed EditMode `488/488`
+  and PlayMode `122/122`; full physical-device route feel is currently being tested
+  by the user.
 
 ## Directory guide
 
