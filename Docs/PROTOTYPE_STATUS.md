@@ -18,9 +18,9 @@ Last reviewed: 2026-09-12
   pixels/input. Visual direction/foot contact/landing feel remain unobserved;
   green automated results are not a claim of visual or device acceptance.
 - Priority is 70% gameplay/content and 30% foundation/polish by planned effort.
-  Sylvan route risk/reward and the standalone Infernal Ent raid are accepted; the
-  Ent attack rhythm is accepted; the active next slice is the three authored
-  Sylvan encounter variants.
+  Sylvan and Infernal authored raid variants are accepted. The next gameplay slice
+  is a truthful Build choice between a second autonomous Wolf and additional
+  direct-control possession time; its no-engine MGC09 facts are prepared first.
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
@@ -42,6 +42,11 @@ Last reviewed: 2026-09-12
   uses a shared `0.80s` recovery while legacy abilities retain `0.12s`; possession
   remains direct-player authority. QA passed EditMode `394/394` and PlayMode
   `114/114`, zero failed/skipped/inconclusive and no new compiler/runtime errors.
+- Core 18.4 is accepted: the Infernal Hub selector cycles Brute Finale, Entry Trial
+  and Risk Route as session-only choices; exact validated module facts drive each
+  roster, lane, optional Flame Trap and Heart prerequisite. Final QA passed
+  EditMode `434/434` and PlayMode `118/118`, zero failed/skipped/inconclusive and
+  no new compiler/runtime errors.
 
 ## Latest verification
 
@@ -244,10 +249,14 @@ Last reviewed: 2026-09-12
   existing node/reward authority. Wolf Pressure keeps its Moonwell Wolf hidden
   until reveal, every run has one exact Ent bonus target, and the Raid HUD names
   the active variant. Final QA passed EditMode `423/423` and PlayMode `116/116`.
-- Modules MGC05–MGC07 are pinned for the next gameplay slice: all three Infernal
-  pacing choices now have immutable spatial recipes, fail-closed lookup/validation
-  and concise truthful presentation facts. Core still owns selection, spawning,
-  combat, objectives, rewards and UI.
+- Diamond Pass 18.4 Authored Infernal Ent Raid Variants is present: Brute Finale
+  remains the default, Entry Trial removes the Flame Trap and uses an all-hostiles
+  Heart gate, and Risk Route retains two Hellhounds plus one bypassable Flame Trap
+  with the same truthful gate. Direct launch and retry retain the shown selection;
+  final QA passed EditMode `434/434` and PlayMode `118/118`.
+- Modules MGC05–MGC08 are pinned: Infernal pacing/spatial/presentation facts and
+  Sylvan presentation summaries remain immutable no-engine data. Core alone owns
+  selection, spawning, combat, objectives, rewards and UI.
 
 ## Directory guide
 

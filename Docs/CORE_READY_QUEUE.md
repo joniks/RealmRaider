@@ -921,7 +921,7 @@ Ent bonus target and responsive Hub layout remain truthful. Final QA passed
 EditMode `423/423` and PlayMode `116/116`, zero failed/skipped/inconclusive, with
 no new compiler/runtime errors. Manual feel remains user-observed.
 
-## Active next — 18.4 Authored Infernal Ent Raid Variants (gameplay/content)
+## Accepted — 18.4 Authored Infernal Ent Raid Variants (gameplay/content)
 
 Use the accepted Infernal pacing, spatial evidence and presentation catalogues to
 turn the existing fixed Brute Finale into three explicit session-only choices:
@@ -929,3 +929,25 @@ Entry Trial, Risk Route and Brute Finale. Preserve Brute Finale as the default,
 materialize only exact validated recipe facts, keep trap bypass and objective gates
 truthful, and expose the choice through a coherent Hub selector layout without
 crowding the accepted Sylvan selector. Full lease is in `Docs/NEXT_JOB.md`.
+
+Acceptance: Brute Finale remains the session default and the Hub now cycles exact
+`Brute Finale → Entry Trial → Risk Route` facts without changing scene or realm.
+All three variants materialize only validated module pacing/spatial/presentation
+data, preserve their exact hazard cardinality and Heart gates, and retain selection
+through direct launch and same-scene retry. The reflowed Hub keeps both selectors
+and all actions pairwise separate in portrait and landscape. Final QA passed
+EditMode `434/434` and PlayMode `118/118`, zero failed/skipped/inconclusive, with
+no new compiler/runtime errors and no AudioListener warning increase. Manual Game
+View feel remains user-observed because QA had no safely operable viewport/input.
+
+## Ready next — 18.5 Keeper Reserve Defense Tradeoff (gameplay/content)
+
+Turn an already-valid sparse Sylvan defense into a real decision: keep the default
+`PACK PRESSURE` plan with two autonomous Wolves and the current possession-energy
+maximum, or leave one creature slot open for `KEEPER RESERVE`, sacrificing that
+Wolf for a bounded larger possession-energy maximum. Derive the choice from the
+validated saved layout; do not add save state, a new currency, random selection or
+new defense rules. MGC09 must first freeze the two exact no-engine facts and a
+fail-closed evaluator. Core then reuses the existing Build save, Defender spawn,
+same-Ent possession and deployment-receipt paths. Exact lease belongs in
+`Docs/NEXT_JOB.md` after the accepted MGC09 commit is pinned.

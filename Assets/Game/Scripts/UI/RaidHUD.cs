@@ -31,6 +31,8 @@ namespace RealmRaiders.UI
         RaidHudConfig config;
         string stateTitle;
         CombatEntity objectiveGuardian;
+        System.Func<bool> objectiveLocked;
+        string lockedObjectiveCopy;
         InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
@@ -78,13 +80,14 @@ namespace RealmRaiders.UI
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera,
             MoonwellRecovery recovery = null, RaidHudConfig raidConfig = null, CombatEntity exactObjectiveGuardian = null,
-            string variantDisplayName = null)
+            string variantDisplayName = null, System.Func<bool> objectiveLocked = null, string lockedObjectiveCopy = null)
         {
             config = raidConfig ?? RaidHudConfig.Sylvan;
             stateTitle = string.IsNullOrWhiteSpace(variantDisplayName) ? config.StateTitle : $"{config.StateTitle} • {variantDisplayName.ToUpperInvariant()}";
             if (config.SupportsJourney && PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
-            raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; moonwell = recovery; objectiveGuardian = exactObjectiveGuardian; Build();
+            raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; moonwell = recovery; objectiveGuardian = exactObjectiveGuardian;
+            this.objectiveLocked = objectiveLocked; this.lockedObjectiveCopy = lockedObjectiveCopy; Build();
             manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter; manager.Rewarded += OnReward;
             hero.Health.Changed += OnHeroHealthChanged;
             Refresh(); OnState(manager.State); OnEncounter(manager.Encounter);
@@ -271,9 +274,14 @@ namespace RealmRaiders.UI
             objectiveProgress = progress;
             objective.text = progress > 0 ? $"Capturing {config.ObjectiveName}  {progress * 100:0}%" : ObjectiveCopy();
         }
-        string ObjectiveCopy() => objectiveGuardian && objectiveGuardian.Health != null && !objectiveGuardian.Health.IsDead
-            ? config.LockedObjectiveCopy
-            : $"Reach the {config.ObjectiveName}";
+        string ObjectiveCopy()
+        {
+            var locked = objectiveLocked != null
+                ? objectiveLocked()
+                : objectiveGuardian && objectiveGuardian.Health != null && !objectiveGuardian.Health.IsDead;
+            if (!locked) return $"Reach the {config.ObjectiveName}";
+            return string.IsNullOrWhiteSpace(lockedObjectiveCopy) ? config.LockedObjectiveCopy : lockedObjectiveCopy;
+        }
         void OnState(RaidState value)
         {
             state.text = $"{stateTitle} — {value}";

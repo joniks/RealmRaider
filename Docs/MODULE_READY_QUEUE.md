@@ -852,3 +852,37 @@ Package: `Packages/com.realmraiders.infernal-encounters/` only.
 The complete package tests ran in the 18.3 Unity gate; final EditMode was
 `423/423`. These modules do not select, spawn, time, reward or render a raid; Core
 18.4 remains the sole gameplay/UI adapter and authority.
+
+## Accepted — MGC08 Sylvan Variant Presentation Facts
+
+Accepted Modules commit: `d9c9fb3` on 2026-09-12. Package:
+`Packages/com.realmraiders.sylvan-encounters/` only.
+
+The cached, immutable catalogue gives Baseline, Wolf Pressure and Sentinel Escort
+one exact ordinal composition lookup and concise truthful summaries derived only
+from their authored roster/node facts. It introduces no selection, spawning,
+rewards, persistence or Unity authority. Its focused package tests were discovered
+in the 18.4 Unity batch; final EditMode was `434/434`.
+
+## Ready next — MGC09 Sylvan Defense Reserve Facts
+
+Owner: Module Developer / Technical Art. Workspace:
+`Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Prepare one small no-engine package for the next playable BUILD → DEFEND choice.
+An immutable caller-supplied roster summary is evaluated into exactly one of two
+cached facts:
+
+- `PACK_PRESSURE`: two Wolves, one Guardian Ent and one Root Trap; possession
+  energy remains the existing `30` seconds.
+- `KEEPER_RESERVE`: one Wolf, one Guardian Ent, one Root Trap and one open creature
+  slot; the sacrificed Wolf raises possession energy to `45` seconds.
+
+The evaluator receives explicit counts only after Core validates its own layout.
+It uses ordinal IDs, stable issue ordering and fail-closed invalid evidence. Facts
+may include only stable ID, display name, concise tactical summary and energy
+maximum. Do not copy slot geometry, Threat costs, stats, AI, trap, possession,
+save or Unity behavior into the module. Add focused tests for both exact matches,
+null/negative/unknown/cardinality failures, immutable snapshots and deterministic
+lookup. No generic rules engine, provider framework, persistence or automatic Core
+application. Commit/push remain Architect/user owned.

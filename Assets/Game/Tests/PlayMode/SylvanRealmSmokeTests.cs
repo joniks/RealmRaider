@@ -472,7 +472,7 @@ namespace RealmRaiders.Tests
                 yield return null;
                 yield return null;
                 var hub = Object.FindFirstObjectByType<HubHUD>(); Assert.That(hub, Is.Not.Null);
-                SylvanRaidCompositionSelection.ResetForTests(); hub.SendMessage("Refresh", SendMessageOptions.RequireReceiver);
+                SylvanRaidCompositionSelection.ResetForTests(); InfernalRaidCompositionSelection.ResetForTests(); hub.SendMessage("Refresh", SendMessageOptions.RequireReceiver);
                 Assert.That(hub.SylvanRaidVariantText, Is.EqualTo("NEXT SYLVAN RAID: BASELINE — TAP TO CHANGE"));
                 var variantAction = GameObject.Find(HubHUD.SylvanRaidVariantAction).GetComponent<Button>();
                 foreach (var expected in new[] { "WOLF PRESSURE", "SENTINEL ESCORT", "BASELINE" })
@@ -480,6 +480,14 @@ namespace RealmRaiders.Tests
                     variantAction.onClick.Invoke();
                     Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("PrototypeHub"));
                     Assert.That(hub.SylvanRaidVariantText, Is.EqualTo($"NEXT SYLVAN RAID: {expected} — TAP TO CHANGE"));
+                }
+                Assert.That(hub.InfernalRaidVariantText, Does.Contain("BRUTE FINALE").And.Contain("2 HELLHOUNDS + BRUTE").And.Contain("~80 SEC"));
+                var infernalVariantAction = GameObject.Find(HubHUD.InfernalRaidVariantAction).GetComponent<Button>();
+                foreach (var expected in new[] { "ENTRY TRIAL", "RISK ROUTE", "BRUTE FINALE" })
+                {
+                    infernalVariantAction.onClick.Invoke();
+                    Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("PrototypeHub"));
+                    Assert.That(hub.InfernalRaidVariantText, Does.Contain(expected));
                 }
                 Assert.That(HubHUD.DestinationForButton("START SYLVAN JOURNEY"), Is.EqualTo("RealmBuild"));
                 Assert.That(HubHUD.DestinationForButton("BUILD SYLVAN"), Is.EqualTo("RealmBuild"));
@@ -508,6 +516,7 @@ namespace RealmRaiders.Tests
                 buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None);
                 AssertNoButtonOverlap(buttons);
                 AssertHubInteractiveLayout(buttons, new Vector2(1080, 1920));
+                AssertHubPortraitSelectorStack();
                 AssertHubLabelsClear(buttons);
 
                 foreach (var style in new[] { InRunControlStyleSelector.Contextual, InRunControlStyleSelector.Fingertap, InRunControlStyleSelector.Joystick })
@@ -530,6 +539,8 @@ namespace RealmRaiders.Tests
             {
                 PrototypeSave.SelectRealm(previousRealm);
                 PrototypeSave.SetControlStyle(previousControl);
+                SylvanRaidCompositionSelection.ResetForTests();
+                InfernalRaidCompositionSelection.ResetForTests();
                 Screen.SetResolution(width, height, false);
             }
         }
@@ -655,6 +666,22 @@ namespace RealmRaiders.Tests
                 for (var other = index + 1; other < buttons.Length; other++)
                     AssertNoDesignOverlap(a, buttons[other].GetComponent<RectTransform>(), reference, $"Hub authored buttons overlap: {a.name}/{buttons[other].name}");
             }
+        }
+
+        static void AssertHubPortraitSelectorStack()
+        {
+            var reference = new Vector2(1080, 1920);
+            var sylvan = GameObject.Find(HubHUD.SylvanRaidVariantAction).GetComponent<RectTransform>();
+            var infernal = GameObject.Find(HubHUD.InfernalRaidVariantAction).GetComponent<RectTransform>();
+            var journey = GameObject.Find("START SYLVAN JOURNEY").GetComponent<RectTransform>();
+            AssertVerticalDesignGap(sylvan, infernal, reference, 12);
+            AssertVerticalDesignGap(infernal, journey, reference, 12);
+        }
+
+        static void AssertVerticalDesignGap(RectTransform upper, RectTransform lower, Vector2 reference, float expectedGap)
+        {
+            var gap = DesignRect(upper, reference).yMin - DesignRect(lower, reference).yMax;
+            Assert.That(gap, Is.GreaterThanOrEqualTo(expectedGap), $"Hub portrait selector gap is too small: {upper.name}/{lower.name}");
         }
 
         static void AssertBuildPlanClear()

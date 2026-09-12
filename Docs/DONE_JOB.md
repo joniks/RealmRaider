@@ -3939,3 +3939,36 @@ Completed on 2026-09-12; included with this project commit.
   changed for those corrections.
 - Manual Hub/Wolf Pressure smoke remains unobserved because QA could focus only
   Unity window chrome, not a safely operable Game viewport/input surface.
+
+## Diamond Pass 18.4 — Authored Infernal Ent Raid Variants
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Added one session-only Infernal selector with exact default/order
+  `Brute Finale → Entry Trial → Risk Route → Brute Finale`; unknown selection
+  fails closed to Brute Finale and no new preference is persisted.
+- Exact validated pacing, spatial and presentation facts now materialize all three
+  raids through the existing Guardian Ent, Hellhound, Brute, Flame Trap, Heart,
+  combat and reward paths. Entry Trial has one Hound/no trap, Risk Route has two
+  Hounds/one bypassable trap, and Brute Finale preserves its two Hounds/trap/Brute.
+- Entry Trial and Risk Route unlock the Heart only after every configured hostile
+  dies. Brute Finale still unlocks only on the exact Brute death; late terminal
+  deaths cannot unlock or receive raid credit.
+- The Hub and Raid HUD show canonical variant facts. Both Hub selectors were
+  reflowed as one intentional portrait/landscape pattern with explicit gaps;
+  direct launch and same-scene retry retain the selected variant.
+- Pinned accepted Modules commit `d9c9fb3`, including MGC08's immutable Sylvan
+  presentation catalogue; module packages retain no gameplay or Unity authority.
+
+### Verification
+
+- Final EditMode passed `434/434`, zero failed/skipped/inconclusive, in 1.882 s
+  (job `7ccd6535-bfec-497a-836b-7bd898ac85f8`).
+- Final PlayMode passed `118/118`, zero failed/skipped/inconclusive, in 103.808 s
+  (job `617278f7-6422-47ed-8104-a27c4f85d1e2`, XML
+  2026-09-12 11:10:35Z–11:12:19Z).
+- No new compiler/runtime errors or exceptions were observed; duplicate
+  AudioListener warning delta was zero. Manual Hub/non-default Infernal play
+  remains user-observed because QA had no safely operable Game viewport/input.
