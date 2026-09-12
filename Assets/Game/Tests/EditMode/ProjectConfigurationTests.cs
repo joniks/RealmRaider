@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using RealmRaiders.CameraSystem;
+using RealmRaiders.Core;
 using RealmRaiders.Raid;
 using RealmRaiders.UI;
 using UnityEditor;
@@ -91,6 +92,23 @@ namespace RealmRaiders.Tests
             Assert.That(RaidHUD.ResultActionDestination(RaidHUD.PlanNextDefenseAction), Is.EqualTo("RealmBuild"));
             Assert.That(RaidHUD.ResultActionDestination("RAID AGAIN"), Is.EqualTo("SylvanRealm"));
             Assert.That(RaidHUD.ResultActionDestination("MY REALM"), Is.EqualTo("PrototypeHub"));
+        }
+
+        [Test]
+        public void InfernalEntRaidConfigUsesExactRecipeAndStandaloneRoutes()
+        {
+            InfernalRaidBootstrap.ValidateSelectedRecipeForTests();
+            var config = RaidHudConfig.InfernalEnt;
+            Assert.That(config.RealmIdentity, Is.EqualTo(HudPresentation.InfernalRealmIdentity));
+            Assert.That(config.HeroName, Is.EqualTo("Guardian Ent"));
+            Assert.That(config.AbilityLabel(0), Is.EqualTo("SMASH"));
+            Assert.That(config.AbilityLabel(1), Is.EqualTo("CHARGE"));
+            Assert.That(config.AbilityLabel(2), Is.EqualTo("GROUND SLAM"));
+            Assert.That(config.SupportsJourney, Is.False); Assert.That(config.ShowPlanNextDefense, Is.False);
+            Assert.That(RaidHUD.ResultActionDestination("RAID AGAIN", config), Is.EqualTo("InfernalRaid"));
+            Assert.That(RaidHUD.ResultActionDestination("MY REALM", config), Is.EqualTo("PrototypeHub"));
+            Assert.That(RaidHUD.ResultCopy(new RaidResult(true, 130, 1, 3, 0, 80, true), config), Does.Contain("The Infernal Heart fell"));
+            Assert.That(System.Array.Exists(EditorBuildSettings.scenes, scene => scene.enabled && scene.path == "Assets/Game/Scenes/InfernalRaid.unity"), Is.True);
         }
     }
 }

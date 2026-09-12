@@ -20,6 +20,12 @@
       "source": "local",
       "dependencies": {}
     },
+    "com.realmraiders.infernal-encounters": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.infernal-encounters",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.realmraiders.starter-character-catalog": {
       "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.starter-character-catalog",
       "depth": 0,

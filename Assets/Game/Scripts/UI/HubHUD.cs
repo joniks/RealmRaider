@@ -38,7 +38,7 @@ namespace RealmRaiders.UI
             presentation.DecorateControlStyleButton(fingertapControl, InRunControlStyleSelector.Fingertap);
             presentation.DecorateControlStyleButton(joystickControl, InRunControlStyleSelector.Joystick);
             Button("START SYLVAN JOURNEY", new Vector2(0, 820), StartJourney);
-            Button("BUILD SYLVAN", new Vector2(0, 630), () => SelectAndLoad("Sylvan", "RealmBuild")); Button("DEFEND SYLVAN", new Vector2(0, 505), () => SelectAndLoad("Sylvan", "DefenderTest")); Button("RAID SYLVAN", new Vector2(0, 380), () => SelectAndLoad("Sylvan", "SylvanRealm")); Button("DEFEND INFERNAL", new Vector2(0, 255), () => SelectAndLoad("Infernal", "InfernalRealm")); Button("CHARACTER SANDBOX", new Vector2(0, 130), () => CancelAndLoad("CharacterSandbox"));
+            Button("BUILD SYLVAN", new Vector2(0, 630), () => SelectAndLoad("Sylvan", "RealmBuild")); Button("DEFEND SYLVAN", new Vector2(0, 505), () => SelectAndLoad("Sylvan", "DefenderTest")); Button("RAID SYLVAN", new Vector2(0, 380), () => SelectAndLoad("Sylvan", "SylvanRealm")); Button("RAID INFERNAL — ENT", new Vector2(0, 305), () => SelectAndLoad("Infernal", "InfernalRaid")); Button("DEFEND INFERNAL", new Vector2(0, 255), () => SelectAndLoad("Infernal", "InfernalRealm")); Button("CHARACTER SANDBOX", new Vector2(0, 130), () => CancelAndLoad("CharacterSandbox"));
             if (FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active) skipGuide = Button("SKIP GUIDE", Vector2.zero, SkipGuide);
             noticesButton = Button("THIRD-PARTY NOTICES", Vector2.zero, OpenNotices);
             responsive.Initialize(false); ApplyHubLayout(responsive.Orientation);
@@ -51,7 +51,7 @@ namespace RealmRaiders.UI
         public static string DestinationForButton(string buttonName) => buttonName switch
         {
             "START SYLVAN JOURNEY" => JourneyScene, "BUILD SYLVAN" => "RealmBuild", "DEFEND SYLVAN" => "DefenderTest",
-            "RAID SYLVAN" => "SylvanRealm", "DEFEND INFERNAL" => "InfernalRealm", "CHARACTER SANDBOX" => "CharacterSandbox", _ => null
+            "RAID SYLVAN" => "SylvanRealm", "RAID INFERNAL — ENT" => "InfernalRaid", "DEFEND INFERNAL" => "InfernalRealm", "CHARACTER SANDBOX" => "CharacterSandbox", _ => null
         };
         public static bool ActivatesGuideForButton(string buttonName) => buttonName == "START SYLVAN JOURNEY";
 
@@ -82,7 +82,7 @@ namespace RealmRaiders.UI
         {
             ApplyHeroArtLayout(orientation);
             var labels = new[] { title, subtitle, selected, realmStores, orientationTitle, orientationHelp, controlTitle, controlHelp, journey, prototypeRoutes };
-            var ys = orientation == PrototypeOrientation.Landscape ? new[] { -55f, -135f, -185f, -230f, -280f, -330f, -390f, -440f, -505f, -590f } : new[] { -150f, -260f, -340f, -395f, -465f, -515f, -665f, -725f, -920f, -1140f };
+            var ys = orientation == PrototypeOrientation.Landscape ? new[] { -55f, -135f, -185f, -230f, -280f, -330f, -390f, -440f, -505f, -590f } : new[] { -150f, -260f, -340f, -395f, -465f, -515f, -665f, -725f, -920f, -1000f };
             var anchor = .25f;
             var width = orientation == PrototypeOrientation.Landscape ? 600 : 480;
             var heights = orientation == PrototypeOrientation.Landscape ? new[] { 75f, 36f, 36f, 36f, 44f, 36f, 44f, 36f, 60f, 44f } : new[] { 90f, 50f, 36f, 36f, 44f, 36f, 44f, 50f, 70f, 44f };
@@ -97,8 +97,8 @@ namespace RealmRaiders.UI
             {
                 Place("AUTO", new Vector2(-480, 640), new Vector2(150, 80)); Place("PORTRAIT", new Vector2(-280, 640), new Vector2(150, 80)); Place("LANDSCAPE", new Vector2(-80, 640), new Vector2(150, 80));
                 Place("CONTEXTUAL", new Vector2(-480, 540), new Vector2(150, 80)); Place("FINGERTAP", new Vector2(-280, 540), new Vector2(150, 80)); Place("JOYSTICK", new Vector2(-80, 540), new Vector2(150, 80));
-                Place("START SYLVAN JOURNEY", new Vector2(-20, 430), new Vector2(430, 85)); Place("BUILD SYLVAN", new Vector2(-20, 330), new Vector2(430, 75)); Place("DEFEND SYLVAN", new Vector2(-20, 245), new Vector2(430, 75));
-                Place("RAID SYLVAN", new Vector2(-20, 160), new Vector2(430, 75)); Place("DEFEND INFERNAL", new Vector2(-20, 75), new Vector2(430, 75)); Place("CHARACTER SANDBOX", new Vector2(-20, 0), new Vector2(430, 65));
+                Place("START SYLVAN JOURNEY", new Vector2(-20, 425), new Vector2(430, 85)); Place("BUILD SYLVAN", new Vector2(-20, 350), new Vector2(430, 65)); Place("DEFEND SYLVAN", new Vector2(-20, 280), new Vector2(430, 65));
+                Place("RAID SYLVAN", new Vector2(-20, 210), new Vector2(430, 65)); Place("RAID INFERNAL — ENT", new Vector2(-20, 140), new Vector2(430, 65)); Place("DEFEND INFERNAL", new Vector2(-20, 70), new Vector2(430, 65)); Place("CHARACTER SANDBOX", new Vector2(-20, 0), new Vector2(430, 65));
                 Place("SKIP GUIDE", new Vector2(-480, 0), new Vector2(300, 96));
                 Place("THIRD-PARTY NOTICES", new Vector2(-24, -24), new Vector2(320, 72), Vector2.one, Vector2.one);
                 return;
@@ -107,9 +107,9 @@ namespace RealmRaiders.UI
             var portraitColumn = new Vector2(.58f, 0);
             Place("AUTO", new Vector2(0, 1235), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("PORTRAIT", new Vector2(155, 1235), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("LANDSCAPE", new Vector2(310, 1235), new Vector2(140, 105), portraitColumn, Vector2.zero);
             Place("CONTEXTUAL", new Vector2(0, 930), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("FINGERTAP", new Vector2(155, 930), new Vector2(140, 105), portraitColumn, Vector2.zero); Place("JOYSTICK", new Vector2(310, 930), new Vector2(140, 105), portraitColumn, Vector2.zero);
-            Place("START SYLVAN JOURNEY", new Vector2(0, 770), new Vector2(360, 120), portraitColumn, Vector2.zero); Place("BUILD SYLVAN", new Vector2(0, 580), new Vector2(360, 105), portraitColumn, Vector2.zero);
-            Place("DEFEND SYLVAN", new Vector2(0, 440), new Vector2(360, 105), portraitColumn, Vector2.zero); Place("RAID SYLVAN", new Vector2(0, 300), new Vector2(360, 105), portraitColumn, Vector2.zero);
-            Place("DEFEND INFERNAL", new Vector2(0, 160), new Vector2(360, 105), portraitColumn, Vector2.zero); Place("CHARACTER SANDBOX", new Vector2(0, 20), new Vector2(360, 105), portraitColumn, Vector2.zero);
+            Place("START SYLVAN JOURNEY", new Vector2(0, 725), new Vector2(360, 120), portraitColumn, Vector2.zero); Place("BUILD SYLVAN", new Vector2(0, 605), new Vector2(360, 100), portraitColumn, Vector2.zero);
+            Place("DEFEND SYLVAN", new Vector2(0, 495), new Vector2(360, 100), portraitColumn, Vector2.zero); Place("RAID SYLVAN", new Vector2(0, 385), new Vector2(360, 100), portraitColumn, Vector2.zero);
+            Place("RAID INFERNAL — ENT", new Vector2(0, 275), new Vector2(360, 100), portraitColumn, Vector2.zero); Place("DEFEND INFERNAL", new Vector2(0, 165), new Vector2(360, 100), portraitColumn, Vector2.zero); Place("CHARACTER SANDBOX", new Vector2(0, 55), new Vector2(360, 100), portraitColumn, Vector2.zero);
             Place("SKIP GUIDE", new Vector2(-320, 20), new Vector2(280, 96), portraitColumn, Vector2.zero);
             Place("THIRD-PARTY NOTICES", new Vector2(24, -24), new Vector2(360, 88), new Vector2(0, 1), new Vector2(0, 1));
         }
@@ -147,6 +147,6 @@ namespace RealmRaiders.UI
         Text Label(string value, Vector2 position, int size, TextAnchor anchor, float height = 90)
         { var go = new GameObject("Label " + value, typeof(RectTransform), typeof(Text)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 1); rect.pivot = new Vector2(.5f, 1); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(950, height); var text = go.GetComponent<Text>(); text.text = value; text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); text.fontSize = size; text.alignment = anchor; text.color = Color.white; return text; }
         Button Button(string value, Vector2 position, UnityEngine.Events.UnityAction action)
-        { var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(value == "AUTO" || value == "PORTRAIT" || value == "LANDSCAPE" ? 180 : 620, 105); if (value == "CONTEXTUAL" || value == "FINGERTAP" || value == "JOYSTICK") rect.sizeDelta = new Vector2(180, 105); if (value == "START SYLVAN JOURNEY") { rect.sizeDelta = new Vector2(760, 120); go.GetComponent<Image>().color = new Color(.22f, .55f, .3f, .98f); } else go.GetComponent<Image>().color = new Color(.12f, .3f, .18f, .96f); var button = go.GetComponent<Button>(); buttons[value] = button; presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick()); var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textGo.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = value == "START SYLVAN JOURNEY" ? 36 : value == "THIRD-PARTY NOTICES" ? 24 : 32; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button; }
+        { var go = new GameObject(value, typeof(RectTransform), typeof(Image), typeof(Button), typeof(UiPointerOwnership)); go.transform.SetParent(transform, false); var rect = (RectTransform)go.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, 0); rect.anchoredPosition = position; rect.sizeDelta = new Vector2(value == "AUTO" || value == "PORTRAIT" || value == "LANDSCAPE" ? 180 : 620, 105); if (value == "CONTEXTUAL" || value == "FINGERTAP" || value == "JOYSTICK") rect.sizeDelta = new Vector2(180, 105); if (value == "START SYLVAN JOURNEY") { rect.sizeDelta = new Vector2(760, 120); go.GetComponent<Image>().color = new Color(.22f, .55f, .3f, .98f); } else go.GetComponent<Image>().color = new Color(.12f, .3f, .18f, .96f); var button = go.GetComponent<Button>(); buttons[value] = button; presentation?.ApplyButton(go.GetComponent<Image>()); button.onClick.AddListener(action); button.onClick.AddListener(() => presentation?.PlayClick()); var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text)); textGo.transform.SetParent(go.transform, false); var textRect = (RectTransform)textGo.transform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = textRect.offsetMax = Vector2.zero; var label = textGo.GetComponent<Text>(); label.text = value; label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); label.fontSize = value == "START SYLVAN JOURNEY" ? 36 : value == "THIRD-PARTY NOTICES" ? 24 : value == "RAID INFERNAL — ENT" ? 25 : 32; label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; return button; }
     }
 }

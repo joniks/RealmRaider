@@ -869,7 +869,7 @@ Final QA passed EditMode `364/364` and PlayMode `109/109`, zero failed/skipped/
 inconclusive, with no new compiler/runtime errors. Manual Moonwell/Ent feel remains
 unobserved because the accessible Game surface exposes no viewport or controls.
 
-## Active — 18.1B Infernal Raid with Ent Hero (gameplay/content)
+## Accepted — 18.1B Infernal Raid with Ent Hero (gameplay/content)
 
 User requested on 2026-09-12. Activate immediately after 18.1 acceptance. Full
 outcome, proposed paths and QA gate: `Docs/INFERNAL_ENT_RAID_JOB.md`. Separate
@@ -883,7 +883,14 @@ install and adapt them but retains all spawning, Heart-gate, AI, combat, scene,
 reward and input authority. The first playable trial remains the exact BruteFinale
 with one Flame Trap and a Brute-only Heart prerequisite.
 
-## Following — 18.2 Ent Attack Rhythm (gameplay/content)
+Acceptance: the separate Hub route now starts a direct animated Guardian Ent in
+the module-authored BruteFinale. Hellhounds remain bypassable, the automatic Flame
+Trap has two safe side lanes, exact Brute death unlocks the Heart, and result actions
+offer same-scene retry or Hub. The user's final EditMode and PlayMode suites were
+green and Android export completed; retained XML confirms EditMode `380/380`, zero
+failed/skipped/inconclusive. The overwritten PlayMode XML total is not reconstructed.
+
+## Active — 18.2 Ent Attack Rhythm (gameplay/content)
 
 Dependency: accepted 18.1B commit. Add a narrowly opted-in Ent AI attack pattern
 using existing basic Smash and Ground Slam: readable anticipation, evadable impact

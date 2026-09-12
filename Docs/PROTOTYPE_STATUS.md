@@ -18,22 +18,23 @@ Last reviewed: 2026-09-12
   pixels/input. Visual direction/foot contact/landing feel remain unobserved;
   green automated results are not a claim of visual or device acceptance.
 - Priority is 70% gameplay/content and 30% foundation/polish by planned effort.
-  Sylvan route risk/reward is accepted; the active next slice is the standalone
-  Infernal Ent raid, followed by Ent attack rhythm and encounter variants.
+  Sylvan route risk/reward and the standalone Infernal Ent raid are accepted; the
+  active next slice is Ent attack rhythm, followed by encounter variants.
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
-- MGC02 is statically accepted in Modules `8ee1d95`: three Infernal pacing presets
-  are prepared, with the target finale fixed to two Hellhounds, one bypassable
-  Flame Trap, a Brute-only Heart gate and no second lava choke. MGC03 is accepted
-  in Modules `db7759c` with the exact Ent-trial coordinates, scale, radius and safe
-  bypass facts. Both remain uninstalled until deliberate Core integration.
+- MGC02 in Modules `8ee1d95` and MGC03 in `db7759c` now drive the accepted
+  Infernal Ent raid through an installed local package: two Hellhounds, one
+  bypassable Flame Trap, a Brute-only Heart gate and exact reviewed lane/spawn
+  facts. Core retains spawning, combat, AI, reward and scene authority.
 - Core 18.1 is accepted: the Moonwell provides one bounded 30% recovery choice and
   the exact optional Ent grants +1 Rare through existing exact-once results. Final
   QA passed EditMode `364/364` and PlayMode `109/109`; manual feel is unobserved.
-- Core 18.1B is active next: a separate direct-control Infernal raid with the Ent,
-  two Hellhounds, one bypassable Flame Trap, a Brute-only Heart gate and immediate
-  same-scene retry.
+- Core 18.1B is accepted: a separate direct-control Infernal raid uses the animated
+  Ent against two optional Hellhounds, one bypassable Flame Trap and a Brute-gated
+  Heart, with same-scene retry and Hub return. The user's full suites were green
+  and Android export completed; the retained XML independently confirms EditMode
+  `380/380`, zero failed/skipped/inconclusive.
 
 ## Latest verification
 

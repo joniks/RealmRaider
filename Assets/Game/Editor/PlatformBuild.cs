@@ -19,6 +19,7 @@ namespace RealmRaiders.Editor
             "Assets/Game/Scenes/RealmBuild.unity",
             "Assets/Game/Scenes/CharacterSandbox.unity",
             "Assets/Game/Scenes/SylvanRealm.unity",
+            "Assets/Game/Scenes/InfernalRaid.unity",
             "Assets/Game/Scenes/DefenderTest.unity",
             "Assets/Game/Scenes/InfernalRealm.unity"
         };

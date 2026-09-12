@@ -28,10 +28,13 @@ namespace RealmRaiders.UI
         RaidEncounterCue encounterCue;
         RaidRewardCue rewardCue;
         MoonwellRecovery moonwell;
+        RaidHudConfig config;
+        CombatEntity objectiveGuardian;
         InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
         int compassDirection;
+        string compassTargetCopy = string.Empty;
         int displayedDodgeCooldownTenths = -1;
         bool resultRewardCredited;
         int journeyToken;
@@ -56,6 +59,7 @@ namespace RealmRaiders.UI
         public RectTransform JumpButtonRect => jump ? (RectTransform)jump.transform : null;
         public RectTransform ObjectiveCompassRect => objectiveCompass ? objectiveCompass.rectTransform : null;
         public string ResultPrimaryActionText => planNextDefense ? planNextDefense.GetComponentInChildren<Text>().text : string.Empty;
+        public bool ResultPrimaryActionVisible => planNextDefense && planNextDefense.gameObject.activeSelf;
         public InRunControlStyleSelector ControlStyleSelector => controlStyleSelector;
         public string ControlHintText => controlHint ? controlHint.text : string.Empty;
         public RaidEncounterCue EncounterCue => encounterCue;
@@ -67,31 +71,41 @@ namespace RealmRaiders.UI
         public bool MoonwellActionVisible => moonwellAction && moonwellAction.gameObject.activeSelf;
         public bool MoonwellActionInteractable => moonwellAction && moonwellAction.interactable;
         public string MoonwellActionText => moonwellAction ? moonwellAction.GetComponentInChildren<Text>().text : string.Empty;
+        public string ObjectiveText => objective ? objective.text : string.Empty;
+        public string StateText => state ? state.text : string.Empty;
+        public string RetryScene => config?.RetryScene ?? RaidHudConfig.Sylvan.RetryScene;
 
-        public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera, MoonwellRecovery recovery = null)
+        public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera,
+            MoonwellRecovery recovery = null, RaidHudConfig raidConfig = null, CombatEntity exactObjectiveGuardian = null)
         {
-            if (PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
+            config = raidConfig ?? RaidHudConfig.Sylvan;
+            if (config.SupportsJourney && PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
-            raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; moonwell = recovery; Build();
+            raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; moonwell = recovery; objectiveGuardian = exactObjectiveGuardian; Build();
             manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter; manager.Rewarded += OnReward;
             hero.Health.Changed += OnHeroHealthChanged;
             Refresh(); OnState(manager.State); OnEncounter(manager.Encounter);
         }
 
-        public static string ResultActionDestination(string action) => action switch
+        public static string ResultActionDestination(string action) => ResultActionDestination(action, RaidHudConfig.Sylvan);
+        public static string ResultActionDestination(string action, RaidHudConfig raidConfig) => action switch
         {
             PlanNextDefenseAction => PlanNextDefenseScene,
             DefendYourRealmAction => JourneyDefenseScene,
-            "RAID AGAIN" => "SylvanRealm",
+            "RAID AGAIN" => (raidConfig ?? RaidHudConfig.Sylvan).RetryScene,
             "MY REALM" => "PrototypeHub",
             _ => string.Empty
         };
 
         public static string ResultCopy(RaidResult value)
+            => ResultCopy(value, RaidHudConfig.Sylvan);
+
+        public static string ResultCopy(RaidResult value, RaidHudConfig raidConfig)
         {
+            var selected = raidConfig ?? RaidHudConfig.Sylvan;
             var outcome = value.Victory
-                ? "VICTORY\n\nThe Heart Tree fell. Return to your Realm and plan the next defense."
-                : "DEFEAT\n\nRevise the next defense, or try this raid again.";
+                ? $"VICTORY\n\n{selected.VictoryCopy}"
+                : $"DEFEAT\n\n{selected.DefeatCopy}";
             return FormatResultCopy(value, outcome);
         }
 
@@ -132,11 +146,11 @@ namespace RealmRaiders.UI
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920);
             gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyResultLayout; responsive.Initialize(true);
-            state = Label("SYLVAN RAID", new Vector2(0, -40), 38, TextAnchor.UpperCenter);
-            presentation.DecorateRealmLabel(state, HudPresentation.SylvanRealmIdentity);
+            state = Label(config.StateTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
+            presentation.DecorateRealmLabel(state, config.RealmIdentity);
             health = Label("", new Vector2(35, -105), 28, TextAnchor.UpperLeft);
             stats = Label("", new Vector2(35, -150), 25, TextAnchor.UpperLeft);
-            objective = Label("Reach the Heart Tree", new Vector2(0, -205), 28, TextAnchor.UpperCenter);
+            objective = Label(ObjectiveCopy(), new Vector2(0, -205), 28, TextAnchor.UpperCenter);
             objectiveCompass = Label("", Vector2.zero, 24, TextAnchor.MiddleCenter); objectiveCompass.name = "Heart Tree Compass"; objectiveCompass.raycastTarget = false; objectiveCompass.gameObject.SetActive(false);
             rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             controlHint = Label("", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true); controlHint.raycastTarget = false;
@@ -144,9 +158,9 @@ namespace RealmRaiders.UI
             rewardCue = gameObject.AddComponent<RaidRewardCue>(); rewardCue.Initialize(responsive);
             abilityButtons = new[]
             {
-                AbilityButton("SLASH", new Vector2(-260, 110), 0),
-                AbilityButton("BLOOD RUSH", new Vector2(0, 110), 1),
-                AbilityButton("CLEAVE", new Vector2(260, 110), 2)
+                AbilityButton(config.AbilityLabel(0), new Vector2(-260, 110), 0),
+                AbilityButton(config.AbilityLabel(1), new Vector2(0, 110), 1),
+                AbilityButton(config.AbilityLabel(2), new Vector2(260, 110), 2)
             };
             dodge = Button("DODGE", new Vector2(0, 220), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
             jump = Button("JUMP", new Vector2(260, 220), Jump); jumpLabel = jump.GetComponentInChildren<Text>(); presentation.DecorateJumpButton(jump);
@@ -158,6 +172,7 @@ namespace RealmRaiders.UI
             planNextDefense = Button(PlanNextDefenseAction, Vector2.zero, ContinueAfterRaid); planNextDefense.transform.SetParent(resultPanel.transform, false); planNextDefense.GetComponent<Image>().color = new Color(.24f, .58f, .25f, .98f); ((RectTransform)planNextDefense.transform).sizeDelta = new Vector2(280, 100);
             raidAgain = Button("RAID AGAIN", Vector2.zero, RetryRaid); raidAgain.transform.SetParent(resultPanel.transform, false);
             realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
+            planNextDefense.gameObject.SetActive(config.ShowPlanNextDefense);
             ApplyResultLayout(responsive.Orientation);
             resultPanel.SetActive(false);
             controlStyleSelector = InRunControlStyleSelector.Attach(responsive, presentation);
@@ -175,16 +190,32 @@ namespace RealmRaiders.UI
                 ((RectTransform)planNextDefense.transform).sizeDelta = new Vector2(280, 100);
                 ((RectTransform)raidAgain.transform).sizeDelta = new Vector2(240, 92);
                 ((RectTransform)realmHub.transform).sizeDelta = new Vector2(240, 92);
-                PlaceResultAction(planNextDefense, new Vector2(.82f, .5f), new Vector2(0, 135));
-                PlaceResultAction(raidAgain, new Vector2(.82f, .5f), Vector2.zero);
-                PlaceResultAction(realmHub, new Vector2(.82f, .5f), new Vector2(0, -135));
+                if (config.ShowPlanNextDefense)
+                {
+                    PlaceResultAction(planNextDefense, new Vector2(.82f, .5f), new Vector2(0, 135));
+                    PlaceResultAction(raidAgain, new Vector2(.82f, .5f), Vector2.zero);
+                    PlaceResultAction(realmHub, new Vector2(.82f, .5f), new Vector2(0, -135));
+                }
+                else
+                {
+                    PlaceResultAction(raidAgain, new Vector2(.82f, .5f), new Vector2(0, 65));
+                    PlaceResultAction(realmHub, new Vector2(.82f, .5f), new Vector2(0, -65));
+                }
             }
             else
             {
                 resultRect.anchorMin = new Vector2(0, 1); resultRect.anchorMax = new Vector2(1, 1); resultRect.pivot = new Vector2(.5f, 1); resultRect.anchoredPosition = new Vector2(0, -55); resultRect.sizeDelta = new Vector2(0, 470); result.alignment = TextAnchor.UpperCenter;
-                StretchResultAction(planNextDefense, new Vector2(.1f, .54f), new Vector2(.9f, .78f));
-                StretchResultAction(raidAgain, new Vector2(.1f, .3f), new Vector2(.9f, .5f));
-                StretchResultAction(realmHub, new Vector2(.1f, .06f), new Vector2(.9f, .26f));
+                if (config.ShowPlanNextDefense)
+                {
+                    StretchResultAction(planNextDefense, new Vector2(.1f, .54f), new Vector2(.9f, .78f));
+                    StretchResultAction(raidAgain, new Vector2(.1f, .3f), new Vector2(.9f, .5f));
+                    StretchResultAction(realmHub, new Vector2(.1f, .06f), new Vector2(.9f, .26f));
+                }
+                else
+                {
+                    StretchResultAction(raidAgain, new Vector2(.1f, .4f), new Vector2(.9f, .64f));
+                    StretchResultAction(realmHub, new Vector2(.1f, .1f), new Vector2(.9f, .34f));
+                }
             }
         }
 
@@ -214,7 +245,7 @@ namespace RealmRaiders.UI
                 journeyHandoff = true;
             }
             else if (PrototypeJourney.IsActive) return;
-            SceneManager.LoadScene("SylvanRealm");
+            SceneManager.LoadScene(config.RetryScene);
         }
 
         void ReturnToHub()
@@ -232,11 +263,18 @@ namespace RealmRaiders.UI
             if (moonwell && moonwell.TryUse() > 0) presentation?.PlayConfirm();
             RefreshMoonwellAction();
         }
-        public void SetObjectiveProgress(float progress) { objectiveProgress = progress; objective.text = progress > 0 ? $"Capturing Heart Tree  {progress * 100:0}%" : "Reach the Heart Tree"; }
+        public void SetObjectiveProgress(float progress)
+        {
+            objectiveProgress = progress;
+            objective.text = progress > 0 ? $"Capturing {config.ObjectiveName}  {progress * 100:0}%" : ObjectiveCopy();
+        }
+        string ObjectiveCopy() => objectiveGuardian && objectiveGuardian.Health != null && !objectiveGuardian.Health.IsDead
+            ? config.LockedObjectiveCopy
+            : $"Reach the {config.ObjectiveName}";
         void OnState(RaidState value)
         {
-            state.text = $"SYLVAN RAID — {value}";
-            presentation.DecorateRealmLabel(state, HudPresentation.SylvanRealmIdentity);
+            state.text = $"{config.StateTitle} — {value}";
+            presentation.DecorateRealmLabel(state, config.RealmIdentity);
             if (value == RaidState.RaidStarting) rewardCue?.Clear();
             if (value is RaidState.Victory or RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) encounterCue?.Clear();
             if (value is RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) rewardCue?.Clear();
@@ -252,6 +290,7 @@ namespace RealmRaiders.UI
         void Refresh()
         {
             RefreshHealth();
+            if (objectiveProgress <= .001f && objective) objective.text = ObjectiveCopy();
             stats.text = $"Gold {raid.Gold}   Enemies {raid.EnemiesDefeated}   Rooms {raid.RoomsDiscovered}   {raid.Duration:0}s";
         }
         void OnHeroHealthChanged(float current, float maximum) => RefreshHealth();
@@ -261,7 +300,7 @@ namespace RealmRaiders.UI
             var player = hero.Controller<PlayerController>();
             var direct = player && player.IsActive;
             var terminal = GameplayInput.TerminalState || resultPanel && resultPanel.activeSelf || IsTerminalRaidState();
-            ApplyHealthPresentation(DirectControlHealthReadability.Map("Blood Knight", hero.Health.Current, hero.Health.Maximum, direct, terminal));
+            ApplyHealthPresentation(DirectControlHealthReadability.Map(config.HeroName, hero.Health.Current, hero.Health.Maximum, direct, terminal));
         }
         bool IsTerminalRaidState() => raid && (raid.State == RaidState.Victory || raid.State == RaidState.Defeat || raid.State == RaidState.Escape || raid.State == RaidState.RaidResult);
         void RefreshMoonwellAction()
@@ -292,7 +331,7 @@ namespace RealmRaiders.UI
         void RestoreHealthPresentation()
         {
             if (!health || !hero || hero.Health == null) return;
-            ApplyHealthPresentation(DirectControlHealthReadability.Map("Blood Knight", hero.Health.Current, hero.Health.Maximum, false, true));
+            ApplyHealthPresentation(DirectControlHealthReadability.Map(config.HeroName, hero.Health.Current, hero.Health.Maximum, false, true));
         }
         void RefreshAbilityButtons()
         {
@@ -343,7 +382,7 @@ namespace RealmRaiders.UI
             if (!controlHint) return;
             var copy = UsesJoystickControls()
                 ? "STICK: MOVE • DRAG WORLD: LOOK • JUMP: LEAP"
-                : "TAP: MOVE/ATTACK • DOUBLE-TAP GROUND: JUMP • SWIPE: BLOOD RUSH";
+                : $"TAP: MOVE/ATTACK • DOUBLE-TAP GROUND: JUMP • SWIPE: {config.AbilityLabel(1)}";
             if (controlHint.text != copy) controlHint.text = copy;
         }
         bool UsesJoystickControls() => responsive && PrototypeSave.EffectiveControlStyle(responsive.Orientation == PrototypeOrientation.Landscape) == "Joystick";
@@ -355,7 +394,7 @@ namespace RealmRaiders.UI
                 journeyResultReached = true;
                 journeyResultToken = PrototypeJourney.ActiveToken;
             }
-            var journeyResult = journeyResultReached && PrototypeJourney.ActiveToken == journeyResultToken && PrototypeJourney.Stage == PrototypeJourneyStage.RaidResult;
+            var journeyResult = config.SupportsJourney && journeyResultReached && PrototypeJourney.ActiveToken == journeyResultToken && PrototypeJourney.Stage == PrototypeJourneyStage.RaidResult;
             SetPrimaryActionCopy(journeyResult ? DefendYourRealmAction : PlanNextDefenseAction);
             GameplayInput.SetTerminalState(true);
             controlStyleSelector?.RefreshNow();
@@ -366,7 +405,7 @@ namespace RealmRaiders.UI
             rewardCue?.Clear();
             resultPanel.SetActive(true);
             presentation?.PlayResult();
-            result.text = journeyResult ? JourneyResultCopy(value) : ResultCopy(value);
+            result.text = journeyResult ? JourneyResultCopy(value) : ResultCopy(value, config);
         }
 
         void SetPrimaryActionCopy(string copy)
@@ -388,13 +427,16 @@ namespace RealmRaiders.UI
         {
             if (!objectiveCompass) return;
             if (!view || !core || !hero || hero.Health.IsDead || objectiveProgress > .001f || GameplayInput.TerminalState || resultPanel && resultPanel.activeSelf || !IsActionableRaidState()) { SetCompassVisible(false); return; }
-            var viewport = view.WorldToViewportPoint(core.transform.position + Vector3.up * 2f);
+            var target = ObjectiveTarget();
+            var viewport = view.WorldToViewportPoint(target.position + Vector3.up * 2f);
             if (viewport.z > 0 && viewport.x >= 0 && viewport.x <= 1 && viewport.y >= 0 && viewport.y <= 1) { SetCompassVisible(false); return; }
-            var direction = ObjectiveDirectionFor(view, viewport, core.transform.position - view.transform.position);
-            if (direction != compassDirection)
+            var direction = ObjectiveDirectionFor(view, viewport, target.position - view.transform.position);
+            var targetCopy = objectiveGuardian && objectiveGuardian.Health != null && !objectiveGuardian.Health.IsDead ? "INFERNAL BRUTE" : config.ObjectiveName.ToUpperInvariant();
+            if (direction != compassDirection || compassTargetCopy != targetCopy)
             {
                 compassDirection = direction;
-                objectiveCompass.text = direction < 0 ? "◀  HEART TREE" : "HEART TREE  ▶";
+                compassTargetCopy = targetCopy;
+                objectiveCompass.text = direction < 0 ? $"◀  {targetCopy}" : $"{targetCopy}  ▶";
                 var rect = objectiveCompass.rectTransform; var safe = Screen.safeArea;
                 var edge = direction < 0 ? safe.xMin / Mathf.Max(1, Screen.width) : safe.xMax / Mathf.Max(1, Screen.width);
                 rect.anchorMin = rect.anchorMax = new Vector2(edge, .5f); rect.pivot = new Vector2(direction < 0 ? 0 : 1, .5f); rect.anchoredPosition = new Vector2(direction < 0 ? 28 : -28, 0); rect.sizeDelta = new Vector2(220, 64);
@@ -402,8 +444,10 @@ namespace RealmRaiders.UI
             SetCompassVisible(true);
         }
 
+        Transform ObjectiveTarget() => objectiveGuardian && objectiveGuardian.Health != null && !objectiveGuardian.Health.IsDead ? objectiveGuardian.transform : core.transform;
+
         bool IsActionableRaidState() => raid && raid.State is RaidState.RaidStarting or RaidState.Exploring or RaidState.Combat;
-        void SetCompassVisible(bool visible) { if (objectiveCompass && objectiveCompass.gameObject.activeSelf != visible) objectiveCompass.gameObject.SetActive(visible); if (!visible) compassDirection = 0; }
+        void SetCompassVisible(bool visible) { if (objectiveCompass && objectiveCompass.gameObject.activeSelf != visible) objectiveCompass.gameObject.SetActive(visible); if (!visible) { compassDirection = 0; compassTargetCopy = string.Empty; } }
         public static int ObjectiveDirectionFor(Camera camera, Vector3 viewport, Vector3 worldOffset)
         {
             if (viewport.x < 0) return -1;
@@ -440,7 +484,9 @@ namespace RealmRaiders.UI
         AbilityButtonReadiness AbilityButton(string label, Vector2 position, int index)
         {
             var button = Button(label, position, () => Ability(index));
-            presentation?.DecorateAbilityButton(button, index, label);
+            if (config.UsesGuardianEntAbilityIcons)
+                presentation?.DecorateGuardianEntAbilityButton(button, hero && hero.Definition ? hero.Definition.ArchetypeId : string.Empty, index, label);
+            else presentation?.DecorateAbilityButton(button, index, label);
             return new AbilityButtonReadiness(button, label, index);
         }
     }

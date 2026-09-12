@@ -18,6 +18,9 @@ EditorBuildSettings:
     path: Assets/Game/Scenes/SylvanRealm.unity
     guid: 9a4c77e7a3ef4e0d91da8d5fe588d7a2
   - enabled: 1
+    path: Assets/Game/Scenes/InfernalRaid.unity
+    guid: 9341882c205c46a5bbdfe65f83b3fc18
+  - enabled: 1
     path: Assets/Game/Scenes/DefenderTest.unity
     guid: f86ba66211ee41a080a81cf67e2e9fd8
   - enabled: 1

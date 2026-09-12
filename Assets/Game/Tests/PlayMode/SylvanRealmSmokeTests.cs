@@ -376,9 +376,10 @@ namespace RealmRaiders.Tests
                 Assert.That(HubHUD.DestinationForButton("BUILD SYLVAN"), Is.EqualTo("RealmBuild"));
                 Assert.That(HubHUD.DestinationForButton("DEFEND SYLVAN"), Is.EqualTo("DefenderTest"));
                 Assert.That(HubHUD.DestinationForButton("RAID SYLVAN"), Is.EqualTo("SylvanRealm"));
+                Assert.That(HubHUD.DestinationForButton("RAID INFERNAL — ENT"), Is.EqualTo("InfernalRaid"));
                 Assert.That(HubHUD.DestinationForButton("DEFEND INFERNAL"), Is.EqualTo("InfernalRealm"));
                 Assert.That(HubHUD.DestinationForButton("CHARACTER SANDBOX"), Is.EqualTo("CharacterSandbox"));
-                foreach (var route in new[] { "START SYLVAN JOURNEY", "BUILD SYLVAN", "DEFEND SYLVAN", "RAID SYLVAN", "DEFEND INFERNAL", "CHARACTER SANDBOX" }) Assert.That(GameObject.Find(route), Is.Not.Null);
+                foreach (var route in new[] { "START SYLVAN JOURNEY", "BUILD SYLVAN", "DEFEND SYLVAN", "RAID SYLVAN", "RAID INFERNAL — ENT", "DEFEND INFERNAL", "CHARACTER SANDBOX" }) Assert.That(GameObject.Find(route), Is.Not.Null);
                 Assert.That(GameObject.Find("Label " + HubHUD.JourneyExplanation).GetComponent<Text>().text, Is.EqualTo(HubHUD.JourneyExplanation));
                 Assert.That(hub.RealmStoresText, Does.StartWith("REALM STORES  •"));
                 Assert.That(GameObject.Find("Realm Stores").GetComponent<Text>().raycastTarget, Is.False);

@@ -3861,3 +3861,26 @@ Accepted on 2026-09-12 in Modules commits `8ee1d95` and `db7759c`.
 - Fifteen focused package tests are authored but not yet run because the isolated
   host lacks its old .NET 2 runtime. They enter Unity verification only with a
   deliberate Core package integration.
+
+## Diamond Pass 18.1B — Infernal Raid with Ent Hero
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Added one separate `RAID INFERNAL — ENT` Hub route and bootstrap scene driven by
+  the installed MGC02/MGC03 pacing and spatial facts rather than copied coordinates.
+- The animated Guardian Ent is directly controlled against two optional Hellhounds,
+  one automatic nonblocking Flame Trap and one Infernal Brute. Only the exact Brute
+  death unlocks Infernal Heart capture.
+- Infernal-specific Raid HUD copy, Ent ability presentation, objective compass,
+  same-scene retry and Hub return coexist with unchanged Sylvan journey behavior.
+
+### Verification
+
+- The user reports the final EditMode and PlayMode suites green and completed the
+  Android export from the healthy Unity Editor.
+- The retained TestResults XML independently confirms EditMode `380/380`, zero
+  failed/skipped/inconclusive, 2026-09-12 09:49:01Z–09:49:03Z.
+- The PlayMode XML was overwritten by the later EditMode run, so its exact total is
+  intentionally not reconstructed. `git diff --check` is clean.

@@ -790,11 +790,33 @@ safe Ent clearance, two valid bypass lanes, immutable snapshots and no Unity/gam
 runtime dependency. They have not run in isolation because the available host
 lacks .NET 2; Unity verification belongs to the later deliberate integration.
 
-## Active — MGC04 Large-Creature Attack Rhythm Recipe
+## Accepted for integration — MGC04 Large-Creature Attack Rhythm Recipe
 
 Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
-Base: accepted Modules commit `db7759c`. New isolated no-engine package only.
+Accepted Modules commits: `4223e58`, corrected by `ca4eaf2` on 2026-09-12.
+Package: `Packages/com.realmraiders.large-creature-combat-rhythm/`.
+
 Prepare one explicit Guardian Ent attack-rhythm recipe for Core 18.2 without
 duplicating damage, cooldowns, movement, target acquisition or gameplay timing.
 It must express semantic ability choices and bounded eligibility facts so Core can
 retain final AI authority and use the same existing CombatEntity abilities.
+
+The accepted recipe keeps Charge direct-player-only. AI may use Basic and Area;
+two explicitly configured eligible targets permit immediate Area, while one target
+permits Area after two consecutive Basics. Target facts and Area range/recovery
+remain sourced from existing Core authority. Package NUnit tests are authored but
+Unity QA has not yet run them.
+
+## Active — MGC04.2 Heavy Attack Rhythm Evaluator
+
+Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
+Base: accepted Modules commit `ca4eaf2`. Same isolated no-engine package only.
+
+Move one genuinely reusable decision kernel out of future Core 18.2: immutable
+input/result plus a deterministic evaluator for the accepted Guardian Ent recipe.
+Zero eligible targets yields no action; the multi-target threshold yields Area;
+one eligible target yields Basic until the configured consecutive-Basic threshold,
+then Area. Null/malformed facts fail closed. The package must not retain state,
+advance time, find targets, duplicate range/damage/cooldown values or execute an
+ability. Core remains responsible for supplying explicit target/count facts,
+resetting the count and invoking the existing CombatEntity action.

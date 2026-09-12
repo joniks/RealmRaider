@@ -205,6 +205,7 @@ namespace RealmRaiders.Tests
                     new[] { "BUILD SYLVAN", "RealmBuild" },
                     new[] { "DEFEND SYLVAN", "DefenderTest" },
                     new[] { "RAID SYLVAN", "SylvanRealm" },
+                    new[] { "RAID INFERNAL — ENT", "InfernalRaid" },
                     new[] { "DEFEND INFERNAL", "InfernalRealm" },
                     new[] { "CHARACTER SANDBOX", "CharacterSandbox" }
                 };
