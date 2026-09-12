@@ -38,6 +38,7 @@ namespace RealmRaiders.Core
             var invaderStats = CombatStats.BloodKnight; invaderStats.MaxHealth = 220; invaderStats.MoveSpeed = 3.8f;
             var invader = Entity(PrototypeCharacterRoster.BloodKnightId, "Invading Blood Knight", new Vector3(0, 1, -30), invaderStats, new Color(.72f, .05f, .07f), false, .95f);
             var layout = DefenseLayoutSave.Load();
+            var defenseTradeoff = DefenseTradeoffSelection.ResolveOrDefault(layout);
             var deployedPieces = new DefensePieceType[DefenseDeploymentReceiptData.SlotCount];
             var guardianEntRank = RealmProgress.Load().GuardianEntVitalityRank;
             var wolfStats = new CombatStats { MaxHealth = 52, AttackDamage = 9, AttackSpeed = 1.5f, MoveSpeed = 6.5f, Armor = 2, AbilityPower = 4 };
@@ -77,9 +78,9 @@ namespace RealmRaiders.Core
             for (int slot = 3; slot < 5; slot++) if (layout.Slots[slot].Piece == DefensePieceType.RootTrap) { var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Manual Root Trap"; trapObject.transform.position = slot == 3 ? new Vector3(0, .1f, -7) : new Vector3(6, .1f, 8); trapObject.transform.localScale = new Vector3(2.7f, .1f, 2.7f); RealmLandmarkPresentation.Build(trapObject.transform, RealmLandmarkRecipe.SylvanRootTrap); trap = trapObject.AddComponent<RootTrap>(); trap.Initialize(invader); trap.Automatic = false; trap.TriggerRadius = 3.5f; deployedPieces[slot] = DefensePieceType.RootTrap; }
             var heart = HeartTree(new Vector3(0, 2.5f, 30)); var core = heart.GetComponent<RealmCore>(); core.Initialize(invader);
 
-            var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(30); possession.Initialize(cameraRig); possession.ConfigureEnergy(energy); if (ent) possession.Register(ent);
+            var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(defenseTradeoff.PossessionEnergyMaximumSeconds); possession.Initialize(cameraRig); possession.ConfigureEnergy(energy); if (ent) possession.Register(ent);
             var defense = root.AddComponent<DefenseManager>(); defense.Initialize(invader, core, possession);
-            var hudObject = new GameObject("Defender HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, ent, trap, core, DefenseHudConfig.Sylvan, new DefenseDeploymentReceiptData(deployedPieces)); cameraRig.BindCombatHud(hudObject.GetComponent<ResponsiveHudRoot>());
+            var hudObject = new GameObject("Defender HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, ent, trap, core, DefenseHudConfig.Sylvan, new DefenseDeploymentReceiptData(deployedPieces, defenseTradeoff)); cameraRig.BindCombatHud(hudObject.GetComponent<ResponsiveHudRoot>());
             PrototypeRuntimeFactory.EventSystem(root.transform);
         }
 

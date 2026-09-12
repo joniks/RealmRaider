@@ -59,9 +59,12 @@ namespace RealmRaiders.Tests
                 Assert.That(receipt, Is.Not.Null);
                 Assert.That(receipt.Visible, Is.True);
                 Assert.That(receipt.Copy, Is.EqualTo(
-                    "DEPLOYED DEFENSE — INVADER → HEART TREE\n" +
+                    "DEPLOYED: KEEPER RESERVE — 1 WOLF SACRIFICED • 45 SEC CONTROL\n" +
                     "ROOT GATE: ROOT TRAP  →  OUTER GUARD: WOLF  →  MID GUARD: GUARDIAN ENT\n" +
                     "INNER ROOT: OPEN  →  HEART GUARD: OPEN  →  HEART TREE"));
+                Assert.That(receipt.TradeoffId, Is.EqualTo("KEEPER_RESERVE"));
+                Assert.That(receipt.PossessionEnergyMaximumSeconds, Is.EqualTo(45));
+                Assert.That(hud.PossessionEnergyRemaining, Is.EqualTo(45));
                 Assert.That(receipt.PieceAtSlot(0), Is.EqualTo(DefensePieceType.Wolf));
                 Assert.That(receipt.PieceAtSlot(1), Is.EqualTo(DefensePieceType.Ent));
                 Assert.That(receipt.PieceAtSlot(2), Is.EqualTo(DefensePieceType.Empty));
@@ -86,9 +89,18 @@ namespace RealmRaiders.Tests
                 yield return null;
                 Assert.That(receipt.Visible, Is.True, "Re-enabled HUD may resume the still-active normal opening hold.");
 
+                var defenderBrain = defender.Controller<CreatureBrain>();
                 possession.Select(defender);
                 Assert.That(possession.PossessSelected(), Is.True);
                 Assert.That(receipt.Visible, Is.False, "Possession must clear the receipt synchronously.");
+                EnergyForTests(hud).Consume(5);
+                Assert.That(hud.PossessionEnergyRemaining, Is.EqualTo(40));
+                possession.Release();
+                Assert.That(hud.PossessionEnergyRemaining, Is.EqualTo(40), "Explicit release must not refill Keeper Reserve.");
+                Assert.That(defender.ActiveController, Is.SameAs(defenderBrain));
+                possession.Select(defender);
+                Assert.That(possession.PossessSelected(), Is.True);
+                Assert.That(hud.PossessionEnergyRemaining, Is.EqualTo(40), "Re-possession must continue the same scene-local reserve.");
                 possession.Release();
                 hud.SendMessage("RefreshDeploymentReceipt", SendMessageOptions.RequireReceiver);
                 Assert.That(receipt.Visible, Is.False, "Release must not resurrect a dismissed opening receipt.");
@@ -98,12 +110,39 @@ namespace RealmRaiders.Tests
                 Assert.That(receipt.Visible, Is.False, "A terminal result must keep the receipt hidden.");
 
                 FirstPlayableMinute.ResetForTests();
+                DefenseLayoutSave.Save(DefenseLayout.Default());
+                SceneManager.LoadScene("DefenderTest");
+                yield return null;
+                yield return null;
+                hud = Object.FindFirstObjectByType<DefenderHUD>();
+                receipt = hud.DeploymentReceipt;
+                possession = Object.FindFirstObjectByType<PossessionManager>();
+                defender = GameObject.Find("Guardian Ent").GetComponent<CombatEntity>();
+                var packBrain = defender.Controller<CreatureBrain>();
+                Assert.That(receipt.TradeoffId, Is.EqualTo("PACK_PRESSURE"));
+                Assert.That(receipt.PossessionEnergyMaximumSeconds, Is.EqualTo(30));
+                Assert.That(hud.PossessionEnergyRemaining, Is.EqualTo(30));
+                Assert.That(GameObject.Find("Realm Wolf A"), Is.Not.Null);
+                Assert.That(GameObject.Find("Realm Wolf B"), Is.Not.Null);
+                Assert.That(Object.FindObjectsByType<RootTrap>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+                possession.Select(defender);
+                Assert.That(possession.PossessSelected(), Is.True);
+                hud.DepletePossessionEnergyForTests();
+                yield return null;
+                Assert.That(possession.Possessed, Is.Null, "Depletion must still force release under Pack Pressure.");
+                Assert.That(packBrain, Is.Not.Null);
+                Assert.That(defender.ActiveController, Is.SameAs(packBrain));
+
+                FirstPlayableMinute.ResetForTests();
                 DefenseLayoutSave.Save(layout);
                 SceneManager.LoadScene("DefenderTest");
                 yield return null;
                 yield return null;
                 hud = Object.FindFirstObjectByType<DefenderHUD>();
                 receipt = hud.DeploymentReceipt;
+                Assert.That(receipt.TradeoffId, Is.EqualTo("KEEPER_RESERVE"));
+                Assert.That(receipt.PossessionEnergyMaximumSeconds, Is.EqualTo(45));
+                Assert.That(hud.PossessionEnergyRemaining, Is.EqualTo(45), "Reload must derive a fresh scene-local reserve from the saved sparse layout.");
                 invader = GameObject.Find("Invading Blood Knight").GetComponent<CombatEntity>();
                 var brain = invader.Controller<RaidInvaderBrain>();
                 var start = invader.transform.position;
@@ -140,6 +179,12 @@ namespace RealmRaiders.Tests
             new DefenseSlotLayout(DefenseSlotType.Trap, DefensePieceType.RootTrap),
             new DefenseSlotLayout(DefenseSlotType.Trap, DefensePieceType.Empty)
         });
+
+        static PossessionEnergy EnergyForTests(DefenderHUD hud)
+        {
+            var field = typeof(DefenderHUD).GetField("energy", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            return (PossessionEnergy)field.GetValue(hud);
+        }
 
         static void AssertPresentationOnly(DefenseDeploymentReceipt receipt)
         {

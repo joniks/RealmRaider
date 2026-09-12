@@ -20,7 +20,16 @@ namespace RealmRaiders.Tests
                 DefensePieceType.RootTrap,
                 DefensePieceType.Empty
             };
-            var data = new DefenseDeploymentReceiptData(deployed);
+            var layout = new DefenseLayout(new[]
+            {
+                new DefenseSlotLayout(DefenseSlotType.Creature, DefensePieceType.Wolf),
+                new DefenseSlotLayout(DefenseSlotType.Creature, DefensePieceType.Ent),
+                new DefenseSlotLayout(DefenseSlotType.Creature, DefensePieceType.Empty),
+                new DefenseSlotLayout(DefenseSlotType.Trap, DefensePieceType.RootTrap),
+                new DefenseSlotLayout(DefenseSlotType.Trap, DefensePieceType.Empty)
+            });
+            Assert.That(DefenseTradeoffSelection.TryResolve(layout, out var tradeoff), Is.True);
+            var data = new DefenseDeploymentReceiptData(deployed, tradeoff);
             deployed[0] = DefensePieceType.Empty;
             var go = new GameObject(DefenseDeploymentReceipt.ObjectName, typeof(RectTransform), typeof(Text), typeof(DefenseDeploymentReceipt));
             try
@@ -29,12 +38,14 @@ namespace RealmRaiders.Tests
                 receipt.Initialize(data);
 
                 Assert.That(receipt.Copy, Is.EqualTo(
-                    "DEPLOYED DEFENSE — INVADER → HEART TREE\n" +
+                    "DEPLOYED: KEEPER RESERVE — 1 WOLF SACRIFICED • 45 SEC CONTROL\n" +
                     "ROOT GATE: ROOT TRAP  →  OUTER GUARD: WOLF  →  MID GUARD: GUARDIAN ENT\n" +
                     "INNER ROOT: OPEN  →  HEART GUARD: OPEN  →  HEART TREE"));
                 Assert.That(receipt.PieceAtSlot(0), Is.EqualTo(DefensePieceType.Wolf), "The receipt must own a deployment snapshot, not a mutable layout reference.");
                 Assert.That(receipt.PieceAtSlot(-1), Is.EqualTo(DefensePieceType.Empty));
                 Assert.That(receipt.PieceAtSlot(5), Is.EqualTo(DefensePieceType.Empty));
+                Assert.That(receipt.TradeoffId, Is.EqualTo("KEEPER_RESERVE"));
+                Assert.That(receipt.PossessionEnergyMaximumSeconds, Is.EqualTo(45));
                 Assert.That(receipt.Visible, Is.False);
                 Assert.That(receipt.RaycastTarget, Is.False);
                 Assert.That(receipt.GetComponentsInChildren<Button>(true), Is.Empty);

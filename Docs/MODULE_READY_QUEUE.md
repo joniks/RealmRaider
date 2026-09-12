@@ -864,10 +864,12 @@ from their authored roster/node facts. It introduces no selection, spawning,
 rewards, persistence or Unity authority. Its focused package tests were discovered
 in the 18.4 Unity batch; final EditMode was `434/434`.
 
-## Ready next — MGC09 Sylvan Defense Reserve Facts
+## Accepted — MGC09 Sylvan Defense Reserve Facts
 
 Owner: Module Developer / Technical Art. Workspace:
 `Modules/RealmRaider.Modules` only; no main checkout or Unity.
+
+Accepted Modules commit: `1cc4cbd` on 2026-09-12.
 
 Prepare one small no-engine package for the next playable BUILD → DEFEND choice.
 An immutable caller-supplied roster summary is evaluated into exactly one of two
@@ -886,3 +888,10 @@ save or Unity behavior into the module. Add focused tests for both exact matches
 null/negative/unknown/cardinality failures, immutable snapshots and deterministic
 lookup. No generic rules engine, provider framework, persistence or automatic Core
 application. Commit/push remain Architect/user owned.
+
+Outcome: the isolated no-engine package supplies cached `PACK_PRESSURE`
+(2 Wolves, 30 seconds) and `KEEPER_RESERVE` (1 Wolf plus one open creature slot,
+45 seconds) facts through a deterministic fail-closed roster evaluator. Static
+checks pass; its focused NUnit tests are authored and enter Unity discovery with
+Core 18.5. The module has no layout, save, timer, trap, possession or Unity
+authority.

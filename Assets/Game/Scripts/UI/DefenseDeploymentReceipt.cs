@@ -8,15 +8,28 @@ namespace RealmRaiders.UI
     {
         public const int SlotCount = 5;
         readonly DefensePieceType[] pieces = new DefensePieceType[SlotCount];
+        readonly string tradeoffId;
+        readonly string tradeoffDisplayName;
+        readonly string tacticalSummary;
+        readonly int possessionEnergyMaximumSeconds;
 
-        public DefenseDeploymentReceiptData(DefensePieceType[] deployedPieces)
+        public DefenseDeploymentReceiptData(DefensePieceType[] deployedPieces, DefenseTradeoffSelection tradeoff = null)
         {
-            if (deployedPieces == null) return;
-            for (var index = 0; index < Mathf.Min(SlotCount, deployedPieces.Length); index++)
-                pieces[index] = deployedPieces[index];
+            if (deployedPieces != null)
+                for (var index = 0; index < Mathf.Min(SlotCount, deployedPieces.Length); index++)
+                    pieces[index] = deployedPieces[index];
+            if (tradeoff == null) return;
+            tradeoffId = tradeoff.TradeoffId;
+            tradeoffDisplayName = tradeoff.DisplayName;
+            tacticalSummary = tradeoff.TacticalSummary;
+            possessionEnergyMaximumSeconds = tradeoff.PossessionEnergyMaximumSeconds;
         }
 
         public DefensePieceType PieceAt(int slotIndex) => slotIndex >= 0 && slotIndex < pieces.Length ? pieces[slotIndex] : DefensePieceType.Empty;
+        public string TradeoffId => tradeoffId ?? string.Empty;
+        public string TradeoffDisplayName => tradeoffDisplayName ?? string.Empty;
+        public string TacticalSummary => tacticalSummary ?? string.Empty;
+        public int PossessionEnergyMaximumSeconds => possessionEnergyMaximumSeconds;
     }
 
     [DisallowMultipleComponent]
@@ -35,6 +48,8 @@ namespace RealmRaiders.UI
         public bool RaycastTarget => label && label.raycastTarget;
         public RectTransform Rect => rect;
         public DefensePieceType PieceAtSlot(int slotIndex) => data?.PieceAt(slotIndex) ?? DefensePieceType.Empty;
+        public string TradeoffId => data?.TradeoffId ?? string.Empty;
+        public int PossessionEnergyMaximumSeconds => data?.PossessionEnergyMaximumSeconds ?? 0;
 
         public void Initialize(DefenseDeploymentReceiptData deployment)
         {
@@ -71,7 +86,10 @@ namespace RealmRaiders.UI
         public static string Format(DefenseDeploymentReceiptData deployment)
         {
             deployment ??= new DefenseDeploymentReceiptData(null);
-            return $"DEPLOYED DEFENSE — INVADER → HEART TREE\n" +
+            var heading = string.IsNullOrWhiteSpace(deployment.TradeoffDisplayName)
+                ? "DEPLOYED DEFENSE — INVADER → HEART TREE"
+                : $"DEPLOYED: {deployment.TradeoffDisplayName.ToUpperInvariant()} — {deployment.TacticalSummary}";
+            return $"{heading}\n" +
                    $"{Stage(deployment, ApproachOrder[0])}  →  {Stage(deployment, ApproachOrder[1])}  →  {Stage(deployment, ApproachOrder[2])}\n" +
                    $"{Stage(deployment, ApproachOrder[3])}  →  {Stage(deployment, ApproachOrder[4])}  →  HEART TREE";
         }

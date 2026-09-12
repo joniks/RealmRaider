@@ -940,7 +940,7 @@ EditMode `434/434` and PlayMode `118/118`, zero failed/skipped/inconclusive, wit
 no new compiler/runtime errors and no AudioListener warning increase. Manual Game
 View feel remains user-observed because QA had no safely operable viewport/input.
 
-## Ready next — 18.5 Keeper Reserve Defense Tradeoff (gameplay/content)
+## Accepted — 18.5 Keeper Reserve Defense Tradeoff (gameplay/content)
 
 Turn an already-valid sparse Sylvan defense into a real decision: keep the default
 `PACK PRESSURE` plan with two autonomous Wolves and the current possession-energy
@@ -951,3 +951,23 @@ new defense rules. MGC09 must first freeze the two exact no-engine facts and a
 fail-closed evaluator. Core then reuses the existing Build save, Defender spawn,
 same-Ent possession and deployment-receipt paths. Exact lease belongs in
 `Docs/NEXT_JOB.md` after the accepted MGC09 commit is pinned.
+
+Acceptance: the existing valid 10/10 plan is now `PACK PRESSURE` with two Wolves
+and the unchanged 30-second possession maximum. A valid 8/10 plan with one open
+creature slot is `KEEPER RESERVE`: one Wolf is sacrificed for 45 seconds of direct
+Ent control. BUILD derives and shows the live draft without saving; only the
+existing Save action persists it. DEFEND derives one immutable snapshot from the
+saved layout, and explicit release/re-possession preserves remaining energy while
+depletion still forces release and restores the same Ent AI. Final QA passed
+EditMode `443/443` and PlayMode `118/118`, zero failed/skipped/inconclusive, with
+no new compiler/runtime errors and no AudioListener warning increase.
+
+## Ready next — 18.6 Guardian Ent Ground Slam Impact VFX (polish)
+
+Integrate only the accepted original-generated AVFX01 256 px mobile candidate as
+one short, collider-free, truthful ring at the exact existing Guardian Ent Ground
+Slam impact centre and radius. It appears for hit or whiff, while the existing
+generic impact remains connected-hit-only. One instance, shared material, silent
+missing-resource fallback and synchronous controller/death/terminal/disable/
+destroy cleanup are mandatory. Damage, radius, timing, recovery, input, AI and
+camera remain unchanged. Full activation lease belongs in `Docs/NEXT_JOB.md`.

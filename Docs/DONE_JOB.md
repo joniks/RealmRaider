@@ -3972,3 +3972,46 @@ Completed on 2026-09-12; included with this project commit.
 - No new compiler/runtime errors or exceptions were observed; duplicate
   AudioListener warning delta was zero. Manual Hub/non-default Infernal play
   remains user-observed because QA had no safely operable Game viewport/input.
+
+## Module Pass MGC09 — Sylvan Defense Reserve Facts
+
+Accepted on 2026-09-12 in Modules commit `1cc4cbd`.
+
+- Added one isolated no-engine evaluator for exact Core-supplied roster counts.
+  Cached `PACK_PRESSURE` and `KEEPER_RESERVE` facts contain only stable identity,
+  truthful copy and 30/45-second possession maxima.
+- Invalid, negative, incomplete or unsupported facts fail closed with deterministic
+  ordered evidence. The module contains no Threat costs, slots, saves, timers,
+  trap/possession behavior, UI, scenes or Unity authority.
+
+## Diamond Pass 18.5 — Keeper Reserve Defense Tradeoff
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- The existing valid full layout is now truthfully named `PACK PRESSURE`: two
+  Wolves, one Guardian Ent, one Root Trap and the existing 30-second possession
+  maximum.
+- Leaving one creature slot open creates `KEEPER RESERVE`: one autonomous Wolf is
+  sacrificed for a module-authored 45-second possession maximum. Threat costs and
+  all existing layout validity rules remain unchanged.
+- BUILD reuses its current status text to show the live draft mode or neutral
+  incomplete-plan copy. Evaluating or cycling the draft does not write PlayerPrefs;
+  the existing Save action remains the only persistence path.
+- DEFEND validates/loads once, creates the existing scene-local energy pool with
+  the resolved maximum and snapshots the exact mode in the existing deployment
+  receipt. Explicit release and re-possession keep the remaining value; depletion
+  still forces release and restores the same Ent AI. Reload derives a fresh pool
+  from the saved layout.
+
+### Verification
+
+- Final EditMode passed `443/443`, zero failed/skipped/inconclusive, in 1.888 s
+  (job `d9362629-a282-49c0-8c53-b8f9bbcfa30e`).
+- Final PlayMode passed `118/118`, zero failed/skipped/inconclusive, in 104.341 s
+  (job `3912c754-7d79-4769-a513-a46a0f491e10`, XML
+  2026-09-12 11:24:42Z–11:26:27Z).
+- No new compiler/runtime errors or exceptions were observed; duplicate
+  AudioListener warning delta was zero. Manual BUILD/Defender feel remains
+  user-observed because QA had no safely operable Game viewport/input.

@@ -54,6 +54,7 @@ namespace RealmRaiders.Tests
                 Assert.That(hud.SlotCopy(2), Does.Contain("HEART GUARD\nENT • POSSESSABLE GUARDIAN • 4 THREAT"));
                 Assert.That(hud.DefensePlanText, Does.Contain("ROOT GATE: ROOT TRAP"));
                 Assert.That(hud.DefensePlanText, Does.Contain("HEART GUARD: ENT [POSSESSABLE]"));
+                Assert.That(hud.DefenseTradeoffText, Does.Contain("Threat: 10/10").And.Contain("PACK PRESSURE").And.Contain("30 SEC CONTROL"));
                 Assert.That(GameObject.Find("Defense Plan Summary").GetComponent<Text>().raycastTarget, Is.False);
                 Assert.That(hud.RealmStoresText, Does.StartWith("REALM STORES  •"));
                 Assert.That(GameObject.Find("Realm Stores").GetComponent<Text>().raycastTarget, Is.False);
@@ -67,11 +68,18 @@ namespace RealmRaiders.Tests
                 hud.CycleSlotForTests(2);
                 Assert.That(hud.SlotCopy(2), Does.Contain("HEART GUARD\nOPEN • UNASSIGNED • 0 THREAT"));
                 Assert.That(hud.DefensePlanText, Does.Contain("HEART GUARD: OPEN"));
+                Assert.That(hud.DefenseTradeoffText, Does.Contain("Threat: 6/10").And.Contain("TRADEOFF — COMPLETE A VALID PLAN"));
                 Assert.That(hud.SaveInteractable, Is.False);
                 hud.CycleSlotForTests(1);
                 Assert.That(hud.SlotCopy(1), Does.Contain("MID GUARD\nENT • POSSESSABLE GUARDIAN • 4 THREAT"));
                 Assert.That(hud.DefensePlanText, Does.Contain("MID GUARD: ENT [POSSESSABLE]"));
+                Assert.That(hud.DefenseTradeoffText, Does.Contain("Threat: 8/10").And.Contain("KEEPER RESERVE").And.Contain("1 WOLF SACRIFICED").And.Contain("45 SEC CONTROL"));
                 Assert.That(hud.SaveInteractable, Is.True);
+                var stillSaved = DefenseLayoutSave.Load();
+                Assert.That(stillSaved.Slots[1].Piece, Is.EqualTo(DefensePieceType.Wolf), "Live draft tradeoff copy must not persist before SAVE.");
+                Assert.That(stillSaved.Slots[2].Piece, Is.EqualTo(DefensePieceType.Ent), "Live draft tradeoff copy must not mutate the saved layout.");
+                root.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null; AssertBuildPlanClear();
+                root.SetOrientationForTests(PrototypeOrientation.Landscape); yield return null; AssertBuildPlanClear();
 
                 GameObject.Find("SAVE & DEFEND").GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;

@@ -18,9 +18,9 @@ Last reviewed: 2026-09-12
   pixels/input. Visual direction/foot contact/landing feel remain unobserved;
   green automated results are not a claim of visual or device acceptance.
 - Priority is 70% gameplay/content and 30% foundation/polish by planned effort.
-  Sylvan and Infernal authored raid variants are accepted. The next gameplay slice
-  is a truthful Build choice between a second autonomous Wolf and additional
-  direct-control possession time; its no-engine MGC09 facts are prepared first.
+  Sylvan/Infernal raid variants and the Keeper Reserve defense tradeoff are
+  accepted. The next bounded polish slice integrates the accepted Guardian Ent
+  Ground Slam impact ring without changing combat authority.
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
@@ -47,6 +47,11 @@ Last reviewed: 2026-09-12
   roster, lane, optional Flame Trap and Heart prerequisite. Final QA passed
   EditMode `434/434` and PlayMode `118/118`, zero failed/skipped/inconclusive and
   no new compiler/runtime errors.
+- Core 18.5 is accepted: a full valid defense keeps two Wolves and 30 seconds of
+  possession, while one open creature slot sacrifices a Wolf for 45 seconds.
+  BUILD shows the unsaved draft truthfully; DEFEND derives the saved choice once,
+  and release/re-possession does not refill it. QA passed EditMode `443/443` and
+  PlayMode `118/118`, zero failed/skipped/inconclusive and no new errors.
 
 ## Latest verification
 
@@ -257,6 +262,14 @@ Last reviewed: 2026-09-12
 - Modules MGC05–MGC08 are pinned: Infernal pacing/spatial/presentation facts and
   Sylvan presentation summaries remain immutable no-engine data. Core alone owns
   selection, spawning, combat, objectives, rewards and UI.
+- Diamond Pass 18.5 Keeper Reserve Defense Tradeoff is present: `PACK PRESSURE`
+  keeps two autonomous Wolves and 30 seconds of control; `KEEPER RESERVE` leaves
+  one creature slot open for 45 seconds. The existing save remains the only source
+  of truth, scene reload creates a fresh local pool, and explicit release retains
+  remaining energy. Final QA passed EditMode `443/443` and PlayMode `118/118`.
+- Module MGC09 is pinned: its no-engine evaluator owns only the two immutable
+  roster/copy/energy facts. Core still validates layouts and owns persistence,
+  spawning, possession, timers and UI.
 
 ## Directory guide
 

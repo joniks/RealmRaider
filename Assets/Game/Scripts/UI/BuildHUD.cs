@@ -59,6 +59,7 @@ namespace RealmRaiders.UI
         public static readonly Color CultivationReadyTint = new(.38f, .62f, .16f, .98f);
         public int SlotCount => slots.Length;
         public string DefensePlanText => plan ? plan.text : string.Empty;
+        public string DefenseTradeoffText => budget ? budget.text : string.Empty;
         public string RealmStoresText => realmStores ? realmStores.text : string.Empty;
         public string GuardianEntUpgradeText => cultivateEnt ? cultivateEnt.GetComponentInChildren<Text>().text : string.Empty;
         public string SlotCopy(int index) => index >= 0 && index < slots.Length ? slots[index].GetComponentInChildren<Text>().text : string.Empty;
@@ -127,7 +128,7 @@ namespace RealmRaiders.UI
         void OnPurchaseGuardianEntVitality() => PurchaseGuardianEntVitality();
         void Refresh()
         {
-            var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = $"Threat: {DefenseLayoutRules.Used(layout)}/{DefenseLayoutRules.Budget}"; realmStores.text = RealmProgress.StoreCopy(); plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid;
+            var valid = DefenseLayoutRules.IsValid(layout, out var message); budget.text = FormatTradeoffCopy(layout); realmStores.text = RealmProgress.StoreCopy(); plan.text = FormatDefensePlan(layout); if (saveButton) saveButton.interactable = valid;
             var guideActive = FirstPlayableMinute.Load() == FirstPlayableMinuteStatus.Active && guide != null;
             if (guideActive)
             {
@@ -214,6 +215,13 @@ namespace RealmRaiders.UI
         public static string FormatDefensePlan(DefenseLayout defenseLayout)
         {
             return $"DEFENSE PLAN — INVADER → HEART TREE\n{PlanStage(defenseLayout, 3)}  →  {PlanStage(defenseLayout, 0)}  →  {PlanStage(defenseLayout, 1)}\n{PlanStage(defenseLayout, 4)}  →  {PlanStage(defenseLayout, 2)}  →  HEART TREE";
+        }
+        public static string FormatTradeoffCopy(DefenseLayout defenseLayout)
+        {
+            var threat = $"Threat: {DefenseLayoutRules.Used(defenseLayout)}/{DefenseLayoutRules.Budget}";
+            return DefenseTradeoffSelection.TryResolve(defenseLayout, out var selection)
+                ? $"{threat}\n{selection.BuildCopy}"
+                : $"{threat}\nTRADEOFF — COMPLETE A VALID PLAN";
         }
         static string PlanStage(DefenseLayout defenseLayout, int index)
         {

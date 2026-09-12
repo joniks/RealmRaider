@@ -5,6 +5,7 @@
     "com.realmraiders.character-visual-tuning": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.character-visual-tuning",
     "com.realmraiders.infernal-encounters": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.infernal-encounters",
     "com.realmraiders.large-creature-combat-rhythm": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.large-creature-combat-rhythm",
+    "com.realmraiders.sylvan-defense-tradeoffs": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-defense-tradeoffs",
     "com.realmraiders.starter-character-catalog": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.starter-character-catalog",
     "com.realmraiders.sylvan-encounters": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-encounters",
     "com.unity.inputsystem": "1.20.0",
@@ -27,6 +28,7 @@
     "com.realmraiders.infernal-encounters",
     "com.realmraiders.large-creature-combat-rhythm",
     "com.realmraiders.starter-character-catalog",
+    "com.realmraiders.sylvan-defense-tradeoffs",
     "com.realmraiders.sylvan-encounters"
   ]
 }
