@@ -189,7 +189,7 @@ Last reviewed: 2026-09-12
 - Diamond Pass 17.0 Explicit Blood Knight Motion-Tuning Resolution is present: the Core adapter now resolves the accepted explicit Modules assignment once and retains the exact device-readable tuning identity, with deterministic Compatibility fail-closed behavior and no retune or gameplay change.
 - Diamond Pass 17.1 Factual Direct-Combat Defeat Confirmation is present: an applied direct-player lethal Melee/Area hit now confirms each exact named defeated target once while AI, immunity, misses, invalid and lifecycle-exited paths remain silent.
 - Diamond Pass 17.2 Singular Latest-Damage Marker is present: each target now owns at most one active damage number, refreshed to the latest factual hit and point for a bounded lifetime while distinct targets remain independent.
-- Current Unity Test Runner baseline: EditMode `359/359` and PlayMode `108/108` passed with `0` failures through the QA menu commands on 2026-09-12.
+- Current Unity Test Runner baseline: EditMode `492/492` and PlayMode `123/123` passed with `0` failures through the QA menu commands on 2026-09-12.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -206,7 +206,7 @@ Last reviewed: 2026-09-12
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `359/359` and PlayMode `108/108` passed with `0` failures on 2026-09-12.
+- Current verified baseline: EditMode `492/492` and PlayMode `123/123` passed with `0` failures on 2026-09-12.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations
@@ -294,6 +294,16 @@ Last reviewed: 2026-09-12
   preserves byte-identical identity/topology. Final QA passed EditMode `488/488`
   and PlayMode `122/122`; full physical-device route feel is currently being tested
   by the user.
+- Diamond Pass 18.10 is present: explored Wolf and Ent groves reveal their actual
+  modular inhabitants without premature movement, attacks or camera threat. First
+  entry activates only that node's exact living AI once; possession, death,
+  terminal state, retry and teardown retain controller authority. Final QA passed
+  EditMode `492/492` and PlayMode `123/123`; Android feel remains with the user's
+  current device smoke.
+- Module MGC11 is statically accepted in Modules commit `7f550b7`: immutable
+  exact-layout pacing recipes describe Ancient optional branches, Forked risk vs
+  recovery routes and the Serpent linear gauntlet. It remains uninstalled until
+  Core 18.11 gives those facts a fail-closed runtime host.
 
 ## Directory guide
 

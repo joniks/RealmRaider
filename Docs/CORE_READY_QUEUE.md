@@ -1041,7 +1041,7 @@ trap, Moonwell, rewards, possession and Heart Tree remain authoritative. Retry
 preserves byte-identical identity and topology. Final QA passed EditMode `488/488`
 and PlayMode `122/122`, zero failed/skipped/inconclusive.
 
-## Ready next — 18.10 Node-Entry Encounter Activation (gameplay/content)
+## Accepted — 18.10 Node-Entry Encounter Activation (gameplay/content)
 
 Keep explored Sylvan enemies visible enough to read as a deliberate encounter,
 but prevent a newly revealed neighboring grove from chasing or attacking before
@@ -1055,3 +1055,26 @@ the real runtime seam required before Modules MGC11 can author richer per-layout
 beat plans. No spawn/reward rebalance, route lock, hidden surprise attack, global
 scan, NavMesh, wave framework or UI-only substitute belongs in this gate. Full
 lease is in `Docs/NEXT_JOB.md`.
+
+Acceptance: explored Wolf and Ent inhabitants remain visibly present but their
+exact entity tick, AI state and combat-camera intent stay dormant until first
+entry. Entry activates only that node's living explicit controllers once;
+death, possession, terminal state, retry and real component teardown preserve
+authority and release only owned dormancy. Final QA passed EditMode `492/492`
+and PlayMode `123/123`, zero failed/skipped/inconclusive.
+
+## Ready next — 18.11 Per-Layout Sylvan Pacing Ward (gameplay/content)
+
+Install and pin accepted Modules MGC11 commit `7f550b7`, resolve only the pacing
+recipe matching the persisted exact layout, and materialize its required beat
+sequence through a small Core-owned run tracker. Ancient Crossroads and Forked
+Canopy retain optional Wolf/route choices before the required Ent; Serpent Roots
+becomes the deliberate Wolf → Root → Ent → Moonwell → Heart gauntlet.
+
+Required encounter beats complete only when their exact explicit hostiles die;
+required hazard/recovery beats complete on factual node entry, never by forcing
+trap damage or consuming the Moonwell. The Heart Tree must not progress until the
+required pre-objective facts are complete and must truthfully expose the next
+missing beat through existing responsive raid presentation. Optional branches and
+rewards remain optional. Core owns all runtime state and authority; the module is
+immutable data only. Full lease is in `Docs/NEXT_JOB.md`.

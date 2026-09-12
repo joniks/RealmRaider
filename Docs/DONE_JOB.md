@@ -1,5 +1,37 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 18.10 — Node-Entry Encounter Activation
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Exploring a Sylvan Wolf or Ent grove reveals its modular presentation while
+  its exact explicitly supplied living hostiles remain stationary, idle and
+  unable to publish combat-camera intent until the hero enters that node.
+- First factual entry activates only that node's existing authoritative AI once.
+  The other branch remains dormant, and activation preserves entity identity,
+  health, position, controller ownership, cooldowns and authored home position.
+- Dead, terminal or controller-swapped hostiles cannot regain AI authority.
+  Reinitialization, explicit release, component teardown and same-scene retry
+  release only gate-owned ticking dormancy and fail closed during scene unload.
+- No scan, name/tag inference, new spawn, reward, camera, input, fog, route or
+  combat authority was added. Root Trap, Moonwell and Heart Tree remain intact.
+
+### Verification
+
+- Static review removed an Editor-only lifecycle shortcut and retained a neutral,
+  idempotent release seam plus a real PlayMode component-destroy proof.
+- Two red gates exposed only test-harness assumptions: an EditMode `Update`
+  `SendMessage`, a root-renderer assumption incompatible with modular visuals,
+  and Unity's destroyed-object fake-null semantics. Each was corrected without
+  weakening the gameplay assertions or changing runtime authority.
+- Final Unity GUI gates after the last Refresh passed EditMode `492/492` at
+  2026-09-12 17:45:30Z–17:45:32Z and PlayMode `123/123` at
+  2026-09-12 17:45:54Z–17:47:41Z, with zero failed/skipped/inconclusive tests.
+- `git diff --check` is clean. The user's current Android smoke owns the final
+  approach/entry/combat feel judgment; no unobserved manual result is claimed.
+
 ## Diamond Pass 18.9 — Materialized Persistent Sylvan Starter Realm
 
 Completed on 2026-09-12; included with this project commit.

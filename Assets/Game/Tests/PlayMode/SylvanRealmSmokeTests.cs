@@ -317,6 +317,146 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator SylvanRealm_AllLayoutsActivateOnlyTheEnteredGroveAndRetryRestoresDormancy()
+        {
+            const string realmId = "bcdef0123456789abcdef0123456789a";
+            var key = SylvanStarterRealmIdentity.KeyForTests;
+            var hadIdentity = PlayerPrefs.HasKey(key);
+            var previousIdentity = PlayerPrefs.GetString(key, string.Empty);
+            var hadProgress = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
+            var previousProgress = PlayerPrefs.GetString(RealmProgress.KeyForTests, string.Empty);
+            try
+            {
+                foreach (var seed in new[] { 0, 1, 2 })
+                {
+                    GameplayInput.SetTerminalState(false);
+                    SylvanStarterRealmIdentity.ResetForTests();
+                    SylvanStarterRealmIdentity.SetFactoriesForTests(() => realmId, () => seed);
+                    SylvanRaidCompositionSelection.ResetForTests();
+                    SceneManager.LoadScene("SylvanRealm"); yield return null; yield return null;
+
+                    var stored = PlayerPrefs.GetString(key);
+                    var topology = SylvanTopologySignature();
+                    var layout = CurrentSylvanLayout();
+                    var hero = SceneEntity("Blood Knight");
+                    var wolfView = RealmView("Wolf Grove");
+                    var entView = RealmView("Ent Grove");
+                    var wolves = new[] { SceneEntity("Wolf Alpha"), SceneEntity("Wolf Scout") };
+                    var ent = SceneEntity("Sylvan Ent");
+                    wolfView.Node.Discover();
+                    entView.Node.Discover();
+                    var wolfEdge = layout.Edges.First(edge => edge.From == layout.WolfGroveEncounter || edge.To == layout.WolfGroveEncounter);
+                    var wolfNeighbor = wolfEdge.From == layout.WolfGroveEncounter ? wolfEdge.To : wolfEdge.From;
+                    var approachDirection = (wolfNeighbor.Center - layout.WolfGroveEncounter.Center).normalized;
+                    hero.transform.position = new Vector3(layout.WolfGroveEncounter.Center.x + approachDirection.x * 8,
+                        hero.transform.position.y, layout.WolfGroveEncounter.Center.y + approachDirection.y * 8);
+                    Physics.SyncTransforms();
+                    var wolfPositions = wolves.Select(wolf => wolf.transform.position).ToArray();
+                    var entPosition = ent.transform.position;
+                    var wolfHealth = wolves.Select(wolf => wolf.Health.Current).ToArray();
+                    var wolfActions = wolves.Select(wolf => wolf.IsActionResolving).ToArray();
+                    for (var frame = 0; frame < 5; frame++) yield return null;
+
+                    Assert.That(wolfView.HasBeenEntered, Is.False, "The hero remains outside the 6.5-unit node-entry radius.");
+                    foreach (var wolf in wolves)
+                    {
+                        Assert.That(Vector3.Distance(wolf.transform.position, hero.transform.position),
+                            Is.LessThan(wolf.Controller<CreatureBrain>().DetectionRange), "Dormancy is tested inside real AI detection range.");
+                        Assert.That(wolf.gameObject.activeSelf, Is.True, "Explored grove inhabitants remain visible.");
+                        Assert.That(wolf.GetComponentsInChildren<Renderer>(true)
+                            .Any(renderer => renderer.enabled && renderer.gameObject.activeInHierarchy), Is.True,
+                            "Exploration must expose at least one active modular presentation renderer.");
+                        Assert.That(wolf.enabled, Is.False, "Explored grove AI tick remains dormant before entry.");
+                        Assert.That(wolf.Controller<CreatureBrain>().IsActive, Is.False);
+                        Assert.That(wolf.Controller<CreatureBrain>().State, Is.EqualTo(BrainState.Idle));
+                    }
+                    Assert.That(ent.gameObject.activeSelf, Is.True);
+                    Assert.That(ent.enabled, Is.False);
+                    Assert.That(ent.Controller<CreatureBrain>().IsActive, Is.False);
+                    Assert.That(wolves.Select(wolf => wolf.transform.position), Is.EqualTo(wolfPositions));
+                    Assert.That(wolves.Select(wolf => wolf.Health.Current), Is.EqualTo(wolfHealth));
+                    Assert.That(wolves.Select(wolf => wolf.IsActionResolving), Is.EqualTo(wolfActions));
+                    Assert.That(ent.transform.position, Is.EqualTo(entPosition));
+                    var awareness = Object.FindFirstObjectByType<CombatCameraAwareness>();
+                    Assert.That(awareness, Is.Not.Null, "The scene camera rig owns combat awareness.");
+                    Assert.That(awareness.HasEligibleThreat, Is.False, "Dormant explored AI cannot publish a combat threat.");
+
+                    hero.transform.position = wolfView.transform.position + Vector3.up;
+                    wolfView.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                    Assert.That(wolfView.HasBeenEntered, Is.True);
+                    Assert.That(wolfView.GetComponent<NodeEntryEncounterActivation>().IsActivated, Is.True);
+                    foreach (var wolf in wolves)
+                    {
+                        Assert.That(wolf.enabled, Is.True);
+                        Assert.That(wolf.Controller<CreatureBrain>().IsActive, Is.True);
+                    }
+                    Assert.That(ent.enabled, Is.False, "The unchosen branch must remain dormant.");
+                    Assert.That(ent.Controller<CreatureBrain>().IsActive, Is.False);
+                    wolves[0].Controller<CreatureBrain>().Tick();
+                    Assert.That(wolves[0].Controller<CreatureBrain>().State, Is.Not.EqualTo(BrainState.Idle),
+                        "The entered grove's existing brain can engage its authored target.");
+
+                    if (seed == 0)
+                    {
+                        ent.Health.TakeDamage(new DamageInfo(10000, hero.gameObject, ent.transform.position), 0);
+                        hero.transform.position = entView.transform.position + Vector3.up;
+                        entView.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        Assert.That(ent.Health.IsDead, Is.True);
+                        Assert.That(ent.enabled, Is.False);
+                        Assert.That(ent.Controller<CreatureBrain>().IsActive, Is.False);
+                    }
+                    else if (seed == 1)
+                    {
+                        var player = ent.Controller<PlayerController>();
+                        ent.SetController(player);
+                        hero.transform.position = entView.transform.position + Vector3.up;
+                        entView.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        Assert.That(ent.enabled, Is.True);
+                        Assert.That(ent.ActiveController, Is.SameAs(player));
+                        Assert.That(ent.Controller<CreatureBrain>().IsActive, Is.False);
+                    }
+                    else
+                    {
+                        GameplayInput.SetTerminalState(true);
+                        hero.transform.position = entView.transform.position + Vector3.up;
+                        entView.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        Assert.That(entView.HasBeenEntered, Is.False);
+                        Assert.That(ent.enabled, Is.False);
+                        Assert.That(ent.Controller<CreatureBrain>().IsActive, Is.False);
+                        GameplayInput.SetTerminalState(false);
+                    }
+
+                    var hud = Object.FindFirstObjectByType<RaidHUD>();
+                    hud.SendMessage("ShowResult", new RaidResult(true, 0, 0, 0, 0, 1, true), SendMessageOptions.RequireReceiver);
+                    GameObject.Find("RAID AGAIN").GetComponent<Button>().onClick.Invoke();
+                    yield return null; yield return null;
+                    Assert.That(PlayerPrefs.GetString(key), Is.EqualTo(stored));
+                    Assert.That(SylvanTopologySignature(), Is.EqualTo(topology));
+                    Assert.That(SceneEntity("Wolf Alpha").enabled, Is.False, "Retry starts a fresh exact dormant gate.");
+                    Assert.That(SceneEntity("Wolf Scout").enabled, Is.False);
+                    Assert.That(SceneEntity("Sylvan Ent").enabled, Is.False);
+                    var retryWolfGate = RealmView("Wolf Grove").GetComponent<NodeEntryEncounterActivation>();
+                    Object.Destroy(retryWolfGate);
+                    yield return null;
+                    Assert.That(retryWolfGate == null, Is.True, "PlayMode must exercise the real component-destroy callback.");
+                    Assert.That(SceneEntity("Wolf Alpha").enabled, Is.True);
+                    Assert.That(SceneEntity("Wolf Alpha").Controller<CreatureBrain>().IsActive, Is.True);
+                    Assert.That(SceneEntity("Wolf Scout").enabled, Is.True);
+                    Assert.That(SceneEntity("Wolf Scout").Controller<CreatureBrain>().IsActive, Is.True);
+                }
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                SylvanStarterRealmIdentity.ResetForTests();
+                if (hadIdentity) PlayerPrefs.SetString(key, previousIdentity); else PlayerPrefs.DeleteKey(key);
+                if (hadProgress) PlayerPrefs.SetString(RealmProgress.KeyForTests, previousProgress); else PlayerPrefs.DeleteKey(RealmProgress.KeyForTests);
+                PlayerPrefs.Save();
+                SylvanRaidCompositionSelection.ResetForTests();
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SylvanRaidVariants_MaterializeExactAuthoredFactsAndTruthfulNodeContents()
         {
             var variants = new[]
@@ -650,6 +790,9 @@ namespace RealmRaiders.Tests
             .Single(text => text.text.StartsWith("Selected realm:"));
 
         static CombatEntity SceneEntity(string name) => Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None).Single(entity => entity.name == name);
+
+        static RealmNodeView RealmView(string nodeId) =>
+            Object.FindObjectsByType<RealmNodeView>(FindObjectsInactive.Include, FindObjectsSortMode.None).Single(view => view.Node.Id == nodeId);
 
         readonly struct SpawnExpectation
         {

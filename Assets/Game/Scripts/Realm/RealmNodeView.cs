@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using RealmRaiders.Characters;
+using RealmRaiders.Controllers;
+using RealmRaiders.Raid;
 using UnityEngine;
 
 namespace RealmRaiders.Realm
@@ -29,6 +31,7 @@ namespace RealmRaiders.Realm
         RealmNodeSurfacePresentation surfacePresentation;
         GameObject[] contents;
         readonly List<CombatEntity> explicitHostiles = new();
+        NodeEntryEncounterActivation encounterActivation;
 
         public void Initialize(RealmNode node, CombatEntity player, Renderer floorRenderer, params GameObject[] nodeContents)
         {
@@ -43,12 +46,21 @@ namespace RealmRaiders.Realm
                 var hostile = item ? item.GetComponent<CombatEntity>() : null;
                 if (hostile && !explicitHostiles.Contains(hostile)) explicitHostiles.Add(hostile);
             }
+            encounterActivation = GetComponent<NodeEntryEncounterActivation>();
+            if (explicitHostiles.Count > 0)
+            {
+                if (!encounterActivation) encounterActivation = gameObject.AddComponent<NodeEntryEncounterActivation>();
+                encounterActivation.Initialize(explicitHostiles);
+            }
+            else if (encounterActivation) encounterActivation.Initialize(Array.Empty<CombatEntity>());
             node.FogChanged += OnFogChanged; Refresh();
         }
 
-        void Update()
+        void Update() => EvaluateEntry();
+
+        public void EvaluateEntry()
         {
-            if (HasBeenEntered || !hero || hero.Health.IsDead) return;
+            if (HasBeenEntered || GameplayInput.TerminalState || !hero || hero.Health.IsDead) return;
             var delta = hero.transform.position - transform.position; delta.y = 0;
             if (delta.sqrMagnitude <= 42.25f)
             {
@@ -58,6 +70,7 @@ namespace RealmRaiders.Realm
                 var alive = new List<CombatEntity>(explicitHostiles.Count);
                 foreach (var hostile in explicitHostiles)
                     if (hostile && hostile.Health != null && !hostile.Health.IsDead) alive.Add(hostile);
+                encounterActivation?.Activate();
                 EncounterEntered?.Invoke(new RealmNodeVisit(Node.Id, alive));
             }
         }
@@ -78,7 +91,9 @@ namespace RealmRaiders.Realm
         void OnDestroy()
         {
             if (Node != null) Node.FogChanged -= OnFogChanged;
+            encounterActivation?.Release();
             explicitHostiles.Clear();
+            encounterActivation = null;
             surfacePresentation = null;
         }
     }
