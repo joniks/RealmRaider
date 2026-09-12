@@ -457,6 +457,129 @@ namespace RealmRaiders.Tests
         }
 
         [UnityTest]
+        public IEnumerator SylvanRealm_AllLayoutsEnforceExactPacingWardAndRetryFresh()
+        {
+            const string realmId = "cdef0123456789abcdef0123456789ab";
+            var key = SylvanStarterRealmIdentity.KeyForTests;
+            var hadIdentity = PlayerPrefs.HasKey(key);
+            var previousIdentity = PlayerPrefs.GetString(key, string.Empty);
+            var hadProgress = PlayerPrefs.HasKey(RealmProgress.KeyForTests);
+            var previousProgress = PlayerPrefs.GetString(RealmProgress.KeyForTests, string.Empty);
+            try
+            {
+                foreach (var expected in new[]
+                {
+                    (Seed: 0, Required: 1, First: "DEFEAT GUARDIAN ENT"),
+                    (Seed: 1, Required: 1, First: "DEFEAT GUARDIAN ENT"),
+                    (Seed: 2, Required: 4, First: "DEFEAT SYLVAN WOLVES")
+                })
+                {
+                    GameplayInput.SetTerminalState(false);
+                    SylvanStarterRealmIdentity.ResetForTests();
+                    SylvanStarterRealmIdentity.SetFactoriesForTests(() => realmId, () => expected.Seed);
+                    SylvanRaidCompositionSelection.ResetForTests();
+                    SceneManager.LoadScene("SylvanRealm"); yield return null; yield return null;
+
+                    var stored = PlayerPrefs.GetString(key);
+                    var topology = SylvanTopologySignature();
+                    var tracker = Object.FindFirstObjectByType<SylvanPacingRunTracker>();
+                    var core = Object.FindObjectsByType<RealmCore>(FindObjectsInactive.Include,
+                        FindObjectsSortMode.None).Single();
+                    var hud = Object.FindFirstObjectByType<RaidHUD>();
+                    var hero = SceneEntity("Blood Knight");
+                    var plan = CurrentSylvanLayout();
+                    RealmView("Heart Tree").Node.Discover();
+                    var started = 0;
+                    var completed = 0;
+                    core.InteractionStarted += () => started++;
+                    core.Completed += () => completed++;
+                    core.InteractionDuration = .02f;
+                    Assert.That(tracker, Is.Not.Null);
+                    Assert.That(tracker.IsOperational, Is.True);
+                    Assert.That(tracker.RequiredBeatCount, Is.EqualTo(expected.Required));
+                    Assert.That(tracker.NextRequirementCopy, Is.EqualTo(expected.First));
+
+                    hero.transform.position = new Vector3(core.transform.position.x, 1, core.transform.position.z);
+                    Physics.SyncTransforms();
+                    yield return null; yield return null;
+                    Assert.That(core.HeroInRange, Is.True);
+                    Assert.That(core.Progress, Is.Zero);
+                    Assert.That(started, Is.Zero);
+                    Assert.That(completed, Is.Zero);
+                    Assert.That(hud.ObjectiveText, Is.EqualTo($"WARD: {expected.First}"));
+                    var wardLabel = Object.FindObjectsByType<Text>(FindObjectsInactive.Include,
+                        FindObjectsSortMode.None).Single(label => label.text == $"WARD: {expected.First}");
+                    Assert.That(wardLabel.raycastTarget, Is.False, "The factual ward copy must never own input.");
+
+                    hero.transform.position = new Vector3(plan.PortalStart.Center.x, 1, plan.PortalStart.Center.y);
+                    Physics.SyncTransforms();
+                    yield return null;
+                    Assert.That(core.HeroInRange, Is.False);
+                    Assert.That(hud.ObjectiveText, Is.EqualTo("Reach the Heart Tree"));
+
+                    if (expected.Seed < 2)
+                    {
+                        var wolfView = RealmView("Wolf Grove");
+                        Assert.That(wolfView.HasBeenEntered, Is.False, "Ancient/Forked Wolf branch remains bypassable.");
+                        Enter(RealmView("Ent Grove"), hero);
+                        SceneEntity("Sylvan Ent").Health.TakeDamage(new DamageInfo(10000, hero.gameObject, hero.transform.position), 0);
+                        Assert.That(tracker.IsWarded, Is.False);
+                        Assert.That(wolfView.HasBeenEntered, Is.False);
+                        Assert.That(SceneEntity("Wolf Alpha").Health.IsDead, Is.False);
+                        Assert.That(SceneEntity("Wolf Scout").Health.IsDead, Is.False);
+                    }
+                    else
+                    {
+                        Enter(RealmView("Wolf Grove"), hero);
+                        SceneEntity("Wolf Alpha").Health.TakeDamage(new DamageInfo(10000, hero.gameObject, hero.transform.position), 0);
+                        SceneEntity("Wolf Scout").Health.TakeDamage(new DamageInfo(10000, hero.gameObject, hero.transform.position), 0);
+                        Assert.That(tracker.NextRequirementCopy, Is.EqualTo("ENTER ROOT PATH"));
+                        Enter(RealmView("Root Path"), hero);
+                        Assert.That(tracker.NextRequirementCopy, Is.EqualTo("DEFEAT GUARDIAN ENT"));
+                        Enter(RealmView("Ent Grove"), hero);
+                        SceneEntity("Sylvan Ent").Health.TakeDamage(new DamageInfo(10000, hero.gameObject, hero.transform.position), 0);
+                        Assert.That(tracker.NextRequirementCopy, Is.EqualTo("ENTER MOONWELL"));
+                        var moonwell = Object.FindObjectsByType<MoonwellRecovery>(
+                            FindObjectsInactive.Include, FindObjectsSortMode.None).Single();
+                        Assert.That(moonwell.HasCharge, Is.True);
+                        Enter(RealmView("Moonwell"), hero);
+                        Assert.That(moonwell.HasCharge, Is.True, "Recovery pacing requires entry, never spending the charge.");
+                        Assert.That(tracker.IsWarded, Is.False);
+                    }
+
+                    hero.transform.position = new Vector3(core.transform.position.x, 1, core.transform.position.z);
+                    Physics.SyncTransforms();
+                    for (var frame = 0; frame < 8 && core.Progress < 1; frame++) yield return null;
+                    Assert.That(core.Progress, Is.EqualTo(1));
+                    Assert.That(started, Is.EqualTo(1));
+                    Assert.That(completed, Is.EqualTo(1));
+                    Assert.That(hud.ObjectiveText, Does.Not.StartWith("WARD:"));
+
+                    hud.SendMessage("ShowResult", new RaidResult(true, 0, 0, 0, 0, 1, true), SendMessageOptions.RequireReceiver);
+                    GameObject.Find("RAID AGAIN").GetComponent<Button>().onClick.Invoke();
+                    yield return null; yield return null;
+                    var retryTracker = Object.FindFirstObjectByType<SylvanPacingRunTracker>();
+                    Assert.That(PlayerPrefs.GetString(key), Is.EqualTo(stored));
+                    Assert.That(SylvanTopologySignature(), Is.EqualTo(topology));
+                    Assert.That(retryTracker, Is.Not.Null);
+                    Assert.That(retryTracker.IsWarded, Is.True);
+                    Assert.That(retryTracker.CompletedRequiredBeatCount, Is.Zero);
+                    Assert.That(retryTracker.NextRequirementCopy, Is.EqualTo(expected.First));
+                    Assert.That(Object.FindFirstObjectByType<RaidHUD>().ObjectiveText, Is.EqualTo("Reach the Heart Tree"));
+                }
+            }
+            finally
+            {
+                GameplayInput.SetTerminalState(false);
+                SylvanStarterRealmIdentity.ResetForTests();
+                if (hadIdentity) PlayerPrefs.SetString(key, previousIdentity); else PlayerPrefs.DeleteKey(key);
+                if (hadProgress) PlayerPrefs.SetString(RealmProgress.KeyForTests, previousProgress); else PlayerPrefs.DeleteKey(RealmProgress.KeyForTests);
+                PlayerPrefs.Save();
+                SylvanRaidCompositionSelection.ResetForTests();
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SylvanRaidVariants_MaterializeExactAuthoredFactsAndTruthfulNodeContents()
         {
             var variants = new[]
@@ -793,6 +916,15 @@ namespace RealmRaiders.Tests
 
         static RealmNodeView RealmView(string nodeId) =>
             Object.FindObjectsByType<RealmNodeView>(FindObjectsInactive.Include, FindObjectsSortMode.None).Single(view => view.Node.Id == nodeId);
+
+        static void Enter(RealmNodeView view, CombatEntity hero)
+        {
+            view.Node.Discover();
+            hero.transform.position = view.transform.position + Vector3.up;
+            Physics.SyncTransforms();
+            view.EvaluateEntry();
+            Assert.That(view.HasBeenEntered, Is.True, view.Node.Id);
+        }
 
         readonly struct SpawnExpectation
         {

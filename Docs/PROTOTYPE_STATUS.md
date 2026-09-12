@@ -300,10 +300,23 @@ Last reviewed: 2026-09-12
   terminal state, retry and teardown retain controller authority. Final QA passed
   EditMode `492/492` and PlayMode `123/123`; Android feel remains with the user's
   current device smoke.
-- Module MGC11 is statically accepted in Modules commit `7f550b7`: immutable
+- Diamond Pass 18.11 is present: each exact persisted Sylvan layout now enforces
+  its authored MGC11 pacing facts through a fresh run-local tracker. Ancient and
+  Forked retain optional Wolf branches; Serpent requires Wolf → Root → Ent →
+  Moonwell before the Heart. Early capture stays at zero with a truthful
+  in-range-only `WARD:` instruction, and same-scene retry clears every completion
+  fact. Final QA passed EditMode `513/513` and PlayMode `124/124`; manual route
+  feel remains with the user's Android smoke.
+- Module MGC11 is installed from Modules commit `7f550b7`: immutable
   exact-layout pacing recipes describe Ancient optional branches, Forked risk vs
-  recovery routes and the Serpent linear gauntlet. It remains uninstalled until
-  Core 18.11 gives those facts a fail-closed runtime host.
+  recovery routes and the Serpent linear gauntlet. Core 18.11 now hosts those
+  validated facts without transferring gameplay authority to the package.
+- Module MGC12 is statically accepted in Modules commit `3b23c13`, with the
+  MGC11 Unity test-asmdef integration fix at Modules head `3b8e0e5`: a pure,
+  immutable realm-growth catalogue validates caller-supplied tiers and resolves
+  exact IDs or greatest-satisfied levels without inventing game thresholds,
+  coordinates, currencies, persistence or multiplayer authority. It remains
+  uninstalled and supplies no player-visible growth until a later named gate.
 
 ## Directory guide
 

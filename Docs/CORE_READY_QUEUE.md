@@ -1063,10 +1063,11 @@ death, possession, terminal state, retry and real component teardown preserve
 authority and release only owned dormancy. Final QA passed EditMode `492/492`
 and PlayMode `123/123`, zero failed/skipped/inconclusive.
 
-## Ready next — 18.11 Per-Layout Sylvan Pacing Ward (gameplay/content)
+## Accepted — 18.11 Per-Layout Sylvan Pacing Ward (gameplay/content)
 
-Install and pin accepted Modules MGC11 commit `7f550b7`, resolve only the pacing
-recipe matching the persisted exact layout, and materialize its required beat
+Pin accepted Modules commit `3b8e0e5` and install its unchanged MGC11 package
+(accepted at `7f550b7`), resolve only the pacing recipe matching the persisted
+exact layout, and materialize its required beat
 sequence through a small Core-owned run tracker. Ancient Crossroads and Forked
 Canopy retain optional Wolf/route choices before the required Ent; Serpent Roots
 becomes the deliberate Wolf → Root → Ent → Moonwell → Heart gauntlet.
@@ -1078,3 +1079,29 @@ required pre-objective facts are complete and must truthfully expose the next
 missing beat through existing responsive raid presentation. Optional branches and
 rewards remain optional. Core owns all runtime state and authority; the module is
 immutable data only. Full lease is in `Docs/NEXT_JOB.md`.
+
+Acceptance: the installed exact MGC11 recipe now drives one run-local ordered
+tracker. Ancient Crossroads and Forked Canopy keep their optional Wolf choice,
+while Serpent Roots requires exact Wolf → Root → Ent → Moonwell facts before the
+Heart can progress. An early Heart approach remains at zero and shows one
+non-raycast factual `WARD:` instruction only while the hero is actually in range;
+retry reconstructs fresh state over the byte-identical saved layout. Missing or
+invalid package facts retain the legacy unwarded raid. Final Unity GUI gates
+passed EditMode `513/513` and PlayMode `124/124`, zero failures.
+
+## Ready next — 18.12 Root Shatter Possession Payoff (gameplay/content)
+
+Turn the already accepted Root Trap → possess Guardian Ent → Ground Slam cue into
+one real defense payoff. A successful manual Root Trap activation arms one
+run-local opportunity. Only the same exact rooted invader taking a factual
+Ground Slam impact from the currently possessed exact Guardian Ent may consume
+it: keep ordinary slam damage, apply one bounded additional hit through normal
+Health/armor authority, break the root, and show one short non-raycast
+`ROOT SHATTER!` confirmation.
+
+The activation is exact-once and must be consumed before synchronous damage can
+re-enter it. AI slams, wrong abilities/controllers/targets, expired root, death,
+release, terminal state, retry and teardown cannot resolve or retain the combo.
+No trap or ability base timing/stat change, auto-possession, auto-aim, new spawn,
+reward, persistence, camera authority, Canvas, art or audio belongs in this gate.
+Full lease is in `Docs/NEXT_JOB.md`.

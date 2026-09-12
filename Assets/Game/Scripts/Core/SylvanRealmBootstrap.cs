@@ -35,6 +35,7 @@ namespace RealmRaiders.Core
         {
             var identity = SylvanStarterRealmIdentity.LoadOrCreate();
             var layout = SylvanRealmLayoutMaterializer.Create(identity);
+            var pacingSnapshot = SylvanPacingRunTracker.ResolveSnapshot(layout.LayoutId);
             var composition = SylvanRaidCompositionSelection.Current;
             ValidateComposition(composition);
             var boundaryNodes = layout.CreateNodeFootprints();
@@ -46,6 +47,7 @@ namespace RealmRaiders.Core
                 Object.DestroyImmediate(root);
                 throw;
             }
+            var pacing = pacingSnapshot != null ? SylvanPacingRunTracker.Attach(root.transform, layout.LayoutId, pacingSnapshot) : null;
             var cameraRig = PrototypeRuntimeFactory.Camera(new Color(.018f, .055f, .035f), 52, new Vector3(0, 22, -11), Quaternion.Euler(60, 0, 0));
             PrototypeRuntimeFactory.DirectionalLight("Forest Moon", new Color(.68f, .86f, .76f), 1.25f, new Vector3(52, -28, 0));
             RenderSettings.ambientLight = new Color(.14f, .21f, .17f);
@@ -92,25 +94,38 @@ namespace RealmRaiders.Core
             var nodeViews = new List<RealmNodeView>();
             nodeViews.Add(Node(root, graph.Nodes[layout.PortalStart.GraphId], hero, At(layout.PortalStart), layout.PortalStart.Label));
             nodeViews.Add(Node(root, graph.Nodes[layout.LandmarkJunction.GraphId], hero, At(layout.LandmarkJunction), layout.LandmarkJunction.Label));
-            nodeViews.Add(Node(root, graph.Nodes[layout.WolfGroveEncounter.GraphId], hero, At(layout.WolfGroveEncounter), layout.WolfGroveEncounter.Label, nodeContents[StarterSylvanRaidCompositions.WolfGroveNodeId].ToArray()));
-            nodeViews.Add(Node(root, graph.Nodes[layout.EntGroveEncounter.GraphId], hero, At(layout.EntGroveEncounter), layout.EntGroveEncounter.Label, nodeContents[StarterSylvanRaidCompositions.EntGroveNodeId].ToArray()));
+            var wolfView = Node(root, graph.Nodes[layout.WolfGroveEncounter.GraphId], hero, At(layout.WolfGroveEncounter), layout.WolfGroveEncounter.Label, nodeContents[StarterSylvanRaidCompositions.WolfGroveNodeId].ToArray());
+            nodeViews.Add(wolfView);
+            var entView = Node(root, graph.Nodes[layout.EntGroveEncounter.GraphId], hero, At(layout.EntGroveEncounter), layout.EntGroveEncounter.Label, nodeContents[StarterSylvanRaidCompositions.EntGroveNodeId].ToArray());
+            nodeViews.Add(entView);
 
             var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Root Trap"; trapObject.transform.SetParent(root.transform); trapObject.transform.position = At(layout.RootPathHazard, .12f); trapObject.transform.localScale = new Vector3(2.4f, .12f, 2.4f); RealmLandmarkPresentation.Build(trapObject.transform, RealmLandmarkRecipe.SylvanRootTrap); trapObject.AddComponent<RootTrap>().Initialize(hero);
-            nodeViews.Add(Node(root, graph.Nodes[layout.RootPathHazard.GraphId], hero, At(layout.RootPathHazard), layout.RootPathHazard.Label, trapObject));
+            var rootPathView = Node(root, graph.Nodes[layout.RootPathHazard.GraphId], hero, At(layout.RootPathHazard), layout.RootPathHazard.Label, trapObject);
+            nodeViews.Add(rootPathView);
             var moonwellObject = CreateMoonwell(root.transform, At(layout.MoonwellRecovery), out var moonwellRenderer);
             var moonwellContents = nodeContents[StarterSylvanRaidCompositions.MoonwellNodeId];
             moonwellContents.Insert(0, moonwellObject);
-            nodeViews.Add(Node(root, graph.Nodes[layout.MoonwellRecovery.GraphId], hero, At(layout.MoonwellRecovery), layout.MoonwellRecovery.Label, moonwellContents.ToArray()));
+            var moonwellView = Node(root, graph.Nodes[layout.MoonwellRecovery.GraphId], hero, At(layout.MoonwellRecovery), layout.MoonwellRecovery.Label, moonwellContents.ToArray());
+            nodeViews.Add(moonwellView);
 
             var coreObject = CreateHeartTree(root.transform, At(layout.HeartTreeObjective, 2.5f));
             nodeViews.Add(Node(root, graph.Nodes[layout.HeartTreeObjective.GraphId], hero, At(layout.HeartTreeObjective), layout.HeartTreeObjective.Label, coreObject));
             foreach (var path in boundaryPaths) CreatePath(root.transform, new Vector3(path.Center.x, 0, path.Center.y), path.Size, path.Yaw);
 
             var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), enemies.ToArray(), coreObject.transform.position, ent);
+            if (pacing)
+            {
+                pacing.BindNode(layout.WolfGroveEncounter.RoleId, wolfView);
+                pacing.BindNode(layout.RootPathHazard.RoleId, rootPathView);
+                pacing.BindNode(layout.EntGroveEncounter.RoleId, entView);
+                pacing.BindNode(layout.MoonwellRecovery.RoleId, moonwellView);
+                if (!pacing.SealBindings()) pacing = null;
+                else pacing.BindRaid(manager);
+            }
             var moonwell = moonwellObject.AddComponent<MoonwellRecovery>(); moonwell.Initialize(hero, manager, moonwellRenderer);
-            var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero); core.InteractionStarted += manager.BeginObjective; core.Completed += manager.CompleteObjective;
+            var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero); core.SetInteractionWard(pacing ? () => pacing.IsWarded : null); core.InteractionStarted += manager.BeginObjective; core.Completed += manager.CompleteObjective;
             PrototypeRuntimeFactory.EventSystem(root.transform);
-            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>(), moonwell, variantDisplayName: composition.DisplayName); cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
+            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>(), moonwell, variantDisplayName: composition.DisplayName, objectiveWardCopy: () => core.HeroInRange && pacing && pacing.IsWarded ? $"WARD: {pacing.NextRequirementCopy}" : null); if (pacing) pacing.Changed += hud.RefreshObjectiveCopy; cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
             graph.Nodes[layout.PortalStart.GraphId].Visit();
         }
 

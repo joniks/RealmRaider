@@ -32,6 +32,7 @@ namespace RealmRaiders.UI
         string stateTitle;
         CombatEntity objectiveGuardian;
         System.Func<bool> objectiveLocked;
+        System.Func<string> objectiveWardCopy;
         string lockedObjectiveCopy;
         InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
@@ -80,14 +81,15 @@ namespace RealmRaiders.UI
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera,
             MoonwellRecovery recovery = null, RaidHudConfig raidConfig = null, CombatEntity exactObjectiveGuardian = null,
-            string variantDisplayName = null, System.Func<bool> objectiveLocked = null, string lockedObjectiveCopy = null)
+            string variantDisplayName = null, System.Func<bool> objectiveLocked = null, string lockedObjectiveCopy = null,
+            System.Func<string> objectiveWardCopy = null)
         {
             config = raidConfig ?? RaidHudConfig.Sylvan;
             stateTitle = string.IsNullOrWhiteSpace(variantDisplayName) ? config.StateTitle : $"{config.StateTitle} • {variantDisplayName.ToUpperInvariant()}";
             if (config.SupportsJourney && PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; moonwell = recovery; objectiveGuardian = exactObjectiveGuardian;
-            this.objectiveLocked = objectiveLocked; this.lockedObjectiveCopy = lockedObjectiveCopy; Build();
+            this.objectiveLocked = objectiveLocked; this.lockedObjectiveCopy = lockedObjectiveCopy; this.objectiveWardCopy = objectiveWardCopy; Build();
             manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter; manager.Rewarded += OnReward;
             hero.Health.Changed += OnHeroHealthChanged;
             Refresh(); OnState(manager.State); OnEncounter(manager.Encounter);
@@ -156,7 +158,7 @@ namespace RealmRaiders.UI
             presentation.DecorateRealmLabel(state, config.RealmIdentity);
             health = Label("", new Vector2(35, -105), 28, TextAnchor.UpperLeft);
             stats = Label("", new Vector2(35, -150), 25, TextAnchor.UpperLeft);
-            objective = Label(ObjectiveCopy(), new Vector2(0, -205), 28, TextAnchor.UpperCenter);
+            objective = Label(ObjectiveCopy(), new Vector2(0, -205), 28, TextAnchor.UpperCenter); objective.raycastTarget = false;
             objectiveCompass = Label("", Vector2.zero, 24, TextAnchor.MiddleCenter); objectiveCompass.name = "Heart Tree Compass"; objectiveCompass.raycastTarget = false; objectiveCompass.gameObject.SetActive(false);
             rootPrompt = Label("", new Vector2(0, 350), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             controlHint = Label("", new Vector2(0, 45), 23, TextAnchor.LowerCenter, true); controlHint.raycastTarget = false;
@@ -274,8 +276,17 @@ namespace RealmRaiders.UI
             objectiveProgress = progress;
             objective.text = progress > 0 ? $"Capturing {config.ObjectiveName}  {progress * 100:0}%" : ObjectiveCopy();
         }
+        public void RefreshObjectiveCopy()
+        {
+            if (objective && objectiveProgress <= .001f) objective.text = ObjectiveCopy();
+        }
         string ObjectiveCopy()
         {
+            if (!GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf) && objectiveWardCopy != null)
+            {
+                var wardCopy = objectiveWardCopy();
+                if (!string.IsNullOrWhiteSpace(wardCopy)) return wardCopy;
+            }
             var locked = objectiveLocked != null
                 ? objectiveLocked()
                 : objectiveGuardian && objectiveGuardian.Health != null && !objectiveGuardian.Health.IsDead;
@@ -470,6 +481,7 @@ namespace RealmRaiders.UI
         {
             if (raid) { raid.StateChanged -= OnState; raid.Finished -= ShowResult; raid.EncounterChanged -= OnEncounter; raid.Rewarded -= OnReward; }
             if (hero && hero.Health != null) hero.Health.Changed -= OnHeroHealthChanged;
+            objectiveWardCopy = null;
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
             encounterCue?.Clear();
             rewardCue?.Clear();

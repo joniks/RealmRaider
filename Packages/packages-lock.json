@@ -50,6 +50,14 @@
       "source": "local",
       "dependencies": {}
     },
+    "com.realmraiders.sylvan-encounter-pacing": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-encounter-pacing",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.realmraiders.starter-realm-layouts": "0.2.1"
+      }
+    },
     "com.realmraiders.sylvan-encounters": {
       "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-encounters",
       "depth": 0,

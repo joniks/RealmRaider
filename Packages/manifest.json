@@ -8,6 +8,7 @@
     "com.realmraiders.sylvan-defense-tradeoffs": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-defense-tradeoffs",
     "com.realmraiders.starter-character-catalog": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.starter-character-catalog",
     "com.realmraiders.starter-realm-layouts": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.starter-realm-layouts",
+    "com.realmraiders.sylvan-encounter-pacing": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-encounter-pacing",
     "com.realmraiders.sylvan-encounters": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-encounters",
     "com.unity.inputsystem": "1.20.0",
     "com.unity.render-pipelines.universal": "17.6.0",
@@ -30,6 +31,7 @@
     "com.realmraiders.large-creature-combat-rhythm",
     "com.realmraiders.starter-character-catalog",
     "com.realmraiders.starter-realm-layouts",
+    "com.realmraiders.sylvan-encounter-pacing",
     "com.realmraiders.sylvan-defense-tradeoffs",
     "com.realmraiders.sylvan-encounters"
   ]

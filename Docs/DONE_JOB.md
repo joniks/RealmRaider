@@ -1,5 +1,40 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 18.11 — Per-Layout Sylvan Pacing Ward
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Installed the exact MGC11 pacing package and pinned Modules head `3b8e0e5`,
+  including its direct Unity test-assembly dependency correction.
+- One Core-owned run tracker copies only the validated recipe matching the saved
+  layout and advances exact ordered entry/death facts without giving the module
+  scene, combat, reward, persistence or UI authority.
+- Ancient Crossroads and Forked Canopy require the Guardian Ent while their Wolf
+  branch remains optional. Serpent Roots requires exact Wolf clear, Root Path
+  entry, Ent clear and Moonwell entry before Heart capture can begin.
+- While warded, Heart progress remains zero and emits no start/completion events.
+  Only an actual in-range approach shows the next factual non-raycast `WARD:`
+  instruction; leaving range clears it without a frame-order presentation lag.
+- Missing, invalid or mismatched facts fail closed to the existing unwarded raid.
+  Same-scene retry reconstructs fresh pacing over the byte-identical identity and
+  topology with no old subscription, completion or HUD copy.
+
+### Verification
+
+- Static review corrected uppercase tactical-copy validation, non-raycast UI,
+  direct Unity asmdef dependencies and the read-time Heart range query.
+- The first final PlayMode run passed `123/124` and exposed one real sibling
+  `Update` ordering defect: HUD could retain `WARD:` for one frame after range
+  exit. `RealmCore.HeroInRange` now evaluates the factual current distance and the
+  strict one-frame assertion remains intact.
+- After the final Refresh, Unity GUI gates passed EditMode `513/513` at
+  2026-09-12 18:13:06Z–18:13:08Z and PlayMode `124/124` at
+  2026-09-12 18:13:33Z–18:15:21Z, with zero failures.
+- `git diff --check` is clean. The user's current Android run owns the route and
+  pacing feel judgment; no additional unobserved manual result is claimed.
+
 ## Diamond Pass 18.10 — Node-Entry Encounter Activation
 
 Completed on 2026-09-12; included with this project commit.
