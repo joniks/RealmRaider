@@ -63,6 +63,8 @@ Design laws:
 
 ## Feedback-derived working behavior
 
+- Since 2026-09-12, allocate roughly 70% of planned effort to playable gameplay/content and 30% to foundation/polish. Follow `Docs/GAMEPLAY_ROADMAP.md`; UI copy, icons and generic validators alone do not count as gameplay. Repair reported playability defects first, then advance the queued gameplay slice.
+- Pending physical-device feedback is a dependency of that check only. It must not block independent authorized Core or Module work.
 - Keep moving when the next safe action is already authorized. Do not turn an intermediate progress note into an idle stop; either take the next leased step or report the exact external blocker.
 - An intermediate result is never a terminal state. After every handoff, the producing role immediately continues its current lease if unfinished or switches to read-only preparation of the next queued lease while Architect reviews the frozen candidate.
 - A user push is never a prerequisite for local continuation. Architect commits accepted work; Core and Module work from the named local committed base whether or not the user has pushed it yet.

@@ -712,9 +712,46 @@ Animator, root motion, physics, scene scan or gameplay dependency. QA installati
 in the main project compiled and discovered both Module Editor assemblies; the
 complete final EditMode gate passed `244/244` after the two test-only corrections.
 
-## Ready — Guardian Ent Source Intake
+## Superseded — Guardian Ent Source Intake
 
-Wait for the user's explicit source selection. The current preferred candidate is
-the creator-published Tennessippi Free Treant Pack (CC0, two rigged stylized models,
-ten listed animations); no archive may be downloaded or approved until the exact
-selection, archive contents, licence evidence and mobile budgets are verified.
+This old waiting gate is complete through the accepted Tree01 static/Generic
+pilot and 15.16B integration. Do not repeat acquisition, import or motion readiness
+work. Modules baseline is `42fbbc8`; later accepted MMP08–MMP11 and MART05 work are
+recorded in PROTOTYPE_STATUS and DONE_JOB.
+
+## Now — MGC01 Three Authored Sylvan Raid Compositions
+
+Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
+Workspace: `Modules/RealmRaider.Modules` only. Base `42fbbc8`.
+Reserved folder: `Packages/com.realmraiders.sylvan-encounters/` (new, clean).
+Handoff: frozen package/data/test diff, compact report; no Unity/main/commit/push.
+
+Implement immutable explicit content with three full-raid compositions. Spawn
+records contain stable archetype ID, unique per-run spawn ID/display name, node
+ID, node-local X/Z offset and scale. No stat/ability duplication, Unity dependency,
+random selection, spawner, discovery, generic validator/provider framework or Y
+coordinates. Core owns placement, selection, authoritative entities and rewards.
+
+- Baseline: Wolf Grove two wolves `(1,-1)` scale .75 and `(-1.5,1.7)` scale .68;
+  Ent Grove one Ent `(0,0)` scale 1.45.
+- Wolf pressure: Wolf Grove two wolves `(1,-1)` and `(-2,1.5)`; Ent Grove one
+  Ent `(0,0)`; Moonwell one wolf `(-1.8,1.5)`. Wolves scale .68–.75. Four total.
+- Sentinel escort: Wolf Grove one wolf `(1,-1)`; Ent Grove Ent `(-1.1,0)` and
+  one wolf `(1.8,1.4)`. Three total. Keep separation between scaled capsules.
+
+The old Scout offset `(-2,3)` is 3.61m from a node centre and outside the 3.25m
+node circle; the prepared baseline deliberately corrects that spawn. Require
+offset radius + scaled capsule radius + 0.2m clearance <= 3.25m for every spawn.
+All use existing approved roster. No mandatory Root Path trap ambush: current
+11m detection can engage before node entry, and unavoidable root damage would
+undermine the intended choice. These names describe authored composition, not
+new pincer/navigation AI. Package tests prove identities, immutable isolation,
+baseline roster/scales, corrected Scout placement, counts/allowed nodes and safe
+finite separated offsets.
+
+## Next — MGC01 Core integration handoff
+
+Dependency: package static acceptance and 18.0/18.1/18.2 Core gates. Core 18.3
+materializes the chosen composition through existing Entity/Node/RaidManager,
+with explicit spawn lists, existing rewards/fog and a truthful pre-run choice.
+No automatic integration or extra Modules work before this candidate is reviewed.

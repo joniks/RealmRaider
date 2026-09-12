@@ -1,6 +1,17 @@
 # Realm Raiders — Prototype Status
 
-Last reviewed: 2026-09-11
+Last reviewed: 2026-09-12
+
+## Current work — not yet accepted
+
+- User smoke on 2026-09-12 reports Ent moving backwards, Sylvan raid Ent floating
+  above the walkable surface, and insufficient crouch/recovery after jumping or
+  falling. These are real reported defects despite the preceding green baseline.
+- 18.0 is assigned to Core for visual fit and factual landing recovery; no new
+  Unity verification or acceptance is claimed yet.
+- Priority changes to 70% gameplay/content and 30% foundation/polish by planned
+  effort. Next: Sylvan route risk/reward, then Ent attack rhythm and encounter
+  variants. See `GAMEPLAY_ROADMAP.md`; these are planned, not implemented.
 
 ## Latest verification
 

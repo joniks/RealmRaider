@@ -33,6 +33,12 @@ The separate QA conversation is active again. Only QA controls Unity and produce
 
 ## Fast, reliable rhythm
 
+Priority since 2026-09-12: 70% gameplay/content, 30% foundation/polish by planned
+effort. First repair reported Ent facing/grounding and landing recovery (18.0),
+then implement the gameplay sequence in `GAMEPLAY_ROADMAP.md`. Device smoke is a
+local evidence dependency, never a reason to idle unrelated authorized work.
+During this motion iteration Android export is user-owned/not requested.
+
 1. Read `NEXT_JOB.md`, inspect status and edit only the named lease.
 2. Core freezes a narrow candidate and reports six facts. Architect checks scope and `git diff --check`, then issues one named QA lease.
 3. QA runs focused checks, then exactly one final EditMode and PlayMode run after the final change. A green suite is never rerun without a concrete cause.

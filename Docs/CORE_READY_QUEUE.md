@@ -822,8 +822,26 @@ failed/skipped/inconclusive tests. Reuse, latest data, refreshed expiry,
 multi-target independence and all cleanup paths passed without compiler/runtime
 errors or new duplicate-listener warnings.
 
-## Ready — Diamond Pass 17.3: Next Player-Visible Loop Gate
+## Closed — 17.3 Read-Only Audit
 
-Architect will select one code-proven gap in the canonical Build → Raid → Possess →
-Defend → Result → Build loop outside the completed combat-marker cluster. The next
-lease must remain a bounded vertical slice and preserve current authority.
+The audit produced no implemented feature. Its device-smoke dependency does not
+block development and is superseded by the user's 2026-09-12 concrete feedback.
+
+## Active — 18.0 Ent Grounding and Landing Recovery (foundation/polish)
+
+Owner: Core developer. Base `d861f9c`. Full reserved paths and acceptance are in
+`Docs/NEXT_JOB.md`. Correct imported Ent forward/foot fit in animated and static
+paths, and add factual jump/non-jump-fall landing compression and recovery.
+Architect static review then QA-only Unity; no export in this iteration.
+
+## Ready — 18.1 Sylvan Risk/Reward Route Choice (gameplay/content)
+
+Dependency: accepted 18.0 commit. Core may inspect read-only before activation.
+Use the existing Moonwell node for one real bounded recovery per raid; keep its
+charge when the hero is full and prohibit resurrection/terminal healing. Give the
+explicit optional Sylvan Ent encounter one extra Rare Material on its factual
+defeat through existing exact-once raid rewards. This creates a reason to take the
+dangerous detour and a limited recovery resource for continuing to Heart Tree.
+Keep control-mode gestures and save/result credit ownership intact. Reserve exact
+paths in NEXT_JOB before implementation. Starting balance and follow-ups are in
+`Docs/GAMEPLAY_ROADMAP.md`; no new model/package is required by this gate.

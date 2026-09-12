@@ -21,6 +21,20 @@ BUILD → INVADE → FIGHT → POSSESS → DEFEND → RESULT
 
 ## Design laws
 
+### Development priority — 2026-09-12
+
+Allocate roughly 70% of the next development effort to playable gameplay/content
+and 30% to foundation/polish. Measure estimated effort across a rolling batch, not
+commit counts. The user's Ent facing/grounding and landing defects are the first
+repair batch; then advance substantive gameplay slices. A feature must change a
+player decision, encounter, consequence or replay opportunity. More labels, icons,
+validators and speculative abstractions do not count as gameplay/content.
+
+`Docs/GAMEPLAY_ROADMAP.md` records the source-backed priorities and intended play
+checks. Device validation can remain pending while independent authorized work
+continues; it is never a global development stop. Do not claim pending features or
+untested balance as implemented or fun.
+
 1. Everything you build can be played.
 2. Creatures are characters, not towers.
 3. Every race changes gameplay, not only visuals.
