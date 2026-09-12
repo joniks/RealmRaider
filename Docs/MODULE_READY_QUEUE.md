@@ -834,3 +834,21 @@ zero-alpha outer edges. Deterministic 512/256 derivatives preserve the empty cen
 and 64 px silhouette; the 256 candidate is the recommended first Core pilot.
 Unity blend/import, short lifetime and overdraw remain a later named integration
 gate; no `.meta`, material, shader or runtime binding is claimed.
+
+## Accepted — MGC05–MGC07 Infernal Variant Production Data
+
+Accepted Modules commits: `76b7097`, `911678a` and `2a53c36` on 2026-09-12.
+Package: `Packages/com.realmraiders.infernal-encounters/` only.
+
+- MGC05 supplies exact immutable spatial recipes for Entry Trial and Risk Route
+  alongside the unchanged Brute Finale, including truthful no-hazard/one-hazard
+  cardinality and safe bypass corridors.
+- MGC06 supplies exact ordinal lookup and deterministic fail-closed evidence that
+  spatial facts match their pacing composition, including hazard representation,
+  placement, nonblocking presentation and left/right bypass semantics.
+- MGC07 supplies cached canonical names and concise all-caps tactical summaries
+  derived only from existing enemies, optional Flame bypass and approximate time.
+
+The complete package tests ran in the 18.3 Unity gate; final EditMode was
+`423/423`. These modules do not select, spawn, time, reward or render a raid; Core
+18.4 remains the sole gameplay/UI adapter and authority.

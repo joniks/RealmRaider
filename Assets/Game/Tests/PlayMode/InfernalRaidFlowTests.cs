@@ -23,8 +23,10 @@ namespace RealmRaiders.Tests
         public IEnumerator BruteFinale_MaterializesDirectEntOptionalHoundsBypassAndSameSceneRetry()
         {
             var saved = new SavedProgress();
+            var previousTimeScale = Time.timeScale;
             try
             {
+                Time.timeScale = 0;
                 GameplayInput.ResetForTests(); PrototypeJourney.Cancel(); RealmProgress.ResetForTests();
                 SceneManager.LoadScene(InfernalRaidBootstrap.SceneName); yield return null; yield return null;
 
@@ -51,6 +53,7 @@ namespace RealmRaiders.Tests
                 Assert.That(ent.Abilities.Select(item => item.Definition.DisplayName), Is.EqualTo(new[] { "Smash", "Charge", "Ground Slam" }));
                 Assert.That(ent.Abilities[2].Definition.Recovery, Is.EqualTo(.8f).Within(.0001f));
                 Assert.That(ent.GetComponent<CharacterVisualMotion>(), Is.Not.Null, "The accepted Guardian Ent presentation remains animated.");
+                Time.timeScale = previousTimeScale;
 
                 Assert.That(flame.Automatic, Is.True); Assert.That(flame.TriggerRadius, Is.EqualTo(2f)); AssertPosition(flame.transform, 0, 2);
                 Assert.That(flame.transform.localScale.x, Is.EqualTo(flame.TriggerRadius * 2)); Assert.That(flame.transform.localScale.z, Is.EqualTo(flame.TriggerRadius * 2));
@@ -85,7 +88,7 @@ namespace RealmRaiders.Tests
                 Assert.That(Object.FindObjectsByType<Camera>(FindObjectsSortMode.None), Has.Length.EqualTo(1)); Assert.That(Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None), Has.Length.EqualTo(1)); Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
                 Assert.That(PrototypeJourney.IsActive, Is.False);
             }
-            finally { GameplayInput.ResetForTests(); PrototypeJourney.Cancel(); saved.Restore(); }
+            finally { Time.timeScale = previousTimeScale; GameplayInput.ResetForTests(); PrototypeJourney.Cancel(); saved.Restore(); }
         }
 
         [UnityTest]

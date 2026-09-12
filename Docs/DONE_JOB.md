@@ -3908,3 +3908,34 @@ Completed on 2026-09-12; included with this project commit.
 - QA used the existing in-Editor menu gates after one required Assets Refresh;
   no CLI, restart or second Unity process was used. Manual cadence/feel is unobserved
   through QA's AX-only Game surface and remains for user playtesting.
+
+## Diamond Pass 18.3 — Authored Sylvan Encounter Variants
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Installed the accepted no-engine Sylvan encounter package and added one
+  session-only Hub selector for `Baseline`, `Wolf Pressure` and `Sentinel Escort`.
+  Selection changes without loading a scene and is retained by direct raid,
+  journey and same-scene retry; app subsystem start resets to Baseline.
+- `SylvanRealmBootstrap` now materializes the selected package facts through the
+  existing entity, node, AI, reward and Moonwell paths. Each run has exactly one
+  Guardian Ent bonus target; the Wolf Pressure Moonwell Wolf stays hidden until
+  its node is revealed, and Root Path receives no new hostile.
+- Raid HUD state copy names the active variant. Hub controls have explicit
+  portrait/landscape bounds and non-overlap coverage.
+- Modules MGC05–MGC07 add complete spatial recipes, fail-closed validation and
+  concise truthful presentation facts for the three future Infernal variants.
+
+### Verification
+
+- Final EditMode passed `423/423`; final PlayMode passed `116/116`, with zero
+  failed/skipped/inconclusive tests and no new compiler/runtime errors.
+- QA used one healthy Unity GUI process and the existing menu gates. Earlier runs
+  exposed and corrected only deterministic fixture isolation issues: authored
+  spawn sampling before AI movement, Root Trap traversal order and synchronous
+  node-visit publication. Gameplay, AI, trap and encounter authority were not
+  changed for those corrections.
+- Manual Hub/Wolf Pressure smoke remains unobserved because QA could focus only
+  Unity window chrome, not a safely operable Game viewport/input surface.

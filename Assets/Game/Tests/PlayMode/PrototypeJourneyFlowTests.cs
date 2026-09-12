@@ -26,6 +26,8 @@ namespace RealmRaiders.Tests
                 SceneManager.LoadScene("PrototypeHub"); yield return null; yield return null;
                 Assert.That(GameObject.Find("Label " + HubHUD.JourneyExplanation).GetComponent<Text>().text, Is.EqualTo("1. BUILD DEFENCES  →  2. RAID THE ENEMY  →  3. DEFEND YOUR REALM"));
                 AssertSceneSingletons();
+                GameObject.Find(HubHUD.SylvanRaidVariantAction).GetComponent<Button>().onClick.Invoke();
+                Assert.That(Object.FindFirstObjectByType<HubHUD>().SylvanRaidVariantText, Is.EqualTo("NEXT SYLVAN RAID: WOLF PRESSURE — TAP TO CHANGE"));
 
                 GameObject.Find("START SYLVAN JOURNEY").GetComponent<Button>().onClick.Invoke();
                 yield return null; yield return null;
@@ -45,6 +47,9 @@ namespace RealmRaiders.Tests
 
                 Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("SylvanRealm"));
                 Assert.That(PrototypeJourney.Stage, Is.EqualTo(PrototypeJourneyStage.Raid));
+                Assert.That(SylvanRaidCompositionSelection.DisplayName, Is.EqualTo("Wolf Pressure"));
+                Assert.That(Object.FindFirstObjectByType<RaidHUD>().StateText, Does.StartWith("SYLVAN RAID • WOLF PRESSURE"));
+                Assert.That(Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(5));
                 Assert.That(FirstPlayableMinute.ChangedBuildAcceptedForSession, Is.True, "Raid must not consume the changed-BUILD handoff.");
                 Assert.That(Object.FindFirstObjectByType<FirstPlayableMinuteDefenseGuide>(), Is.Null);
                 var raid = Object.FindFirstObjectByType<RaidManager>();
@@ -249,6 +254,7 @@ namespace RealmRaiders.Tests
             PrototypeSave.SelectRealm("Sylvan");
             PrototypeSave.SetOrientation("Auto");
             PrototypeSave.SetControlStyle("Contextual");
+            SylvanRaidCompositionSelection.ResetForTests();
             GameplayInput.ResetForTests();
         }
 
@@ -373,6 +379,7 @@ namespace RealmRaiders.Tests
                 PrototypeSave.SetOrientation(orientation);
                 PrototypeSave.SetControlStyle(control);
                 PrototypeJourney.ResetForTests();
+                SylvanRaidCompositionSelection.ResetForTests();
                 FirstPlayableMinute.ResetBuildHandoff();
                 GameplayInput.ResetForTests();
                 Time.timeScale = 1;

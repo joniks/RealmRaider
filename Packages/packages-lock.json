@@ -38,6 +38,12 @@
       "source": "local",
       "dependencies": {}
     },
+    "com.realmraiders.sylvan-encounters": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-encounters",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.burst": {
       "version": "2.0.0",
       "depth": 2,

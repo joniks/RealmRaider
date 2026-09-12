@@ -238,6 +238,17 @@ Last reviewed: 2026-09-12
 - The Jump icon is an original-generated preview with local provenance, not final approved UI art. Its focused automated behavior is green, but its planned Defender/Sylvan Game View and physical-device readability checks remain pending.
 - The 12.6 Build Plan preview was manually readable in portrait. Its manual Game-view slot-cycle and `1280×720` landscape smoke were not observed because pointer input was unavailable during the check; the focused PlayMode flow test covers those behaviors.
 
+- Diamond Pass 18.3 Authored Sylvan Encounter Variants is present: the Hub now
+  offers a session-only Baseline/Wolf Pressure/Sentinel Escort choice, and direct
+  raid, journey and retry materialize its exact package-authored enemies through
+  existing node/reward authority. Wolf Pressure keeps its Moonwell Wolf hidden
+  until reveal, every run has one exact Ent bonus target, and the Raid HUD names
+  the active variant. Final QA passed EditMode `423/423` and PlayMode `116/116`.
+- Modules MGC05–MGC07 are pinned for the next gameplay slice: all three Infernal
+  pacing choices now have immutable spatial recipes, fail-closed lookup/validation
+  and concise truthful presentation facts. Core still owns selection, spawning,
+  combat, objectives, rewards and UI.
+
 ## Directory guide
 
 ```text

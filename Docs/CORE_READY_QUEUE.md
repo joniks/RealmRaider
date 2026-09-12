@@ -907,10 +907,25 @@ states instead of going blank. Final QA passed EditMode `394/394` and PlayMode
 `114/114`, zero failed/skipped/inconclusive, with no new compiler/runtime errors.
 Manual cadence/feel remains user-observed because QA could not access Game pixels.
 
-## Active next — 18.3 Authored Sylvan Encounter Variants (gameplay/content)
+## Accepted — 18.3 Authored Sylvan Encounter Variants (gameplay/content)
 
 Install MGC01 and materialize all three reviewed compositions through the existing
 Sylvan entity/node/reward path. Provide one explicit, truthful Hub choice that
 cycles Baseline, Wolf Pressure and Sentinel Escort; launched raid and retry use the
 shown session selection. No randomizer, new persistence claim, copied stats or new
 spawn framework. Exact paths and acceptance belong in NEXT_JOB before Core writes.
+
+Acceptance: the session-only selector and all three exact compositions are now
+playable through direct raid, journey and retry. Moonwell reveal ownership, one
+Ent bonus target and responsive Hub layout remain truthful. Final QA passed
+EditMode `423/423` and PlayMode `116/116`, zero failed/skipped/inconclusive, with
+no new compiler/runtime errors. Manual feel remains user-observed.
+
+## Active next — 18.4 Authored Infernal Ent Raid Variants (gameplay/content)
+
+Use the accepted Infernal pacing, spatial evidence and presentation catalogues to
+turn the existing fixed Brute Finale into three explicit session-only choices:
+Entry Trial, Risk Route and Brute Finale. Preserve Brute Finale as the default,
+materialize only exact validated recipe facts, keep trap bypass and objective gates
+truthful, and expose the choice through a coherent Hub selector layout without
+crowding the accepted Sylvan selector. Full lease is in `Docs/NEXT_JOB.md`.

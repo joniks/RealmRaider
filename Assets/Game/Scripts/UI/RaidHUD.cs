@@ -29,6 +29,7 @@ namespace RealmRaiders.UI
         RaidRewardCue rewardCue;
         MoonwellRecovery moonwell;
         RaidHudConfig config;
+        string stateTitle;
         CombatEntity objectiveGuardian;
         InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
@@ -76,9 +77,11 @@ namespace RealmRaiders.UI
         public string RetryScene => config?.RetryScene ?? RaidHudConfig.Sylvan.RetryScene;
 
         public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera,
-            MoonwellRecovery recovery = null, RaidHudConfig raidConfig = null, CombatEntity exactObjectiveGuardian = null)
+            MoonwellRecovery recovery = null, RaidHudConfig raidConfig = null, CombatEntity exactObjectiveGuardian = null,
+            string variantDisplayName = null)
         {
             config = raidConfig ?? RaidHudConfig.Sylvan;
+            stateTitle = string.IsNullOrWhiteSpace(variantDisplayName) ? config.StateTitle : $"{config.StateTitle} • {variantDisplayName.ToUpperInvariant()}";
             if (config.SupportsJourney && PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
             raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; moonwell = recovery; objectiveGuardian = exactObjectiveGuardian; Build();
@@ -146,7 +149,7 @@ namespace RealmRaiders.UI
             var canvas = gameObject.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = gameObject.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920);
             gameObject.AddComponent<GraphicRaycaster>(); responsive = gameObject.AddComponent<ResponsiveHudRoot>(); responsive.LayoutChanged += ApplyResultLayout; responsive.Initialize(true);
-            state = Label(config.StateTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
+            state = Label(stateTitle, new Vector2(0, -40), 38, TextAnchor.UpperCenter);
             presentation.DecorateRealmLabel(state, config.RealmIdentity);
             health = Label("", new Vector2(35, -105), 28, TextAnchor.UpperLeft);
             stats = Label("", new Vector2(35, -150), 25, TextAnchor.UpperLeft);
@@ -273,7 +276,7 @@ namespace RealmRaiders.UI
             : $"Reach the {config.ObjectiveName}";
         void OnState(RaidState value)
         {
-            state.text = $"{config.StateTitle} — {value}";
+            state.text = $"{stateTitle} — {value}";
             presentation.DecorateRealmLabel(state, config.RealmIdentity);
             if (value == RaidState.RaidStarting) rewardCue?.Clear();
             if (value is RaidState.Victory or RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) encounterCue?.Clear();

@@ -218,6 +218,7 @@ namespace RealmRaiders.Tests
         [UnityTest]
         public IEnumerator SylvanRealm_BootstrapsCompletePlayableRaid()
         {
+            SylvanRaidCompositionSelection.ResetForTests();
             SceneManager.LoadScene("SylvanRealm");
             yield return null;
             yield return null;
@@ -242,6 +243,105 @@ namespace RealmRaiders.Tests
             AssertRealmIdentityMark(raidHud, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "SYLVAN RAID");
             AssertSingleViewAndListener();
             AssertCombatHudBinding();
+        }
+
+        [UnityTest]
+        public IEnumerator SylvanRaidVariants_MaterializeExactAuthoredFactsAndTruthfulNodeContents()
+        {
+            var variants = new[]
+            {
+                new VariantExpectation("realmraiders.sylvan-raid.baseline", "Baseline",
+                    new SpawnExpectation("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -13, -11, .75f),
+                    new SpawnExpectation("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -15.5f, -8.3f, .68f),
+                    new SpawnExpectation("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 14, 4, 1.45f)),
+                new VariantExpectation("realmraiders.sylvan-raid.wolf-pressure", "Wolf Pressure",
+                    new SpawnExpectation("Wolf Alpha", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -13, -11, .75f),
+                    new SpawnExpectation("Wolf Hunter", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -16, -8.5f, .68f),
+                    new SpawnExpectation("Sylvan Ent", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 14, 4, 1.45f),
+                    new SpawnExpectation("Moonwell Wolf", PrototypeCharacterRoster.SylvanWolfId, "Moonwell", 8.2f, 28.5f, .68f)),
+                new VariantExpectation("realmraiders.sylvan-raid.sentinel-escort", "Sentinel Escort",
+                    new SpawnExpectation("Wolf Scout", PrototypeCharacterRoster.SylvanWolfId, "Wolf Grove", -13, -11, .75f),
+                    new SpawnExpectation("Ent Sentinel", PrototypeCharacterRoster.GuardianEntId, "Ent Grove", 12.9f, 4, 1.45f),
+                    new SpawnExpectation("Ent Grove Wolf", PrototypeCharacterRoster.SylvanWolfId, "Ent Grove", 15.8f, 5.4f, .68f))
+            };
+            try
+            {
+                foreach (var variant in variants)
+                {
+                    SylvanRaidCompositionSelection.Select(variant.Id);
+                    SceneManager.LoadScene("SylvanRealm"); yield return null; yield return null;
+                    var raid = Object.FindFirstObjectByType<RaidManager>();
+                    var hero = SceneEntity("Blood Knight");
+                    var sceneEntities = Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                    Assert.That(sceneEntities, Has.Length.EqualTo(variant.Spawns.Length + 1));
+                    Assert.That(Object.FindFirstObjectByType<RaidHUD>().StateText, Does.StartWith($"SYLVAN RAID • {variant.Name.ToUpperInvariant()}"));
+                    foreach (var spawn in variant.Spawns)
+                    {
+                        var entity = SceneEntity(spawn.Name);
+                        Assert.That(entity.Definition.ArchetypeId, Is.EqualTo(spawn.ArchetypeId), spawn.Name);
+                        Assert.That(entity.transform.position.x, Is.EqualTo(spawn.X).Within(.001f), spawn.Name);
+                        Assert.That(entity.transform.position.z, Is.EqualTo(spawn.Z).Within(.001f), spawn.Name);
+                        Assert.That(entity.transform.localScale, Is.EqualTo(Vector3.one * spawn.Scale), spawn.Name);
+                    }
+                    Assert.That(variant.Spawns.Count(spawn => spawn.ArchetypeId == PrototypeCharacterRoster.GuardianEntId), Is.EqualTo(1));
+
+                    var moonwellWolf = variant.Spawns.Any(spawn => spawn.Name == "Moonwell Wolf") ? SceneEntity("Moonwell Wolf") : null;
+                    if (moonwellWolf) Assert.That(moonwellWolf.gameObject.activeSelf, Is.False, "Moonwell Wolf must remain hidden with its authored node.");
+                    foreach (var node in new[]
+                    {
+                        (Id: "Wolf Grove", Position: new Vector3(-14, 0, -10)),
+                        (Id: "Ent Grove", Position: new Vector3(14, 0, 4)),
+                        (Id: "Moonwell", Position: new Vector3(10, 0, 27)),
+                        (Id: "Root Path", Position: new Vector3(0, 0, 5))
+                    })
+                    {
+                        hero.transform.position = new Vector3(node.Position.x, hero.transform.position.y, node.Position.z);
+                        var nodeView = Object.FindObjectsByType<RealmNodeView>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                            .Single(view => view.Node.Id == node.Id);
+                        nodeView.SendMessage("Update", SendMessageOptions.RequireReceiver);
+                        Assert.That(raid.Encounter.NodeId, Is.EqualTo(node.Id));
+                        Assert.That(raid.Encounter.RemainingHostiles, Is.EqualTo(variant.Spawns.Count(spawn => spawn.NodeId == node.Id)), node.Id);
+                    }
+                    if (moonwellWolf) Assert.That(moonwellWolf.gameObject.activeSelf, Is.True, "Entering Moonwell reveals its exact authored hostile.");
+
+                    var wolf = variant.Spawns.Select(spawn => SceneEntity(spawn.Name)).First(entity => entity.Definition.ArchetypeId == PrototypeCharacterRoster.SylvanWolfId);
+                    var ent = variant.Spawns.Select(spawn => SceneEntity(spawn.Name)).Single(entity => entity.Definition.ArchetypeId == PrototypeCharacterRoster.GuardianEntId);
+                    wolf.Health.TakeDamage(new DamageInfo(10000, hero.gameObject, wolf.transform.position), 0);
+                    Assert.That(raid.RareMaterials, Is.Zero);
+                    ent.Health.TakeDamage(new DamageInfo(10000, hero.gameObject, ent.transform.position), 0);
+                    Assert.That(raid.RareMaterials, Is.EqualTo(1), "Only the selected composition's stable-ID Ent is the bonus target.");
+                    ent.Health.TakeDamage(new DamageInfo(10000, hero.gameObject, ent.transform.position), 0);
+                    Assert.That(raid.RareMaterials, Is.EqualTo(1), "Bonus reward remains exact-once.");
+                }
+            }
+            finally { SylvanRaidCompositionSelection.ResetForTests(); }
+        }
+
+        [UnityTest]
+        public IEnumerator HubSylvanSelector_DirectRaidAndRetryPreserveVisibleChoice()
+        {
+            SylvanRaidCompositionSelection.ResetForTests();
+            try
+            {
+                SceneManager.LoadScene("PrototypeHub"); yield return null; yield return null;
+                var hub = Object.FindFirstObjectByType<HubHUD>();
+                Assert.That(hub.SylvanRaidVariantText, Is.EqualTo("NEXT SYLVAN RAID: BASELINE — TAP TO CHANGE"));
+                var selector = GameObject.Find(HubHUD.SylvanRaidVariantAction).GetComponent<Button>();
+                selector.onClick.Invoke();
+                Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("PrototypeHub"), "Changing composition cannot load a scene.");
+                Assert.That(hub.SylvanRaidVariantText, Is.EqualTo("NEXT SYLVAN RAID: WOLF PRESSURE — TAP TO CHANGE"));
+                selector.onClick.Invoke();
+                Assert.That(hub.SylvanRaidVariantText, Is.EqualTo("NEXT SYLVAN RAID: SENTINEL ESCORT — TAP TO CHANGE"));
+
+                GameObject.Find("RAID SYLVAN").GetComponent<Button>().onClick.Invoke(); yield return null; yield return null;
+                Assert.That(Object.FindFirstObjectByType<RaidHUD>().StateText, Does.StartWith("SYLVAN RAID • SENTINEL ESCORT"));
+                var hud = Object.FindFirstObjectByType<RaidHUD>();
+                hud.SendMessage("ShowResult", new RaidResult(true, 0, 0, 0, 0, 1, true), SendMessageOptions.RequireReceiver);
+                GameObject.Find("RAID AGAIN").GetComponent<Button>().onClick.Invoke(); yield return null; yield return null;
+                Assert.That(SylvanRaidCompositionSelection.DisplayName, Is.EqualTo("Sentinel Escort"));
+                Assert.That(Object.FindFirstObjectByType<RaidHUD>().StateText, Does.StartWith("SYLVAN RAID • SENTINEL ESCORT"));
+            }
+            finally { SylvanRaidCompositionSelection.ResetForTests(); }
         }
 
         [UnityTest]
@@ -372,6 +472,15 @@ namespace RealmRaiders.Tests
                 yield return null;
                 yield return null;
                 var hub = Object.FindFirstObjectByType<HubHUD>(); Assert.That(hub, Is.Not.Null);
+                SylvanRaidCompositionSelection.ResetForTests(); hub.SendMessage("Refresh", SendMessageOptions.RequireReceiver);
+                Assert.That(hub.SylvanRaidVariantText, Is.EqualTo("NEXT SYLVAN RAID: BASELINE — TAP TO CHANGE"));
+                var variantAction = GameObject.Find(HubHUD.SylvanRaidVariantAction).GetComponent<Button>();
+                foreach (var expected in new[] { "WOLF PRESSURE", "SENTINEL ESCORT", "BASELINE" })
+                {
+                    variantAction.onClick.Invoke();
+                    Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("PrototypeHub"));
+                    Assert.That(hub.SylvanRaidVariantText, Is.EqualTo($"NEXT SYLVAN RAID: {expected} — TAP TO CHANGE"));
+                }
                 Assert.That(HubHUD.DestinationForButton("START SYLVAN JOURNEY"), Is.EqualTo("RealmBuild"));
                 Assert.That(HubHUD.DestinationForButton("BUILD SYLVAN"), Is.EqualTo("RealmBuild"));
                 Assert.That(HubHUD.DestinationForButton("DEFEND SYLVAN"), Is.EqualTo("DefenderTest"));
@@ -391,12 +500,15 @@ namespace RealmRaiders.Tests
                 var controlMarks = AssertHubControlStyleMarks();
                 Assert.That(Object.FindObjectsByType<InRunControlStyleSelector>(FindObjectsInactive.Include, FindObjectsSortMode.None), Is.Empty);
                 var buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None); AssertNoButtonOverlap(buttons);
+                AssertHubInteractiveLayout(buttons, new Vector2(1920, 1080));
                 AssertHubLabelsClear(buttons);
                 responsive.SetOrientationForTests(PrototypeOrientation.Portrait); yield return null;
                 Assert.That(AssertRealmIdentityMark(hub, HudPresentation.SylvanRealmIdentity, HudPresentation.SylvanRealmIdentityIconResource, "Selected realm: Sylvan"), Is.SameAs(sylvanMark));
                 AssertHubControlStyleMarks(controlMarks);
-                AssertNoButtonOverlap(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
-                AssertHubLabelsClear(Object.FindObjectsByType<Button>(FindObjectsSortMode.None));
+                buttons = Object.FindObjectsByType<Button>(FindObjectsSortMode.None);
+                AssertNoButtonOverlap(buttons);
+                AssertHubInteractiveLayout(buttons, new Vector2(1080, 1920));
+                AssertHubLabelsClear(buttons);
 
                 foreach (var style in new[] { InRunControlStyleSelector.Contextual, InRunControlStyleSelector.Fingertap, InRunControlStyleSelector.Joystick })
                 {
@@ -453,6 +565,24 @@ namespace RealmRaiders.Tests
         static Text SelectedSummary() => Object.FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Single(text => text.text.StartsWith("Selected realm:"));
 
+        static CombatEntity SceneEntity(string name) => Object.FindObjectsByType<CombatEntity>(FindObjectsInactive.Include, FindObjectsSortMode.None).Single(entity => entity.name == name);
+
+        readonly struct SpawnExpectation
+        {
+            public readonly string Name, ArchetypeId, NodeId;
+            public readonly float X, Z, Scale;
+            public SpawnExpectation(string name, string archetypeId, string nodeId, float x, float z, float scale)
+            { Name = name; ArchetypeId = archetypeId; NodeId = nodeId; X = x; Z = z; Scale = scale; }
+        }
+
+        readonly struct VariantExpectation
+        {
+            public readonly string Id, Name;
+            public readonly SpawnExpectation[] Spawns;
+            public VariantExpectation(string id, string name, params SpawnExpectation[] spawns)
+            { Id = id; Name = name; Spawns = spawns; }
+        }
+
         static Image AssertRealmIdentityMark(Component hud, string realmIdentity, string resourcePath, string expectedCopyPrefix)
         {
             var marks = hud.GetComponentsInChildren<Image>(true).Where(image => image.name == HudPresentation.RealmIdentityIconName).ToArray();
@@ -507,6 +637,23 @@ namespace RealmRaiders.Tests
                     var overlapX = Mathf.Min(ac[2].x, bc[2].x) - Mathf.Max(ac[0].x, bc[0].x); var overlapY = Mathf.Min(ac[2].y, bc[2].y) - Mathf.Max(ac[0].y, bc[0].y);
                     Assert.That(overlapX > 0 && overlapY > 0, Is.False, $"HUD buttons overlap: {a.name}/{b.name}");
                 }
+            }
+        }
+
+        static void AssertHubInteractiveLayout(Button[] buttons, Vector2 expectedReference)
+        {
+            var reference = Object.FindFirstObjectByType<CanvasScaler>().referenceResolution;
+            Assert.That(reference, Is.EqualTo(expectedReference), "Hub must author layout against the effective orientation reference.");
+            for (var index = 0; index < buttons.Length; index++)
+            {
+                var a = buttons[index].GetComponent<RectTransform>();
+                var bounds = DesignRect(a, reference);
+                Assert.That(bounds.xMin, Is.GreaterThanOrEqualTo(0), $"{a.name} leaves the Hub safe reference on the left.");
+                Assert.That(bounds.yMin, Is.GreaterThanOrEqualTo(0), $"{a.name} leaves the Hub safe reference at the bottom.");
+                Assert.That(bounds.xMax, Is.LessThanOrEqualTo(reference.x), $"{a.name} leaves the Hub safe reference on the right.");
+                Assert.That(bounds.yMax, Is.LessThanOrEqualTo(reference.y), $"{a.name} leaves the Hub safe reference at the top.");
+                for (var other = index + 1; other < buttons.Length; other++)
+                    AssertNoDesignOverlap(a, buttons[other].GetComponent<RectTransform>(), reference, $"Hub authored buttons overlap: {a.name}/{buttons[other].name}");
             }
         }
 

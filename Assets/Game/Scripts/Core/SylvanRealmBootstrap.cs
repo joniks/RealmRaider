@@ -4,6 +4,7 @@ using RealmRaiders.CameraSystem;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
 using RealmRaiders.Controllers;
+using RealmRaiders.Modules.SylvanEncounters;
 using RealmRaiders.Raid;
 using RealmRaiders.Realm;
 using RealmRaiders.Traps;
@@ -32,6 +33,8 @@ namespace RealmRaiders.Core
 
         static void BuildRealm()
         {
+            var composition = SylvanRaidCompositionSelection.Current;
+            ValidateComposition(composition);
             var root = new GameObject("Sylvan Realm Raid");
             var cameraRig = PrototypeRuntimeFactory.Camera(new Color(.018f, .055f, .035f), 52, new Vector3(0, 22, -11), Quaternion.Euler(60, 0, 0));
             PrototypeRuntimeFactory.DirectionalLight("Forest Moon", new Color(.68f, .86f, .76f), 1.25f, new Vector3(52, -28, 0));
@@ -41,16 +44,37 @@ namespace RealmRaiders.Core
             hero.SetController(hero.Controller<PlayerController>()); cameraRig.SnapTo(hero, CameraMode.HeroCombat);
 
             var wolfStats = new CombatStats { MaxHealth = 58, AttackDamage = 11, AttackSpeed = 1.5f, MoveSpeed = 7, Armor = 2, AbilityPower = 5 };
-            var wolfOne = Entity(PrototypeCharacterRoster.SylvanWolfId, "Wolf Alpha", new Vector3(-13, .65f, -11), wolfStats, new Color(.36f, .39f, .35f), false, .75f);
-            var wolfTwo = Entity(PrototypeCharacterRoster.SylvanWolfId, "Wolf Scout", new Vector3(-16, .65f, -7), wolfStats, new Color(.46f, .49f, .43f), false, .68f);
-            var ent = Entity(PrototypeCharacterRoster.GuardianEntId, "Sylvan Ent", new Vector3(14, 1.5f, 4), CombatStats.Ent, new Color(.18f, .38f, .12f), true, 1.45f);
-            foreach (var enemy in new[] { wolfOne, wolfTwo, ent })
+            var nodeCenters = new Dictionary<string, Vector3>
             {
+                [StarterSylvanRaidCompositions.WolfGroveNodeId] = new Vector3(-14, 0, -10),
+                [StarterSylvanRaidCompositions.EntGroveNodeId] = new Vector3(14, 0, 4),
+                [StarterSylvanRaidCompositions.MoonwellNodeId] = new Vector3(10, 0, 27)
+            };
+            var nodeContents = new Dictionary<string, List<GameObject>>
+            {
+                [StarterSylvanRaidCompositions.WolfGroveNodeId] = new List<GameObject>(),
+                [StarterSylvanRaidCompositions.EntGroveNodeId] = new List<GameObject>(),
+                [StarterSylvanRaidCompositions.MoonwellNodeId] = new List<GameObject>()
+            };
+            var enemies = new List<CombatEntity>();
+            CombatEntity ent = null;
+            var wolfIndex = 0;
+            foreach (var spawn in composition.Spawns)
+            {
+                var isEnt = spawn.ArchetypeId == StarterSylvanRaidCompositions.GuardianEntArchetypeId;
+                var position = nodeCenters[spawn.NodeId] + new Vector3(spawn.LocalOffsetX, isEnt ? 1.5f : .65f, spawn.LocalOffsetZ);
+                var enemy = Entity(spawn.ArchetypeId, spawn.DisplayName, position, isEnt ? CombatStats.Ent : wolfStats,
+                    isEnt ? new Color(.18f, .38f, .12f) : WolfColor(wolfIndex++), isEnt, spawn.Scale);
                 var brain = enemy.Controller<CreatureBrain>();
                 brain.Target = hero;
-                if (enemy.Definition.ArchetypeId == PrototypeCharacterRoster.GuardianEntId)
+                if (isEnt)
+                {
                     brain.ConfigureGuardianEntHeavyAttackRhythm(new[] { hero });
+                    ent = enemy;
+                }
                 enemy.SetController(brain);
+                enemies.Add(enemy);
+                nodeContents[spawn.NodeId].Add(enemy.gameObject);
             }
 
             var graph = new RealmGraph();
@@ -60,13 +84,15 @@ namespace RealmRaiders.Core
             var nodeViews = new List<RealmNodeView>();
             nodeViews.Add(Node(root, graph.Nodes["Portal"], hero, new Vector3(0, 0, -50), "PORTAL"));
             nodeViews.Add(Node(root, graph.Nodes["Crossroads"], hero, new Vector3(0, 0, -30), "CROSSROADS"));
-            nodeViews.Add(Node(root, graph.Nodes["Wolf Grove"], hero, new Vector3(-14, 0, -10), "WOLF GROVE", wolfOne.gameObject, wolfTwo.gameObject));
-            nodeViews.Add(Node(root, graph.Nodes["Ent Grove"], hero, new Vector3(14, 0, 4), "ENT GROVE", ent.gameObject));
+            nodeViews.Add(Node(root, graph.Nodes["Wolf Grove"], hero, new Vector3(-14, 0, -10), "WOLF GROVE", nodeContents[StarterSylvanRaidCompositions.WolfGroveNodeId].ToArray()));
+            nodeViews.Add(Node(root, graph.Nodes["Ent Grove"], hero, new Vector3(14, 0, 4), "ENT GROVE", nodeContents[StarterSylvanRaidCompositions.EntGroveNodeId].ToArray()));
 
             var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Root Trap"; trapObject.transform.position = new Vector3(0, .12f, 4); trapObject.transform.localScale = new Vector3(2.4f, .12f, 2.4f); RealmLandmarkPresentation.Build(trapObject.transform, RealmLandmarkRecipe.SylvanRootTrap); trapObject.AddComponent<RootTrap>().Initialize(hero);
             nodeViews.Add(Node(root, graph.Nodes["Root Path"], hero, new Vector3(0, 0, 5), "ROOT PATH", trapObject));
             var moonwellObject = CreateMoonwell(new Vector3(10, 0, 27), out var moonwellRenderer);
-            nodeViews.Add(Node(root, graph.Nodes["Moonwell"], hero, new Vector3(10, 0, 27), "MOONWELL", moonwellObject));
+            var moonwellContents = nodeContents[StarterSylvanRaidCompositions.MoonwellNodeId];
+            moonwellContents.Insert(0, moonwellObject);
+            nodeViews.Add(Node(root, graph.Nodes["Moonwell"], hero, new Vector3(10, 0, 27), "MOONWELL", moonwellContents.ToArray()));
 
             var coreObject = CreateHeartTree(new Vector3(0, 2.5f, 50));
             nodeViews.Add(Node(root, graph.Nodes["Heart Tree"], hero, new Vector3(0, 0, 50), "HEART TREE", coreObject));
@@ -92,13 +118,42 @@ namespace RealmRaiders.Core
             foreach (var path in boundaryPaths) CreatePath(new Vector3(path.Center.x, 0, path.Center.y), path.Size, path.Yaw);
             PrototypeArenaBoundaryBuilder.BuildSylvan(root.transform, boundaryNodes, boundaryPaths);
 
-            var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), new[] { wolfOne, wolfTwo, ent }, coreObject.transform.position, ent);
+            var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), enemies.ToArray(), coreObject.transform.position, ent);
             var moonwell = moonwellObject.AddComponent<MoonwellRecovery>(); moonwell.Initialize(hero, manager, moonwellRenderer);
             var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero); core.InteractionStarted += manager.BeginObjective; core.Completed += manager.CompleteObjective;
             PrototypeRuntimeFactory.EventSystem(root.transform);
-            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>(), moonwell); cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
+            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>(), moonwell, variantDisplayName: composition.DisplayName); cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
             graph.Nodes["Portal"].Visit();
         }
+
+        static void ValidateComposition(SylvanRaidComposition composition)
+        {
+            if (composition == null || string.IsNullOrWhiteSpace(composition.CompositionId) ||
+                string.IsNullOrWhiteSpace(composition.DisplayName) || composition.Spawns == null)
+                throw new System.InvalidOperationException("The selected Sylvan raid composition is malformed.");
+            var spawnIds = new HashSet<string>(System.StringComparer.Ordinal);
+            var entCount = 0;
+            foreach (var spawn in composition.Spawns)
+            {
+                if (spawn == null || string.IsNullOrWhiteSpace(spawn.SpawnId) || !spawnIds.Add(spawn.SpawnId) ||
+                    string.IsNullOrWhiteSpace(spawn.DisplayName) ||
+                    (spawn.ArchetypeId != StarterSylvanRaidCompositions.SylvanWolfArchetypeId && spawn.ArchetypeId != StarterSylvanRaidCompositions.GuardianEntArchetypeId) ||
+                    (spawn.NodeId != StarterSylvanRaidCompositions.WolfGroveNodeId && spawn.NodeId != StarterSylvanRaidCompositions.EntGroveNodeId && spawn.NodeId != StarterSylvanRaidCompositions.MoonwellNodeId) ||
+                    !IsFinite(spawn.LocalOffsetX) || !IsFinite(spawn.LocalOffsetZ) || !IsFinite(spawn.Scale) || spawn.Scale <= 0)
+                    throw new System.InvalidOperationException($"Sylvan raid composition '{composition.CompositionId}' contains an invalid spawn.");
+                if (spawn.ArchetypeId == StarterSylvanRaidCompositions.GuardianEntArchetypeId) entCount++;
+            }
+            if (entCount != 1)
+                throw new System.InvalidOperationException($"Sylvan raid composition '{composition.CompositionId}' must contain exactly one Guardian Ent.");
+        }
+
+        public static void ValidateSelectedCompositionForTests() => ValidateComposition(SylvanRaidCompositionSelection.Current);
+
+        static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
+
+        static Color WolfColor(int index) => index % 2 == 0
+            ? new Color(.36f, .39f, .35f)
+            : new Color(.46f, .49f, .43f);
 
         static RealmNodeView Node(GameObject root, RealmNode node, CombatEntity hero, Vector3 position, string label, params GameObject[] contents)
         {
