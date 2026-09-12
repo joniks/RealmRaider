@@ -860,9 +860,17 @@ existing EnemyDefeat receipts; no new reward type or identity-by-name lookup.
 The HUD consumes the explicitly supplied well and keeps one visible, deliberate
 use action in the existing responsive root.
 
-## Ready — 18.2 Ent Attack Rhythm (gameplay/content)
+## Ready — 18.1B Infernal Raid with Ent Hero (gameplay/content)
 
-Dependency: accepted 18.1 commit. Add a narrowly opted-in Ent AI attack pattern
+User requested on 2026-09-12. Activate immediately after 18.1 acceptance. Full
+outcome, proposed paths and QA gate: `Docs/INFERNAL_ENT_RAID_JOB.md`. Separate
+InfernalRaid scene and Hub entry, direct Ent, two Hellhounds, bypassable fire
+hazard, Brute guarding the Heart and correct same-scene retry. Core alone owns
+main integration; shared RaidHUD cannot be edited alongside 18.1.
+
+## Following — 18.2 Ent Attack Rhythm (gameplay/content)
+
+Dependency: accepted 18.1B commit. Add a narrowly opted-in Ent AI attack pattern
 using existing basic Smash and Ground Slam: readable anticipation, evadable impact
 and a recovery opening. Preserve the shared action gate; no simultaneous attacks,
 input steering, auto-player attacks or changed possession identity. Other brains

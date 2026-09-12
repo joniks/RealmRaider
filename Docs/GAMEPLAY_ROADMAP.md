@@ -32,13 +32,20 @@ lane. Reuse current art, combat, graph, HUD and persistence wherever practical.
 | --- | --- | --- | --- |
 | 18.0 repair | 3 polish | Forward-facing grounded Ent; modest landing crouch and recovery after jump or fall | Observe feet/direction/contact; no root/collider or takeoff regression |
 | 18.1 route choice | 2 gameplay | One Moonwell recovery charge and an extra Rare Material for optional Ent defeat | Player chooses whether to spend healing and risk the Ent detour |
+| 18.1B Infernal Ent raid | 2 gameplay | Direct Ent raids Hellhounds, a bypassable hazard and a Brute-guarded Heart | Ent area attacks feel useful; clear finale and immediate same-scene retry |
 | 18.2 Ent fight | 2 gameplay | Readable heavy Ground Slam with a recovery window interleaved with basic attacks | Player can learn, evade, then punish; possession uses the same existing abilities |
-| 18.3 encounter variants | 2 gameplay | Three authored Sylvan enemy compositions using current Wolves/Ent | Replays change pressure and priorities without new art or unfair hidden spawns |
-| 18.4 defense decision | 1 gameplay | One tested Build/trap/possession tradeoff using current budget and units | Two valid plans produce noticeably different defense problems |
+| 18.3 encounter variants | 1 gameplay | Integrate the three prepared Sylvan enemy compositions | Replays change pressure and priorities without new art or unfair hidden spawns |
 
-Only 18.0 is active; 18.1 is the next Core lease. The later gates require narrow
-source/path reservations and acceptance after their predecessors. Module may
-prepare bounded encounter content in parallel for 18.3; Core owns integration.
+18.0 is accepted; 18.1 is active. The user's new Infernal Ent trial is next, before
+18.2. Its detailed brief is `INFERNAL_ENT_RAID_JOB.md`. Relative estimates were
+rebalanced to retain the 7 gameplay / 3 polish target; re-estimate after real
+implementation. Module has prepared the 18.3 compositions; Core owns integration.
+The subsequent 18.4 Build/trap/possession tradeoff remains backlog for the next batch.
+
+The desired "wow" is a playable contrast: become the heavy Ent, draw two fast
+enemies into one strong area hit, survive a readable fire obstacle and defeat the
+guardian. The desire to retry should come from learning and trying another tactic,
+not from extra labels, random stat inflation or an unfair surprise death.
 
 ## 18.1 starting design
 
