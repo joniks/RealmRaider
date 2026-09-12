@@ -31,6 +31,7 @@ namespace RealmRaiders.Characters
             if (animated)
             {
                 baseBody = AddPrefab("Base Body", recipe.LargeCreatureMotion.VisualPrefab, Vector3.zero);
+                ApplyBaseBodyRotation(recipe, baseBody);
                 var adapter = GetComponent<LargeCreatureMotionAdapter>() ?? gameObject.AddComponent<LargeCreatureMotionAdapter>();
                 if (!adapter.Bind(baseBody, recipe.LargeCreatureMotion))
                 {
@@ -38,6 +39,7 @@ namespace RealmRaiders.Characters
                     if (Application.isPlaying) Destroy(baseBody.gameObject); else DestroyImmediate(baseBody.gameObject);
                     baseBody = null;
                 }
+                else AlignBaseBodyToControllerSupportPlane(recipe, baseBody);
             }
             if (!baseBody) baseBody = BuildBase(effectiveRecipe);
             var proceduralMotion = GetComponent<CharacterProceduralMotionAdapter>() ?? gameObject.AddComponent<CharacterProceduralMotionAdapter>();
@@ -68,8 +70,63 @@ namespace RealmRaiders.Characters
                 var scale = recipe.Family == CharacterVisualFamily.Humanoid ? new Vector3(.75f, 1.25f, .55f) : recipe.Family == CharacterVisualFamily.LargeCreature ? new Vector3(1.45f, 1.25f, .85f) : new Vector3(1.15f, .7f, .75f);
                 baseBody = AddPrimitive("Base Body", type, Vector3.zero, scale, recipe.Primary);
             }
-            baseBody.localRotation = Quaternion.Euler(recipe.BaseBodyLocalEulerAngles) * baseBody.localRotation;
+            ApplyBaseBodyRotation(recipe, baseBody);
+            AlignBaseBodyToControllerSupportPlane(recipe, baseBody);
             return baseBody;
+        }
+        static void ApplyBaseBodyRotation(CharacterVisualRecipe recipe, Transform baseBody)
+        {
+            baseBody.localRotation = Quaternion.Euler(recipe.BaseBodyLocalEulerAngles) * baseBody.localRotation;
+        }
+        void AlignBaseBodyToControllerSupportPlane(CharacterVisualRecipe recipe, Transform baseBody)
+        {
+            if (!recipe.AlignBaseBodyToControllerSupportPlane || !TryGetVisualFootPlane(recipe, baseBody, out var footPlane)) return;
+            var motor = GetComponent<CharacterController>();
+            if (!motor) return;
+            var supportPoint = transform.TransformPoint(motor.center + Vector3.down * (motor.height * .5f));
+            var supportPlane = presentationPivot.InverseTransformPoint(supportPoint).y;
+            baseBody.localPosition += Vector3.up * (supportPlane - footPlane);
+        }
+
+        bool TryGetVisualFootPlane(CharacterVisualRecipe recipe, Transform baseBody, out float footPlane)
+        {
+            footPlane = float.PositiveInfinity;
+            if (recipe.BaseBodyGroundingAnchorNames != null && recipe.BaseBodyGroundingAnchorNames.Length > 0)
+            {
+                var matched = 0;
+                foreach (var anchorName in recipe.BaseBodyGroundingAnchorNames)
+                {
+                    Transform match = null;
+                    foreach (var candidate in baseBody.GetComponentsInChildren<Transform>(true))
+                        if (candidate != baseBody && candidate.name == anchorName) { match = candidate; break; }
+                    if (!match) return false;
+                    footPlane = Mathf.Min(footPlane, presentationPivot.InverseTransformPoint(match.position).y);
+                    matched++;
+                }
+                return matched == recipe.BaseBodyGroundingAnchorNames.Length;
+            }
+            var found = false;
+            foreach (var renderer in baseBody.GetComponentsInChildren<Renderer>(true))
+            {
+                // Skinned localBounds is a conservative animation AABB, not a factual foot plane.
+                // Imported skinned bodies must provide exact contact anchors above.
+                if (renderer is SkinnedMeshRenderer) continue;
+                var filter = renderer.GetComponent<MeshFilter>();
+                if (!filter || !filter.sharedMesh) continue;
+                var bounds = filter.sharedMesh.bounds;
+                var center = bounds.center;
+                var extents = bounds.extents;
+                for (var x = -1; x <= 1; x += 2)
+                for (var y = -1; y <= 1; y += 2)
+                for (var z = -1; z <= 1; z += 2)
+                {
+                    var localCorner = center + Vector3.Scale(extents, new Vector3(x, y, z));
+                    var pivotCorner = presentationPivot.InverseTransformPoint(renderer.transform.TransformPoint(localCorner));
+                    footPlane = Mathf.Min(footPlane, pivotCorner.y);
+                    found = true;
+                }
+            }
+            return found;
         }
         float BodyHeight(CharacterVisualRecipe recipe) => recipe.Family == CharacterVisualFamily.LargeCreature ? 1.35f : recipe.Family == CharacterVisualFamily.Humanoid ? 1.2f : .65f;
         void BuildSlot(string slot, VisualModuleStyle style, GameObject prefab, Vector3 position, Color color)

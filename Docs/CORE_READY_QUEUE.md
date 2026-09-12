@@ -827,12 +827,16 @@ errors or new duplicate-listener warnings.
 The audit produced no implemented feature. Its device-smoke dependency does not
 block development and is superseded by the user's 2026-09-12 concrete feedback.
 
-## Active — 18.0 Ent Grounding and Landing Recovery (foundation/polish)
+## Accepted — 18.0 Ent Grounding and Landing Recovery (foundation/polish)
 
 Owner: Core developer. Base `d861f9c`. Full reserved paths and acceptance are in
 `Docs/NEXT_JOB.md`. Correct imported Ent forward/foot fit in animated and static
 paths, and add factual jump/non-jump-fall landing compression and recovery.
 Architect static review then QA-only Unity; no export in this iteration.
+QA final EditMode 359/359 and PlayMode 108/108 passed with no failed/skipped/
+inconclusive tests or new compiler/runtime errors. Manual visual feel remains
+unobserved because the accessible Game surface lacks Play/pixel/input controls;
+this precise evidence boundary does not block 18.1. No Android export requested.
 
 ## Ready — 18.1 Sylvan Risk/Reward Route Choice (gameplay/content)
 
@@ -845,3 +849,14 @@ dangerous detour and a limited recovery resource for continuing to Heart Tree.
 Keep control-mode gestures and save/result credit ownership intact. Reserve exact
 paths in NEXT_JOB before implementation. Starting balance and follow-ups are in
 `Docs/GAMEPLAY_ROADMAP.md`; no new model/package is required by this gate.
+
+Core's read-only audit identifies this narrow reservation for activation:
+`Core/SylvanRealmBootstrap.cs`, `Raid/RaidManager.cs`, `UI/RaidHUD.cs`,
+`Combat/Health.cs`, new `Realm/MoonwellRecovery.cs`, and focused Edit/Play tests
+under `Assets/Game`. Health needs one finite positive capped heal that reports
+actual restored HP without resetting immunity or resurrecting. RaidManager can
+receive an explicit optional bonus-enemy reference and reuse creditedEnemies plus
+existing EnemyDefeat receipts; no new reward type or identity-by-name lookup.
+The HUD consumes the explicitly supplied well and keeps one visible, deliberate
+use action in the existing responsive root. Core may not write this slice until
+Architect accepts/commits 18.0 and replaces NEXT_JOB with the exact lease.

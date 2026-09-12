@@ -136,7 +136,9 @@ namespace RealmRaiders.Tests
             Assert.That(recipe.BaseBodyPrefab, Is.Not.Null);
             Assert.That(recipe.BaseBodyPrefab, Is.SameAs(Resources.Load<GameObject>("Characters/GuardianEntTree01")));
             Assert.That(recipe.Family, Is.EqualTo(CharacterVisualFamily.LargeCreature));
-            Assert.That(recipe.BaseBodyLocalEulerAngles, Is.EqualTo(Vector3.zero));
+            Assert.That(recipe.BaseBodyLocalEulerAngles, Is.EqualTo(new Vector3(0, 180, 0)));
+            Assert.That(recipe.AlignBaseBodyToControllerSupportPlane, Is.True);
+            Assert.That(recipe.BaseBodyGroundingAnchorNames, Is.EqualTo(new[] { "heel.02.L", "heel.02.R", "toe.L", "toe.R" }));
             Assert.That(new[] { recipe.Head, recipe.Back, recipe.Arms, recipe.Accent }, Is.All.EqualTo(VisualModuleStyle.None));
             var host = GameObject.CreatePrimitive(PrimitiveType.Cube);
             host.transform.localScale = Vector3.one * 1.4f;
@@ -183,6 +185,9 @@ namespace RealmRaiders.Tests
                 var promoted = PrototypeRuntimeFactory.GuardianEntRecipe;
                 Assert.That(promoted, Is.SameAs(fallback), "Promotion must not allocate a replacement recipe.");
                 Assert.That(promoted.BaseBodyPrefab, Is.SameAs(prefab));
+                Assert.That(promoted.BaseBodyLocalEulerAngles, Is.EqualTo(new Vector3(0, 180, 0)));
+                Assert.That(promoted.AlignBaseBodyToControllerSupportPlane, Is.True);
+                Assert.That(promoted.BaseBodyGroundingAnchorNames, Is.EqualTo(new[] { "heel.02.L", "heel.02.R", "toe.L", "toe.R" }));
                 Assert.That(new[] { promoted.Head, promoted.Back, promoted.Arms, promoted.Accent }, Is.All.EqualTo(VisualModuleStyle.None));
                 Assert.That(PrototypeRuntimeFactory.GuardianEntRecipe, Is.SameAs(promoted));
                 Assert.That(PrototypeRuntimeFactory.GuardianEntRecipe, Is.SameAs(promoted));

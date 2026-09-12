@@ -2,16 +2,26 @@
 
 Last reviewed: 2026-09-12
 
-## Current work — not yet accepted
+## Current work and latest acceptance
 
 - User smoke on 2026-09-12 reports Ent moving backwards, Sylvan raid Ent floating
   above the walkable surface, and insufficient crouch/recovery after jumping or
   falling. These are real reported defects despite the preceding green baseline.
-- 18.0 is assigned to Core for visual fit and factual landing recovery; no new
-  Unity verification or acceptance is claimed yet.
+- 18.0 is accepted after static review and fresh QA: EditMode 359/359,
+  PlayMode 108/108, zero failed/skipped/inconclusive. Imported Ent static/animated
+  fits use 180-degree visual yaw and four heel/toe contact anchors against the
+  unchanged scaled controller support plane; ordinary falls now produce factual
+  landing recovery and jump compression is stronger. Gameplay physics is unchanged.
+- QA opened the existing Sylvan scene and focused Game without resizing Test
+  Runner, but the accessible surface exposed neither Play controls nor viewport
+  pixels/input. Visual direction/foot contact/landing feel remain unobserved;
+  green automated results are not a claim of visual or device acceptance.
 - Priority changes to 70% gameplay/content and 30% foundation/polish by planned
   effort. Next: Sylvan route risk/reward, then Ent attack rhythm and encounter
   variants. See `GAMEPLAY_ROADMAP.md`; these are planned, not implemented.
+- MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
+  compositions are prepared for Core 18.3. The package is not yet installed or
+  consumed by the game, and its seven NUnit tests have not yet run.
 
 ## Latest verification
 
@@ -147,7 +157,7 @@ Last reviewed: 2026-09-12
 - Diamond Pass 17.0 Explicit Blood Knight Motion-Tuning Resolution is present: the Core adapter now resolves the accepted explicit Modules assignment once and retains the exact device-readable tuning identity, with deterministic Compatibility fail-closed behavior and no retune or gameplay change.
 - Diamond Pass 17.1 Factual Direct-Combat Defeat Confirmation is present: an applied direct-player lethal Melee/Area hit now confirms each exact named defeated target once while AI, immunity, misses, invalid and lifecycle-exited paths remain silent.
 - Diamond Pass 17.2 Singular Latest-Damage Marker is present: each target now owns at most one active damage number, refreshed to the latest factual hit and point for a bounded lifetime while distinct targets remain independent.
-- Current Unity Test Runner baseline: EditMode `359/359` and PlayMode `107/107` passed with `0` failures through the QA menu commands on 2026-09-11.
+- Current Unity Test Runner baseline: EditMode `359/359` and PlayMode `108/108` passed with `0` failures through the QA menu commands on 2026-09-12.
 - Physical-device validation of torso strength, neck/armor clipping, sword/shield follow, corrected knee/stride direction and overall combat feel remains pending; no device performance result is claimed here.
 
 ## Implemented milestones
@@ -164,7 +174,7 @@ Last reviewed: 2026-09-12
 
 ## Verification baseline
 
-- Current verified baseline: EditMode `359/359` and PlayMode `107/107` passed with `0` failures on 2026-09-11.
+- Current verified baseline: EditMode `359/359` and PlayMode `108/108` passed with `0` failures on 2026-09-12.
 - The current PlayMode suite includes smoke coverage for PrototypeHub, RealmBuild, SylvanRealm, DefenderTest and InfernalRealm, possession, UI presentation, visual motion and camera awareness.
 
 ## Known limitations

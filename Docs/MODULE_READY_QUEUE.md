@@ -719,12 +719,17 @@ pilot and 15.16B integration. Do not repeat acquisition, import or motion readin
 work. Modules baseline is `42fbbc8`; later accepted MMP08–MMP11 and MART05 work are
 recorded in PROTOTYPE_STATUS and DONE_JOB.
 
-## Now — MGC01 Three Authored Sylvan Raid Compositions
+## Accepted for integration — MGC01 Three Authored Sylvan Raid Compositions
 
 Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
 Workspace: `Modules/RealmRaider.Modules` only. Base `42fbbc8`.
 Reserved folder: `Packages/com.realmraiders.sylvan-encounters/` (new, clean).
 Handoff: frozen package/data/test diff, compact report; no Unity/main/commit/push.
+
+Architect static acceptance: `83bcda9` on 2026-09-12. Six isolated files reviewed;
+IDs, node/capsule clearance, immutable content and exact integration seam checked.
+Seven NUnit tests authored but not run; the package is not installed in the game.
+Do not claim playable variants or Unity verification before 18.3 integration.
 
 Implement immutable explicit content with three full-raid compositions. Spawn
 records contain stable archetype ID, unique per-run spawn ID/display name, node

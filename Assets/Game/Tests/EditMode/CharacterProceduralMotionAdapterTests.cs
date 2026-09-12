@@ -310,6 +310,8 @@ namespace RealmRaiders.Tests
                     Assert.That(Vector3.Distance(pivot.localScale, motion.BaseScale), Is.LessThan(.00001f), "Landing/0 joins Falling/1 continuously.");
                     motion.Sample(start + 1.08f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
                     Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y));
+                    Assert.That(pivot.localScale.y, Is.LessThanOrEqualTo(motion.BaseScale.y * .901f),
+                        "Factual jump contact reaches the modest but visible bounded crouch before recovering.");
                     motion.Sample(start + 1.361f, .01f, Vector3.zero, CombatActionPhase.Idle, false, true, true);
                     Assert.That(pivot.localScale, Is.EqualTo(motion.BaseScale), "Recovery returns to the same neutral scale without a breathing-scale step.");
                 }
@@ -523,6 +525,22 @@ namespace RealmRaiders.Tests
                 // Skip the scheduled .21 landing boundary: both consumers must catch up at .28.
                 AssertSample(timeline.Observe(.28f, false, true, true), CharacterJumpPresentationPhase.Landing, .5f);
                 AssertSample(timeline.Observe(.28f, false, true, true), CharacterJumpPresentationPhase.Landing, .5f);
+
+                timeline.ResetTimeline();
+                Assert.That(timeline.Observe(2f, false, true, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
+                AssertSample(timeline.Observe(2.1f, false, false, true), CharacterJumpPresentationPhase.Falling, 1f);
+                AssertSample(timeline.Observe(2.15f, false, false, true), CharacterJumpPresentationPhase.Falling, 1f);
+                AssertSample(timeline.Observe(2.2f, false, true, true), CharacterJumpPresentationPhase.Landing, 0f);
+                AssertSample(timeline.Observe(2.27f, false, true, true), CharacterJumpPresentationPhase.Landing, .5f);
+
+                timeline.ResetTimeline();
+                Assert.That(timeline.Observe(3f, false, false, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None),
+                    "Starting direct control while airborne must not invent a landing event.");
+                Assert.That(timeline.Observe(3.1f, false, true, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
+                timeline.Observe(3.2f, false, false, true);
+                Assert.That(timeline.Observe(3.25f, false, true, false).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None),
+                    "Control loss clears a pending ordinary-fall landing.");
+                Assert.That(timeline.Observe(3.26f, false, true, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
             }
             finally { Object.DestroyImmediate(host); }
         }

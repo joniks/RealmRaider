@@ -111,7 +111,9 @@ namespace RealmRaiders.Tests
             var recipe = Object.Instantiate(PrototypeRuntimeFactory.GuardianEntRecipe);
             var invalid = Object.Instantiate(binding); invalid.ValidationVersion = 0;
             var host = GameObject.CreatePrimitive(PrimitiveType.Cube); host.GetComponent<Collider>().enabled = false;
+            host.transform.localScale = Vector3.one * 1.45f;
             var entity = host.AddComponent<CombatEntity>();
+            var motor = host.GetComponent<CharacterController>(); motor.height = 3f; motor.radius = .8f;
             var definition = ScriptableObject.CreateInstance<CharacterDefinition>(); definition.Stats = CombatStats.Ent;
             try
             {
@@ -122,6 +124,10 @@ namespace RealmRaiders.Tests
                 Assert.That(assembler.VisualRoot.GetComponentInChildren<Animator>().fireEvents, Is.False,
                     "Binding the saved prefab must disable runtime Animation Events before playback.");
                 Assert.That(assembler.VisualRoot.GetComponentsInChildren<SkinnedMeshRenderer>(), Has.Length.EqualTo(1));
+                Assert.That(Quaternion.Angle(assembler.PresentationPivot.Find("Base Body").localRotation,
+                    Quaternion.Euler(recipe.BaseBodyLocalEulerAngles) * binding.VisualPrefab.transform.localRotation), Is.LessThan(.001f),
+                    "Animated assembly must use the same explicit Ent facing fit as the static prefab.");
+                AssertFootOnSupportPlane(assembler, motor);
                 var rootPose = host.transform.position; var pivotPose = assembler.PresentationPivot.localPosition;
                 adapter.Sample(10, 10, .1f);
                 Assert.That(host.transform.position, Is.EqualTo(rootPose));
@@ -146,6 +152,9 @@ namespace RealmRaiders.Tests
                 Assert.That(adapter.IsBound || adapter.HasGraph, Is.False);
                 Assert.That(assembler.VisualRoot.GetComponentsInChildren<SkinnedMeshRenderer>(), Is.Empty);
                 Assert.That(assembler.VisualRoot.GetComponentsInChildren<MeshRenderer>(), Has.Length.EqualTo(1));
+                Assert.That(Quaternion.Angle(assembler.PresentationPivot.Find("Base Body").localRotation,
+                    Quaternion.Euler(recipe.BaseBodyLocalEulerAngles) * recipe.BaseBodyPrefab.transform.localRotation), Is.LessThan(.001f));
+                AssertFootOnSupportPlane(assembler, motor);
                 Assert.That(oldBones.All(b => !b), Is.True);
                 recipe.BaseBodyPrefab = null; assembler.Assemble(recipe);
                 Assert.That(assembler.PresentationPivot.childCount, Is.EqualTo(6));
@@ -157,6 +166,16 @@ namespace RealmRaiders.Tests
                 Assert.That(host.GetComponent<Renderer>().enabled, Is.True);
             }
             finally { Object.DestroyImmediate(host); Object.DestroyImmediate(definition); Object.DestroyImmediate(recipe); Object.DestroyImmediate(invalid); }
+        }
+
+        static void AssertFootOnSupportPlane(CharacterVisualAssembler assembler, CharacterController motor)
+        {
+            var supportPlane = motor.transform.TransformPoint(motor.center + Vector3.down * (motor.height * .5f)).y;
+            var body = assembler.PresentationPivot.Find("Base Body");
+            var anchorNames = PrototypeRuntimeFactory.GuardianEntRecipe.BaseBodyGroundingAnchorNames;
+            var anchors = body.GetComponentsInChildren<Transform>(true).Where(candidate => anchorNames.Contains(candidate.name)).ToArray();
+            Assert.That(anchors, Has.Length.EqualTo(anchorNames.Length), "Tree01 grounding uses its two heel and two toe contact anchors, not the conservative animation AABB.");
+            Assert.That(anchors.Min(anchor => anchor.position.y), Is.EqualTo(supportPlane).Within(.001f));
         }
     }
 }

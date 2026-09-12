@@ -14,6 +14,7 @@ namespace RealmRaiders.Core
     {
         static CharacterVisualRecipe bloodKnightRecipe, guardianEntRecipe, infernalBruteRecipe, sylvanBeastRecipe, infernalBeastRecipe;
         static GameObject bloodKnightHeroPrefab;
+        static readonly string[] guardianEntGroundingAnchors = { "heel.02.L", "heel.02.R", "toe.L", "toe.R" };
         static CharacterVisualRecipe Recipe(CharacterVisualFamily family, VisualModuleStyle head, VisualModuleStyle back, VisualModuleStyle arms, VisualModuleStyle accent, Color primary, Color secondary, Color accentColor)
         {
             var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>(); recipe.Family = family; recipe.Head = head; recipe.Back = back; recipe.Arms = arms; recipe.Accent = accent; recipe.Primary = primary; recipe.Secondary = secondary; recipe.AccentColor = accentColor; return recipe;
@@ -47,9 +48,7 @@ namespace RealmRaiders.Core
                 if (!guardianEntRecipe) guardianEntRecipe = CreateGuardianEntRecipe(prefab);
                 else if (prefab)
                 {
-                    guardianEntRecipe.BaseBodyPrefab = prefab;
-                    guardianEntRecipe.MissingBaseBodyFallback = CreateGuardianEntRecipe(null);
-                    guardianEntRecipe.Head = guardianEntRecipe.Back = guardianEntRecipe.Arms = guardianEntRecipe.Accent = VisualModuleStyle.None;
+                    ConfigureGuardianEntBaseBody(guardianEntRecipe, prefab);
                 }
                 if (!guardianEntRecipe.LargeCreatureMotion)
                     guardianEntRecipe.LargeCreatureMotion = Resources.Load<LargeCreatureMotionBinding>("Characters/GuardianEntTree01Motion");
@@ -63,11 +62,19 @@ namespace RealmRaiders.Core
             var recipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Bark, VisualModuleStyle.Bark, VisualModuleStyle.Claws, VisualModuleStyle.Mane, new Color(.16f, .38f, .11f), new Color(.25f, .16f, .07f), new Color(.65f, .95f, .28f));
             if (baseBodyPrefab)
             {
-                recipe.BaseBodyPrefab = baseBodyPrefab;
-                recipe.MissingBaseBodyFallback = CreateGuardianEntRecipe(null);
-                recipe.Head = recipe.Back = recipe.Arms = recipe.Accent = VisualModuleStyle.None;
+                ConfigureGuardianEntBaseBody(recipe, baseBodyPrefab);
             }
             return recipe;
+        }
+        static void ConfigureGuardianEntBaseBody(CharacterVisualRecipe recipe, GameObject baseBodyPrefab)
+        {
+            recipe.BaseBodyPrefab = baseBodyPrefab;
+            recipe.MissingBaseBodyFallback = CreateGuardianEntRecipe(null);
+            recipe.Head = recipe.Back = recipe.Arms = recipe.Accent = VisualModuleStyle.None;
+            // Tree01's authored front is opposite the prototype root's +Z convention.
+            recipe.BaseBodyLocalEulerAngles = new Vector3(0, 180, 0);
+            recipe.AlignBaseBodyToControllerSupportPlane = true;
+            recipe.BaseBodyGroundingAnchorNames = guardianEntGroundingAnchors;
         }
         public static CharacterVisualRecipe InfernalBruteRecipe => infernalBruteRecipe ? infernalBruteRecipe : infernalBruteRecipe = Recipe(CharacterVisualFamily.LargeCreature, VisualModuleStyle.Horns, VisualModuleStyle.Spikes, VisualModuleStyle.Claws, VisualModuleStyle.Spikes, new Color(.28f, .055f, .03f), new Color(.12f, .025f, .02f), new Color(1f, .28f, .05f));
         public static CharacterVisualRecipe SylvanBeastRecipe => sylvanBeastRecipe ? sylvanBeastRecipe : sylvanBeastRecipe = Recipe(CharacterVisualFamily.Beast, VisualModuleStyle.Mane, VisualModuleStyle.None, VisualModuleStyle.Claws, VisualModuleStyle.None, new Color(.34f, .4f, .32f), new Color(.15f, .2f, .14f), new Color(.75f, .9f, .5f));

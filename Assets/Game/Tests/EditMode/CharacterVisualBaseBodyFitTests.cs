@@ -8,12 +8,16 @@ namespace RealmRaiders.Tests
     public sealed class CharacterVisualBaseBodyFitTests
     {
         [Test]
-        public void BaseBodyFit_UsesRecipeRotationOnlyAndKeepsNeutralRecipesUnchanged()
+        public void BaseBodyFit_UsesRecipeRotationAndControllerSupportPlaneWithoutChangingGameplayRoot()
         {
-            var source = new GameObject("Authored Visual Source");
+            var source = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            source.name = "Authored Visual Source";
             source.transform.localRotation = Quaternion.Euler(7, 23, -4);
-            source.AddComponent<BoxCollider>();
             var host = new GameObject("Visual Fit Host");
+            host.transform.localScale = Vector3.one * 1.45f;
+            var motor = host.AddComponent<CharacterController>();
+            motor.center = new Vector3(0, .2f, 0);
+            motor.height = 3f;
             var recipe = ScriptableObject.CreateInstance<CharacterVisualRecipe>();
             recipe.Family = CharacterVisualFamily.Humanoid;
             recipe.Primary = Color.red;
@@ -21,6 +25,7 @@ namespace RealmRaiders.Tests
             recipe.AccentColor = Color.yellow;
             recipe.BaseBodyPrefab = source;
             recipe.BaseBodyLocalEulerAngles = new Vector3(0, 180, 0);
+            recipe.AlignBaseBodyToControllerSupportPlane = true;
             try
             {
                 var rootPose = Pose.Of(host.transform);
@@ -30,7 +35,11 @@ namespace RealmRaiders.Tests
                 var baseBody = assembler.PresentationPivot.Find("Base Body");
                 Assert.That(baseBody, Is.Not.Null);
                 Assert.That(Quaternion.Angle(baseBody.localRotation, Quaternion.Euler(recipe.BaseBodyLocalEulerAngles) * source.transform.localRotation), Is.LessThan(.001f));
+                var supportPlane = host.transform.TransformPoint(motor.center + Vector3.down * (motor.height * .5f)).y;
+                Assert.That(baseBody.GetComponentInChildren<Renderer>().bounds.min.y, Is.EqualTo(supportPlane).Within(.0001f));
                 Assert.That(Pose.Of(host.transform), Is.EqualTo(rootPose));
+                Assert.That(motor.center, Is.EqualTo(new Vector3(0, .2f, 0)));
+                Assert.That(motor.height, Is.EqualTo(3f));
                 foreach (var collider in baseBody.GetComponentsInChildren<Collider>(true)) Assert.That(collider.enabled, Is.False);
 
                 assembler.Clear();
@@ -54,7 +63,8 @@ namespace RealmRaiders.Tests
             }
 
             Assert.That(PrototypeRuntimeFactory.BloodKnightRecipe.BaseBodyLocalEulerAngles, Is.EqualTo(new Vector3(0, 180, 0)));
-            Assert.That(PrototypeRuntimeFactory.GuardianEntRecipe.BaseBodyLocalEulerAngles, Is.EqualTo(Vector3.zero));
+            Assert.That(PrototypeRuntimeFactory.GuardianEntRecipe.BaseBodyLocalEulerAngles, Is.EqualTo(new Vector3(0, 180, 0)));
+            Assert.That(PrototypeRuntimeFactory.GuardianEntRecipe.AlignBaseBodyToControllerSupportPlane, Is.True);
             Assert.That(PrototypeRuntimeFactory.InfernalBruteRecipe.BaseBodyLocalEulerAngles, Is.EqualTo(Vector3.zero));
             Assert.That(PrototypeRuntimeFactory.SylvanBeastRecipe.BaseBodyLocalEulerAngles, Is.EqualTo(Vector3.zero));
             Assert.That(PrototypeRuntimeFactory.InfernalBeastRecipe.BaseBodyLocalEulerAngles, Is.EqualTo(Vector3.zero));

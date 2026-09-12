@@ -231,6 +231,8 @@ namespace RealmRaiders.Tests
                 yield return SampleNonzeroJumpAccent(fixture.Entity, motion, CharacterJumpPresentationPhase.Landing);
                 Assert.That(fixture.Entity.IsJumping, Is.False);
                 Assert.That(pivot.localScale.y, Is.LessThan(motion.BaseScale.y), "Only the factual grounded end of a real jump settles the pivot.");
+                Assert.That(pivot.localScale.y, Is.LessThanOrEqualTo(motion.BaseScale.y * .94f),
+                    "The ordinary jump landing must reach the visible bounded contact crouch.");
                 Assert.That(fixture.Root.transform.localScale, Is.EqualTo(rootScale));
                 AssertPivotBounds(motion);
 
@@ -262,6 +264,80 @@ namespace RealmRaiders.Tests
                 GameplayInput.ResetForTests();
                 fixture.Dispose();
                 Object.Destroy(ground);
+                Object.Destroy(cameraObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator OrdinaryFallVisualMotion_UsesGroundContactWithoutInventingAJump()
+        {
+            GameplayInput.ResetForTests();
+            var cameraObject = MainCamera();
+            var lowerGround = CreateGround("Fall Motion Lower Ground", Vector3.zero, new Vector3(30, .5f, 30));
+            var ledge = CreateGround("Fall Motion Ledge", Vector3.up * 3f, new Vector3(4, .5f, 4));
+            var fixture = new EntityFixture(new Vector3(0, 4, 0), false);
+            try
+            {
+                fixture.Entity.SetController(fixture.Player);
+                yield return Settle(fixture);
+                var motion = fixture.Root.GetComponent<CharacterVisualMotion>();
+                var timeline = fixture.Root.GetComponent<CharacterJumpPresentationTimeline>();
+                var pivot = motion.PresentationPivot;
+                var rootScale = fixture.Root.transform.localScale;
+                var motorHeight = fixture.Entity.Motor.height;
+                var motorRadius = fixture.Entity.Motor.radius;
+                var motorCenter = fixture.Entity.Motor.center;
+                Assert.That(timeline.Observe(Time.unscaledTime, false, true, true).Phase, Is.EqualTo(CharacterJumpPresentationPhase.None));
+
+                var leaveDeadline = Time.realtimeSinceStartup + 1f;
+                while (fixture.Entity.IsGrounded && Time.realtimeSinceStartup < leaveDeadline)
+                {
+                    fixture.Entity.Move(Vector3.right * 10f);
+                    yield return null;
+                }
+                Assert.That(fixture.Entity.IsGrounded, Is.False, "The directly controlled fixture must factually walk off the ledge.");
+                Assert.That(fixture.Entity.IsJumping, Is.False, "A walk-off fall must not enter authoritative jump state.");
+
+                var sawFalling = false;
+                var landDeadline = Time.realtimeSinceStartup + 2f;
+                CharacterJumpPresentationSample sample = CharacterJumpPresentationSample.None;
+                while (!fixture.Entity.IsGrounded && Time.realtimeSinceStartup < landDeadline)
+                {
+                    sample = timeline.Observe(Time.unscaledTime, fixture.Entity.IsJumping, fixture.Entity.IsGrounded,
+                        CharacterJumpPresentationTimeline.HasFactualDirectControl(fixture.Entity));
+                    sawFalling |= sample.Phase == CharacterJumpPresentationPhase.Falling;
+                    yield return null;
+                }
+                Assert.That(sawFalling, Is.True, "The non-jump airborne interval must produce a factual falling presentation.");
+                Assert.That(fixture.Entity.IsGrounded, Is.True);
+                Assert.That(fixture.Entity.IsJumping, Is.False);
+
+                var sawCompression = false;
+                var recoveryDeadline = Time.realtimeSinceStartup + 1f;
+                while (Time.realtimeSinceStartup < recoveryDeadline)
+                {
+                    sample = timeline.Observe(Time.unscaledTime, false, true, true);
+                    motion.SampleFactualPose(Time.time, Time.unscaledTime, Time.deltaTime);
+                    if (sample.Phase == CharacterJumpPresentationPhase.Landing && sample.Progress >= .1f && sample.Progress <= .9f &&
+                        pivot.localScale.y <= motion.BaseScale.y * .94f)
+                    {
+                        sawCompression = true;
+                        break;
+                    }
+                    yield return null;
+                }
+                Assert.That(sawCompression, Is.True, "Factual fall contact must visibly compress the presentation pivot before smooth recovery.");
+                Assert.That(fixture.Root.transform.localScale, Is.EqualTo(rootScale));
+                Assert.That(fixture.Entity.Motor.height, Is.EqualTo(motorHeight));
+                Assert.That(fixture.Entity.Motor.radius, Is.EqualTo(motorRadius));
+                Assert.That(fixture.Entity.Motor.center, Is.EqualTo(motorCenter));
+                AssertPivotBounds(motion);
+            }
+            finally
+            {
+                fixture.Dispose();
+                Object.Destroy(ledge);
+                Object.Destroy(lowerGround);
                 Object.Destroy(cameraObject);
             }
         }
@@ -692,7 +768,7 @@ namespace RealmRaiders.Tests
                 // Zero progress is the continuous neutral endpoint. Observe a meaningful factual response,
                 // not a guessed frame count or an idle-breath sign. Landing must precede its neutral endpoint too.
                 if (sample.Phase == phase && sample.Progress >= .1f &&
-                    (phase != CharacterJumpPresentationPhase.Landing || sample.Progress <= .9f))
+                    (phase != CharacterJumpPresentationPhase.Landing || sample.Progress >= .35f && sample.Progress <= .65f))
                 {
                     Assert.That(entity.IsJumping, Is.EqualTo(phase == CharacterJumpPresentationPhase.Takeoff));
                     if (phase == CharacterJumpPresentationPhase.Landing) Assert.That(entity.IsGrounded, Is.True);

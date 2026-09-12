@@ -99,6 +99,12 @@ When QA uses the Unity Test Runner and it appears stale, filtered, or its result
 4. If the UI evidence is incomplete, wait once more and refresh the visible state; then report the exact limitation. A user-run green suite may be recorded as user evidence, but its total must remain unspecified unless QA actually saw it.
 5. Run only the gate required by the current candidate; do not restart a broad suite merely to recreate evidence.
 
+Opening Test Runner before Run does not require it to remain foreground after a
+suite finishes. For a leased manual smoke, QA may focus the existing main Editor
+window/Game tab using documented controls while preserving Test Runner size and
+layout. Do not manufacture a manual-smoke blocker from the no-resize rule. If the
+actual controls are unavailable, name that concrete UI/API boundary.
+
 An ordinary Unity restart is **not** a Test Runner or export step. QA may launch, close or restart Unity only when the user explicitly asks, or after an undeniable editor crash/hang and confirmation. CLI is not a Test Runner shortcut: the 2026-09-10 licensed `-runTests` pilot loaded the project but never started its focused test, so tests remain GUI-owned. Headless CLI remains an optional closed-Editor export fallback. Never use blind coordinate clicks, `Reimport All`, Library deletion, or a broad cache reset. In this Unity version, a Project-window action labelled **Assets → Reimport** may trigger the broad reimport warning; treat it as `Reimport All` and cancel it.
 
 ## Continuous, compact operating rhythm

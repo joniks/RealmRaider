@@ -27,6 +27,10 @@ namespace RealmRaiders.Characters
         public CharacterVisualRecipe MissingBaseBodyFallback;
         /// <summary>Optional authored visual fit applied only to the assembled Base Body; zero preserves its source rotation.</summary>
         public Vector3 BaseBodyLocalEulerAngles = Vector3.zero;
+        /// <summary>When enabled, the assembled visual foot plane is placed on the root CharacterController support plane once at build time.</summary>
+        public bool AlignBaseBodyToControllerSupportPlane;
+        /// <summary>Optional exact contact anchors required for grounding a skinned imported body.</summary>
+        public string[] BaseBodyGroundingAnchorNames;
         public GameObject HeadPrefab;
         public GameObject BackPrefab;
         public GameObject ArmsPrefab;

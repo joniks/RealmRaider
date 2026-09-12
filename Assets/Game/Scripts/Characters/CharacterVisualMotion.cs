@@ -225,8 +225,8 @@ namespace RealmRaiders.Characters
             if (jump.Phase == CharacterJumpPresentationPhase.Landing)
             {
                 var landing = 1f - Mathf.Abs(jump.Progress * 2f - 1f);
-                position += Vector3.down * (.040f * landing);
-                scale = Vector3.Scale(scale, Vector3.Lerp(Vector3.one, new Vector3(1.045f, .925f, 1.045f), landing));
+                position += Vector3.down * (.055f * landing);
+                scale = Vector3.Scale(scale, Vector3.Lerp(Vector3.one, new Vector3(1.055f, .90f, 1.055f), landing));
             }
             ordinaryPosition = ClampOffset(position);
             ordinaryRotation = rotation;

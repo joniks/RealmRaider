@@ -1,5 +1,42 @@
 # Realm Raiders — Done Job
 
+## 18.0 — Ent Ground Fit and Contact Landing
+
+Accepted 2026-09-12. Five runtime and five focused test files changed.
+
+- Animated and static Tree01 use the same explicit 180-degree visual fit; late
+  resource promotion receives the fit too. Four exact heel/toe anchors align the
+  model once to the existing scaled CharacterController support plane. Skinned
+  animation bounds are not treated as feet. Root/collider/AI/physics stay intact.
+- Factual walk-off falls now enter landing on ground contact without inventing a
+  jump or a spawn/controller-change landing. Shared pivot/bone timeline remains
+  authoritative for presentation; jump landing compression strengthens from 7.5%
+  to 10%, with bounded recovery and unchanged takeoff/gameplay timings.
+- Fresh final QA EditMode 359/359 (job `f2a0e1b2-b096-447f-ac63-58fdd3405ca7`,
+  08:44:31Z–08:44:33Z) and PlayMode 108/108 (job
+  `bddd1f4d-6525-4edc-be5f-11f430d431d5`, 08:45:17Z–08:46:44Z) passed;
+  failed/skipped/inconclusive 0; no new compiler/runtime errors; listener warning
+  delta 0. No code changed after those suites.
+- Manual attempt safely opened existing SylvanRealm and focused Game, preserving
+  Test Runner layout. The accessible surface offered no Play control or viewport
+  pixels/input, so Ent direction/feet/landing feel remain unobserved. No restart,
+  second Editor, Android export or push. This does not block independent gameplay.
+
+## 2026-09-12 — Priority Reset and MGC01 Content Preparation
+
+- User-directed development split is now 70% gameplay/content and 30%
+  foundation/polish by planned effort. Shared context, ready queues and the
+  source-backed `GAMEPLAY_ROADMAP.md` were committed as `9dce472`.
+- MGC01 is statically accepted in Modules `83bcda9`: Baseline, Wolf Pressure and
+  Sentinel Escort are three explicit immutable full-raid compositions, capped at
+  four enemies/two per node, using the existing Wolf/Ent roster. The old Scout
+  spawn outside its node circle is corrected in the prepared content.
+- Reviewed six isolated package files, exact IDs, capsule/edge clearance,
+  immutable snapshots and narrow Core integration seam; whitespace checks pass.
+  Seven NUnit tests are authored but not yet run. This package is not installed
+  or playable yet; Core 18.3 and its QA gate remain required.
+- No download, Unity control, export or push was performed for these items.
+
 ## Diamond Pass 15.10 — Blood Knight Motion Plane + Natural Takeoff
 
 Completed on 2026-09-10; included with the next project commit.

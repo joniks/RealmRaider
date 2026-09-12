@@ -28,6 +28,7 @@ namespace RealmRaiders.Characters
         float landingStartedAt = float.NegativeInfinity;
         bool observed;
         bool observedJumping;
+        bool observedGrounded;
 
         public float TakeoffSeconds => takeoffSeconds;
         public float StraightenSeconds => straightenSeconds;
@@ -63,6 +64,7 @@ namespace RealmRaiders.Characters
             {
                 observed = true;
                 observedJumping = isJumping;
+                observedGrounded = isGrounded;
                 return Evaluate(now, isJumping);
             }
 
@@ -72,11 +74,20 @@ namespace RealmRaiders.Characters
                 pendingLandingAt = float.NegativeInfinity;
                 landingStartedAt = float.NegativeInfinity;
             }
-            else if (observedJumping && !isJumping)
+            else if (observedGrounded && !isGrounded && !isJumping && !IsFinite(takeoffStartedAt))
+            {
+                // A factual walk-off enters the settled fall pose immediately: no invented takeoff and no
+                // post-contact wait for a visual air blend before landing can begin.
+                takeoffStartedAt = now - takeoffSeconds - fallingBlendSeconds;
+                pendingLandingAt = float.NegativeInfinity;
+                landingStartedAt = float.NegativeInfinity;
+            }
+            if (!observedGrounded && isGrounded && !isJumping)
             {
                 BeginFactualLanding(now, isGrounded);
             }
             observedJumping = isJumping;
+            observedGrounded = isGrounded;
             return Evaluate(now, isJumping);
         }
 
@@ -87,6 +98,7 @@ namespace RealmRaiders.Characters
             landingStartedAt = float.NegativeInfinity;
             observed = false;
             observedJumping = false;
+            observedGrounded = false;
         }
 
         CharacterJumpPresentationSample Evaluate(float now, bool isJumping)
@@ -111,6 +123,7 @@ namespace RealmRaiders.Characters
             if (!IsFinite(takeoffStartedAt)) return CharacterJumpPresentationSample.None;
             if (!isJumping)
             {
+                if (!observedGrounded) return AirSample(now);
                 takeoffStartedAt = float.NegativeInfinity;
                 return CharacterJumpPresentationSample.None;
             }
