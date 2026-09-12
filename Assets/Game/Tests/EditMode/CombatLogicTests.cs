@@ -91,6 +91,41 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void GuardianEntGroundSlamVfx_RequiresExactLivingActiveNonterminalAreaFact()
+        {
+            var ability = ScriptableObject.CreateInstance<AbilityDefinition>();
+            try
+            {
+                ability.DisplayName = "Ground Slam";
+                ability.Kind = AbilityKind.Area;
+                ability.Radius = 4;
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(
+                    PrototypeCharacterRoster.GuardianEntId, ability, true, true, false), Is.True);
+
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam("realmraiders.infernal-brute.prototype", ability, true, true, false), Is.False);
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, ability, false, true, false), Is.False);
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, ability, true, false, false), Is.False);
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, ability, true, true, true), Is.False);
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, null, true, true, false), Is.False);
+
+                ability.Kind = AbilityKind.Melee;
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, ability, true, true, false), Is.False);
+                ability.Kind = AbilityKind.Area;
+                ability.DisplayName = "Ground slam";
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, ability, true, true, false), Is.False);
+                ability.DisplayName = "Root Burst";
+                Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, ability, true, true, false), Is.False);
+                ability.DisplayName = "Ground Slam";
+                foreach (var radius in new[] { 0f, -1f, float.NaN, float.PositiveInfinity, float.NegativeInfinity })
+                {
+                    ability.Radius = radius;
+                    Assert.That(CombatFeedback.ShouldShowGuardianEntGroundSlam(PrototypeCharacterRoster.GuardianEntId, ability, true, true, false), Is.False);
+                }
+            }
+            finally { Object.DestroyImmediate(ability); }
+        }
+
+        [Test]
         public void DefeatConfirmation_RequiresExactAppliedLethalDirectCombatTransition()
         {
             Assert.That(CombatFeedback.ShouldShowDefeat(AbilityKind.Melee, 20, true, true, true, true, true, true, false, "Bog Warden"), Is.True);

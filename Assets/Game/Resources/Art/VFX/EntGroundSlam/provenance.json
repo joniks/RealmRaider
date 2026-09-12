@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "candidateSetId": "realmraiders.preview.guardian-ent-ground-slam.avfx01.v1",
+  "createdOn": "2026-09-12",
+  "status": "accepted-runtime-preview-not-final-art",
+  "creation": "original-generated",
+  "thirdPartySources": false,
+  "generationTool": "OpenAI built-in image generation",
+  "sourceCommits": ["544fab4", "b00f6b1"],
+  "sourcePath": "Modules/RealmRaider.Modules/ArtPreviews/AVFX01-EntGroundSlam/ent-ground-slam-radial-decal-mobile-256.png",
+  "runtimeFile": "ent-ground-slam-radial-decal-mobile-256.png",
+  "dimensions": [256, 256],
+  "colorFormat": "RGBA",
+  "sha256": "c0a54058ba44bfe3ccb9840e7bf6e3b913fc867b5cdabca3635e0f8b2a85cd68",
+  "licenseNote": "Project-original generated art; no third-party source or licence claim.",
+  "nonGoals": ["gameplay radius or damage authority", "camera shake", "particles", "final-art approval"]
+}

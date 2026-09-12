@@ -18,9 +18,10 @@ Last reviewed: 2026-09-12
   pixels/input. Visual direction/foot contact/landing feel remain unobserved;
   green automated results are not a claim of visual or device acceptance.
 - Priority is 70% gameplay/content and 30% foundation/polish by planned effort.
-  Sylvan/Infernal raid variants and the Keeper Reserve defense tradeoff are
-  accepted. The next bounded polish slice integrates the accepted Guardian Ent
-  Ground Slam impact ring without changing combat authority.
+  Sylvan/Infernal raid variants, the Keeper Reserve defense tradeoff and the
+  Guardian Ent Ground Slam impact ring are accepted. The next gameplay slice
+  teaches the existing Root Trap → possess Ent → Ground Slam opportunity without
+  taking control from the player.
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
@@ -270,6 +271,11 @@ Last reviewed: 2026-09-12
 - Module MGC09 is pinned: its no-engine evaluator owns only the two immutable
   roster/copy/energy facts. Core still validates layouts and owns persistence,
   spawning, possession, timers and UI.
+- Diamond Pass 18.6 Guardian Ent Ground Slam Impact VFX is present: an eligible
+  exact Ground Slam hit or whiff emits one short collider-free Sylvan root-energy
+  ring at the authoritative Area centre and radius; connected-hit impact remains
+  distinct and every controller/death/terminal/disable/destroy path clears it.
+  Final QA passed EditMode `444/444` and PlayMode `120/120`.
 
 ## Directory guide
 

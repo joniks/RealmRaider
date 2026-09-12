@@ -114,7 +114,7 @@ namespace RealmRaiders.Characters
 
         void Update()
         {
-            if (GameplayInput.TerminalState && !presentationTerminal) { PublishPresentation(CombatPresentationEnd.Terminal); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); feedback?.ClearDefeatConfirmation(); }
+            if (GameplayInput.TerminalState && !presentationTerminal) { PublishPresentation(CombatPresentationEnd.Terminal); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); feedback?.ClearDefeatConfirmation(); feedback?.ClearGroundSlamImpact(); }
             presentationTerminal = GameplayInput.TerminalState;
             if (GameplayInput.TerminalState && (isDodging || Health.IsDamageImmune)) CancelDodge();
             if (GameplayInput.TerminalState || !Motor || !Motor.enabled) CancelJump();
@@ -157,6 +157,7 @@ namespace RealmRaiders.Characters
                 }
             }
             var center = transform.position + direction * Mathf.Max(1, ability.Range * .55f);
+            feedback.ShowGuardianEntGroundSlamImpact(ability, center);
             bool connected = false, eligibleContact = false;
             var damaged = new HashSet<CombatEntity>();
             foreach (var hit in Physics.OverlapSphere(center, ability.Radius, ~0, QueryTriggerInteraction.Ignore))
@@ -328,13 +329,14 @@ namespace RealmRaiders.Characters
 
         void ClearPendingJump() => pendingJumpUntil = float.NegativeInfinity;
 
-        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); feedback?.ClearDefeatConfirmation(); CancelDodge(); CancelJump(); }
+        void OnDisable() { PublishPresentation(CombatPresentationEnd.Disabled); feedback?.ClearDodgeConfirmation(); feedback?.ClearNoHitConfirmation(); feedback?.ClearDefeatConfirmation(); feedback?.ClearGroundSlamImpact(); CancelDodge(); CancelJump(); }
         void OnDestroy()
         {
             PublishPresentation(CombatPresentationEnd.Destroyed);
             if (Health != null) Health.Died -= OnDeath;
             feedback?.ClearNoHitConfirmation();
             feedback?.ClearDefeatConfirmation();
+            feedback?.ClearGroundSlamImpact();
             CancelDodge();
             CancelJump();
         }

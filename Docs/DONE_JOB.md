@@ -4015,3 +4015,37 @@ Completed on 2026-09-12; included with this project commit.
 - No new compiler/runtime errors or exceptions were observed; duplicate
   AudioListener warning delta was zero. Manual BUILD/Defender feel remains
   user-observed because QA had no safely operable Game viewport/input.
+
+## Diamond Pass 18.6 — Guardian Ent Ground Slam Impact VFX
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Imported only the accepted original-generated AVFX01 256 px mobile candidate
+  with local provenance and bounded sprite/mobile settings.
+- Exact living, active, nonterminal Guardian Ent `Ground Slam` Area impacts now
+  create one detached horizontal root-energy ring at the already-authoritative
+  impact centre. It appears on both hit and whiff; the existing generic impact
+  remains connected-hit-only.
+- The ring reaches exactly the factual ability diameter, uses one cached shared
+  URP Unlit transparent material and renderer-local alpha, has no collider or
+  shadows, and removes itself within 0.34 seconds.
+- A new slam replaces the prior ring. Controller change, death, terminal state,
+  component disable/destroy and entity teardown clear it without moving the
+  gameplay root or changing damage, radius, recovery, cooldown, input, AI or
+  camera behavior.
+
+### Verification
+
+- Initial QA exposed 18 EditMode failures caused by constructing a
+  `MaterialPropertyBlock` in a MonoBehaviour field initializer. Initialization
+  was moved to `Awake` with a safe lazy fallback before the frozen final gate.
+- Final EditMode passed `444/444`, zero failed/skipped/inconclusive, in 1.938 s
+  (job `ade23049-8c3a-4fa5-8a37-64213961cf0e`).
+- Final PlayMode passed `120/120`, zero failed/skipped/inconclusive, in 105.540 s
+  (job `93ff2df6-6741-4223-b6e8-810e12efdd93`, XML
+  2026-09-12 11:40:50Z–11:42:35Z).
+- No new compiler/runtime errors were observed and the duplicate AudioListener
+  warning delta was zero. Manual hit/whiff appearance remains user-observed
+  because QA had no safely operable Game viewport/input surface.

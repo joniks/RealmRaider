@@ -962,7 +962,7 @@ depletion still forces release and restores the same Ent AI. Final QA passed
 EditMode `443/443` and PlayMode `118/118`, zero failed/skipped/inconclusive, with
 no new compiler/runtime errors and no AudioListener warning increase.
 
-## Ready next — 18.6 Guardian Ent Ground Slam Impact VFX (polish)
+## Accepted — 18.6 Guardian Ent Ground Slam Impact VFX (polish)
 
 Integrate only the accepted original-generated AVFX01 256 px mobile candidate as
 one short, collider-free, truthful ring at the exact existing Guardian Ent Ground
@@ -971,3 +971,22 @@ generic impact remains connected-hit-only. One instance, shared material, silent
 missing-resource fallback and synchronous controller/death/terminal/disable/
 destroy cleanup are mandatory. Damage, radius, timing, recovery, input, AI and
 camera remain unchanged. Full activation lease belongs in `Docs/NEXT_JOB.md`.
+
+Acceptance: the exact AVFX01 mobile sprite now produces one detached truthful
+ring for an eligible Guardian Ent Ground Slam hit or whiff, while connected-hit
+feedback remains separate. The ring uses the authoritative Area centre/radius,
+one shared transparent material, renderer-local alpha and complete lifecycle
+cleanup without changing gameplay. QA first exposed an EditMode construction
+defect; moving `MaterialPropertyBlock` creation out of the MonoBehaviour field
+initializer corrected it. Final QA passed EditMode `444/444` and PlayMode
+`120/120`, zero failed/skipped/inconclusive, with no new compiler/runtime errors
+and no AudioListener warning increase. Manual visual feel remains user-observed.
+
+## Ready next — 18.7 Root Trap to Possess to Ground Slam Opportunity (gameplay/content)
+
+After a factual successful Sylvan Root Trap activation while the live invader is
+actually rooted, show one short noninteractive cue that suggests the existing
+player-owned combination: possess the exact living Guardian Ent, then use Ground
+Slam. The cue must never select, possess, aim, attack, alter root duration/damage,
+or invent availability. It hides on possession, root expiry, depletion, death,
+terminal/result and teardown. Full activation lease belongs in `Docs/NEXT_JOB.md`.

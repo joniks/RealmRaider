@@ -1,7 +1,9 @@
 using System.Collections;
 using RealmRaiders.Characters;
 using RealmRaiders.Controllers;
+using RealmRaiders.Core;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace RealmRaiders.Combat
 {
@@ -13,8 +15,17 @@ namespace RealmRaiders.Combat
         public const float NoHitConfirmationDuration = .45f;
         public const float DefeatConfirmationDuration = .65f;
         public const float DamageMarkerDuration = .65f;
+        public const float GroundSlamImpactDuration = .34f;
+        public const float GroundSlamAlphaRiseDuration = .04f;
+        public const float GroundSlamScaleDuration = .16f;
+        public const float GroundSlamInitialScale = .7f;
+        public const string GroundSlamImpactObjectName = "Guardian Ent Ground Slam Impact";
+        const string GroundSlamSpriteResource = "Art/VFX/EntGroundSlam/ent-ground-slam-radial-decal-mobile-256";
         static readonly int ColorId = Shader.PropertyToID("_BaseColor");
         static readonly System.Collections.Generic.Dictionary<Color, Material> materials = new();
+        static Sprite groundSlamSprite;
+        static Material groundSlamMaterial;
+        static bool groundSlamSpriteLoadAttempted;
         GameObject telegraph;
         GameObject damageMarker;
         Coroutine damageMarkerRoutine;
@@ -25,6 +36,12 @@ namespace RealmRaiders.Combat
         GameObject defeatConfirmation;
         Coroutine defeatConfirmationRoutine;
         CombatFeedback defeatConfirmationSource;
+        GameObject groundSlamImpact;
+        SpriteRenderer groundSlamRenderer;
+        Coroutine groundSlamRoutine;
+        float groundSlamMaximumDiameter;
+        float groundSlamAlpha;
+        MaterialPropertyBlock groundSlamPropertyBlock;
         readonly System.Collections.Generic.List<CombatFeedback> defeatConfirmationTargets = new();
         readonly System.Collections.Generic.List<GameObject> transient = new();
         Renderer[] renderers;
@@ -32,8 +49,16 @@ namespace RealmRaiders.Combat
         public bool DodgeConfirmationVisible => dodgeConfirmation && dodgeConfirmation.activeSelf;
         public bool NoHitConfirmationVisible => noHitConfirmation && noHitConfirmation.activeSelf;
         public bool DefeatConfirmationVisible => defeatConfirmation && defeatConfirmation.activeSelf;
+        public bool GroundSlamImpactVisible => groundSlamImpact && groundSlamImpact.activeSelf;
+        public GameObject GroundSlamImpactObject => groundSlamImpact;
+        public float GroundSlamImpactMaximumDiameter => groundSlamMaximumDiameter;
+        public float GroundSlamImpactAlpha => groundSlamAlpha;
 
-        void Awake() => renderers = GetComponentsInChildren<Renderer>();
+        void Awake()
+        {
+            renderers = GetComponentsInChildren<Renderer>();
+            groundSlamPropertyBlock = new MaterialPropertyBlock();
+        }
         public void ShowTelegraph(AbilityDefinition ability, Vector3 direction)
         {
             ClearDefeatConfirmation();
@@ -199,9 +224,77 @@ namespace RealmRaiders.Combat
             Track(pulse, .2f);
         }
 
+        public static bool ShouldShowGuardianEntGroundSlam(string archetypeId, AbilityDefinition ability,
+            bool sourceActive, bool sourceAlive, bool terminal)
+        {
+            return sourceActive && sourceAlive && !terminal && ability &&
+                   string.Equals(archetypeId, PrototypeCharacterRoster.GuardianEntId, System.StringComparison.Ordinal) &&
+                   ability.Kind == AbilityKind.Area &&
+                   string.Equals(ability.DisplayName, "Ground Slam", System.StringComparison.Ordinal) &&
+                   !float.IsNaN(ability.Radius) && !float.IsInfinity(ability.Radius) && ability.Radius > 0;
+        }
+
+        public void ShowGuardianEntGroundSlamImpact(AbilityDefinition ability, Vector3 factualAreaCenter)
+        {
+            var entity = GetComponent<CombatEntity>();
+            var archetypeId = entity && entity.Definition ? entity.Definition.ArchetypeId : null;
+            if (!ShouldShowGuardianEntGroundSlam(archetypeId, ability,
+                    isActiveAndEnabled && entity && entity.isActiveAndEnabled,
+                    entity && entity.Health != null && !entity.Health.IsDead, GameplayInput.TerminalState)) return;
+
+            ClearGroundSlamImpact();
+            var sprite = GroundSlamSprite();
+            var material = GroundSlamMaterial(sprite);
+            if (!sprite || !material || sprite.bounds.size.x <= 0) return;
+
+            groundSlamImpact = new GameObject(GroundSlamImpactObjectName, typeof(SpriteRenderer));
+            groundSlamImpact.transform.position = factualAreaCenter + Vector3.up * .03f;
+            groundSlamImpact.transform.rotation = Quaternion.Euler(90, 0, 0);
+            groundSlamRenderer = groundSlamImpact.GetComponent<SpriteRenderer>();
+            groundSlamRenderer.sprite = sprite;
+            groundSlamRenderer.sharedMaterial = material;
+            groundSlamRenderer.color = Color.white;
+            groundSlamRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            groundSlamRenderer.receiveShadows = false;
+            groundSlamRenderer.sortingOrder = 2;
+            groundSlamMaximumDiameter = ability.Radius * 2;
+            ApplyGroundSlamSample(0);
+            groundSlamRoutine = StartCoroutine(AnimateGroundSlamImpact());
+        }
+
+        public void ClearGroundSlamImpact()
+        {
+            if (groundSlamRoutine != null) StopCoroutine(groundSlamRoutine);
+            groundSlamRoutine = null;
+            if (groundSlamImpact)
+            {
+                groundSlamImpact.SetActive(false);
+                Destroy(groundSlamImpact);
+            }
+            groundSlamImpact = null;
+            groundSlamRenderer = null;
+            groundSlamMaximumDiameter = 0;
+            groundSlamAlpha = 0;
+        }
+
+        public static float GroundSlamScaleAt(float elapsed)
+        {
+            return Mathf.Lerp(GroundSlamInitialScale, 1, Mathf.Clamp01(elapsed / GroundSlamScaleDuration));
+        }
+
+        public static float GroundSlamAlphaAt(float elapsed)
+        {
+            if (elapsed <= 0 || elapsed >= GroundSlamImpactDuration) return 0;
+            if (elapsed < GroundSlamAlphaRiseDuration) return Mathf.Clamp01(elapsed / GroundSlamAlphaRiseDuration);
+            return 1 - Mathf.Clamp01((elapsed - GroundSlamAlphaRiseDuration) /
+                                     (GroundSlamImpactDuration - GroundSlamAlphaRiseDuration));
+        }
+
         public void Cleanup()
         {
             StopAllCoroutines(); damageMarkerRoutine = null; dodgeConfirmationRoutine = null; noHitConfirmationRoutine = null; defeatConfirmationRoutine = null; ClearTelegraph();
+            groundSlamRoutine = null;
+            ClearGroundSlamImpact();
             ClearDamageMarker();
             ClearDefeatConfirmation();
             if (dodgeConfirmation)
@@ -308,6 +401,69 @@ namespace RealmRaiders.Combat
             material = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
             material.name = "Combat Feedback Shared"; material.color = color; materials[color] = material;
             return material;
+        }
+        static Sprite GroundSlamSprite()
+        {
+            if (!groundSlamSpriteLoadAttempted)
+            {
+                groundSlamSpriteLoadAttempted = true;
+                groundSlamSprite = Resources.Load<Sprite>(GroundSlamSpriteResource);
+            }
+            return groundSlamSprite;
+        }
+        static Material GroundSlamMaterial(Sprite sprite)
+        {
+            if (!sprite) return null;
+            if (groundSlamMaterial) return groundSlamMaterial;
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (!shader) return null;
+            groundSlamMaterial = new Material(shader) { name = "Guardian Ent Ground Slam Shared", renderQueue = (int)RenderQueue.Transparent };
+            groundSlamMaterial.SetOverrideTag("RenderType", "Transparent");
+            groundSlamMaterial.SetFloat("_Surface", 1);
+            groundSlamMaterial.SetFloat("_Blend", 0);
+            groundSlamMaterial.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            groundSlamMaterial.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            groundSlamMaterial.SetFloat("_SrcBlendAlpha", (float)BlendMode.One);
+            groundSlamMaterial.SetFloat("_DstBlendAlpha", (float)BlendMode.OneMinusSrcAlpha);
+            groundSlamMaterial.SetFloat("_ZWrite", 0);
+            groundSlamMaterial.SetFloat("_Cull", (float)CullMode.Off);
+            groundSlamMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            groundSlamMaterial.SetShaderPassEnabled("ShadowCaster", false);
+            groundSlamMaterial.SetTexture("_BaseMap", sprite.texture);
+            groundSlamMaterial.SetTexture("_MainTex", sprite.texture);
+            return groundSlamMaterial;
+        }
+        IEnumerator AnimateGroundSlamImpact()
+        {
+            var elapsed = 0f;
+            while (groundSlamImpact && elapsed < GroundSlamImpactDuration)
+            {
+                elapsed = Mathf.Min(GroundSlamImpactDuration, elapsed + Time.unscaledDeltaTime);
+                ApplyGroundSlamSample(elapsed);
+                yield return null;
+            }
+            groundSlamRoutine = null;
+            if (groundSlamImpact)
+            {
+                groundSlamImpact.SetActive(false);
+                Destroy(groundSlamImpact);
+            }
+            groundSlamImpact = null;
+            groundSlamRenderer = null;
+            groundSlamMaximumDiameter = 0;
+            groundSlamAlpha = 0;
+        }
+        void ApplyGroundSlamSample(float elapsed)
+        {
+            if (!groundSlamImpact || !groundSlamRenderer || !groundSlamRenderer.sprite) return;
+            var localDiameter = groundSlamMaximumDiameter / groundSlamRenderer.sprite.bounds.size.x;
+            var scale = localDiameter * GroundSlamScaleAt(elapsed);
+            groundSlamImpact.transform.localScale = new Vector3(scale, scale, 1);
+            groundSlamAlpha = GroundSlamAlphaAt(elapsed);
+            groundSlamPropertyBlock ??= new MaterialPropertyBlock();
+            groundSlamPropertyBlock.Clear();
+            groundSlamPropertyBlock.SetColor(ColorId, new Color(1, 1, 1, groundSlamAlpha));
+            groundSlamRenderer.SetPropertyBlock(groundSlamPropertyBlock);
         }
         void Track(GameObject item, float seconds) { transient.Add(item); StartCoroutine(ClearAfter(item, seconds)); }
         IEnumerator ClearAfter(GameObject item, float seconds) { yield return new WaitForSecondsRealtime(seconds); transient.Remove(item); if (item) Destroy(item); }
