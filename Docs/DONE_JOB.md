@@ -1,5 +1,37 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 18.12 — Root Shatter Possession Payoff
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- A successful manual Sylvan Root Trap activation publishes one monotonic
+  run-local revision even when its ordinary damage is dodged while the root lands.
+- Only an actually applied hit from the currently possessed exact Guardian Ent's
+  exact slot-2 Ground Slam at factual Impact can consume the still-rooted exact
+  invader opportunity. AI attacks, wrong abilities, sources and targets do nothing.
+- Accepted impact consumes the revision before synchronous callbacks, preserves
+  ordinary Slam damage, applies one `+18` raw bonus through normal armor/Health
+  authority, then breaks the root. A lethal ordinary hit publishes success but
+  never damages the dead invader.
+- The existing responsive, non-raycast notice lane shows one short
+  `ROOT SHATTER!`; no Canvas, camera/input authority, asset or automatic action was
+  added. New activation, release/controller loss, either death, terminal state,
+  HUD/helper disable, reinitialize, destroy and retry clear exact owned state.
+
+### Verification
+
+- Static review found and closed stale same-component reinitialize state and a
+  disabled-HUD callback that could reacquire old copy. Expanded focused coverage
+  proves second activation, old-event unsubscribe, real multi-collider overlap,
+  direct controller loss, Ent death and Armor 100 reducing the +18 hit to 9.
+- After the final project import, Unity GUI gates passed EditMode `514/514` at
+  2026-09-12 18:37:27Z–18:37:29Z and PlayMode `132/132` at
+  2026-09-12 18:37:52Z–18:39:39Z, with zero failures.
+- `git diff --check` is clean. No separate manual combo smoke or Android export
+  was repeated; the user's next device run owns the final timing/feel judgment.
+
 ## Diamond Pass 18.11 — Per-Layout Sylvan Pacing Ward
 
 Completed on 2026-09-12; included with this project commit.

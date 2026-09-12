@@ -80,7 +80,13 @@ namespace RealmRaiders.Core
 
             var possession = root.AddComponent<PossessionManager>(); var energy = new PossessionEnergy(defenseTradeoff.PossessionEnergyMaximumSeconds); possession.Initialize(cameraRig); possession.ConfigureEnergy(energy); if (ent) possession.Register(ent);
             var defense = root.AddComponent<DefenseManager>(); defense.Initialize(invader, core, possession);
-            var hudObject = new GameObject("Defender HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); hudObject.GetComponent<DefenderHUD>().Initialize(defense, possession, energy, invader, ent, trap, core, DefenseHudConfig.Sylvan, new DefenseDeploymentReceiptData(deployedPieces, defenseTradeoff)); cameraRig.BindCombatHud(hudObject.GetComponent<ResponsiveHudRoot>());
+            RootShatterCombo rootShatter = null;
+            if (trap && ent)
+            {
+                rootShatter = root.AddComponent<RootShatterCombo>();
+                rootShatter.Initialize(trap, invader, ent, possession, defense);
+            }
+            var hudObject = new GameObject("Defender HUD", typeof(DefenderHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<DefenderHUD>(); hud.Initialize(defense, possession, energy, invader, ent, trap, core, DefenseHudConfig.Sylvan, new DefenseDeploymentReceiptData(deployedPieces, defenseTradeoff)); hud.BindRootShatter(rootShatter); cameraRig.BindCombatHud(hudObject.GetComponent<ResponsiveHudRoot>());
             PrototypeRuntimeFactory.EventSystem(root.transform);
         }
 

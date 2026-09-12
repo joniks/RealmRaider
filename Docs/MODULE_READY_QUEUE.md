@@ -937,3 +937,30 @@ resolver returns only a strictly matched cached validated recipe and owns no RNG
 persistence or gameplay authority. Static checks and independent review found no
 issues. Unity discovered one stale expected issue list; the corrected package gate
 is included in `8b56968` and reruns with Core 18.8.
+
+## Accepted and integrated — MGC11 Sylvan Encounter Pacing
+
+Accepted Modules implementation `7f550b7`, with the direct Unity test-assembly
+dependency correction at `3b8e0e5`. Three immutable exact-layout recipes describe
+the Ancient/Forked optional branches and the Serpent Wolf → Root → Ent → Moonwell
+gauntlet without owning scene, entry, combat, rewards, persistence or UI. Core
+18.11 installed the package and final Unity QA passed EditMode `513/513` and
+PlayMode `124/124`.
+
+## Accepted for later integration — MGC12 Realm Growth Contracts
+
+Accepted Modules commit `3b23c13`. A pure caller-supplied catalogue validates
+monotonic level, footprint, node and expansion-capacity facts and resolves exact
+tier IDs or the greatest satisfied level. It deliberately defines no production
+thresholds, currency, save, map, multiplayer or Unity authority.
+
+## Accepted for later integration — MGC13 Starter Realm Expansion Planner
+
+Accepted Modules commit `3c11a20`. The no-engine package composes the accepted
+starter-layout and growth-contract APIs into one stateless evaluator: given an
+exact cached layout and caller-resolved valid tier, it returns the first N authored
+expansion sockets in their original order as an immutable plan. Capacity zero is
+valid; overflow, invalid identities/facts, malformed sockets and nonfinite
+coordinates fail closed with stable evidence. It never chooses levels, generates
+geometry, persists state or owns scene/gameplay/network behavior. Focused NUnit
+coverage is authored; Unity discovery waits for a deliberate Core integration.

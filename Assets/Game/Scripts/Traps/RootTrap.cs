@@ -1,3 +1,4 @@
+using System;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
 using UnityEngine;
@@ -6,18 +7,24 @@ namespace RealmRaiders.Traps
 {
     public sealed class RootTrap : TrapBase
     {
+        public event Action<long> Activated;
         public bool RecentlyActivated => Time.time < feedbackUntil;
+        public long ActivationRevision { get; private set; }
         float feedbackUntil;
         void Awake() { var collider = GetComponent<Collider>(); if (collider) collider.isTrigger = true; }
         public override bool TryActivate()
         {
             if (!base.TryActivate()) return false;
+            ActivationRevision++;
+            Activated?.Invoke(ActivationRevision);
             feedbackUntil = Time.time + 1.1f;
             StartCoroutine(PulseAndMark());
             return true;
         }
         protected override void ActivateEffect(CombatEntity target)
         { target.ApplyRoot(2.25f); target.Health.TakeDamage(new DamageInfo(12, gameObject, target.transform.position), target.Stats.Armor); }
+
+        void OnDestroy() => Activated = null;
 
         System.Collections.IEnumerator PulseAndMark()
         {

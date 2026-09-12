@@ -103,6 +103,8 @@ namespace RealmRaiders.UI
         bool journeyCompletedForResult;
         bool terminalResultPresented;
         bool cultivationResultVisible;
+        RootShatterCombo rootShatter;
+        bool rootShatterFeedbackVisible;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
@@ -152,6 +154,8 @@ namespace RealmRaiders.UI
         public bool LowHealthVisible { get; private set; }
         public string InvaderHealthText => invaderHealth ? invaderHealth.text : string.Empty;
         public Color InvaderHealthTint => invaderHealth ? invaderHealth.color : DirectControlHealthReadability.NeutralTint;
+        public string RootShatterFeedbackText => rootShatterFeedbackVisible && releaseNotice && releaseNotice.gameObject.activeSelf ? releaseNotice.text : string.Empty;
+        public bool RootShatterFeedbackRaycastTarget => releaseNotice && releaseNotice.raycastTarget;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
         public static string DefenseResultDebriefCopy(DefenseResultFact fact)
@@ -188,6 +192,20 @@ namespace RealmRaiders.UI
             initialized = true;
             OnSelection(null); OnPossession(null); OnDefenseState(defenseManager.State); Refresh(); RefreshRouteStatus();
             InitializeFirstMinuteGuide();
+        }
+
+        public void BindRootShatter(RootShatterCombo combo)
+        {
+            if (rootShatter)
+            {
+                rootShatter.Resolved -= OnRootShatterResolved;
+                rootShatter.Cleared -= OnRootShatterCleared;
+            }
+            OnRootShatterCleared();
+            rootShatter = combo;
+            if (!rootShatter) return;
+            rootShatter.Resolved += OnRootShatterResolved;
+            rootShatter.Cleared += OnRootShatterCleared;
         }
 
         void Update()
@@ -468,6 +486,13 @@ namespace RealmRaiders.UI
         void OnDestroy()
         {
             ClearEnergyPulse();
+            if (rootShatter)
+            {
+                rootShatter.Resolved -= OnRootShatterResolved;
+                rootShatter.Cleared -= OnRootShatterCleared;
+            }
+            rootShatter = null;
+            OnRootShatterCleared();
             SetDeploymentReceiptVisible(false);
             firstMinuteGuide?.Shutdown();
             if (possessionManager)
@@ -491,6 +516,8 @@ namespace RealmRaiders.UI
         void OnDisable()
         {
             ClearEnergyPulse();
+            CancelInvoke(nameof(HideReleaseNotice));
+            HideReleaseNotice();
             RestoreHealthPresentation();
             SetDeploymentReceiptVisible(false);
             if (chargeAffordance) chargeAffordance.gameObject.SetActive(false);
@@ -502,13 +529,23 @@ namespace RealmRaiders.UI
         {
             if (coreText) coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
         }
-        void ShowMomentFeedback(string message)
+        void ShowMomentFeedback(string message) => ShowTransientFeedback(message, false);
+        void OnRootShatterResolved() => ShowTransientFeedback(RootShatterCombo.ConfirmationCopy, true);
+        void OnRootShatterCleared()
         {
-            if (!releaseNotice || GameplayInput.TerminalState || (resultPanel && resultPanel.activeSelf)) return;
+            if (!rootShatterFeedbackVisible) return;
+            rootShatterFeedbackVisible = false;
+            CancelInvoke(nameof(HideReleaseNotice));
+            HideReleaseNotice();
+        }
+        void ShowTransientFeedback(string message, bool rootShatterOwnsCopy)
+        {
+            if (!isActiveAndEnabled || !releaseNotice || GameplayInput.TerminalState || (resultPanel && resultPanel.activeSelf)) return;
+            rootShatterFeedbackVisible = rootShatterOwnsCopy;
             releaseNotice.text = message; releaseNotice.gameObject.SetActive(true);
             CancelInvoke(nameof(HideReleaseNotice)); Invoke(nameof(HideReleaseNotice), 1.5f);
         }
-        void HideReleaseNotice() { if (releaseNotice) releaseNotice.gameObject.SetActive(false); }
+        void HideReleaseNotice() { rootShatterFeedbackVisible = false; if (releaseNotice) releaseNotice.gameObject.SetActive(false); }
         void OnDefenseState(DefenseState value)
         {
             var terminal = value is DefenseState.DefenderVictory or DefenseState.RealmLost;

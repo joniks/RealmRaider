@@ -307,6 +307,12 @@ Last reviewed: 2026-09-12
   in-range-only `WARD:` instruction, and same-scene retry clears every completion
   fact. Final QA passed EditMode `513/513` and PlayMode `124/124`; manual route
   feel remains with the user's Android smoke.
+- Diamond Pass 18.12 is present: the manual Root Trap → possess exact Guardian
+  Ent → exact Ground Slam chain now resolves one run-local `ROOT SHATTER!`, adds
+  one armor-authoritative `+18` raw hit and trades away the remaining root. It is
+  exact-once across multiple colliders/re-entry and clears on every controller,
+  death, terminal, disable, retry and teardown path. Final QA passed EditMode
+  `514/514` and PlayMode `132/132`; device feel remains with the user.
 - Module MGC11 is installed from Modules commit `7f550b7`: immutable
   exact-layout pacing recipes describe Ancient optional branches, Forked risk vs
   recovery routes and the Serpent linear gauntlet. Core 18.11 now hosts those
@@ -317,6 +323,11 @@ Last reviewed: 2026-09-12
   exact IDs or greatest-satisfied levels without inventing game thresholds,
   coordinates, currencies, persistence or multiplayer authority. It remains
   uninstalled and supplies no player-visible growth until a later named gate.
+- Module MGC13 is statically accepted in Modules commit `3c11a20`: a pure
+  starter-realm expansion planner combines an exact cached layout with a
+  caller-resolved growth tier and returns only the authored first N expansion
+  sockets as immutable facts. It chooses no level, geometry, save or multiplayer
+  behavior and remains uninstalled until a later named growth gate.
 
 ## Directory guide
 

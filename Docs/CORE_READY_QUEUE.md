@@ -1089,7 +1089,7 @@ retry reconstructs fresh state over the byte-identical saved layout. Missing or
 invalid package facts retain the legacy unwarded raid. Final Unity GUI gates
 passed EditMode `513/513` and PlayMode `124/124`, zero failures.
 
-## Ready next — 18.12 Root Shatter Possession Payoff (gameplay/content)
+## Accepted — 18.12 Root Shatter Possession Payoff (gameplay/content)
 
 Turn the already accepted Root Trap → possess Guardian Ent → Ground Slam cue into
 one real defense payoff. A successful manual Root Trap activation arms one
@@ -1105,3 +1105,29 @@ release, terminal state, retry and teardown cannot resolve or retain the combo.
 No trap or ability base timing/stat change, auto-possession, auto-aim, new spawn,
 reward, persistence, camera authority, Canvas, art or audio belongs in this gate.
 Full lease is in `Docs/NEXT_JOB.md`.
+
+Acceptance: a successful manual Root Trap now arms one exact run revision. Only
+the currently possessed exact Guardian Ent's slot-2 Ground Slam Impact and an
+actually applied hit on the still-rooted exact invader consume it, add one `+18`
+raw hit through normal armor authority, break the root and publish one responsive
+non-raycast `ROOT SHATTER!`. Re-entry, multiple colliders, fatal ordinary damage,
+new activation, release/controller loss, death, terminal state, disable,
+reinitialize, teardown and retry are exact-once and clean. Final Unity GUI gates
+passed EditMode `514/514` and PlayMode `132/132`, zero failures.
+
+## Ready next — 18.13 Infernal Flame Rush (gameplay/content)
+
+Give Infernal Defense a faster, aggressive signature chain distinct from Sylvan
+control-to-burst: manually ignite the exact invader, possess the exact Infernal
+Brute, then land its exact slot-1 Charge while burn pulses remain. A valid hit
+consumes the run revision and immediately detonates only the already-authored
+remaining Flame Trap pulses through the same trap/Health/armor authority; it adds
+no new total burn damage. Show a truthful pre-action cue and one short non-raycast
+`FLAME RUSH!` confirmation through existing responsive lanes.
+
+The player retains trap, selection, possession, aim and attack authority. Wrong
+actions/controllers/targets, AI Charge, expired burn, damage immunity, death,
+terminal state, release, retry and teardown cannot resolve or retain the chain.
+No Flame Trap or Charge base damage/timing/cooldown change, new VFX/audio, reward,
+spawn, camera behavior, persistence or Sylvan leakage belongs in this gate. Full
+lease is in `Docs/NEXT_JOB.md`.
