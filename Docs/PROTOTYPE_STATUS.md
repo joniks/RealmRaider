@@ -22,6 +22,8 @@ Last reviewed: 2026-09-12
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
+- Core 18.1 is active from accepted `2bf8f4f`: Moonwell recovery and an explicit
+  optional Ent reward. Implementation/verification of this next gate is pending.
 
 ## Latest verification
 

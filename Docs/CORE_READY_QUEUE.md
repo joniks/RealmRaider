@@ -838,9 +838,9 @@ inconclusive tests or new compiler/runtime errors. Manual visual feel remains
 unobserved because the accessible Game surface lacks Play/pixel/input controls;
 this precise evidence boundary does not block 18.1. No Android export requested.
 
-## Ready — 18.1 Sylvan Risk/Reward Route Choice (gameplay/content)
+## Active — 18.1 Sylvan Risk/Reward Route Choice (gameplay/content)
 
-Dependency: accepted 18.0 commit. Core may inspect read-only before activation.
+Activated after accepted 18.0 commit `2bf8f4f`; exact lease is in NEXT_JOB.
 Use the existing Moonwell node for one real bounded recovery per raid; keep its
 charge when the hero is full and prohibit resurrection/terminal healing. Give the
 explicit optional Sylvan Ent encounter one extra Rare Material on its factual
@@ -858,5 +858,13 @@ actual restored HP without resetting immunity or resurrecting. RaidManager can
 receive an explicit optional bonus-enemy reference and reuse creditedEnemies plus
 existing EnemyDefeat receipts; no new reward type or identity-by-name lookup.
 The HUD consumes the explicitly supplied well and keeps one visible, deliberate
-use action in the existing responsive root. Core may not write this slice until
-Architect accepts/commits 18.0 and replaces NEXT_JOB with the exact lease.
+use action in the existing responsive root.
+
+## Ready — 18.2 Ent Attack Rhythm (gameplay/content)
+
+Dependency: accepted 18.1 commit. Add a narrowly opted-in Ent AI attack pattern
+using existing basic Smash and Ground Slam: readable anticipation, evadable impact
+and a recovery opening. Preserve the shared action gate; no simultaneous attacks,
+input steering, auto-player attacks or changed possession identity. Other brains
+retain their current behavior unless explicitly configured. Core prepares exact
+paths/pattern parameters read-only; Architect writes the lease before activation.
