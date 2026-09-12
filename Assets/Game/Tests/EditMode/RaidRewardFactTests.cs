@@ -49,6 +49,7 @@ namespace RealmRaiders.Tests
 
         [TestCase(RaidRewardSource.RoomDiscovery, 5, 0, 5, 0, "+5 GOLD  •  ROOM DISCOVERED\nTOTAL 5 GOLD • 0 RARE")]
         [TestCase(RaidRewardSource.EnemyDefeat, 15, 0, 20, 0, "+15 GOLD  •  ENEMY DEFEATED\nTOTAL 20 GOLD • 0 RARE")]
+        [TestCase(RaidRewardSource.EnemyDefeat, 15, 1, 35, 1, "+15 GOLD • +1 RARE  •  ENEMY DEFEATED\nTOTAL 35 GOLD • 1 RARE")]
         public void CopyUsesOnlyFactValues(RaidRewardSource source, int gold, int rare, int totalGold, int totalRare, string expected)
             => Assert.That(RaidRewardCue.CopyFor(new RaidRewardFact(1, source, gold, rare, totalGold, totalRare, Vector3.zero)), Is.EqualTo(expected));
     }

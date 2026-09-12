@@ -31,6 +31,15 @@ namespace RealmRaiders.Combat
 
         internal void BeginDamageImmunity(float seconds) => damageImmuneUntil = Time.time + Mathf.Max(0, seconds);
         internal void ClearDamageImmunity() => damageImmuneUntil = 0;
+        public float Restore(float amount)
+        {
+            if (IsDead || amount <= 0 || float.IsNaN(amount) || float.IsInfinity(amount) || Current >= Maximum) return 0;
+            var restored = Mathf.Min(amount, Maximum - Current);
+            if (restored <= 0) return 0;
+            Current += restored;
+            Changed?.Invoke(Current, Maximum);
+            return restored;
+        }
         public void RestoreFull() { Current = Maximum; Changed?.Invoke(Current, Maximum); }
     }
 }

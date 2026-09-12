@@ -3814,3 +3814,50 @@ Completed on 2026-09-11; included with this project commit.
 
 - Manual rapid-hit readability in both orientations remains unobserved because QA
   could not safely access the Game view without changing the user's UI.
+
+## Diamond Pass 18.1 — Sylvan Risk/Reward Route Choice
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- `Health.Restore` accepts only finite positive healing, caps at maximum, returns
+  the actual restored amount and cannot resurrect or publish a damage event.
+- The existing Moonwell is now a visible one-charge recovery point. The living raid
+  hero may deliberately restore up to 30% maximum health while nearby; full,
+  distant, dead, disabled and terminal requests preserve the charge. A successful
+  use changes both the existing presentation and responsive HUD action to spent.
+- `RaidManager` receives the exact optional Ent reference. Its factual death grants
+  +1 Rare Material in addition to normal kill Gold through the existing immutable
+  reward receipt and once-only result/store path; Wolves and post-terminal deaths
+  cannot receive or duplicate that bonus.
+
+### Verification
+
+- Final EditMode passed `364/364`, zero failed/skipped/inconclusive, in 1.817 s
+  (job `4255afd8-bd2e-4ddd-a2e9-684f89dabc7e`).
+- Final PlayMode passed `109/109`, zero failed/skipped/inconclusive, in 89.824 s
+  (job `da0a0809-6fff-46fd-aad2-b9ad39dcc46f`, completed 2026-09-12 09:21:15Z).
+- Two strict floating-point test assertions and one full-suite global HUD lookup
+  were corrected; no runtime workaround, compiler/runtime error, second Unity,
+  restart, CLI, export, commit or push occurred during QA.
+
+### Evidence boundary
+
+- QA could focus the existing Game panel but its accessible surface exposed no
+  viewport pixels, Play control or input controls. Moonwell moment-to-moment feel,
+  optional Ent reward noticeability and terminal cleanup remain user-observed.
+
+## Module Passes MGC02–MGC03 — Infernal Ent Raid Data
+
+Accepted on 2026-09-12 in Modules commits `8ee1d95` and `db7759c`.
+
+- MGC02 supplies three immutable no-engine pacing presets. The selected
+  `BruteFinale` is two Hellhounds, one optional/bypassable Flame Trap, Brute and
+  Heart; only exact Brute defeat gates the Heart.
+- MGC03 supplies the matching adapter-neutral lane, spawn, scale, hazard-radius and
+  safe-bypass spatial facts. Core still owns scene construction and every gameplay
+  decision.
+- Fifteen focused package tests are authored but not yet run because the isolated
+  host lacks its old .NET 2 runtime. They enter Unity verification only with a
+  deliberate Core package integration.

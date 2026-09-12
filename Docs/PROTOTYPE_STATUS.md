@@ -4,9 +4,10 @@ Last reviewed: 2026-09-12
 
 ## Current work and latest acceptance
 
-- User smoke on 2026-09-12 reports Ent moving backwards, Sylvan raid Ent floating
+- User smoke on 2026-09-12 reported Ent moving backwards, Sylvan raid Ent floating
   above the walkable surface, and insufficient crouch/recovery after jumping or
-  falling. These are real reported defects despite the preceding green baseline.
+  falling. 18.0 implements the correction; its visual feel still awaits the next
+  user-observed run.
 - 18.0 is accepted after static review and fresh QA: EditMode 359/359,
   PlayMode 108/108, zero failed/skipped/inconclusive. Imported Ent static/animated
   fits use 180-degree visual yaw and four heel/toe contact anchors against the
@@ -16,14 +17,23 @@ Last reviewed: 2026-09-12
   Runner, but the accessible surface exposed neither Play controls nor viewport
   pixels/input. Visual direction/foot contact/landing feel remain unobserved;
   green automated results are not a claim of visual or device acceptance.
-- Priority changes to 70% gameplay/content and 30% foundation/polish by planned
-  effort. Next: Sylvan route risk/reward, then Ent attack rhythm and encounter
-  variants. See `GAMEPLAY_ROADMAP.md`; these are planned, not implemented.
+- Priority is 70% gameplay/content and 30% foundation/polish by planned effort.
+  Sylvan route risk/reward is accepted; the active next slice is the standalone
+  Infernal Ent raid, followed by Ent attack rhythm and encounter variants.
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
-- Core 18.1 is active from accepted `2bf8f4f`: Moonwell recovery and an explicit
-  optional Ent reward. Implementation/verification of this next gate is pending.
+- MGC02 is statically accepted in Modules `8ee1d95`: three Infernal pacing presets
+  are prepared, with the target finale fixed to two Hellhounds, one bypassable
+  Flame Trap, a Brute-only Heart gate and no second lava choke. MGC03 is accepted
+  in Modules `db7759c` with the exact Ent-trial coordinates, scale, radius and safe
+  bypass facts. Both remain uninstalled until deliberate Core integration.
+- Core 18.1 is accepted: the Moonwell provides one bounded 30% recovery choice and
+  the exact optional Ent grants +1 Rare through existing exact-once results. Final
+  QA passed EditMode `364/364` and PlayMode `109/109`; manual feel is unobserved.
+- Core 18.1B is active next: a separate direct-control Infernal raid with the Ent,
+  two Hellhounds, one bypassable Flame Trap, a Brute-only Heart gate and immediate
+  same-scene retry.
 
 ## Latest verification
 

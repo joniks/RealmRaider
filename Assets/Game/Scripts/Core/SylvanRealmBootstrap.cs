@@ -58,7 +58,8 @@ namespace RealmRaiders.Core
 
             var trapObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder); trapObject.name = "Root Trap"; trapObject.transform.position = new Vector3(0, .12f, 4); trapObject.transform.localScale = new Vector3(2.4f, .12f, 2.4f); RealmLandmarkPresentation.Build(trapObject.transform, RealmLandmarkRecipe.SylvanRootTrap); trapObject.AddComponent<RootTrap>().Initialize(hero);
             nodeViews.Add(Node(root, graph.Nodes["Root Path"], hero, new Vector3(0, 0, 5), "ROOT PATH", trapObject));
-            nodeViews.Add(Node(root, graph.Nodes["Moonwell"], hero, new Vector3(10, 0, 27), "MOONWELL"));
+            var moonwellObject = CreateMoonwell(new Vector3(10, 0, 27), out var moonwellRenderer);
+            nodeViews.Add(Node(root, graph.Nodes["Moonwell"], hero, new Vector3(10, 0, 27), "MOONWELL", moonwellObject));
 
             var coreObject = CreateHeartTree(new Vector3(0, 2.5f, 50));
             nodeViews.Add(Node(root, graph.Nodes["Heart Tree"], hero, new Vector3(0, 0, 50), "HEART TREE", coreObject));
@@ -84,10 +85,11 @@ namespace RealmRaiders.Core
             foreach (var path in boundaryPaths) CreatePath(new Vector3(path.Center.x, 0, path.Center.y), path.Size, path.Yaw);
             PrototypeArenaBoundaryBuilder.BuildSylvan(root.transform, boundaryNodes, boundaryPaths);
 
-            var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), new[] { wolfOne, wolfTwo, ent }, coreObject.transform.position);
+            var manager = root.AddComponent<RaidManager>(); manager.Initialize(hero, nodeViews.ToArray(), new[] { wolfOne, wolfTwo, ent }, coreObject.transform.position, ent);
+            var moonwell = moonwellObject.AddComponent<MoonwellRecovery>(); moonwell.Initialize(hero, manager, moonwellRenderer);
             var core = coreObject.GetComponent<RealmCore>(); core.Initialize(hero); core.InteractionStarted += manager.BeginObjective; core.Completed += manager.CompleteObjective;
             PrototypeRuntimeFactory.EventSystem(root.transform);
-            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>()); cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
+            var hudObject = new GameObject("Raid HUD", typeof(RaidHUD)); hudObject.transform.SetParent(root.transform); var hud = hudObject.GetComponent<RaidHUD>(); hud.Initialize(manager, hero, core, cameraRig.GetComponent<Camera>(), moonwell); cameraRig.BindCombatHud(hud.GetComponent<ResponsiveHudRoot>(), hud.ObjectiveCompassRect); core.ProgressChanged += hud.SetObjectiveProgress;
             graph.Nodes["Portal"].Visit();
         }
 
@@ -121,6 +123,15 @@ namespace RealmRaiders.Core
             var root = new GameObject("Heart Tree"); root.transform.position = position;
             RealmLandmarkPresentation.Build(root.transform, RealmLandmarkRecipe.SylvanHeartTree);
             root.AddComponent<RealmCore>(); return root;
+        }
+
+        static GameObject CreateMoonwell(Vector3 position, out Renderer recoveryRenderer)
+        {
+            var root = new GameObject("Moonwell Recovery"); root.transform.position = position;
+            var basin = GameObject.CreatePrimitive(PrimitiveType.Cylinder); basin.name = "Moonwell Basin"; basin.transform.SetParent(root.transform, false); basin.transform.localPosition = new Vector3(0, .18f, 0); basin.transform.localScale = new Vector3(1.35f, .18f, 1.35f); basin.GetComponent<Renderer>().material = PrototypeRuntimeFactory.Material(new Color(.18f, .32f, .28f));
+            var water = GameObject.CreatePrimitive(PrimitiveType.Cylinder); water.name = "Moonwell Water"; water.transform.SetParent(root.transform, false); water.transform.localPosition = new Vector3(0, .38f, 0); water.transform.localScale = new Vector3(.95f, .05f, .95f); recoveryRenderer = water.GetComponent<Renderer>(); recoveryRenderer.material = PrototypeRuntimeFactory.Material(new Color(.28f, .82f, .72f));
+            foreach (var collider in root.GetComponentsInChildren<Collider>()) { collider.enabled = false; Object.Destroy(collider); }
+            return root;
         }
 
         static CombatEntity Entity(string archetypeId, string name, Vector3 position, CombatStats stats, Color color, bool heavy, float scale = 1)

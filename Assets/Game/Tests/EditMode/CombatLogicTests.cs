@@ -166,6 +166,31 @@ namespace RealmRaiders.Tests
         }
 
         [Test]
+        public void Restore_IsFiniteCappedAndCannotResurrectOrPublishDamage()
+        {
+            var changed = 0; var damaged = 0;
+            health.Changed += (_, _) => changed++;
+            health.Damaged += _ => damaged++;
+            health.TakeDamage(new DamageInfo(60, null, Vector3.zero), 0);
+            changed = 0; damaged = 0;
+
+            Assert.That(health.Restore(30), Is.EqualTo(30));
+            Assert.That(health.Current, Is.EqualTo(70));
+            Assert.That(changed, Is.EqualTo(1)); Assert.That(damaged, Is.Zero);
+            Assert.That(health.Restore(1000), Is.EqualTo(30));
+            Assert.That(health.Current, Is.EqualTo(100));
+            Assert.That(changed, Is.EqualTo(2));
+            Assert.That(health.Restore(1), Is.Zero); Assert.That(health.Restore(0), Is.Zero);
+            Assert.That(health.Restore(-1), Is.Zero); Assert.That(health.Restore(float.NaN), Is.Zero); Assert.That(health.Restore(float.PositiveInfinity), Is.Zero);
+            Assert.That(changed, Is.EqualTo(2), "Rejected or unnecessary healing must not publish Changed.");
+
+            health.TakeDamage(new DamageInfo(1000, null, Vector3.zero), 0);
+            changed = 0;
+            Assert.That(health.Restore(30), Is.Zero);
+            Assert.That(health.IsDead, Is.True); Assert.That(changed, Is.Zero);
+        }
+
+        [Test]
         public void ActionState_RejectsOverlapAndReturnsToIdle()
         {
             var state = new CombatActionState();

@@ -838,7 +838,7 @@ inconclusive tests or new compiler/runtime errors. Manual visual feel remains
 unobserved because the accessible Game surface lacks Play/pixel/input controls;
 this precise evidence boundary does not block 18.1. No Android export requested.
 
-## Active — 18.1 Sylvan Risk/Reward Route Choice (gameplay/content)
+## Accepted — 18.1 Sylvan Risk/Reward Route Choice (gameplay/content)
 
 Activated after accepted 18.0 commit `2bf8f4f`; exact lease is in NEXT_JOB.
 Use the existing Moonwell node for one real bounded recovery per raid; keep its
@@ -860,13 +860,28 @@ existing EnemyDefeat receipts; no new reward type or identity-by-name lookup.
 The HUD consumes the explicitly supplied well and keeps one visible, deliberate
 use action in the existing responsive root.
 
-## Ready — 18.1B Infernal Raid with Ent Hero (gameplay/content)
+Acceptance: the existing Moonwell now has one deliberate 30%-maximum-health
+recovery charge with full/out-of-range/dead/disabled/terminal no-waste behavior,
+and the exact optional Ent grants one additional Rare Material through the existing
+exact-once reward/result pipeline. Two strict-float EditMode assertions and one
+global PlayMode button lookup were corrected without changing runtime behavior.
+Final QA passed EditMode `364/364` and PlayMode `109/109`, zero failed/skipped/
+inconclusive, with no new compiler/runtime errors. Manual Moonwell/Ent feel remains
+unobserved because the accessible Game surface exposes no viewport or controls.
+
+## Active — 18.1B Infernal Raid with Ent Hero (gameplay/content)
 
 User requested on 2026-09-12. Activate immediately after 18.1 acceptance. Full
 outcome, proposed paths and QA gate: `Docs/INFERNAL_ENT_RAID_JOB.md`. Separate
 InfernalRaid scene and Hub entry, direct Ent, two Hellhounds, bypassable fire
 hazard, Brute guarding the Heart and correct same-scene retry. Core alone owns
 main integration; shared RaidHUD cannot be edited alongside 18.1.
+
+Core activates immediately from the accepted 18.1 commit. Modules `8ee1d95` and
+`db7759c` provide reviewed no-engine pacing and spatial facts; Core may explicitly
+install and adapt them but retains all spawning, Heart-gate, AI, combat, scene,
+reward and input authority. The first playable trial remains the exact BruteFinale
+with one Flame Trap and a Brute-only Heart prerequisite.
 
 ## Following — 18.2 Ent Attack Rhythm (gameplay/content)
 

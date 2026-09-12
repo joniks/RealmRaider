@@ -18,7 +18,7 @@ namespace RealmRaiders.UI
         Text state, health, stats, objective, result, rootPrompt, objectiveCompass, dodgeLabel, jumpLabel, controlHint;
         GameObject resultPanel;
         RectTransform resultRect;
-        Button planNextDefense, raidAgain, realmHub, dodge, jump;
+        Button planNextDefense, raidAgain, realmHub, dodge, jump, moonwellAction;
         ResponsiveHudRoot responsive;
         CombatEntity hero;
         RaidManager raid;
@@ -27,6 +27,7 @@ namespace RealmRaiders.UI
         HudPresentation presentation;
         RaidEncounterCue encounterCue;
         RaidRewardCue rewardCue;
+        MoonwellRecovery moonwell;
         InRunControlStyleSelector controlStyleSelector;
         AbilityButtonReadiness[] abilityButtons;
         float objectiveProgress;
@@ -63,12 +64,15 @@ namespace RealmRaiders.UI
         public Color HealthTint => health ? health.color : DirectControlHealthReadability.NeutralTint;
         public bool LowHealthVisible { get; private set; }
         public RectTransform HealthRect => health ? health.rectTransform : null;
+        public bool MoonwellActionVisible => moonwellAction && moonwellAction.gameObject.activeSelf;
+        public bool MoonwellActionInteractable => moonwellAction && moonwellAction.interactable;
+        public string MoonwellActionText => moonwellAction ? moonwellAction.GetComponentInChildren<Text>().text : string.Empty;
 
-        public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera)
+        public void Initialize(RaidManager manager, CombatEntity raidHero, RealmCore objectiveTarget, Camera raidCamera, MoonwellRecovery recovery = null)
         {
             if (PrototypeJourney.Stage == PrototypeJourneyStage.Raid) journeyToken = PrototypeJourney.ActiveToken;
             else if (PrototypeJourney.IsActive) { PrototypeJourney.Cancel(); FirstPlayableMinute.ResetBuildHandoff(); }
-            raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; Build();
+            raid = manager; hero = raidHero; core = objectiveTarget; view = raidCamera; moonwell = recovery; Build();
             manager.StateChanged += OnState; manager.Finished += ShowResult; manager.EncounterChanged += OnEncounter; manager.Rewarded += OnReward;
             hero.Health.Changed += OnHeroHealthChanged;
             Refresh(); OnState(manager.State); OnEncounter(manager.Encounter);
@@ -110,6 +114,7 @@ namespace RealmRaiders.UI
             RefreshAbilityButtons();
             RefreshDodgeButton();
             RefreshJumpButton();
+            RefreshMoonwellAction();
             RefreshControlHint();
             var controller = hero ? hero.Controller<PlayerController>() : null;
             if (rootPrompt)
@@ -145,6 +150,7 @@ namespace RealmRaiders.UI
             };
             dodge = Button("DODGE", new Vector2(0, 220), Dodge); dodgeLabel = dodge.GetComponentInChildren<Text>();
             jump = Button("JUMP", new Vector2(260, 220), Jump); jumpLabel = jump.GetComponentInChildren<Text>(); presentation.DecorateJumpButton(jump);
+            if (moonwell) moonwellAction = Button("MOONWELL — READY", new Vector2(-260, 220), UseMoonwell);
             resultPanel = new GameObject("Raid Result", typeof(RectTransform), typeof(Image)); resultPanel.transform.SetParent(transform, false);
             var rect = (RectTransform)resultPanel.transform; rect.anchorMin = new Vector2(.08f, .24f); rect.anchorMax = new Vector2(.92f, .76f); rect.offsetMin = rect.offsetMax = Vector2.zero;
             resultPanel.GetComponent<Image>().color = new Color(.025f, .06f, .035f, .97f);
@@ -221,6 +227,11 @@ namespace RealmRaiders.UI
         void Ability(int index) => hero.Controller<PlayerController>()?.UseAbility(index);
         void Dodge() => hero.Controller<PlayerController>()?.Dodge();
         void Jump() => hero.Controller<PlayerController>()?.Jump();
+        void UseMoonwell()
+        {
+            if (moonwell && moonwell.TryUse() > 0) presentation?.PlayConfirm();
+            RefreshMoonwellAction();
+        }
         public void SetObjectiveProgress(float progress) { objectiveProgress = progress; objective.text = progress > 0 ? $"Capturing Heart Tree  {progress * 100:0}%" : "Reach the Heart Tree"; }
         void OnState(RaidState value)
         {
@@ -230,6 +241,7 @@ namespace RealmRaiders.UI
             if (value is RaidState.Victory or RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) encounterCue?.Clear();
             if (value is RaidState.Defeat or RaidState.Escape or RaidState.RaidResult) rewardCue?.Clear();
             RefreshHealth();
+            RefreshMoonwellAction();
         }
         void OnReward(RaidRewardFact fact) => rewardCue?.Enqueue(fact);
         void OnEncounter(RaidEncounterState value)
@@ -252,6 +264,25 @@ namespace RealmRaiders.UI
             ApplyHealthPresentation(DirectControlHealthReadability.Map("Blood Knight", hero.Health.Current, hero.Health.Maximum, direct, terminal));
         }
         bool IsTerminalRaidState() => raid && (raid.State == RaidState.Victory || raid.State == RaidState.Defeat || raid.State == RaidState.Escape || raid.State == RaidState.RaidResult);
+        void RefreshMoonwellAction()
+        {
+            if (!moonwellAction || !moonwell) return;
+            var terminal = GameplayInput.TerminalState || resultPanel && resultPanel.activeSelf || IsTerminalRaidState();
+            var visible = !terminal;
+            if (moonwellAction.gameObject.activeSelf != visible) moonwellAction.gameObject.SetActive(visible);
+            if (!visible) { moonwellAction.interactable = false; return; }
+            moonwellAction.interactable = moonwell.CanUse;
+            var copy = moonwell.State switch
+            {
+                MoonwellRecoveryState.Ready => "USE MOONWELL",
+                MoonwellRecoveryState.FullHealth => "MOONWELL — FULL HP",
+                MoonwellRecoveryState.OutOfRange => "MOONWELL — DISTANT",
+                MoonwellRecoveryState.Spent => "MOONWELL — SPENT",
+                _ => "MOONWELL — UNAVAILABLE"
+            };
+            var label = moonwellAction.GetComponentInChildren<Text>();
+            if (label && label.text != copy) label.text = copy;
+        }
         void ApplyHealthPresentation(DirectControlHealthReadabilityState next)
         {
             if (health.text != next.Copy) health.text = next.Copy;

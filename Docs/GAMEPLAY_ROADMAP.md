@@ -36,8 +36,8 @@ lane. Reuse current art, combat, graph, HUD and persistence wherever practical.
 | 18.2 Ent fight | 2 gameplay | Readable heavy Ground Slam with a recovery window interleaved with basic attacks | Player can learn, evade, then punish; possession uses the same existing abilities |
 | 18.3 encounter variants | 1 gameplay | Integrate the three prepared Sylvan enemy compositions | Replays change pressure and priorities without new art or unfair hidden spawns |
 
-18.0 is accepted; 18.1 is active. The user's new Infernal Ent trial is next, before
-18.2. Its detailed brief is `INFERNAL_ENT_RAID_JOB.md`. Relative estimates were
+18.0 and 18.1 are accepted; 18.1B Infernal Ent trial is active before 18.2. Its
+detailed brief is `INFERNAL_ENT_RAID_JOB.md`. Relative estimates were
 rebalanced to retain the 7 gameplay / 3 polish target; re-estimate after real
 implementation. Module has prepared the 18.3 compositions; Core owns integration.
 The subsequent 18.4 Build/trap/possession tradeoff remains backlog for the next batch.

@@ -93,9 +93,11 @@ namespace RealmRaiders.Raid
         public int RareMaterials { get; private set; }
         public int EnemiesDefeated { get; private set; }
         public int RoomsDiscovered { get; private set; }
+        public bool AllowsRecovery => State is RaidState.RaidStarting or RaidState.Exploring or RaidState.Combat or RaidState.ObjectiveReached;
         float startedAt;
         bool realmRewardClaimed;
         CombatEntity hero;
+        CombatEntity bonusRareEnemy;
         RealmNodeView[] configuredNodes = Array.Empty<RealmNodeView>();
         CombatEntity[] configuredEnemies = Array.Empty<CombatEntity>();
         readonly HashSet<RealmNodeView> creditedRooms = new();
@@ -110,16 +112,22 @@ namespace RealmRaiders.Raid
 
         public RaidEncounterState Encounter => encounter.Current;
 
-        public void Initialize(CombatEntity raidHero, RealmNodeView[] nodes, CombatEntity[] enemies, Vector3 objectivePosition)
+        public void Initialize(CombatEntity raidHero, RealmNodeView[] nodes, CombatEntity[] enemies, Vector3 objectivePosition, CombatEntity optionalBonusRareEnemy = null)
         {
             UnsubscribeSources();
             hero = raidHero;
+            bonusRareEnemy = optionalBonusRareEnemy;
             configuredNodes = nodes ?? Array.Empty<RealmNodeView>();
             configuredEnemies = enemies ?? Array.Empty<CombatEntity>();
             creditedRooms.Clear();
             creditedEnemies.Clear();
+            Gold = 0;
+            RareMaterials = 0;
+            EnemiesDefeated = 0;
+            RoomsDiscovered = 0;
             encounter.Reset();
             rewardSequence = 0;
+            realmRewardClaimed = false;
             objectiveRewardPosition = objectivePosition;
             initialized = true;
             SubscribeSources();
@@ -147,16 +155,17 @@ namespace RealmRaiders.Raid
 
         void OnRoomVisited(RealmNodeView node)
         {
-            if (!node || !creditedRooms.Add(node)) return;
+            if (!node || IsTerminal(State) || !creditedRooms.Add(node)) return;
             RoomsDiscovered++; Gold += 5;
             PublishReward(RaidRewardSource.RoomDiscovery, 5, 0, node.transform.position);
         }
 
         void OnEnemyDied(CombatEntity enemy)
         {
-            if (!enemy || !creditedEnemies.Add(enemy)) return;
-            EnemiesDefeated++; Gold += 15;
-            PublishReward(RaidRewardSource.EnemyDefeat, 15, 0, enemy.transform.position);
+            if (!enemy || IsTerminal(State) || !creditedEnemies.Add(enemy)) return;
+            var rareDelta = enemy == bonusRareEnemy ? 1 : 0;
+            EnemiesDefeated++; Gold += 15; RareMaterials += rareDelta;
+            PublishReward(RaidRewardSource.EnemyDefeat, 15, rareDelta, enemy.transform.position);
         }
 
         void PublishReward(RaidRewardSource source, int goldDelta, int rareDelta, Vector3 worldPosition)

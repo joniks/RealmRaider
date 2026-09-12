@@ -760,3 +760,41 @@ Dependency: package static acceptance and 18.0/18.1/18.2 Core gates. Core 18.3
 materializes the chosen composition through existing Entity/Node/RaidManager,
 with explicit spawn lists, existing rewards/fog and a truthful pre-run choice.
 No automatic integration or extra Modules work before this candidate is reviewed.
+
+## Accepted for integration — MGC02 Infernal Raid Pacing Presets
+
+Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
+Accepted Modules commit: `8ee1d95` on 2026-09-12.
+Package: `Packages/com.realmraiders.infernal-encounters/`.
+
+Three immutable, no-engine pacing presets now describe an Infernal Ent raid without
+spawning content or taking gameplay authority. Architect rejected the first finale
+draft because it required every hostile and included a second lava choke. The
+accepted `BruteFinale` is exactly two Hellhounds, one optional/bypassable Flame
+Trap, the Infernal Brute and the Heart; only the explicit Brute-defeated gate
+permits the Heart. Eight focused NUnit tests are authored but have not run because
+the isolated host lacks its old .NET 2 runtime. Unity verification begins only when
+Core deliberately installs/integrates the package.
+
+## Accepted for integration — MGC03 Infernal Ent Trial Spatial Recipe
+
+Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
+Accepted Modules commit: `db7759c` on 2026-09-12. Same package only; no main
+checkout or Unity. Immutable adapter-neutral coordinates, scale, safe-lane,
+Flame Trap radius/automatic/bypass and exact stable-ID bindings now cover the
+approved 18.1B `BruteFinale`. Core keeps spawning, combat, AI, reward and scene
+authority.
+
+Seven focused tests are authored for complete unique beat mappings, one hazard,
+safe Ent clearance, two valid bypass lanes, immutable snapshots and no Unity/game
+runtime dependency. They have not run in isolation because the available host
+lacks .NET 2; Unity verification belongs to the later deliberate integration.
+
+## Active — MGC04 Large-Creature Attack Rhythm Recipe
+
+Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
+Base: accepted Modules commit `db7759c`. New isolated no-engine package only.
+Prepare one explicit Guardian Ent attack-rhythm recipe for Core 18.2 without
+duplicating damage, cooldowns, movement, target acquisition or gameplay timing.
+It must express semantic ability choices and bounded eligibility facts so Core can
+retain final AI authority and use the same existing CombatEntity abilities.
