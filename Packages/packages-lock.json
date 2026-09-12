@@ -44,6 +44,12 @@
       "source": "local",
       "dependencies": {}
     },
+    "com.realmraiders.starter-realm-layouts": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.starter-realm-layouts",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.realmraiders.sylvan-encounters": {
       "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-encounters",
       "depth": 0,

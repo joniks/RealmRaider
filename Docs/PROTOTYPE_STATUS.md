@@ -282,11 +282,12 @@ Last reviewed: 2026-09-12
   possession energy and ready exact Ground Slam produce the optional cue. Camera
   transitions, cooldowns and every authority/lifecycle exit suppress it. Final QA
   passed EditMode `444/444` and PlayMode `121/121`.
-- Starter-realm layout Modules commits `af9a97c` and `d58c2cb` provide deterministic
-  cached recipe selection plus explicit no-engine materialization roles and path
-  widths. They are accepted for later integration but are not yet pinned or
-  installed in the main game; MGC10.2 is completing the full seven-role topology
-  compatibility gate before Core 18.8/18.9 consume them.
+- Starter-realm layout Modules commit `8b56968` is pinned and installed. Core 18.8
+  adds a strict isolated local Realm ID/seed/layout record: valid loads resolve the
+  same cached recipe without reroll or rewrite, while malformed data recovers only
+  that key and module/entropy failures expose no partial identity. Final QA passed
+  EditMode `482/482` and PlayMode `121/121`. Geometry is intentionally still the
+  current hard-coded Sylvan map; Core 18.9 is ready to materialize the recipe.
 
 ## Directory guide
 

@@ -999,7 +999,7 @@ teardown; its compact responsive lane avoids both first-frame and reflowed actio
 buttons. Final QA passed EditMode `444/444` and PlayMode `121/121`, with zero
 failed/skipped/inconclusive tests.
 
-## Ready next — 18.8 Persistent Starter-Realm Identity (foundation)
+## Accepted — 18.8 Persistent Starter-Realm Identity (foundation)
 
 Install the accepted starter-realm-layouts package only after its full seven-role
 MGC10.2 contract is reviewed and committed. Create one versioned local Sylvan
@@ -1012,3 +1012,24 @@ This gate does not yet replace the current Sylvan scene geometry or spawn conten
 Core 18.9 will materialize the selected recipe only after 18.8 proves stable local
 identity and deterministic package resolution. No account, backend, cloud sync,
 multiplayer ownership, level growth or reroll UI is claimed.
+
+Acceptance: the exact Modules `8b56968` package is installed and one isolated
+versioned PlayerPrefs record now preserves a canonical Realm ID, signed seed and
+exact validated starter layout ID without rerolling or rewriting valid data. A
+strict four-field structural JSON gate rejects hostile shapes/types and recovery
+never leaks partial state or alters unrelated preferences. Final QA passed
+EditMode `482/482` and PlayMode `121/121`, zero failed/skipped/inconclusive.
+
+## Ready next — 18.9 Materialize the Persisted Sylvan Starter Realm (gameplay/content)
+
+Replace the current hard-coded Sylvan node coordinates and path floors with the
+single exact validated recipe returned by 18.8. Materialize all seven existing
+gameplay roles and every declared edge through one Core adapter; reuse the same
+footprints for walkable floors and arena boundaries. Existing spawn, trap,
+Moonwell, possession, reward and objective systems retain authority.
+
+Ancient Crossroads, Forked Canopy and Serpent Roots must become visibly and
+physically distinct while preserving the complete playable loop. Initial camera
+heading may frame the Portal's first route as bounded presentation only. No
+reroll, expansion, new AI/pathfinding, encounter staging, saved fog/progress or
+reward redesign belongs in this gate. Full lease is in `Docs/NEXT_JOB.md`.

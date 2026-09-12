@@ -914,14 +914,26 @@ node and landmark presentation roles plus finite 6–8 unit path-width facts so 
 later Core adapter does not infer content from names. Static checks and independent
 review are clean; package NUnit tests wait for deliberate Unity installation.
 
-## Active — MGC10.2 Full Sylvan Loop Compatibility
+## Accepted for integration — MGC10.2 Full Sylvan Loop Compatibility
 
 Owner: Module Developer / Technical Art. Workspace: Modules repository only.
 
-Before Core materializes a random starter map, every recipe must carry the exact
+Accepted Modules commit: `8b56968` on 2026-09-12 (`e130a95` implementation plus
+the Unity-discovered complete invalid-layout issue expectation).
+
+Before Core materializes a seeded starter map, every recipe must carry the exact
 seven existing loop roles: Portal, junction, Wolf encounter, Root Path hazard, Ent
 encounter, Moonwell and Heart Tree. The three recipes must retain tactically
 distinct topology signatures, safe Start→Heart reachability and physical
 node/corridor clearance. Add exact persisted-ID resolution for Core 18.8 without
 adding persistence or selection authority. Architect reviews and commits the
 frozen candidate; Unity package tests run only after main integration.
+
+Outcome: Ancient Crossroads, Forked Canopy and Serpent Roots retain pairwise
+distinct tactical role/safe-edge signatures and the complete seven-role Sylvan
+loop. A fail-closed geometry validator protects the existing 3.25-unit Core node
+footprint and full corridor widths from unintended route unions. The exact-ID
+resolver returns only a strictly matched cached validated recipe and owns no RNG,
+persistence or gameplay authority. Static checks and independent review found no
+issues. Unity discovered one stale expected issue list; the corrected package gate
+is included in `8b56968` and reruns with Core 18.8.

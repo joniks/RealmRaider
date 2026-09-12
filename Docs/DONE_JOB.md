@@ -1,5 +1,42 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 18.8 — Persistent Starter-Realm Identity
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Installed the accepted no-engine starter-realm-layout package at exact Modules
+  commit `8b56968`, including three cached seven-role Sylvan recipes, physical
+  route-clearance validation and strict exact-ID resolution.
+- Added one isolated versioned local Sylvan realm identity containing exactly a
+  canonical Realm ID, one signed integer seed and one exact selected layout ID.
+  The first load creates and persists it once; subsequent loads resolve the same
+  cached recipe without selection, RNG consumption or PlayerPrefs rewrite.
+- A fail-closed structural JSON reader accepts exactly the four intended fields
+  and their exact primitive types. Malformed shapes, unknown or duplicate fields,
+  wrong versions, invalid IDs, bad integer tokens and unknown/case/padded layout
+  IDs recover only this key to one complete fresh identity. Failed entropy or
+  module resolution/validation never exposes or persists partial state.
+- Existing preferences, current scene geometry, spawns, combat, rewards and the
+  playable loop remain unchanged. No reroll, account, cloud, multiplayer, realm
+  growth or map materialization is claimed by this gate.
+
+### Verification
+
+- Static review first rejected a regex-based shape check that could accept an
+  unknown underscored field or malformed seed as zero. Core replaced it with the
+  strict structural scanner and added the missing hostile-shape/factory-failure
+  cases; repeat review found no issues.
+- The first Unity EditMode gate correctly exposed one stale package expected-issue
+  list. The test now includes the factual `LayoutDisconnected` evidence in Modules
+  commit `8b56968`; runtime behavior did not change.
+- Final Unity GUI gates after the last Refresh passed EditMode `482/482` at
+  2026-09-12 16:44:20Z–16:44:22Z and PlayMode `121/121` at
+  2026-09-12 16:45:09Z–16:46:54Z, with zero failed/skipped/inconclusive tests.
+- `git diff --check` is clean. Manual smoke and Android export were intentionally
+  not repeated because 18.8 has no player-visible runtime integration.
+
 ## Diamond Pass 18.7 — Root Trap to Possess Ent to Ground Slam Opportunity
 
 Completed on 2026-09-12; included with this project commit.
