@@ -964,3 +964,32 @@ valid; overflow, invalid identities/facts, malformed sockets and nonfinite
 coordinates fail closed with stable evidence. It never chooses levels, generates
 geometry, persists state or owns scene/gameplay/network behavior. Focused NUnit
 coverage is authored; Unity discovery waits for a deliberate Core integration.
+
+## Accepted and integrated — MGC14A Faction-Neutral Realm Layout Contract
+
+Accepted Modules commit `6b5da88`. One additive no-engine contract now owns
+immutable faction-neutral graph/node/edge/landmark/socket facts, ordinal role IDs
+and structural validation for safe reachability and physical node/corridor
+clearance. The existing Sylvan public API and exact-seven validator remain intact
+through an additive field-for-field adapter. Main installed the package explicitly;
+its tests passed in the Core 18.13 EditMode `526/526` gate.
+
+## Accepted for later integration — MGC14B Infernal Starter Defense Layouts
+
+Accepted Modules commit `2f4b728`. Ashen Spur, Cinder Fork and Ember Circuit are
+three cached immutable Infernal defense graphs using only existing Entry,
+Hellhound, Flame Trap, Infernal Brute and Infernal Heart concepts. Generic and
+Infernal validators enforce exact roles, independent topology/safe-path
+signatures, safe geometry and deterministic exact/seeded selection. The new
+package remains uninstalled; focused NUnit is authored and enters Unity only with
+a deliberate Core materialization gate.
+
+## Accepted for later integration — MGC15 Infernal Defense Pacing
+
+Accepted Modules commit `b3d1eed`. A new no-engine package maps each exact MGC14B
+layout to one immutable five-beat Entry/Hellhound/Flame/Brute/Heart rhythm.
+Required/optional dependency DAGs are truthful: Entry and final Heart are required,
+required beats cannot depend on optional beats, and every required beat is a Heart
+prerequisite. Exact lookup, safe-role reachability and pairwise semantic pacing
+signatures fail closed. The package remains uninstalled; its focused NUnit tests
+enter Unity only with a named Core integration.

@@ -1,5 +1,38 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 18.13 — Infernal Flame Rush
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- A successful manual Infernal Flame Trap activation publishes one exact
+  run-local revision after its unchanged immediate 8-damage pulse.
+- The two remaining 8-damage pulses are deliberately spaced at about `1.5s` and
+  `3.0s`, preserving exactly 24 raw total and the existing cooldown while giving
+  a human one brief selection → possession → Charge opportunity.
+- Only the currently possessed exact Infernal Brute's factual slot-1 Charge
+  Impact and an actually applied hit on the exact invader may atomically claim and
+  immediately deliver the remaining authored pulses through normal armor/Health.
+  AI, wrong action/controller/target, immunity and duplicate contacts fail closed.
+- The existing non-raycast lane exposes one truthful opportunity cue and
+  `FLAME RUSH!`. Its mutually-exclusive owner prevents a late combo clear from
+  hiding newer possession/release copy. Combo cleanup never cancels ordinary burn.
+- Flame Trap alone skips the blocking Keeper trap-focus transition; Sylvan Root
+  Trap retains its existing focus and no camera-rig authority changed.
+
+### Verification
+
+- Independent frozen-diff review found no actionable correctness, lifecycle or
+  player-truth defects; `git diff --check` is clean.
+- After the accepted local layout-contract package import, Unity GUI gates passed
+  EditMode `526/526` at 2026-09-12 19:11:16Z–19:11:18Z and PlayMode `141/141` at
+  2026-09-12 19:12:16Z–19:14:48Z, with zero failures.
+- Manual Infernal landscape and portrait smoke showed the cue without a Keeper
+  camera transition or layout overlap. Manual Sylvan Root activation retained its
+  trap focus. Exact possess-and-Charge resolution is covered by PlayMode; final
+  physical-device timing and feel remain with the user.
+
 ## Diamond Pass 18.12 — Root Shatter Possession Payoff
 
 Completed on 2026-09-12; included with this project commit.

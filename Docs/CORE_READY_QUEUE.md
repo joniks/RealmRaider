@@ -1115,7 +1115,7 @@ new activation, release/controller loss, death, terminal state, disable,
 reinitialize, teardown and retry are exact-once and clean. Final Unity GUI gates
 passed EditMode `514/514` and PlayMode `132/132`, zero failures.
 
-## Ready next — 18.13 Infernal Flame Rush (gameplay/content)
+## Accepted — 18.13 Infernal Flame Rush (gameplay/content)
 
 Give Infernal Defense a faster, aggressive signature chain distinct from Sylvan
 control-to-burst: manually ignite the exact invader, possess the exact Infernal
@@ -1125,9 +1125,38 @@ remaining Flame Trap pulses through the same trap/Health/armor authority; it add
 no new total burn damage. Show a truthful pre-action cue and one short non-raycast
 `FLAME RUSH!` confirmation through existing responsive lanes.
 
+The initial pulse stays immediate, while the two scheduled remaining pulses are
+deliberately spaced to `1.5s` so a human has one brief selection → possession →
+Charge opportunity without changing the exact 24 raw total. Flame activation
+alone skips the existing blocking Keeper trap-focus transition; Root Trap focus
+and all camera-rig code remain unchanged.
+
 The player retains trap, selection, possession, aim and attack authority. Wrong
 actions/controllers/targets, AI Charge, expired burn, damage immunity, death,
 terminal state, release, retry and teardown cannot resolve or retain the chain.
-No Flame Trap or Charge base damage/timing/cooldown change, new VFX/audio, reward,
-spawn, camera behavior, persistence or Sylvan leakage belongs in this gate. Full
-lease is in `Docs/NEXT_JOB.md`.
+No other Flame Trap or Charge base damage/timing/cooldown change, new VFX/audio,
+reward, spawn, camera-rig behavior, persistence or Sylvan leakage belongs in this
+gate. Full lease is in `Docs/NEXT_JOB.md`.
+
+Acceptance: exact Infernal ignition arms one revision and preserves 8+8+8 raw
+damage while spacing the remaining pulses to `1.5s`/`3.0s`. Only the exact
+currently possessed Brute's factual slot-1 Charge hit may claim the remaining
+pulses once through trap/armor authority and publish owner-safe `FLAME RUSH!`.
+Flame activation keeps Keeper selection available; Root focus is unchanged.
+Final Unity GUI gates passed EditMode `526/526` and PlayMode `141/141`, zero
+failures; portrait/landscape cue and Sylvan focus smoke passed.
+
+## Ready next — 18.14 Choose Your Defender (gameplay/content)
+
+After the exact first-minute Ent guide has completed or been skipped, make the
+existing deployed Sylvan Wolves genuinely possessable alongside the Guardian Ent.
+The Wolves remain fast, fragile interceptors with only their factual slot-0 Leap;
+the Ent remains the durable Root Shatter choice. Selection, control and release
+must keep the same exact entity, health, position, shared possession energy and AI
+resume contract.
+
+Rebind the existing responsive HUD to the actual controlled actor so Wolf control
+cannot inherit an Ent icon, Ground Slam or empty action affordance. Guided proof
+remains Ent-only; Root Shatter remains exact-Ent-only. No new stats, abilities,
+model, animation, VFX, AI, save/unlock, camera or input behavior belongs in this
+gate. Full lease is prepared only after 18.13 releases its overlapping HUD path.

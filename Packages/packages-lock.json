@@ -32,8 +32,8 @@
       "source": "local",
       "dependencies": {}
     },
-    "com.realmraiders.sylvan-defense-tradeoffs": {
-      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-defense-tradeoffs",
+    "com.realmraiders.realm-layout-contracts": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.realm-layout-contracts",
       "depth": 0,
       "source": "local",
       "dependencies": {}
@@ -48,6 +48,14 @@
       "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.starter-realm-layouts",
       "depth": 0,
       "source": "local",
+      "dependencies": {
+        "com.realmraiders.realm-layout-contracts": "0.1.0"
+      }
+    },
+    "com.realmraiders.sylvan-defense-tradeoffs": {
+      "version": "file:../Modules/RealmRaider.Modules/Packages/com.realmraiders.sylvan-defense-tradeoffs",
+      "depth": 0,
+      "source": "local",
       "dependencies": {}
     },
     "com.realmraiders.sylvan-encounter-pacing": {
@@ -55,7 +63,7 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.realmraiders.starter-realm-layouts": "0.2.1"
+        "com.realmraiders.starter-realm-layouts": "0.2.2"
       }
     },
     "com.realmraiders.sylvan-encounters": {

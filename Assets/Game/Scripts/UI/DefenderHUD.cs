@@ -61,6 +61,8 @@ namespace RealmRaiders.UI
 
     public sealed class DefenderHUD : MonoBehaviour
     {
+        enum TransientFeedbackOwner { None, Possession, RootShatter, FlameRush }
+
         public const string CultivationReadyResultCopy = "CULTIVATION READY — RETURN TO BUILD TO STRENGTHEN YOUR GUARDIAN ENT";
         Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, rootTrapOpportunity, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel, jumpLabel;
         Image energyFill;
@@ -104,7 +106,8 @@ namespace RealmRaiders.UI
         bool terminalResultPresented;
         bool cultivationResultVisible;
         RootShatterCombo rootShatter;
-        bool rootShatterFeedbackVisible;
+        FlameRushCombo flameRush;
+        TransientFeedbackOwner transientFeedbackOwner;
 
         public bool OpeningCueVisible => openingCue && openingCue.gameObject.activeSelf;
         public bool OpeningCueRaycastTarget => openingCue && openingCue.raycastTarget;
@@ -154,8 +157,10 @@ namespace RealmRaiders.UI
         public bool LowHealthVisible { get; private set; }
         public string InvaderHealthText => invaderHealth ? invaderHealth.text : string.Empty;
         public Color InvaderHealthTint => invaderHealth ? invaderHealth.color : DirectControlHealthReadability.NeutralTint;
-        public string RootShatterFeedbackText => rootShatterFeedbackVisible && releaseNotice && releaseNotice.gameObject.activeSelf ? releaseNotice.text : string.Empty;
+        public string RootShatterFeedbackText => transientFeedbackOwner == TransientFeedbackOwner.RootShatter && releaseNotice && releaseNotice.gameObject.activeSelf ? releaseNotice.text : string.Empty;
         public bool RootShatterFeedbackRaycastTarget => releaseNotice && releaseNotice.raycastTarget;
+        public string FlameRushFeedbackText => transientFeedbackOwner == TransientFeedbackOwner.FlameRush && releaseNotice && releaseNotice.gameObject.activeSelf ? releaseNotice.text : string.Empty;
+        public bool FlameRushFeedbackRaycastTarget => releaseNotice && releaseNotice.raycastTarget;
         public void DepletePossessionEnergyForTests() { if (energy != null) energy.Consume(energy.Remaining); }
 
         public static string DefenseResultDebriefCopy(DefenseResultFact fact)
@@ -206,6 +211,21 @@ namespace RealmRaiders.UI
             if (!rootShatter) return;
             rootShatter.Resolved += OnRootShatterResolved;
             rootShatter.Cleared += OnRootShatterCleared;
+        }
+
+        public void BindFlameRush(FlameRushCombo combo)
+        {
+            if (flameRush)
+            {
+                flameRush.Resolved -= OnFlameRushResolved;
+                flameRush.Cleared -= OnFlameRushCleared;
+            }
+            OnFlameRushCleared();
+            flameRush = combo;
+            if (!flameRush) return;
+            flameRush.Resolved += OnFlameRushResolved;
+            flameRush.Cleared += OnFlameRushCleared;
+            RefreshRootTrapOpportunity();
         }
 
         void Update()
@@ -381,7 +401,7 @@ namespace RealmRaiders.UI
             if (IsTerminalResultActive) return;
             if (!trap.TryActivate()) { Refresh(); return; }
             presentation?.PlayConfirm();
-            if (!possessionManager.IsPossessing && !GameplayInput.TerminalState && !resultPanel.activeSelf)
+            if (trap is not FlameTrap && !possessionManager.IsPossessing && !GameplayInput.TerminalState && !resultPanel.activeSelf)
                 Camera.main?.GetComponent<PrototypeCameraRig>()?.FocusTrap(trap.transform, invader);
             Refresh();
         }
@@ -493,6 +513,13 @@ namespace RealmRaiders.UI
             }
             rootShatter = null;
             OnRootShatterCleared();
+            if (flameRush)
+            {
+                flameRush.Resolved -= OnFlameRushResolved;
+                flameRush.Cleared -= OnFlameRushCleared;
+            }
+            flameRush = null;
+            OnFlameRushCleared();
             SetDeploymentReceiptVisible(false);
             firstMinuteGuide?.Shutdown();
             if (possessionManager)
@@ -529,23 +556,25 @@ namespace RealmRaiders.UI
         {
             if (coreText) coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
         }
-        void ShowMomentFeedback(string message) => ShowTransientFeedback(message, false);
-        void OnRootShatterResolved() => ShowTransientFeedback(RootShatterCombo.ConfirmationCopy, true);
-        void OnRootShatterCleared()
+        void ShowMomentFeedback(string message) => ShowTransientFeedback(message, TransientFeedbackOwner.Possession);
+        void OnRootShatterResolved() => ShowTransientFeedback(RootShatterCombo.ConfirmationCopy, TransientFeedbackOwner.RootShatter);
+        void OnRootShatterCleared() => ClearTransientFeedback(TransientFeedbackOwner.RootShatter);
+        void OnFlameRushResolved(int _) => ShowTransientFeedback(FlameRushCombo.ConfirmationCopy, TransientFeedbackOwner.FlameRush);
+        void OnFlameRushCleared() => ClearTransientFeedback(TransientFeedbackOwner.FlameRush);
+        void ClearTransientFeedback(TransientFeedbackOwner owner)
         {
-            if (!rootShatterFeedbackVisible) return;
-            rootShatterFeedbackVisible = false;
+            if (transientFeedbackOwner != owner) return;
             CancelInvoke(nameof(HideReleaseNotice));
             HideReleaseNotice();
         }
-        void ShowTransientFeedback(string message, bool rootShatterOwnsCopy)
+        void ShowTransientFeedback(string message, TransientFeedbackOwner owner)
         {
             if (!isActiveAndEnabled || !releaseNotice || GameplayInput.TerminalState || (resultPanel && resultPanel.activeSelf)) return;
-            rootShatterFeedbackVisible = rootShatterOwnsCopy;
+            transientFeedbackOwner = owner;
             releaseNotice.text = message; releaseNotice.gameObject.SetActive(true);
             CancelInvoke(nameof(HideReleaseNotice)); Invoke(nameof(HideReleaseNotice), 1.5f);
         }
-        void HideReleaseNotice() { rootShatterFeedbackVisible = false; if (releaseNotice) releaseNotice.gameObject.SetActive(false); }
+        void HideReleaseNotice() { transientFeedbackOwner = TransientFeedbackOwner.None; if (releaseNotice) releaseNotice.gameObject.SetActive(false); }
         void OnDefenseState(DefenseState value)
         {
             var terminal = value is DefenseState.DefenderVictory or DefenseState.RealmLost;
@@ -680,18 +709,33 @@ namespace RealmRaiders.UI
         void RefreshRootTrapOpportunity()
         {
             if (!rootTrapOpportunity) return;
-            var root = trap as RootTrap;
             var defenderBrain = ent ? ent.Controller<CreatureBrain>() : null;
-            var groundSlam = ent != null && ent.Abilities.Count > 2 ? ent.Abilities[2] : null;
-            var hasReadyGroundSlam = groundSlam != null && groundSlam.IsReady && groundSlam.Definition && ent.Definition &&
-                ent.Definition.Abilities != null && ent.Definition.Abilities.Length > 2 && groundSlam.Definition == ent.Definition.Abilities[2] &&
-                groundSlam.Definition.Kind == AbilityKind.Area && string.Equals(groundSlam.Definition.DisplayName, "Ground Slam", System.StringComparison.Ordinal);
-            var eligible = isActiveAndEnabled && config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && root && root.State == TrapState.Cooldown &&
-                defense != null && !defense.IsFinished && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf) &&
-                invader && invader.Health != null && !invader.Health.IsDead && invader.IsRooted &&
-                IsSylvanGuardianEnt && ent.Health != null && !ent.Health.IsDead && defenderBrain && defenderBrain.IsActive &&
+            var common = isActiveAndEnabled && defense != null && !defense.IsFinished && !GameplayInput.TerminalState &&
+                !(resultPanel && resultPanel.activeSelf) && invader && invader.Health != null && !invader.Health.IsDead &&
+                ent && ent.Health != null && !ent.Health.IsDead && defenderBrain && defenderBrain.IsActive &&
                 possessionManager && !possessionManager.IsPossessing && possessionManager.CanSelect(ent) &&
-                energy != null && !energy.IsDepleted && hasReadyGroundSlam;
+                energy != null && !energy.IsDepleted;
+            var eligible = false;
+            if (IsSylvanGuardianEnt)
+            {
+                var root = trap as RootTrap;
+                var groundSlam = ent.Abilities.Count > 2 ? ent.Abilities[2] : null;
+                var hasReadyGroundSlam = groundSlam != null && groundSlam.IsReady && groundSlam.Definition && ent.Definition &&
+                    ent.Definition.Abilities != null && ent.Definition.Abilities.Length > 2 && groundSlam.Definition == ent.Definition.Abilities[2] &&
+                    groundSlam.Definition.Kind == AbilityKind.Area && string.Equals(groundSlam.Definition.DisplayName, "Ground Slam", System.StringComparison.Ordinal);
+                eligible = common && root && root.State == TrapState.Cooldown && invader.IsRooted && hasReadyGroundSlam;
+                if (eligible) rootTrapOpportunity.text = "ROOTED — POSSESS ENT, THEN GROUND SLAM";
+            }
+            else if (IsInfernalBrute)
+            {
+                var flame = trap as FlameTrap;
+                var charge = ent.Abilities.Count > 1 ? ent.Abilities[1] : null;
+                var hasReadyCharge = charge != null && charge.IsReady && charge.Definition && ent.Definition &&
+                    ent.Definition.Abilities != null && ent.Definition.Abilities.Length > 1 && charge.Definition == ent.Definition.Abilities[1] &&
+                    charge.Definition.Kind == AbilityKind.Dash && string.Equals(charge.Definition.DisplayName, "Charge", System.StringComparison.Ordinal);
+                eligible = common && flameRush && flameRush.IsArmed && flame && flame.BurnPulsesRemaining > 0 && hasReadyCharge;
+                if (eligible) rootTrapOpportunity.text = FlameRushCombo.OpportunityCopy;
+            }
             SetRootTrapOpportunityVisible(eligible);
         }
 

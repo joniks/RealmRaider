@@ -313,6 +313,13 @@ Last reviewed: 2026-09-12
   exact-once across multiple colliders/re-entry and clears on every controller,
   death, terminal, disable, retry and teardown path. Final QA passed EditMode
   `514/514` and PlayMode `132/132`; device feel remains with the user.
+- Diamond Pass 18.13 is present: manual Infernal ignition now opens one real
+  three-second Brute Charge opportunity. A valid exact possessed Charge converts
+  only the Flame Trap's remaining authored pulses into immediate armor-authority
+  damage, never increases its exact 24 raw total, and emits one owner-safe
+  `FLAME RUSH!`. Flame activation leaves Keeper selection available while Sylvan
+  Root focus is unchanged. Final QA passed EditMode `526/526` and PlayMode
+  `141/141`; portrait/landscape cue smoke is clean.
 - Module MGC11 is installed from Modules commit `7f550b7`: immutable
   exact-layout pacing recipes describe Ancient optional branches, Forked risk vs
   recovery routes and the Serpent linear gauntlet. Core 18.11 now hosts those
@@ -328,6 +335,21 @@ Last reviewed: 2026-09-12
   caller-resolved growth tier and returns only the authored first N expansion
   sockets as immutable facts. It chooses no level, geometry, save or multiplayer
   behavior and remains uninstalled until a later named growth gate.
+- Module MGC14A is accepted and installed from Modules commit `6b5da88`: one
+  faction-neutral immutable realm-graph contract now validates exact role IDs,
+  safe reachability and mobile-scale node/corridor clearance while the existing
+  Sylvan API remains backward compatible. Its Unity package tests joined the
+  18.13 final green EditMode gate.
+- Module MGC14B is statically accepted in Modules commit `2f4b728`: Ashen Spur,
+  Cinder Fork and Ember Circuit are three cached, geometrically valid and
+  tactically distinct Infernal defense starter layouts with exact existing-role
+  facts and deterministic selection. They remain uninstalled until a named Core
+  materialization gate.
+- Module MGC15 is statically accepted in Modules commit `b3d1eed`: each exact
+  Infernal starter layout now has an immutable five-beat defense rhythm using only
+  its factual Entry, Hellhound, Flame Trap, Brute and Heart roles. Required versus
+  optional dependencies and distinct pacing signatures fail closed; the package
+  remains uninstalled until the later Infernal materialization gate.
 
 ## Directory guide
 

@@ -4,6 +4,7 @@ using NUnit.Framework;
 using RealmRaiders.Characters;
 using RealmRaiders.Combat;
 using RealmRaiders.Controllers;
+using RealmRaiders.Possession;
 using RealmRaiders.Traps;
 using RealmRaiders.UI;
 using UnityEngine;
@@ -50,12 +51,12 @@ namespace RealmRaiders.Tests
                 Assert.That(fixture.Trap.CooldownDuration, Is.EqualTo(6));
                 Assert.That(fixture.Trap.TryActivate(), Is.False, "Cooldown must prevent overlapping burn sequences.");
 
-                yield return new WaitForSeconds(.38f);
+                yield return new WaitForSeconds(1.6f);
                 Assert.That(fixture.Entity.Health.Current, Is.EqualTo(84));
                 Assert.That(fixture.Trap.BurnPulsesRemaining, Is.EqualTo(1));
                 Assert.That(fixture.Entity.IsRooted, Is.False);
 
-                yield return new WaitForSeconds(.38f);
+                yield return new WaitForSeconds(1.6f);
                 Assert.That(fixture.Entity.Health.Current, Is.EqualTo(76));
                 Assert.That(fixture.Trap.BurnPulsesRemaining, Is.Zero);
                 Assert.That(fixture.Entity.IsRooted, Is.False);
@@ -63,8 +64,8 @@ namespace RealmRaiders.Tests
                 Assert.That(pulseAmounts, Is.EqualTo(new[] { 8f, 8f, 8f }));
                 Assert.That(pulseTimes, Has.Count.EqualTo(3));
                 Assert.That(pulseTimes[0], Is.LessThan(.03f));
-                Assert.That(pulseTimes[1], Is.InRange(.33f, .48f));
-                Assert.That(pulseTimes[2], Is.InRange(.68f, .86f));
+                Assert.That(pulseTimes[1], Is.InRange(1.45f, 1.75f));
+                Assert.That(pulseTimes[2], Is.InRange(2.9f, 3.45f));
 
                 Time.timeScale = 20;
                 yield return new WaitForSeconds(6.05f);
@@ -87,16 +88,20 @@ namespace RealmRaiders.Tests
             try
             {
                 Assert.That(deathFixture.Trap.TryActivate(), Is.True);
+                var deathRevision = deathFixture.Trap.ActivationRevision;
                 Assert.That(deathFixture.Entity.Health.Current, Is.EqualTo(92));
                 deathFixture.Entity.Health.TakeDamage(new DamageInfo(1000, null, deathFixture.Entity.transform.position), 0);
                 Assert.That(deathFixture.Entity.Health.IsDead, Is.True);
                 Assert.That(deathFixture.Trap.BurnPulsesRemaining, Is.Zero);
+                Assert.That(deathFixture.Trap.TryDetonateRemaining(deathFixture.Entity, deathRevision,
+                    out var deathClaim), Is.False);
+                Assert.That(deathClaim, Is.Zero);
 
                 Assert.That(disableFixture.Trap.TryActivate(), Is.True);
                 Assert.That(disableFixture.Entity.Health.Current, Is.EqualTo(92));
                 disableFixture.Trap.enabled = false;
                 Assert.That(disableFixture.Trap.BurnPulsesRemaining, Is.Zero);
-                yield return new WaitForSeconds(.76f);
+                yield return new WaitForSeconds(3.2f);
                 Assert.That(disableFixture.Entity.Health.Current, Is.EqualTo(92));
                 Assert.That(deathFixture.Entity.Health.Current, Is.Zero);
             }
@@ -104,6 +109,138 @@ namespace RealmRaiders.Tests
             {
                 deathFixture.Dispose();
                 disableFixture.Dispose();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ActivationRevisionAndRemainingPulseClaim_AreExactArmorAuthoritativeAndCancelSchedule()
+        {
+            Time.timeScale = 1;
+            var twoPulse = new TrapFixture(200, false, 100);
+            var onePulse = new TrapFixture();
+            var zeroPulse = new TrapFixture();
+            try
+            {
+                var activationEvents = 0;
+                twoPulse.Trap.Activated += _ => activationEvents++;
+                Assert.That(twoPulse.Trap.ActivationRevision, Is.Zero);
+                Assert.That(twoPulse.Trap.TryActivate(), Is.True);
+                var revision = twoPulse.Trap.ActivationRevision;
+                Assert.That(revision, Is.EqualTo(1));
+                Assert.That(twoPulse.Trap.TryActivate(), Is.False);
+                Assert.That(twoPulse.Trap.ActivationRevision, Is.EqualTo(revision),
+                    "Failed activation must not publish another run revision.");
+                Assert.That(activationEvents, Is.EqualTo(1));
+                Assert.That(twoPulse.Entity.Health.Current, Is.EqualTo(196).Within(.001f));
+                Assert.That(twoPulse.Trap.TryDetonateRemaining(twoPulse.Entity, revision + 1,
+                    out var wrongRevisionClaim), Is.False);
+                Assert.That(wrongRevisionClaim, Is.Zero);
+                Assert.That(twoPulse.Trap.BurnPulsesRemaining, Is.EqualTo(2));
+                Assert.That(twoPulse.Trap.TryDetonateRemaining(twoPulse.Entity, revision, out var claimedTwo), Is.True);
+                Assert.That(claimedTwo, Is.EqualTo(2));
+                Assert.That(twoPulse.Entity.Health.Current, Is.EqualTo(188).Within(.001f),
+                    "All three raw 8-damage pulses use the exact target's 100 armor authority.");
+                Assert.That(twoPulse.Trap.BurnPulsesRemaining, Is.Zero);
+
+                Assert.That(onePulse.Trap.TryActivate(), Is.True);
+                yield return new WaitForSeconds(1.6f);
+                Assert.That(onePulse.Trap.BurnPulsesRemaining, Is.EqualTo(1));
+                Assert.That(onePulse.Trap.TryDetonateRemaining(onePulse.Entity,
+                    onePulse.Trap.ActivationRevision, out var claimedOne), Is.True);
+                Assert.That(claimedOne, Is.EqualTo(1));
+                Assert.That(onePulse.Entity.Health.Current, Is.EqualTo(76));
+
+                Assert.That(zeroPulse.Trap.TryActivate(), Is.True);
+                yield return new WaitForSeconds(3.2f);
+                Assert.That(zeroPulse.Trap.BurnPulsesRemaining, Is.Zero);
+                Assert.That(zeroPulse.Trap.TryDetonateRemaining(zeroPulse.Entity,
+                    zeroPulse.Trap.ActivationRevision, out var claimedZero), Is.False);
+                Assert.That(claimedZero, Is.Zero);
+                Assert.That(zeroPulse.Entity.Health.Current, Is.EqualTo(76));
+
+                yield return new WaitForSeconds(3.2f);
+                Assert.That(twoPulse.Entity.Health.Current, Is.EqualTo(188).Within(.001f));
+                Assert.That(onePulse.Entity.Health.Current, Is.EqualTo(76));
+            }
+            finally
+            {
+                twoPulse.Dispose();
+                onePulse.Dispose();
+                zeroPulse.Dispose();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RemainingPulseClaim_RejectsWrongTargetImmunityAndDisableWithoutDuplicateDamage()
+        {
+            GameplayInput.ResetForTests();
+            Time.timeScale = 1;
+            var fixture = new TrapFixture(100, true);
+            var other = new TrapFixture();
+            try
+            {
+                Assert.That(fixture.Trap.TryActivate(), Is.True);
+                Assert.That(fixture.Trap.TryDetonateRemaining(other.Entity,
+                    fixture.Trap.ActivationRevision, out var wrongClaim), Is.False);
+                Assert.That(wrongClaim, Is.Zero);
+                Assert.That(fixture.Trap.BurnPulsesRemaining, Is.EqualTo(2));
+
+                fixture.Entity.SetController(fixture.Player);
+                Assert.That(fixture.Entity.TryDodge(Vector3.right), Is.True);
+                Assert.That(fixture.Entity.Health.IsDamageImmune, Is.True);
+                Assert.That(fixture.Trap.TryDetonateRemaining(fixture.Entity,
+                    fixture.Trap.ActivationRevision, out var immuneClaim), Is.False);
+                Assert.That(immuneClaim, Is.Zero);
+                Assert.That(fixture.Trap.BurnPulsesRemaining, Is.EqualTo(2));
+
+                fixture.Trap.enabled = false;
+                Assert.That(fixture.Trap.BurnPulsesRemaining, Is.Zero);
+                Assert.That(fixture.Trap.TryDetonateRemaining(fixture.Entity,
+                    fixture.Trap.ActivationRevision, out var disabledClaim), Is.False);
+                Assert.That(disabledClaim, Is.Zero);
+                yield return new WaitForSeconds(3.2f);
+                Assert.That(fixture.Entity.Health.Current, Is.EqualTo(92),
+                    "Rejected claims and disable cannot apply duplicate burn damage.");
+            }
+            finally
+            {
+                GameplayInput.ResetForTests();
+                fixture.Dispose();
+                other.Dispose();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FatalOrdinaryHit_CanClaimAndCancelWithoutDamagingDeadTarget()
+        {
+            Time.timeScale = 1;
+            var fixture = new TrapFixture();
+            var source = new GameObject("Fatal Ordinary Hit Source");
+            var claimed = -1;
+            var resolved = false;
+            try
+            {
+                Assert.That(fixture.Trap.TryActivate(), Is.True);
+                fixture.Entity.Health.Damaged += OnDamaged;
+                fixture.Entity.Health.TakeDamage(new DamageInfo(1000, source, fixture.Entity.transform.position), 0);
+                Assert.That(fixture.Entity.Health.IsDead, Is.True);
+                Assert.That(resolved, Is.True);
+                Assert.That(claimed, Is.EqualTo(2));
+                Assert.That(fixture.Trap.BurnPulsesRemaining, Is.Zero);
+                yield return new WaitForSeconds(3.2f);
+                Assert.That(fixture.Entity.Health.Current, Is.Zero);
+            }
+            finally
+            {
+                fixture.Entity.Health.Damaged -= OnDamaged;
+                Object.Destroy(source);
+                fixture.Dispose();
+            }
+
+            void OnDamaged(DamageInfo _)
+            {
+                resolved = fixture.Trap.TryDetonateRemaining(fixture.Entity,
+                    fixture.Trap.ActivationRevision, out claimed);
             }
         }
 
@@ -121,11 +258,11 @@ namespace RealmRaiders.Tests
                 Assert.That(fixture.Entity.Health.Current, Is.EqualTo(100), "The immediate pulse is inside dodge immunity.");
                 Assert.That(fixture.Entity.IsRooted, Is.False);
 
-                yield return new WaitForSeconds(.38f);
+                yield return new WaitForSeconds(1.6f);
                 Assert.That(fixture.Entity.Health.Current, Is.EqualTo(92), "The next pulse lands after dodge immunity expires.");
                 Assert.That(fixture.Entity.IsRooted, Is.False);
 
-                yield return new WaitForSeconds(.38f);
+                yield return new WaitForSeconds(1.6f);
                 Assert.That(fixture.Entity.Health.Current, Is.EqualTo(84));
                 Assert.That(fixture.Trap.BurnPulsesRemaining, Is.Zero);
             }
@@ -172,6 +309,8 @@ namespace RealmRaiders.Tests
             var trap = Object.FindFirstObjectByType<FlameTrap>();
             var hud = Object.FindFirstObjectByType<DefenderHUD>();
             var invader = GameObject.Find("Invading Blood Knight").GetComponent<CombatEntity>();
+            var brute = GameObject.Find("Infernal Brute").GetComponent<CombatEntity>();
+            var possession = Object.FindFirstObjectByType<PossessionManager>();
             var responsive = hud.GetComponent<ResponsiveHudRoot>();
             Assert.That(trap.Automatic, Is.False, "The scene Flame Trap must wait for the Keeper's manual activation.");
             invader.SetController(null);
@@ -187,6 +326,10 @@ namespace RealmRaiders.Tests
             yield return null;
             Assert.That(hud.TrapStatusText, Is.EqualTo("IGNITED — 2 BURN PULSES REMAIN"));
             Assert.That(hud.TrapButtonInteractable, Is.False);
+            Assert.That(possession.CameraRig.IsTransitioning, Is.False,
+                "The short burn window must not be consumed by a longer Keeper trap-focus transition.");
+            Assert.That(possession.CanSelect(brute), Is.True,
+                "The exact Brute must remain selectable while the Flame Rush opportunity is active.");
 
             responsive.SetOrientationForTests(PrototypeOrientation.Portrait);
             yield return null;
@@ -202,7 +345,7 @@ namespace RealmRaiders.Tests
             ownership.OnPointerUp(pointer);
             Assert.That(GameplayInput.IsUiOwned(pointer.pointerId), Is.False);
 
-            yield return new WaitForSeconds(.76f);
+            yield return new WaitForSeconds(3.2f);
             Assert.That(hud.TrapStatusText, Does.StartWith("FLAME TRAP COOLDOWN —"));
         }
 
@@ -226,14 +369,14 @@ namespace RealmRaiders.Tests
             readonly CharacterDefinition definition;
             readonly GameObject trapObject;
 
-            public TrapFixture(float maximumHealth = 100, bool withPlayer = false)
+            public TrapFixture(float maximumHealth = 100, bool withPlayer = false, float armor = 0)
             {
                 Root = withPlayer
                     ? new GameObject("Flame Trap Target", typeof(CharacterController), typeof(Health), typeof(CombatEntity), typeof(PlayerController))
                     : new GameObject("Flame Trap Target", typeof(CharacterController), typeof(Health), typeof(CombatEntity));
                 definition = ScriptableObject.CreateInstance<CharacterDefinition>();
                 definition.DisplayName = "Flame Trap Target";
-                definition.Stats = new CombatStats { MaxHealth = maximumHealth, MoveSpeed = 4, AttackSpeed = 1 };
+                definition.Stats = new CombatStats { MaxHealth = maximumHealth, MoveSpeed = 4, AttackSpeed = 1, Armor = armor };
                 definition.Abilities = System.Array.Empty<AbilityDefinition>();
                 Entity = Root.GetComponent<CombatEntity>();
                 Entity.Initialize(definition);
