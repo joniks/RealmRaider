@@ -120,7 +120,7 @@ namespace RealmRaiders.Core
         {
             PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 34, 2.7f, 1.3f, .45f, .9f),
             PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 24, 1.8f, 3, .2f, .9f, 5),
-            PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f)
+            PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f, recovery: .8f)
         };
 
         static AbilityDefinition[] HoundAbilities() => new[] { PrototypeRuntimeFactory.Ability("Leap", AbilityKind.Melee, 12, 2.4f, 1, .14f, .9f) };

@@ -19,7 +19,8 @@ Last reviewed: 2026-09-12
   green automated results are not a claim of visual or device acceptance.
 - Priority is 70% gameplay/content and 30% foundation/polish by planned effort.
   Sylvan route risk/reward and the standalone Infernal Ent raid are accepted; the
-  active next slice is Ent attack rhythm, followed by encounter variants.
+  Ent attack rhythm is accepted; the active next slice is the three authored
+  Sylvan encounter variants.
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
@@ -35,6 +36,12 @@ Last reviewed: 2026-09-12
   Heart, with same-scene retry and Hub return. The user's full suites were green
   and Android export completed; the retained XML independently confirms EditMode
   `380/380`, zero failed/skipped/inconclusive.
+- Core 18.2 is accepted: only exact Sylvan raid/defense Guardian Ent AI now uses
+  the modular successful `Smash → Smash → Ground Slam` rhythm, with clean target,
+  range, controller, death and reconfiguration resets. Guardian Ent Ground Slam
+  uses a shared `0.80s` recovery while legacy abilities retain `0.12s`; possession
+  remains direct-player authority. QA passed EditMode `394/394` and PlayMode
+  `114/114`, zero failed/skipped/inconclusive and no new compiler/runtime errors.
 
 ## Latest verification
 

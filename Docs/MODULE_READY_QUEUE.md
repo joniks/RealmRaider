@@ -807,10 +807,10 @@ permits Area after two consecutive Basics. Target facts and Area range/recovery
 remain sourced from existing Core authority. Package NUnit tests are authored but
 Unity QA has not yet run them.
 
-## Active — MGC04.2 Heavy Attack Rhythm Evaluator
+## Accepted for integration — MGC04.2 Heavy Attack Rhythm Evaluator
 
 Owner: Module Developer / Technical Art (`module_mart05_3_finish`).
-Base: accepted Modules commit `ca4eaf2`. Same isolated no-engine package only.
+Accepted Modules commit: `37d9d36` on 2026-09-12. Same isolated no-engine package.
 
 Move one genuinely reusable decision kernel out of future Core 18.2: immutable
 input/result plus a deterministic evaluator for the accepted Guardian Ent recipe.
@@ -820,3 +820,17 @@ then Area. Null/malformed facts fail closed. The package must not retain state,
 advance time, find targets, duplicate range/damage/cooldown values or execute an
 ability. Core remains responsible for supplying explicit target/count facts,
 resetting the count and invoking the existing CombatEntity action.
+
+Unity integration QA passed as part of Core 18.2: the complete final EditMode gate
+was `394/394`, including the actual 13 MGC04/MGC04.2 package tests; PlayMode was
+`114/114`. The package retains no Unity, timing, target discovery or execution
+authority.
+
+## Accepted — AVFX01 Ent Ground Slam Preview and Mobile Intake
+
+Accepted Modules commits: `544fab4` and `b00f6b1` on 2026-09-12. One original,
+reference-free 1024 RGBA Sylvan root-energy ring has exact provenance and clean
+zero-alpha outer edges. Deterministic 512/256 derivatives preserve the empty centre
+and 64 px silhouette; the 256 candidate is the recommended first Core pilot.
+Unity blend/import, short lifetime and overdraw remain a later named integration
+gate; no `.meta`, material, shader or runtime binding is claimed.

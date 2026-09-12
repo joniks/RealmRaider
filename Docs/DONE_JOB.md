@@ -3884,3 +3884,27 @@ Completed on 2026-09-12; included with this project commit.
   failed/skipped/inconclusive, 2026-09-12 09:49:01Z–09:49:03Z.
 - The PlayMode XML was overwritten by the later EditMode run, so its exact total is
   intentionally not reconstructed. `git diff --check` is clean.
+
+## Diamond Pass 18.2 — Guardian Ent Attack Rhythm
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- Installed the accepted no-engine MGC04.2 package and opted in only exact Sylvan
+  raid/defense Guardian Ent AI. Successful actions now follow `Smash → Smash →
+  Ground Slam`; failed action gates do not advance the sequence.
+- Target change/death, detection disengagement, controller loss, reconfiguration
+  and entity death clear retained rhythm state. Other creatures keep legacy Basic.
+- Added per-ability recovery with legacy `0.12s` default and shared Guardian Ent
+  Ground Slam `0.80s`; possession stays player-owned and retains real cooldowns.
+- The first-minute Attack guide now shows factual busy, recovering or ready copy
+  instead of becoming empty while the same entity carries an inherited cooldown.
+
+### Verification
+
+- Final EditMode passed `394/394`; final PlayMode passed `114/114`, with zero
+  failed/skipped/inconclusive and no new compiler/runtime errors.
+- QA used the existing in-Editor menu gates after one required Assets Refresh;
+  no CLI, restart or second Unity process was used. Manual cadence/feel is unobserved
+  through QA's AX-only Game surface and remains for user playtesting.

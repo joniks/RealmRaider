@@ -890,7 +890,7 @@ offer same-scene retry or Hub. The user's final EditMode and PlayMode suites wer
 green and Android export completed; retained XML confirms EditMode `380/380`, zero
 failed/skipped/inconclusive. The overwritten PlayMode XML total is not reconstructed.
 
-## Active — 18.2 Ent Attack Rhythm (gameplay/content)
+## Accepted — 18.2 Ent Attack Rhythm (gameplay/content)
 
 Dependency: accepted 18.1B commit. Add a narrowly opted-in Ent AI attack pattern
 using existing basic Smash and Ground Slam: readable anticipation, evadable impact
@@ -898,3 +898,19 @@ and a recovery opening. Preserve the shared action gate; no simultaneous attacks
 input steering, auto-player attacks or changed possession identity. Other brains
 retain their current behavior unless explicitly configured. Core prepares exact
 paths/pattern parameters read-only; Architect writes the lease before activation.
+
+Acceptance: the exact Sylvan raid/defense Guardian Ent consumes the installed
+MGC04.2 evaluator and performs successful Basic, Basic, Area decisions with clean
+lifecycle resets. Ground Slam has a shared `0.80s` recovery; inherited possession
+cooldown is preserved and the first-minute guide now explains busy/recovering/ready
+states instead of going blank. Final QA passed EditMode `394/394` and PlayMode
+`114/114`, zero failed/skipped/inconclusive, with no new compiler/runtime errors.
+Manual cadence/feel remains user-observed because QA could not access Game pixels.
+
+## Active next — 18.3 Authored Sylvan Encounter Variants (gameplay/content)
+
+Install MGC01 and materialize all three reviewed compositions through the existing
+Sylvan entity/node/reward path. Provide one explicit, truthful Hub choice that
+cycles Baseline, Wolf Pressure and Sentinel Escort; launched raid and retry use the
+shown session selection. No randomizer, new persistence claim, copied stats or new
+spawn framework. Exact paths and acceptance belong in NEXT_JOB before Core writes.

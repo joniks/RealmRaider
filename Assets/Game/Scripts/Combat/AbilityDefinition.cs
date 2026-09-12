@@ -14,6 +14,7 @@ namespace RealmRaiders.Combat
         [Min(0)] public float Radius = 2;
         [Min(0)] public float Cooldown = 1;
         [Min(0)] public float Windup = .2f;
+        [Min(0)] public float Recovery = .12f;
         [Min(0)] public float DashDistance = 5;
     }
 }

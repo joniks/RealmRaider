@@ -356,7 +356,17 @@ namespace RealmRaiders.UI
                     target = joystick && responsive.JoystickRect && responsive.JoystickRect.gameObject.activeInHierarchy ? responsive.JoystickRect : null;
                     break;
                 case DefenseGuideStep.Attack:
-                    if (!defender.IsActionResolving && defender.Abilities.Count > 0 && defender.Abilities[0].IsReady)
+                    if (defender.IsActionResolving)
+                    {
+                        group = "AttackWait";
+                        copy = "WAIT — ACTION IN PROGRESS";
+                    }
+                    else if (defender.Abilities.Count > 0 && !defender.Abilities[0].IsReady)
+                    {
+                        group = "AttackRecovering";
+                        copy = "SMASH RECOVERING — KEEP MOVING";
+                    }
+                    else if (defender.Abilities.Count > 0)
                     {
                         copy = "ATTACK — TAP SMASH";
                         target = smashButton && smashButton.gameObject.activeInHierarchy ? (RectTransform)smashButton.transform : null;

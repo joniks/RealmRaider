@@ -193,7 +193,7 @@ namespace RealmRaiders.Characters
             }
             action.Recover();
             PublishPresentation();
-            yield return new WaitForSecondsRealtime(.12f);
+            yield return new WaitForSecondsRealtime(ability.Recovery);
             action.Complete(); actionRoutine = null;
             PublishPresentation(CombatPresentationEnd.Completed);
         }

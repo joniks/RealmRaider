@@ -49,6 +49,7 @@ namespace RealmRaiders.Tests
                 var player = ent.Controller<PlayerController>(); Assert.That(player, Is.Not.Null); Assert.That(player.IsActive, Is.True); Assert.That(ent.ActiveController, Is.SameAs(player));
                 Assert.That(Object.FindObjectsByType<PlayerController>(FindObjectsSortMode.None).Count(item => item.IsActive), Is.EqualTo(1));
                 Assert.That(ent.Abilities.Select(item => item.Definition.DisplayName), Is.EqualTo(new[] { "Smash", "Charge", "Ground Slam" }));
+                Assert.That(ent.Abilities[2].Definition.Recovery, Is.EqualTo(.8f).Within(.0001f));
                 Assert.That(ent.GetComponent<CharacterVisualMotion>(), Is.Not.Null, "The accepted Guardian Ent presentation remains animated.");
 
                 Assert.That(flame.Automatic, Is.True); Assert.That(flame.TriggerRadius, Is.EqualTo(2f)); AssertPosition(flame.transform, 0, 2);

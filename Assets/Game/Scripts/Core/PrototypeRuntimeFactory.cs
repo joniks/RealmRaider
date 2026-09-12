@@ -101,8 +101,8 @@ namespace RealmRaiders.Core
         public static Material Material(Color color)
         { var material = new Material(Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard")); material.color = color; return material; }
 
-        public static AbilityDefinition Ability(string name, AbilityKind kind, float damage, float range, float radius, float windup, float cooldown = -1, float dash = 0)
-        { var ability = ScriptableObject.CreateInstance<AbilityDefinition>(); ability.DisplayName = name; ability.Kind = kind; ability.Damage = damage; ability.Range = range; ability.Radius = radius; ability.Windup = windup; ability.Cooldown = cooldown >= 0 ? cooldown : kind == AbilityKind.Area ? 4 : 1; ability.DashDistance = dash; return ability; }
+        public static AbilityDefinition Ability(string name, AbilityKind kind, float damage, float range, float radius, float windup, float cooldown = -1, float dash = 0, float recovery = .12f)
+        { var ability = ScriptableObject.CreateInstance<AbilityDefinition>(); ability.DisplayName = name; ability.Kind = kind; ability.Damage = damage; ability.Range = range; ability.Radius = radius; ability.Windup = windup; ability.Cooldown = cooldown >= 0 ? cooldown : kind == AbilityKind.Area ? 4 : 1; ability.DashDistance = dash; ability.Recovery = recovery; return ability; }
 
         public static CombatEntity CreateEntity(string archetypeId, string name, Vector3 position, CombatStats stats, Color color, bool possessable, Vector3 visualScale, AbilityDefinition[] abilities, bool cube)
         {

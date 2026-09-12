@@ -1,6 +1,6 @@
 {
   "name": "RealmRaiders.Runtime",
   "rootNamespace": "RealmRaiders",
-  "references": ["RealmRaiders.ModuleContracts", "RealmRaiders.StarterCharacterCatalog", "RealmRaiders.CharacterMotionProfiles", "RealmRaiders.CharacterProceduralMotion", "RealmRaiders.InfernalEncounters", "Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.ugui"],
+  "references": ["RealmRaiders.ModuleContracts", "RealmRaiders.StarterCharacterCatalog", "RealmRaiders.CharacterMotionProfiles", "RealmRaiders.CharacterProceduralMotion", "RealmRaiders.InfernalEncounters", "RealmRaiders.LargeCreatureCombatRhythm", "Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.ugui"],
   "autoReferenced": true
 }

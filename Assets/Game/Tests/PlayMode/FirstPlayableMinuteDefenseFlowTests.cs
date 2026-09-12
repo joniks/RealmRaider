@@ -340,6 +340,15 @@ namespace RealmRaiders.Tests
             }
 
             SetRootPosition(scene.Defender, new Vector3(0, scene.Defender.transform.position.y, 0));
+            var prePossessionAi = scene.Defender.Controller<CreatureBrain>();
+            scene.Defender.SetController(null);
+            var inheritedCooldownDeadline = Time.realtimeSinceStartup + 3f;
+            while ((scene.Defender.IsActionResolving || !scene.Defender.Abilities[0].IsReady) && Time.realtimeSinceStartup < inheritedCooldownDeadline) yield return null;
+            Assert.That(scene.Defender.IsActionResolving, Is.False);
+            Assert.That(scene.Defender.Abilities[0].IsReady, Is.True);
+            scene.Defender.Abilities[0].Definition.Cooldown = 3f;
+            scene.Defender.SetController(prePossessionAi);
+            Assert.That(scene.Defender.TryUse(0, Vector3.forward), Is.True, "The AI-owned Ent supplies a factual pre-possession Smash cooldown.");
             var selectMarker = scene.Guide.PossessableMarkerRect;
             scene.Possession.Select(scene.Defender);
             Assert.That(scene.Guide.PossessableMarkerRect, Is.SameAs(selectMarker));
@@ -405,12 +414,23 @@ namespace RealmRaiders.Tests
             Assert.That(scene.Guide.Step, Is.EqualTo(DefenseGuideStep.Attack));
             var factualMovement = scene.Defender.transform.position - movementOrigin; factualMovement.y = 0;
             Assert.That(factualMovement.magnitude, Is.GreaterThanOrEqualTo(.6f), "Movement proof requires authoritative root displacement from accepted locomotion.");
+            Assert.That(scene.Guide.GuideText, Is.EqualTo("SMASH RECOVERING — KEEP MOVING"),
+                "A valid Attack step must explain the same-entity cooldown inherited through possession.");
+            var smashReadyDeadline = Time.realtimeSinceStartup + 3f;
+            while (!scene.Defender.Abilities[0].IsReady && Time.realtimeSinceStartup < smashReadyDeadline) yield return null;
+            Assert.That(scene.Defender.Abilities[0].IsReady, Is.True);
+            scene.Guide.RefreshForTests();
             Assert.That(scene.Guide.GuideText, Is.EqualTo("ATTACK — TAP SMASH"));
 
             Assert.That(scene.Defender.TryUse(2, Vector3.forward), Is.True);
+            scene.Guide.RefreshForTests();
+            Assert.That(scene.Guide.GuideText, Is.EqualTo("WAIT — ACTION IN PROGRESS"));
             GameObject.Find("SMASH").GetComponent<Button>().onClick.Invoke();
             Assert.That(scene.Guide.Step, Is.EqualTo(DefenseGuideStep.Attack), "A blocked Smash cannot advance the proof.");
-            yield return new WaitForSecondsRealtime(1f); yield return null; scene.Guide.RefreshForTests();
+            var slamCompleteDeadline = Time.realtimeSinceStartup + 3f;
+            while (scene.Defender.IsActionResolving && Time.realtimeSinceStartup < slamCompleteDeadline) yield return null;
+            Assert.That(scene.Defender.IsActionResolving, Is.False);
+            scene.Guide.RefreshForTests();
             Assert.That(scene.Guide.GuideText, Is.EqualTo("ATTACK — TAP SMASH"));
             GameObject.Find("SMASH").GetComponent<Button>().onClick.Invoke();
             Assert.That(scene.Guide.Step, Is.EqualTo(DefenseGuideStep.Dodge));

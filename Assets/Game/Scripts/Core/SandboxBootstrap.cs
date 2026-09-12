@@ -55,7 +55,7 @@ namespace RealmRaiders.Core
         static CombatEntity CreateEntity(string archetypeId, string displayName, Vector3 position, CombatStats stats, bool possessable, Color color, bool heavy)
         {
             var visualScale = heavy ? new Vector3(1.5f, 1.8f, 1.5f) : Vector3.one;
-            var abilities = heavy ? new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 36, 2.7f, 1.2f, .45f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 26, 1.8f, 3.5f, .2f, 1, 6), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 42, 1, 4, .8f) } : new[] { PrototypeRuntimeFactory.Ability("Basic Slash", AbilityKind.Melee, 23, 2.3f, .9f, .18f), PrototypeRuntimeFactory.Ability("Blood Rush", AbilityKind.Dash, 25, 1.8f, 3, .15f, 1, 6), PrototypeRuntimeFactory.Ability("Heavy Cleave", AbilityKind.Area, 35, 1.8f, 2.8f, .65f) };
+            var abilities = heavy ? new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 36, 2.7f, 1.2f, .45f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 26, 1.8f, 3.5f, .2f, 1, 6), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 42, 1, 4, .8f, recovery: .8f) } : new[] { PrototypeRuntimeFactory.Ability("Basic Slash", AbilityKind.Melee, 23, 2.3f, .9f, .18f), PrototypeRuntimeFactory.Ability("Blood Rush", AbilityKind.Dash, 25, 1.8f, 3, .15f, 1, 6), PrototypeRuntimeFactory.Ability("Heavy Cleave", AbilityKind.Area, 35, 1.8f, 2.8f, .65f) };
             return PrototypeRuntimeFactory.CreateEntity(archetypeId, displayName, position, stats, color, possessable, visualScale, abilities, heavy);
         }
 

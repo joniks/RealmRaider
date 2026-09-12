@@ -61,7 +61,14 @@ namespace RealmRaiders.Core
                     deployedPieces[i] = DefensePieceType.Ent;
                 }
             }
-            foreach (var defender in defenders) { var brain = defender.Controller<CreatureBrain>(); brain.Target = invader; defender.SetController(brain); }
+            foreach (var defender in defenders)
+            {
+                var brain = defender.Controller<CreatureBrain>();
+                brain.Target = invader;
+                if (defender.Definition.ArchetypeId == PrototypeCharacterRoster.GuardianEntId)
+                    brain.ConfigureGuardianEntHeavyAttackRhythm(new[] { invader });
+                defender.SetController(brain);
+            }
 
             var invaderBrain = invader.gameObject.AddComponent<RaidInvaderBrain>();
             invader.RefreshControllers();
@@ -80,7 +87,7 @@ namespace RealmRaiders.Core
         {
             var abilities = archetypeId switch
             {
-                PrototypeCharacterRoster.GuardianEntId => new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 34, 2.7f, 1.3f, .45f, .9f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 24, 1.8f, 3, .2f, .9f, 5), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f) },
+                PrototypeCharacterRoster.GuardianEntId => new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 34, 2.7f, 1.3f, .45f, .9f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 24, 1.8f, 3, .2f, .9f, 5), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f, recovery: .8f) },
                 PrototypeCharacterRoster.SylvanWolfId => new[] { PrototypeRuntimeFactory.Ability("Leap", AbilityKind.Melee, 9, 2.4f, 1, .14f, .9f) },
                 PrototypeCharacterRoster.BloodKnightId => new[] { PrototypeRuntimeFactory.Ability("Basic Slash", AbilityKind.Melee, 21, 2.3f, .9f, .18f, .9f), PrototypeRuntimeFactory.Ability("Blood Rush", AbilityKind.Dash, 24, 1.8f, 3, .15f, .9f, 6), PrototypeRuntimeFactory.Ability("Heavy Cleave", AbilityKind.Area, 34, 1.8f, 2.8f, .65f) },
                 _ => throw new System.InvalidOperationException($"Sylvan defense has no ability set for archetype '{archetypeId}'.")

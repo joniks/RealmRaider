@@ -44,7 +44,14 @@ namespace RealmRaiders.Core
             var wolfOne = Entity(PrototypeCharacterRoster.SylvanWolfId, "Wolf Alpha", new Vector3(-13, .65f, -11), wolfStats, new Color(.36f, .39f, .35f), false, .75f);
             var wolfTwo = Entity(PrototypeCharacterRoster.SylvanWolfId, "Wolf Scout", new Vector3(-16, .65f, -7), wolfStats, new Color(.46f, .49f, .43f), false, .68f);
             var ent = Entity(PrototypeCharacterRoster.GuardianEntId, "Sylvan Ent", new Vector3(14, 1.5f, 4), CombatStats.Ent, new Color(.18f, .38f, .12f), true, 1.45f);
-            foreach (var enemy in new[] { wolfOne, wolfTwo, ent }) { enemy.Controller<CreatureBrain>().Target = hero; enemy.SetController(enemy.Controller<CreatureBrain>()); }
+            foreach (var enemy in new[] { wolfOne, wolfTwo, ent })
+            {
+                var brain = enemy.Controller<CreatureBrain>();
+                brain.Target = hero;
+                if (enemy.Definition.ArchetypeId == PrototypeCharacterRoster.GuardianEntId)
+                    brain.ConfigureGuardianEntHeavyAttackRhythm(new[] { hero });
+                enemy.SetController(brain);
+            }
 
             var graph = new RealmGraph();
             foreach (var id in new[] { "Portal", "Crossroads", "Wolf Grove", "Ent Grove", "Root Path", "Moonwell", "Heart Tree" }) graph.Add(id);
@@ -138,7 +145,7 @@ namespace RealmRaiders.Core
         {
             var abilities = archetypeId switch
             {
-                PrototypeCharacterRoster.GuardianEntId => new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 34, 2.7f, 1.3f, .45f, .9f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 24, 1.8f, 3, .2f, .9f, 5), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f) },
+                PrototypeCharacterRoster.GuardianEntId => new[] { PrototypeRuntimeFactory.Ability("Smash", AbilityKind.Melee, 34, 2.7f, 1.3f, .45f, .9f), PrototypeRuntimeFactory.Ability("Charge", AbilityKind.Dash, 24, 1.8f, 3, .2f, .9f, 5), PrototypeRuntimeFactory.Ability("Ground Slam", AbilityKind.Area, 38, 1, 4, .75f, recovery: .8f) },
                 PrototypeCharacterRoster.SylvanWolfId => new[] { PrototypeRuntimeFactory.Ability("Leap", AbilityKind.Melee, 11, 2.4f, 1, .14f, .9f) },
                 PrototypeCharacterRoster.BloodKnightId => new[] { PrototypeRuntimeFactory.Ability("Basic Slash", AbilityKind.Melee, 23, 2.3f, .9f, .18f, .9f), PrototypeRuntimeFactory.Ability("Blood Rush", AbilityKind.Dash, 25, 1.8f, 3, .15f, .9f, 6), PrototypeRuntimeFactory.Ability("Heavy Cleave", AbilityKind.Area, 35, 1.8f, 2.8f, .65f) },
                 _ => throw new System.InvalidOperationException($"Sylvan raid has no ability set for archetype '{archetypeId}'.")
