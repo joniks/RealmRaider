@@ -215,6 +215,8 @@ namespace RealmRaiders.Possession
             return entity && registered.Contains(entity) && entity.Health != null && !entity.Health.IsDead && entity.IsPossessable;
         }
 
+        public bool CanSelect(CombatEntity entity) => CanAcceptKeeperSelection() && IsRegisteredAndSelectable(entity);
+
         void PollKeeperSelectionInput()
         {
             var touchscreen = Touchscreen.current;

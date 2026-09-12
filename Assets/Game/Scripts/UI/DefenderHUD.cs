@@ -1,5 +1,6 @@
 using System.Globalization;
 using RealmRaiders.Characters;
+using RealmRaiders.Combat;
 using RealmRaiders.Possession;
 using RealmRaiders.Raid;
 using RealmRaiders.Realm;
@@ -61,7 +62,7 @@ namespace RealmRaiders.UI
     public sealed class DefenderHUD : MonoBehaviour
     {
         public const string CultivationReadyResultCopy = "CULTIVATION READY — RETURN TO BUILD TO STRENGTHEN YOUR GUARDIAN ENT";
-        Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel, jumpLabel;
+        Text state, invaderHealth, entHealth, guardianEntVitality, energyText, selection, trapText, rootTrapOpportunity, coreText, result, rootPrompt, releaseNotice, openingCue, routeStatus, dodgeLabel, jumpLabel;
         Image energyFill;
         RectTransform energyMeter;
         Button possess, release, smash, slam, activateTrap, dodge, jump, retry, nextAction, realmHub;
@@ -125,6 +126,10 @@ namespace RealmRaiders.UI
         public bool TrapStatusRaycastTarget => trapText && trapText.raycastTarget;
         public bool TrapButtonInteractable => activateTrap && activateTrap.interactable;
         public RectTransform TrapButtonRect => activateTrap ? (RectTransform)activateTrap.transform : null;
+        public string RootTrapOpportunityText => rootTrapOpportunity && rootTrapOpportunity.gameObject.activeSelf ? rootTrapOpportunity.text : string.Empty;
+        public bool RootTrapOpportunityVisible => rootTrapOpportunity && rootTrapOpportunity.gameObject.activeSelf;
+        public bool RootTrapOpportunityRaycastTarget => rootTrapOpportunity && rootTrapOpportunity.raycastTarget;
+        public RectTransform RootTrapOpportunityRect => rootTrapOpportunity ? rootTrapOpportunity.rectTransform : null;
         public FirstPlayableMinuteDefenseGuide FirstMinuteGuide => firstMinuteGuide;
         public DefenseDeploymentReceipt DeploymentReceipt => deploymentReceipt;
         public string ResultText => result ? result.text : string.Empty;
@@ -207,6 +212,10 @@ namespace RealmRaiders.UI
             var meter = new GameObject("Possession Energy Meter", typeof(RectTransform), typeof(Image)); meter.transform.SetParent(transform, false); energyMeter = (RectTransform)meter.transform; energyMeter.anchorMin = energyMeter.anchorMax = new Vector2(0, 1); energyMeter.pivot = new Vector2(0, 1); energyMeter.anchoredPosition = new Vector2(35, -225); energyMeter.sizeDelta = new Vector2(300, 18); energyMeter.localScale = Vector3.one; meter.GetComponent<Image>().color = new Color(.03f, .08f, .04f, .9f); var fill = new GameObject("Fill", typeof(RectTransform), typeof(Image)); fill.transform.SetParent(meter.transform, false); var fillRect = (RectTransform)fill.transform; fillRect.anchorMin = new Vector2(0, 0); fillRect.anchorMax = new Vector2(1, 1); fillRect.pivot = new Vector2(0, .5f); fillRect.offsetMin = fillRect.offsetMax = Vector2.zero; energyFill = fill.GetComponent<Image>();
             coreText = Label($"{config.CoreName} danger: 0%", new Vector2(0, -235), 28, TextAnchor.UpperCenter); selection = Label($"Tap the {config.DefenderName} to select it", new Vector2(0, -285), 28, TextAnchor.UpperCenter); openingCue = Label("", new Vector2(0, -365), 26, TextAnchor.UpperCenter); openingCue.name = "Opening Preparation Cue"; openingCue.raycastTarget = false; openingCue.gameObject.SetActive(false); routeStatus = Label("", new Vector2(0, -445), 24, TextAnchor.UpperCenter); routeStatus.name = "Invader Route Status"; routeStatus.raycastTarget = false; routeStatus.gameObject.SetActive(false); trapText = Label("", new Vector2(0, 52), 23, TextAnchor.LowerCenter, true); trapText.raycastTarget = false;
             coreText.name = "Core Danger"; selection.name = "Defense Selection"; trapText.name = "Trap Status";
+            rootTrapOpportunity = Label("ROOTED — POSSESS ENT, THEN GROUND SLAM", new Vector2(0, 600), 26, TextAnchor.MiddleCenter, true);
+            rootTrapOpportunity.name = "Root Trap Possession Opportunity";
+            rootTrapOpportunity.raycastTarget = false;
+            rootTrapOpportunity.gameObject.SetActive(false);
             rootPrompt = Label("", new Vector2(0, 700), 36, TextAnchor.MiddleCenter, true); rootPrompt.gameObject.SetActive(false);
             rootPrompt.name = "Root Escape Prompt";
             releaseNotice = Label("", new Vector2(0, 780), 30, TextAnchor.MiddleCenter, true); releaseNotice.name = "Possession Release Notice"; releaseNotice.raycastTarget = false; releaseNotice.gameObject.SetActive(false);
@@ -242,6 +251,7 @@ namespace RealmRaiders.UI
             realmHub = Button("MY REALM", Vector2.zero, ReturnToHub); realmHub.transform.SetParent(resultPanel.transform, false);
             responsive.LayoutChanged += ApplyResultLayout; ApplyResultLayout(responsive.Orientation);
             responsive.LayoutChanged += ApplyChargeAffordanceLayout; ApplyChargeAffordanceLayout(responsive.Orientation);
+            responsive.LayoutChanged += ApplyRootTrapOpportunityLayout; ApplyRootTrapOpportunityLayout(responsive.Orientation);
             if (config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && deployment != null)
             {
                 var receiptObject = new GameObject(DefenseDeploymentReceipt.ObjectName, typeof(RectTransform), typeof(Text), typeof(DefenseDeploymentReceipt));
@@ -324,6 +334,30 @@ namespace RealmRaiders.UI
             RefreshChargeAffordance();
         }
 
+        void ApplyRootTrapOpportunityLayout(PrototypeOrientation orientation)
+        {
+            if (!rootTrapOpportunity) return;
+            var rect = rootTrapOpportunity.rectTransform;
+            if (orientation == PrototypeOrientation.Landscape)
+            {
+                rect.anchorMin = rect.anchorMax = Vector2.zero;
+                rect.pivot = Vector2.zero;
+                rect.anchoredPosition = new Vector2(60, 600);
+                rect.sizeDelta = new Vector2(700, 70);
+                rootTrapOpportunity.alignment = TextAnchor.MiddleLeft;
+            }
+            else
+            {
+                rect.anchorMin = new Vector2(0, 0);
+                rect.anchorMax = new Vector2(1, 0);
+                rect.pivot = new Vector2(.5f, 0);
+                rect.anchoredPosition = new Vector2(0, 600);
+                rect.sizeDelta = new Vector2(0, 70);
+                rootTrapOpportunity.alignment = TextAnchor.MiddleCenter;
+            }
+            RefreshRootTrapOpportunity();
+        }
+
         void ActivateTrap()
         {
             if (IsTerminalResultActive) return;
@@ -400,6 +434,7 @@ namespace RealmRaiders.UI
             if (IsTerminalResultActive) { HideAndDisableLiveActions(); return; }
             selection.text = value ? $"Selected: {value.Definition.DisplayName}" : $"Tap the {config.DefenderName} to select it";
             possess.gameObject.SetActive(value && !possessionManager.IsPossessing && !energy.IsDepleted);
+            RefreshRootTrapOpportunity();
         }
         void OnPossession(CombatEntity value)
         {
@@ -412,12 +447,13 @@ namespace RealmRaiders.UI
             RefreshPossessionEnergy();
             RefreshChargeAffordance();
             RefreshDirectHealth();
+            RefreshRootTrapOpportunity();
         }
         void OnReleased(bool forced)
         {
             if (IsTerminalResultActive) { ClearEnergyPulse(); RefreshDirectHealth(); HideAndDisableLiveActions(); return; }
             ClearEnergyPulse();
-            RefreshPossessionEnergy(); RefreshJumpButton(); RefreshChargeAffordance(); RefreshDirectHealth();
+            RefreshPossessionEnergy(); RefreshJumpButton(); RefreshChargeAffordance(); RefreshDirectHealth(); RefreshRootTrapOpportunity();
         }
 
         void InitializeFirstMinuteGuide()
@@ -447,7 +483,9 @@ namespace RealmRaiders.UI
             if (ent && ent.Health != null) ent.Health.Changed -= OnDefenderHealthChanged;
             if (responsive) responsive.LayoutChanged -= ApplyResultLayout;
             if (responsive) responsive.LayoutChanged -= ApplyChargeAffordanceLayout;
+            if (responsive) responsive.LayoutChanged -= ApplyRootTrapOpportunityLayout;
             if (responsive && deploymentReceipt) responsive.LayoutChanged -= deploymentReceipt.ApplyOrientation;
+            SetRootTrapOpportunityVisible(false);
             if (journeyToken != 0 && !journeyHandoff && !journeyCompletedForResult) PrototypeJourney.Cancel(journeyToken);
         }
         void OnDisable()
@@ -456,9 +494,10 @@ namespace RealmRaiders.UI
             RestoreHealthPresentation();
             SetDeploymentReceiptVisible(false);
             if (chargeAffordance) chargeAffordance.gameObject.SetActive(false);
+            SetRootTrapOpportunityVisible(false);
         }
         void OnEnergyChanged(float current, float maximum) => Refresh();
-        void OnDefenderHealthChanged(float current, float maximum) => RefreshDirectHealth();
+        void OnDefenderHealthChanged(float current, float maximum) { RefreshDirectHealth(); RefreshRootTrapOpportunity(); }
         void OnCoreProgressChanged(float value)
         {
             if (coreText) coreText.text = $"{config.CoreName} danger: {value * 100:0}%";
@@ -509,6 +548,7 @@ namespace RealmRaiders.UI
             }
             RefreshPossessionEnergy();
             RefreshDirectHealth();
+            RefreshRootTrapOpportunity();
         }
 
         void RefreshOpeningCue()
@@ -573,6 +613,7 @@ namespace RealmRaiders.UI
         void Refresh()
         {
             if (!initialized) return;
+            RefreshRootTrapOpportunity();
             if (!invader || !ent) return;
             var invaderCopy = $"Invader  {invader.Health.Current:0}/{invader.Health.Maximum:0} HP";
             if (invaderHealth.text != invaderCopy) invaderHealth.text = invaderCopy;
@@ -597,6 +638,30 @@ namespace RealmRaiders.UI
                 else trapText.text = trap is RootTrap root && root.RecentlyActivated ? "ROOTED!  12 DAMAGE — INVADER HELD" : $"{config.TrapName.ToUpperInvariant()} COOLDOWN — {trap.CooldownRemaining:0.0}s";
                 activateTrap.GetComponent<Image>().color = new Color(.28f, .14f, .08f, .75f);
             }
+        }
+
+        void RefreshRootTrapOpportunity()
+        {
+            if (!rootTrapOpportunity) return;
+            var root = trap as RootTrap;
+            var defenderBrain = ent ? ent.Controller<CreatureBrain>() : null;
+            var groundSlam = ent != null && ent.Abilities.Count > 2 ? ent.Abilities[2] : null;
+            var hasReadyGroundSlam = groundSlam != null && groundSlam.IsReady && groundSlam.Definition && ent.Definition &&
+                ent.Definition.Abilities != null && ent.Definition.Abilities.Length > 2 && groundSlam.Definition == ent.Definition.Abilities[2] &&
+                groundSlam.Definition.Kind == AbilityKind.Area && string.Equals(groundSlam.Definition.DisplayName, "Ground Slam", System.StringComparison.Ordinal);
+            var eligible = isActiveAndEnabled && config.RealmTitle == DefenseHudConfig.Sylvan.RealmTitle && root && root.State == TrapState.Cooldown &&
+                defense != null && !defense.IsFinished && !GameplayInput.TerminalState && !(resultPanel && resultPanel.activeSelf) &&
+                invader && invader.Health != null && !invader.Health.IsDead && invader.IsRooted &&
+                IsSylvanGuardianEnt && ent.Health != null && !ent.Health.IsDead && defenderBrain && defenderBrain.IsActive &&
+                possessionManager && !possessionManager.IsPossessing && possessionManager.CanSelect(ent) &&
+                energy != null && !energy.IsDepleted && hasReadyGroundSlam;
+            SetRootTrapOpportunityVisible(eligible);
+        }
+
+        void SetRootTrapOpportunityVisible(bool visible)
+        {
+            if (rootTrapOpportunity && rootTrapOpportunity.gameObject.activeSelf != visible)
+                rootTrapOpportunity.gameObject.SetActive(visible);
         }
 
         void RefreshDirectHealth()
@@ -778,6 +843,7 @@ namespace RealmRaiders.UI
 
         void HideAndDisableLiveActions()
         {
+            SetRootTrapOpportunityVisible(false);
             HideAndDisable(possess);
             HideAndDisable(release);
             HideAndDisable(activateTrap);

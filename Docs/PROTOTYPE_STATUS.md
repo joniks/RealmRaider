@@ -19,9 +19,10 @@ Last reviewed: 2026-09-12
   green automated results are not a claim of visual or device acceptance.
 - Priority is 70% gameplay/content and 30% foundation/polish by planned effort.
   Sylvan/Infernal raid variants, the Keeper Reserve defense tradeoff and the
-  Guardian Ent Ground Slam impact ring are accepted. The next gameplay slice
-  teaches the existing Root Trap → possess Ent → Ground Slam opportunity without
-  taking control from the player.
+  Guardian Ent Ground Slam impact ring are accepted. The factual Root Trap →
+  possess Ent → Ground Slam opportunity is now also accepted; the next foundation
+  slice creates one stable local starter-realm identity before any scene geometry
+  is randomized.
 - MGC01 is statically accepted in Modules `83bcda9`: three authored Sylvan raid
   compositions are prepared for Core 18.3. The package is not yet installed or
   consumed by the game, and its seven NUnit tests have not yet run.
@@ -276,6 +277,16 @@ Last reviewed: 2026-09-12
   ring at the authoritative Area centre and radius; connected-hit impact remains
   distinct and every controller/death/terminal/disable/destroy path clears it.
   Final QA passed EditMode `444/444` and PlayMode `120/120`.
+- Diamond Pass 18.7 Root Trap Combo Opportunity is present: only a currently
+  rooted invader plus a genuinely selectable living Guardian Ent, available
+  possession energy and ready exact Ground Slam produce the optional cue. Camera
+  transitions, cooldowns and every authority/lifecycle exit suppress it. Final QA
+  passed EditMode `444/444` and PlayMode `121/121`.
+- Starter-realm layout Modules commits `af9a97c` and `d58c2cb` provide deterministic
+  cached recipe selection plus explicit no-engine materialization roles and path
+  widths. They are accepted for later integration but are not yet pinned or
+  installed in the main game; MGC10.2 is completing the full seven-role topology
+  compatibility gate before Core 18.8/18.9 consume them.
 
 ## Directory guide
 

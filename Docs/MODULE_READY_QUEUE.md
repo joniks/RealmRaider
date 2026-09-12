@@ -895,3 +895,33 @@ Outcome: the isolated no-engine package supplies cached `PACK_PRESSURE`
 checks pass; its focused NUnit tests are authored and enter Unity discovery with
 Core 18.5. The module has no layout, save, timer, trap, possession or Unity
 authority.
+
+## Accepted for integration — MGC10 Starter Realm Layout Selection
+
+Accepted Modules commit: `af9a97c` on 2026-09-12. Package:
+`Packages/com.realmraiders.starter-realm-layouts/`.
+
+Three cached Sylvan starter layouts expose immutable node, undirected-edge,
+landmark and expansion-socket facts. Selection from a caller-owned integer seed is
+deterministic and avoids an exact previous layout when asked; malformed IDs,
+coordinates, topology and unsafe active paths fail closed. The package owns no
+save, RNG lifecycle, scene, spawn, combat, reward or Unity behavior.
+
+## Accepted for integration — MGC10.1 Materialization Facts
+
+Accepted Modules commit: `d58c2cb` on 2026-09-12. The same package adds closed
+node and landmark presentation roles plus finite 6–8 unit path-width facts so a
+later Core adapter does not infer content from names. Static checks and independent
+review are clean; package NUnit tests wait for deliberate Unity installation.
+
+## Active — MGC10.2 Full Sylvan Loop Compatibility
+
+Owner: Module Developer / Technical Art. Workspace: Modules repository only.
+
+Before Core materializes a random starter map, every recipe must carry the exact
+seven existing loop roles: Portal, junction, Wolf encounter, Root Path hazard, Ent
+encounter, Moonwell and Heart Tree. The three recipes must retain tactically
+distinct topology signatures, safe Start→Heart reachability and physical
+node/corridor clearance. Add exact persisted-ID resolution for Core 18.8 without
+adding persistence or selection authority. Architect reviews and commits the
+frozen candidate; Unity package tests run only after main integration.

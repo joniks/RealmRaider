@@ -1,5 +1,39 @@
 # Realm Raiders — Done Job
 
+## Diamond Pass 18.7 — Root Trap to Possess Ent to Ground Slam Opportunity
+
+Completed on 2026-09-12; included with this project commit.
+
+### Delivered
+
+- A factual successful Sylvan Root Trap now exposes one concise, noninteractive
+  `ROOTED — POSSESS ENT, THEN GROUND SLAM` opportunity through the existing
+  responsive Defender HUD.
+- The cue appears only while the exact invader remains rooted, the defense is
+  live, the exact Guardian Ent is alive and genuinely selectable from Keeper
+  overview, possession energy remains, and its exact Ground Slam is present and
+  ready. It never selects, possesses, aims or attacks for the player.
+- Camera transition, non-Keeper view, missing/wrong/cooling Ground Slam, depleted
+  energy, possession, root expiry, death, terminal state, HUD disable/destroy and
+  retry all clear or suppress the cue. Release can restore it only after the
+  authoritative Keeper selection gate is available again.
+- The label is singular and non-raycast. Its portrait and landscape placements
+  stay clear of trap copy and both first-frame and reflowed action controls.
+  Root damage/duration/cooldown, possession identity/energy and Ground Slam
+  damage/radius/recovery/cooldown remain unchanged.
+
+### Verification
+
+- The final post-refresh Unity GUI gates passed EditMode `444/444` and PlayMode
+  `121/121`, with zero failed/skipped/inconclusive tests. PlayMode XML covers
+  2026-09-12 16:19:39Z–16:21:24Z and completed in 105.474 seconds.
+- Earlier red runs exposed stale pre-refresh assemblies, first-frame responsive
+  overlap and an over-broad programmatic selection change. The final candidate
+  keeps strict overlap assertions and the established programmatic `Select`
+  contract while sharing the full read-only player selection gate with the cue.
+- `git diff --check` is clean. Manual trap → cue → possession → Ground Slam feel
+  remains with the user's current Android/device smoke; no new export was run.
+
 ## 18.0 — Ent Ground Fit and Contact Landing
 
 Accepted 2026-09-12. Five runtime and five focused test files changed.

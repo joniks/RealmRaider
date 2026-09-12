@@ -982,7 +982,7 @@ initializer corrected it. Final QA passed EditMode `444/444` and PlayMode
 `120/120`, zero failed/skipped/inconclusive, with no new compiler/runtime errors
 and no AudioListener warning increase. Manual visual feel remains user-observed.
 
-## Ready next — 18.7 Root Trap to Possess to Ground Slam Opportunity (gameplay/content)
+## Accepted — 18.7 Root Trap to Possess to Ground Slam Opportunity (gameplay/content)
 
 After a factual successful Sylvan Root Trap activation while the live invader is
 actually rooted, show one short noninteractive cue that suggests the existing
@@ -990,3 +990,25 @@ player-owned combination: possess the exact living Guardian Ent, then use Ground
 Slam. The cue must never select, possess, aim, attack, alter root duration/damage,
 or invent availability. It hides on possession, root expiry, depletion, death,
 terminal/result and teardown. Full activation lease belongs in `Docs/NEXT_JOB.md`.
+
+Acceptance: the cue is shown only while the exact rooted invader, living
+registered Guardian Ent, available possession energy, actual Keeper selection
+gate and ready exact Ground Slam all agree. It remains hidden during camera
+transition, non-Keeper view, cooldown, death, depletion, terminal state and
+teardown; its compact responsive lane avoids both first-frame and reflowed action
+buttons. Final QA passed EditMode `444/444` and PlayMode `121/121`, with zero
+failed/skipped/inconclusive tests.
+
+## Ready next — 18.8 Persistent Starter-Realm Identity (foundation)
+
+Install the accepted starter-realm-layouts package only after its full seven-role
+MGC10.2 contract is reviewed and committed. Create one versioned local Sylvan
+realm identity containing a stable local realm ID, one generated-once integer seed
+and one exact validated layout ID. Loading and retrying must resolve the same
+cached recipe without rerolling. Malformed, unknown or version-mismatched data
+fails closed without corrupting existing preferences.
+
+This gate does not yet replace the current Sylvan scene geometry or spawn content.
+Core 18.9 will materialize the selected recipe only after 18.8 proves stable local
+identity and deterministic package resolution. No account, backend, cloud sync,
+multiplayer ownership, level growth or reroll UI is claimed.
